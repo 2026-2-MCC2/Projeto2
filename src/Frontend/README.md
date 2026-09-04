@@ -5,10 +5,16 @@ architecture.
 
 ## Como rodar
 
+Requer **Node.js 22 ou superior** e Git instalados.
+
 ```sh
 npm install
 npm run dev
 ```
+
+Quem nunca rodou um projeto Node no computador deve seguir o
+[COMO_RODAR.md](COMO_RODAR.md), que tem o passo a passo da instalação e os erros
+mais comuns.
 
 | Comando           | O que faz                            |
 | ----------------- | ------------------------------------ |
