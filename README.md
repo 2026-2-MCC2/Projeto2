@@ -80,7 +80,7 @@ A modelagem do banco está em [Documentos/Entrega 1/Projeto em Banco de Dados](D
 
 ## 🎨 Protótipo
 
-O protótipo navegável das telas foi construído no Figma e cobre os principais fluxos dos módulos Administrador, Organizador e Fornecedor: <https://www.figma.com/design/0oyfFP6b20mcmb75p0lVVF/TrocaTicket---Telas>
+O protótipo navegável das telas foi construído no Figma e cobre os principais fluxos dos módulos Administrador, Organizador e Fornecedor: <https://www.figma.com/design/0oyfFP6b20mcmb75p0lVVF/TrocaTicket---Telas?node-id=70-43>
 
 ## 🛠 Instalação
 
