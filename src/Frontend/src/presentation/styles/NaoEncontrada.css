@@ -1,0 +1,133 @@
+/* Página não encontrada (404). */
+
+.nao-encontrada {
+  --nao-encontrada-azul: #0a50ae;
+  --nao-encontrada-texto: #0f172a;
+  --nao-encontrada-suave: #64748b;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem 1.5rem;
+  background: #f6f8fb;
+  color: var(--nao-encontrada-texto);
+  color-scheme: light;
+  font-family: Inter, system-ui, sans-serif;
+  line-height: 1.35;
+}
+
+.nao-encontrada__conteudo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  width: min(460px, 100%);
+  text-align: center;
+}
+
+.nao-encontrada__marca {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  text-decoration: none;
+}
+
+.nao-encontrada__logo {
+  height: 60px;
+  width: auto;
+}
+
+.nao-encontrada__selo {
+  padding-top: 9px;
+  color: #94a3b8;
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.nao-encontrada__ilustracao {
+  position: relative;
+  width: 264px;
+  height: 168px;
+}
+
+.nao-encontrada__ingresso {
+  position: absolute;
+  width: 42%;
+  height: 62%;
+}
+
+.nao-encontrada__ingresso--esquerda {
+  top: 17%;
+  left: 4%;
+  rotate: -9deg;
+}
+
+.nao-encontrada__ingresso--direita {
+  top: 13%;
+  right: 10%;
+  rotate: 9deg;
+}
+
+.nao-encontrada__etiqueta {
+  padding: 0.3125rem 0.75rem;
+  border-radius: 999px;
+  background: #e8f0fc;
+  color: var(--nao-encontrada-azul);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.0625rem;
+}
+
+.nao-encontrada__mensagem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.nao-encontrada__mensagem h1 {
+  margin: 0;
+  font-size: 1.625rem;
+  font-weight: 600;
+}
+
+.nao-encontrada__mensagem p {
+  margin: 0;
+  color: var(--nao-encontrada-suave);
+  font-size: 0.8125rem;
+}
+
+.nao-encontrada__botao {
+  padding: 0.8125rem 1.75rem;
+  border-radius: 10px;
+  background: var(--nao-encontrada-azul);
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+@media (max-width: 900px) {
+  .nao-encontrada__logo {
+    height: 53px;
+  }
+
+  .nao-encontrada__selo {
+    padding-top: 8px;
+    font-size: 0.75rem;
+  }
+
+  .nao-encontrada__ilustracao {
+    width: 211px;
+    height: 134px;
+  }
+
+  .nao-encontrada__mensagem h1 {
+    font-size: 1.375rem;
+  }
+
+  .nao-encontrada__botao {
+    width: 100%;
+    text-align: center;
+  }
+}
