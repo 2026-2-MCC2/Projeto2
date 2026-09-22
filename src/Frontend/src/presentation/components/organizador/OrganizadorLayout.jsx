@@ -14,7 +14,7 @@ const ABAS = [
 
 // No mobile o menu lateral dá lugar a uma barra superior com o título
 // e a uma navegação inferior em abas.
-export function OrganizadorLayout({ titulo, apoio, children }) {
+export function OrganizadorLayout({ titulo, apoio, estreito = false, children }) {
   const isMobile = useIsMobile()
 
   if (isMobile) {
@@ -64,7 +64,7 @@ export function OrganizadorLayout({ titulo, apoio, children }) {
       <MenuLateral />
 
       <main className="organizador__conteudo">
-        <div className="organizador__area">
+        <div className={`organizador__area${estreito ? ' organizador__area--estreita' : ''}`}>
           <header className="organizador__cabecalho">
             <h1>{titulo}</h1>
             {apoio && <p>{apoio}</p>}
