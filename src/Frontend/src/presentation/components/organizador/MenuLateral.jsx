@@ -3,6 +3,11 @@ import simbolo from '../../assets/organizador/simbolo.png'
 import iconeOrganizador from '../../assets/organizador/icone-organizador.svg'
 import iconeSair from '../../assets/organizador/icone-sair.svg'
 
+const ITENS = [
+  { rota: '/organizador/eventos', nome: 'Todos os eventos' },
+  { rota: '/organizador/configuracoes', nome: 'Configurações' },
+]
+
 export function MenuLateral() {
   return (
     <nav className="menu">
@@ -19,19 +24,15 @@ export function MenuLateral() {
         </div>
       </div>
 
-      <NavLink
-        to="/organizador/eventos"
-        className={({ isActive }) => `menu__item${isActive ? ' menu__item--ativo' : ''}`}
-      >
-        Todos os eventos
-      </NavLink>
-
-      <NavLink
-        to="/organizador/configuracoes"
-        className={({ isActive }) => `menu__item${isActive ? ' menu__item--ativo' : ''}`}
-      >
-        Configurações
-      </NavLink>
+      {ITENS.map((item) => (
+        <NavLink
+          key={item.rota}
+          to={item.rota}
+          className={({ isActive }) => `menu__item${isActive ? ' menu__item--ativo' : ''}`}
+        >
+          {item.nome}
+        </NavLink>
+      ))}
 
       <div className="menu__usuario">
         <div>
