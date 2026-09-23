@@ -1,5 +1,3 @@
-/* Telas de acesso: login, cadastro, recuperar senha e cadastro pendente.*/
-
 .acesso {
   --acesso-azul: #0a50ae;
   --acesso-texto: #0f172a;
@@ -31,8 +29,6 @@
   width: min(380px, 100%);
 }
 
-/* Envolve o conteúdo da página sem interferir no espaçamento da coluna;
-   só vira um bloco próprio no mobile sem foto. */
 .acesso__miolo {
   display: contents;
 }
@@ -50,7 +46,6 @@
 }
 
 .acesso__selo {
-  /* O texto do logo fica abaixo do centro da imagem, então o selo desce junto. */
   padding-top: 11px;
   color: #94a3b8;
   font-size: 1rem;
@@ -137,7 +132,6 @@
   text-decoration: none;
 }
 
-/* Dentro do formulário o link não pode esticar na largura toda da coluna. */
 .acesso__campos .acesso__link {
   align-self: flex-start;
   font-size: 0.75rem;
@@ -314,7 +308,6 @@
   color: #fff;
 }
 
-/* Tinge a foto com a cor da marca, como no Figma. */
 .acesso__cor {
   position: absolute;
   inset: 0;
@@ -574,7 +567,6 @@
     flex-direction: column;
   }
 
-  /* No mobile a foto vira uma faixa no topo, acima do formulário. */
   .acesso__painel {
     order: -1;
     flex: 0 0 210px;
@@ -625,7 +617,6 @@
     flex-direction: column;
   }
 
-  /* Na tela de análise o mobile não tem foto: só a marca numa barra branca. */
   .acesso--marca-no-topo {
     background: #f6f8fb;
   }

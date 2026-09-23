@@ -5,6 +5,7 @@ import { Cadastro } from '../pages/acesso/Cadastro.jsx'
 import { RecuperarSenha } from '../pages/acesso/RecuperarSenha.jsx'
 import { CadastroPendente } from '../pages/acesso/CadastroPendente.jsx'
 import { Eventos } from '../pages/organizador/Eventos.jsx'
+import { NovoEvento } from '../pages/organizador/NovoEvento.jsx'
 import { Configuracoes } from '../pages/organizador/Configuracoes.jsx'
 
 export function AppRoutes() {
@@ -17,6 +18,7 @@ export function AppRoutes() {
         <Route path="/cadastro-pendente" element={<CadastroPendente />} />
 
         <Route path="/organizador/eventos" element={<Eventos />} />
+        <Route path="/organizador/eventos/novo" element={<NovoEvento />} />
         <Route path="/organizador/configuracoes" element={<Configuracoes />} />
 
         <Route path="*" element={<NaoEncontrada />} />

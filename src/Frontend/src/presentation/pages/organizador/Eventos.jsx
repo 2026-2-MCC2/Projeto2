@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { OrganizadorLayout } from '../../components/organizador/OrganizadorLayout.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
 import iconeBuscar from '../../assets/organizador/icone-buscar.svg'
@@ -13,6 +14,7 @@ const FILTROS = [
 
 export function Eventos() {
   const isMobile = useIsMobile()
+  const navigate = useNavigate()
   const [busca, setBusca] = useState('')
   const [filtro, setFiltro] = useState('todos')
 
@@ -44,7 +46,7 @@ export function Eventos() {
       </div>
 
       <div className="organizador__grade">
-        <button type="button" className="novo-evento">
+        <button type="button" className="novo-evento" onClick={() => navigate('/organizador/eventos/novo')}>
           <span className="novo-evento__marcador">
             <img src={iconeAdicionar} alt="" />
           </span>
