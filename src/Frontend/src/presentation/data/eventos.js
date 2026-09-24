@@ -1,0 +1,218 @@
+export const STATUS = {
+  planejamento: { nome: 'Em planejamento', nomeCurto: 'Planejamento' },
+  cotacao: { nome: 'Em cotação', nomeCurto: 'Cotação' },
+  aprovado: { nome: 'Aprovado', nomeCurto: 'Aprovado' },
+}
+
+export const EVENTOS = [
+  {
+    id: 'festival-primavera',
+    nome: 'Festival Primavera Som & Luz',
+    status: 'planejamento',
+    periodo: '18–20 Out 2026',
+    periodoCurto: '18–20 Out',
+    local: 'Allianz Parque, SP',
+    publico: '15.000 pessoas',
+    ticket: 'R$ 23,80',
+    detalhe: {
+      nomeCompleto: 'Festival Primavera Som & Luz 2026',
+      resumo: '18 a 20 Out 2026  ·  Allianz Parque, São Paulo  ·  12.000 pessoas esperadas',
+      resumoMobile: '18 a 20 Out 2026 · Em planejamento',
+      dadosMobile: [
+        { rotulo: 'PERÍODO', valor: '18 a 20 Out 2026' },
+        { rotulo: 'HORÁRIO', valor: '14:00 às 23:00' },
+        { rotulo: 'LOCAL', valor: 'Allianz Parque, SP' },
+        { rotulo: 'PÚBLICO ESPERADO', valor: '12.000 pessoas' },
+        { rotulo: 'MARGEM DE LUCRO', valor: '20%' },
+        { rotulo: 'TIPO DE INGRESSO', valor: 'Inteira' },
+      ],
+      dados: [
+        { rotulo: 'PERÍODO', valor: '18 a 20 Out 2026' },
+        { rotulo: 'HORÁRIO', valor: '14:00 às 23:00' },
+        { rotulo: 'LOCAL', valor: 'Allianz Parque, São Paulo' },
+        { rotulo: 'PÚBLICO', valor: '8.000 · 12.000 · 15.000' },
+        { rotulo: 'MARGEM DE LUCRO', valor: '20%' },
+        { rotulo: 'TIPO DE INGRESSO', valor: 'Inteira' },
+      ],
+      orcamento: {
+        consolidado: 'R$ 228.500',
+        previsto: 'R$ 450.000',
+        economia: 'R$ 18.400',
+        comprometido: 51,
+      },
+      itens: [
+        { nome: 'Palco coberto e som 360°', categoria: 'Estrutura', situacao: 'aceita', valor: 'R$ 29.200' },
+        { nome: 'Buffet e praça de alimentação', categoria: 'Alimentação', situacao: 'aceita', valor: 'R$ 49.800' },
+        { nome: 'Segurança e brigada', categoria: 'Segurança', situacao: 'cotacao', valor: 'R$ 68.800' },
+      ],
+      totalDeItens: 6,
+      custos: {
+        indicadores: [
+          { nome: 'Custos de fornecedores', valor: 'R$ 186.400' },
+          { nome: 'Custos fiscais e operacionais', valor: 'R$ 42.100' },
+          { nome: 'Custo total do evento', valor: 'R$ 228.500' },
+        ],
+        linhas: [
+          { nome: 'Palco coberto e som 360°', categoria: 'Estrutura', origem: 'Proposta aceita', valor: 'R$ 29.200' },
+          {
+            nome: 'Buffet e praça de alimentação',
+            categoria: 'Alimentação',
+            origem: 'Proposta aceita',
+            valor: 'R$ 49.800',
+          },
+          { nome: 'Iluminação cênica', categoria: 'Estrutura', origem: 'Proposta aceita', valor: 'R$ 38.600' },
+          { nome: 'Segurança e brigada', categoria: 'Segurança', origem: 'Proposta aceita', valor: 'R$ 68.800' },
+          { nome: 'Taxas e alvarás', categoria: 'Fiscal', origem: 'Custo próprio', valor: 'R$ 24.300' },
+          { nome: 'Equipe de produção', categoria: 'Operacional', origem: 'Custo próprio', valor: 'R$ 17.800' },
+        ],
+        total: 'R$ 228.500',
+        resumoMobile: 'R$ 186.400 de fornecedores · R$ 42.100 de custos próprios',
+      },
+      propostas: [
+        {
+          fornecedor: 'Som & Luz Mega Produções',
+          item: 'Palco coberto e som 360°',
+          etiqueta: 'Menor valor',
+          valor: 'R$ 29.200',
+        },
+        { fornecedor: 'Palco Brasil Estruturas', item: 'Palco coberto e som 360°', valor: 'R$ 31.800' },
+        { fornecedor: 'Prime Staff & Hospitality', item: 'Equipe de garçons', valor: 'R$ 14.200' },
+      ],
+      comparacao: {
+        propostas: [
+          {
+            fornecedor: 'Som & Luz Mega Produções',
+            etiqueta: 'Menor valor',
+            valor: 'R$ 29.200',
+            prazo: '8h antes',
+            validade: '30 Set 2026',
+            recomendada: true,
+          },
+          { fornecedor: 'Palco Brasil Estruturas', valor: 'R$ 31.800', prazo: '12h antes', validade: '28 Set 2026' },
+          { fornecedor: 'AudioMax Eventos', valor: 'R$ 34.500', prazo: '24h antes', validade: '05 Out 2026' },
+        ],
+        item: 'Palco coberto e som 360°',
+        recebida: {
+          id: 'som-e-luz',
+          fornecedor: 'Som & Luz Mega Produções',
+          iniciais: 'SL',
+          identificacao: 'CNPJ 98.765.432/0001-10 · Estrutura',
+          etiqueta: 'Menor valor',
+          valor: 'R$ 29.200,00',
+          comparacao: '8,8% abaixo do orçamento',
+          condicoes: [
+            { rotulo: 'Valor proposto', valor: 'R$ 29.200,00' },
+            { rotulo: 'Orçamento previsto para o item', valor: 'R$ 32.000,00' },
+            { rotulo: 'Diferença', valor: 'R$ 2.800 abaixo do previsto' },
+            { rotulo: 'Validade da proposta', valor: '30 Set 2026' },
+            { rotulo: 'Prazo de entrega ou montagem', valor: 'Montagem 8h antes do evento' },
+            { rotulo: 'Condição de pagamento', valor: '40% na assinatura, 60% no dia' },
+          ],
+          descricao: [
+            {
+              titulo: 'O QUE ESTÁ INCLUÍDO',
+              texto: 'Palco coberto 12×8m com grade de proteção, som 360° de 20.000W, 24 moving heads e técnico dedicado durante todo o evento.',
+            },
+            {
+              titulo: 'O QUE NÃO ESTÁ INCLUÍDO',
+              texto: 'Gerador de energia e transporte de equipamentos fora da Grande São Paulo.',
+            },
+          ],
+          outras: [
+            { fornecedor: 'Palco Brasil Estruturas', valor: 'R$ 31.800' },
+            { fornecedor: 'AudioMax Eventos', valor: 'R$ 34.500' },
+          ],
+        },
+        outrosItens: [
+          { nome: 'Buffet e praça de alimentação', propostas: '4', menorValor: 'R$ 49.800', situacao: 'Selecionada' },
+          { nome: 'Iluminação cênica', propostas: '3', menorValor: 'R$ 38.600', situacao: 'Selecionada' },
+          { nome: 'Segurança e brigada', propostas: '2', menorValor: 'R$ 68.800', situacao: 'Em análise' },
+        ],
+      },
+      ticketEstimado: {
+        cenario: 'Público esperado',
+        valor: 'R$ 23,80',
+        explicacao: 'Custo de R$ 228.500 dividido por 12.000 pessoas, com margem de 20%.',
+        cenarios: [
+          { nome: 'Mínimo', valor: 'R$ 35,70', publico: '8.000 pessoas' },
+          { nome: 'Esperado', valor: 'R$ 23,80', publico: '12.000 pessoas', destaque: true },
+          { nome: 'Máximo', valor: 'R$ 19,04', publico: '15.000 pessoas' },
+        ],
+      },
+      calculo: {
+        precoSugerido: 'R$ 23,80',
+        apoioDosCenarios: 'Mantendo o preço simulado de R$ 23,80.',
+        cenarios: [
+          { nome: 'Pessimista', publico: '8.000 pessoas', resultado: '− R$ 38.100', receita: 'R$ 190.400' },
+          {
+            nome: 'Realista',
+            etiqueta: 'cenário base',
+            publico: '12.000 pessoas',
+            resultado: '+ R$ 57.100',
+            positivo: true,
+            receita: 'R$ 285.600',
+            base: true,
+          },
+          {
+            nome: 'Otimista',
+            publico: '15.000 pessoas',
+            resultado: '+ R$ 128.500',
+            positivo: true,
+            receita: 'R$ 357.000',
+          },
+        ],
+        equilibrio: {
+          ingressos: '9.600 ingressos',
+          explicacao:
+            'Ao preço de R$ 23,80, a receita cobre o custo total na venda de 9.600 ingressos. Acima disso, o evento gera lucro.',
+          custoTotal: 'R$ 228.500',
+          ingressosNoEquilibrio: 9600,
+          publicoMaximo: 15000,
+        },
+        resultado: [
+          { rotulo: 'Custo total', valor: 'R$ 228.500' },
+          { rotulo: 'Ponto de equilíbrio', valor: '9.600 ingressos' },
+          { rotulo: 'Margem no cenário base', valor: 'R$ 57.100 · 20%', positivo: true },
+        ],
+        formula: 'Ticket = Custo total ÷ [Público × (1 − Margem)]',
+        premissas: [
+          { rotulo: 'Custo consolidado', valor: 'R$ 228.500' },
+          { rotulo: 'Margem de lucro', valor: '20%' },
+          { rotulo: 'Público mínimo', valor: '8.000' },
+          { rotulo: 'Público esperado', valor: '12.000' },
+          { rotulo: 'Público máximo', valor: '15.000' },
+          { rotulo: 'Arredondamento', valor: '2 casas decimais' },
+        ],
+      },
+      andamento: [
+        { nome: 'Evento cadastrado', situacao: 'concluida' },
+        { nome: 'Itens de custo definidos', situacao: 'concluida' },
+        { nome: 'Cotação com fornecedores', situacao: 'atual' },
+        { nome: 'Orçamento consolidado', situacao: 'futura' },
+        { nome: 'Ticket aprovado', situacao: 'futura' },
+      ],
+    },
+  },
+  {
+    id: 'summit-tech',
+    nome: 'Summit Corporativo Tech',
+    status: 'cotacao',
+    periodo: '25 Nov 2026',
+    periodoCurto: '25 Nov',
+    local: 'CC Rebouças, SP',
+    publico: '1.200 pessoas',
+    ticket: 'R$ 218,00',
+  },
+  {
+    id: 'encontro-regional',
+    nome: 'Encontro Regional de Produtores',
+    status: 'aprovado',
+    periodo: '12 Dez 2026',
+    periodoCurto: '12 Dez',
+    local: 'Teatro Municipal, Santos',
+    publico: '350 pessoas',
+    ticket: 'R$ 154,70',
+  },
+]
+
+export const buscarEvento = (id) => EVENTOS.find((evento) => evento.id === id)
