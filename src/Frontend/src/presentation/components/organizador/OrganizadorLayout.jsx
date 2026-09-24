@@ -1,10 +1,12 @@
-import { Link, NavLink } from 'react-router-dom'
+import { useState } from 'react'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
 import { MenuLateral } from './MenuLateral.jsx'
+import { BotaoAcessibilidade } from '../comum/BotaoAcessibilidade.jsx'
+import { ModalSair } from '../comum/ModalSair.jsx'
 import simbolo from '../../assets/organizador/simbolo.png'
 import iconeSair from '../../assets/organizador/icone-sair.svg'
 import iconeVoltar from '../../assets/organizador/icone-voltar.svg'
-import iconeAcessibilidade from '../../assets/organizador/icone-acessibilidade.svg'
 import iconeEventos from '../../assets/organizador/icone-eventos.svg'
 import iconeAjustes from '../../assets/organizador/icone-ajustes.svg'
 import '../../styles/organizador.css'
@@ -15,8 +17,21 @@ const ABAS = [
 ]
 
 // No mobile o menu lateral vira barra superior e abas embaixo; com `aoVoltar` a tela entra em modo de fluxo.
-export function OrganizadorLayout({ titulo, apoio, estreito = false, aoVoltar, rodape, subCabecalho, children }) {
+export function OrganizadorLayout({
+  titulo,
+  apoio,
+  estreito = false,
+  voltarPara,
+  aoVoltar,
+  rodape,
+  subCabecalho,
+  children,
+}) {
   const isMobile = useIsMobile()
+  const navigate = useNavigate()
+  const [confirmandoSaida, setConfirmandoSaida] = useState(false)
+
+  const modalDeSaida = confirmandoSaida && <ModalSair aoFechar={() => setConfirmandoSaida(false)} />
 
   if (isMobile) {
     return (
@@ -29,9 +44,7 @@ export function OrganizadorLayout({ titulo, apoio, estreito = false, aoVoltar, r
               </button>
               <h1>{titulo}</h1>
               <img src={simbolo} alt="" className="topo__fluxo-marca" />
-              <button type="button" className="topo__acessibilidade" aria-label="Acessibilidade">
-                <img src={iconeAcessibilidade} alt="" />
-              </button>
+              <BotaoAcessibilidade posicao="topo" />
             </div>
           ) : null}
           {aoVoltar ? (
@@ -46,14 +59,35 @@ export function OrganizadorLayout({ titulo, apoio, estreito = false, aoVoltar, r
               </div>
 
               <div className="topo__cabecalho">
-                <div>
+                {voltarPara && (
+                  <button
+                    type="button"
+                    className="topo__voltar"
+                    aria-label="Voltar"
+                    onClick={() => navigate(voltarPara)}
+                  >
+                    <img src={iconeVoltar} alt="" />
+                  </button>
+                )}
+
+                <div className="topo__titulos">
                   <h1>{titulo}</h1>
                   {apoio && <p>{apoio}</p>}
                 </div>
-                <Link to="/" className="topo__sair" aria-label="Sair">
-                  <img src={iconeSair} alt="" />
-                </Link>
+                <div className="topo__acoes">
+                  <BotaoAcessibilidade posicao="topo" />
+                  <button
+                    type="button"
+                    className="topo__sair"
+                    aria-label="Sair"
+                    onClick={() => setConfirmandoSaida(true)}
+                  >
+                    <img src={iconeSair} alt="" />
+                  </button>
+                </div>
               </div>
+
+              {subCabecalho}
             </>
           )}
         </header>
@@ -78,24 +112,32 @@ export function OrganizadorLayout({ titulo, apoio, estreito = false, aoVoltar, r
             ))}
           </nav>
         )}
+
+        {modalDeSaida}
       </div>
     )
   }
 
   return (
     <div className="organizador">
-      <MenuLateral />
+      <MenuLateral aoSair={() => setConfirmandoSaida(true)} />
 
       <main className="organizador__conteudo">
         <div className={`organizador__area${estreito ? ' organizador__area--estreita' : ''}`}>
-          <header className="organizador__cabecalho">
-            <h1>{titulo}</h1>
-            {apoio && <p>{apoio}</p>}
-          </header>
+          {titulo && (
+            <header className="organizador__cabecalho">
+              <h1>{titulo}</h1>
+              {apoio && <p>{apoio}</p>}
+            </header>
+          )}
 
           {children}
         </div>
       </main>
+
+      <BotaoAcessibilidade />
+
+      {modalDeSaida}
     </div>
   )
 }

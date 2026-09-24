@@ -59,9 +59,11 @@ export function Acoes({ children }) {
   return <div className="painel__acoes">{children}</div>
 }
 
-export function Botao({ secundario = false, children, ...props }) {
+export function Botao({ secundario = false, perigo = false, children, ...props }) {
+  const variacao = secundario ? ' botao--secundario' : perigo ? ' botao--perigo' : ''
+
   return (
-    <button className={`botao${secundario ? ' botao--secundario' : ''}`} {...props}>
+    <button className={`botao${variacao}`} {...props}>
       {children}
     </button>
   )

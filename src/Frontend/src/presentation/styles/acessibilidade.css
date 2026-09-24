@@ -1,0 +1,36 @@
+.acessibilidade {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 0;
+  cursor: pointer;
+}
+
+.acessibilidade--flutuante {
+  position: fixed;
+  right: 32px;
+  bottom: 32px;
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  background: #0a50ae;
+  box-shadow: 0 6px 16px rgb(0 0 0 / 18%);
+}
+
+.acessibilidade--flutuante img {
+  width: 26px;
+  height: 26px;
+}
+
+.acessibilidade--topo {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: none;
+}
+
+.acessibilidade--topo img {
+  width: 18px;
+  height: 18px;
+}
