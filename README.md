@@ -20,84 +20,72 @@
 Tela de login da plataforma, do protótipo navegável.
 </p>
 
-A **Gestão Troca Ticket** é uma plataforma Web de planejamento e precificação de eventos, desenvolvida como Projeto Interdisciplinar do 2º semestre de Ciência da Computação da FECAP. A TrocaTicket, empresa parceira, nasceu para facilitar a troca e a revenda de ingressos de festas universitárias e hoje quer apoiar organizadores já na etapa de planejamento: estruturar os custos do evento, receber propostas de fornecedores e estimar o valor do ingresso antes da realização.
+A **Gestão Troca Ticket** é uma plataforma Web de planejamento e precificação de eventos, feita como Projeto Interdisciplinar do 2º semestre de Ciência da Computação da FECAP em parceria com a TrocaTicket.
 
-A aplicação é organizada em três módulos integrados. O **Organizador** cadastra eventos, itens de composição de custo e parâmetros financeiros; o **Fornecedor** visualiza as oportunidades publicadas e envia propostas vinculadas aos itens; o **Administrador (TrocaTicket)** aprova os cadastros, acompanha os eventos e consulta relatórios gerenciais. A partir dos custos consolidados, do público previsto e da margem de lucro definida, o sistema calcula o ticket estimado do evento.
+São três módulos: o **Organizador** cadastra eventos, itens de custo e parâmetros financeiros; o **Fornecedor** envia propostas por item; o **Administrador** aprova cadastros e acompanha os eventos. Com os custos consolidados, o público previsto e a margem, o sistema calcula o ticket estimado:
 
-Para efeito do projeto, cada evento possui apenas um tipo de ingresso e o MVP não realiza venda nem processamento de pagamentos: o foco é o planejamento, a cotação e o cálculo do ticket.
+> `Ticket = Custo Total / [Público × (1 − Margem)]`
+
+O MVP não vende ingressos nem processa pagamentos, e cada evento tem um único tipo de ingresso.
 
 ## 🎯 Funcionalidades
 
-| ID   | Funcionalidade                     | Descrição                                                                             |
-| ---- | ---------------------------------- | ------------------------------------------------------------------------------------- |
-| RF01 | Autocadastro de Organizador        | Criação de conta que permanece pendente até análise do Administrador.                  |
-| RF02 | Autocadastro de Fornecedor         | Criação de conta com dados de identificação e atuação, pendente até aprovação.         |
-| RF03 | Aprovação de cadastros             | Administrador aprova ou rejeita cadastros, registrando o status do usuário.            |
-| RF04 | Autenticação e perfis              | Acesso restrito conforme o perfil: Administrador, Organizador ou Fornecedor.           |
-| RF05 | Cadastro de eventos                | Período, local, público mínimo, público máximo, status e demais dados do evento.       |
-| RF06 | Itens de composição de custo       | Iluminação, comida, bebida, segurança, estrutura e outros serviços ou produtos.        |
-| RF07 | Custos do evento                   | Custos fiscais, operacionais, variáveis e outros não provenientes de propostas.        |
-| RF08 | Publicação para cotação            | Disponibiliza eventos e itens para os Fornecedores aprovados.                          |
-| RF09 | Consulta de eventos pelo Fornecedor| Listagem dos eventos disponíveis para envio de propostas.                              |
-| RF10 | Envio de propostas                 | Proposta vinculada ao evento/item, com valor, descrição, validade e observações.       |
-| RF11 | Consulta e comparação de propostas | Organizador compara valores e informações das propostas recebidas por item.            |
-| RF12 | Seleção e consolidação de orçamento| Seleção das propostas que compõem o orçamento e consolidação dos custos.               |
-| RF13 | Cálculo do ticket                  | Ticket estimado a partir dos custos, do público e da margem, com cenários mín. e máx.  |
-| RF14 | Visão administrativa e relatórios  | Consultas e relatórios gerenciais sobre usuários, eventos, propostas e valores.        |
-
-O cálculo adotado, quando a margem é definida sobre a receita, é `Ticket = Custo Total / [Público × (1 − Margem)]`, com validações que impedem valores inválidos.
+| ID   | Funcionalidade                      | Descrição                                           |
+| ---- | ----------------------------------- | --------------------------------------------------- |
+| RF01 | Autocadastro de Organizador         | Conta fica pendente até a análise do Administrador. |
+| RF02 | Autocadastro de Fornecedor          | Dados de identificação e área de atuação.           |
+| RF03 | Aprovação de cadastros              | Administrador aprova ou rejeita o cadastro.         |
+| RF04 | Autenticação e perfis               | Acesso restrito conforme o perfil.                  |
+| RF05 | Cadastro de eventos                 | Período, local, público mínimo e máximo.            |
+| RF06 | Itens de composição de custo        | Estrutura, alimentação, segurança e outros.         |
+| RF07 | Custos próprios do evento           | Custos fiscais e operacionais, sem cotação.         |
+| RF08 | Publicação para cotação             | Abre o evento para os Fornecedores aprovados.       |
+| RF09 | Consulta de eventos pelo Fornecedor | Lista os eventos abertos para proposta.             |
+| RF10 | Envio de propostas                  | Valor, descrição, validade e observações.           |
+| RF11 | Comparação de propostas             | Compara as propostas recebidas por item.            |
+| RF12 | Consolidação do orçamento           | Propostas escolhidas formam o custo do evento.      |
+| RF13 | Cálculo do ticket                   | Cenários de público mínimo, esperado e máximo.      |
+| RF14 | Visão administrativa e relatórios   | Usuários, eventos, propostas e valores.             |
 
 ## 🛠 Estrutura de pastas
 
--Raiz<br>
-|<br>
-|-->Documentos<br>
-&emsp;|-->Entrega 1<br>
-&emsp;&emsp;|-->Calculo II<br>
-&emsp;&emsp;|-->Desenvolvimento Web Fullstack<br>
-&emsp;&emsp;|-->Gestao Empresarial e Dinamica das Organizacoes<br>
-&emsp;&emsp;|-->Projeto em Banco de Dados<br>
-&emsp;&emsp;|-->Projeto Interdisciplinar - Programacao Web<br>
-&emsp;|-->Entrega 2<br>
-&emsp;&emsp;|-->(mesmas pastas da Entrega 1)<br>
-|-->Imagens<br>
-|-->src<br>
-&emsp;|-->Backend<br>
-&emsp;|-->Frontend<br>
-|README.md<br>
+```
+Projeto2
+├── Documentos
+│   ├── Entrega 1
+│   │   ├── Calculo II
+│   │   ├── Desenvolvimento Web Fullstack
+│   │   ├── Gestao Empresarial e Dinamica das Organizacoes
+│   │   ├── Projeto em Banco de Dados
+│   │   └── Projeto Interdisciplinar - Programacao Web
+│   └── Entrega 2
+│       └── (mesmas pastas da Entrega 1)
+├── Imagens
+├── src
+│   ├── Backend
+│   └── Frontend
+└── README.md
+```
 
-<b>Documentos</b>: documentação do projeto separada por entrega e por Unidade Curricular. Reúne os diagramas do banco de dados, os documentos de Gestão Empresarial, as entregas de Cálculo II e o protótipo navegável.
-
-<b>Imagens</b>: capturas de tela do sistema e imagens usadas na documentação.
-
-<b>src</b>: código-fonte da aplicação, dividido entre <b>Backend</b> (API Node.js + Express com MySQL) e <b>Frontend</b> (aplicação React criada com Vite).
-
-<b>README.md</b>: este arquivo, que serve como guia geral do projeto.
+<b>Documentos</b>: entregas separadas por Unidade Curricular, com os diagramas do banco e o protótipo.<br>
+<b>Imagens</b>: capturas de tela usadas na documentação.<br>
+<b>src</b>: código-fonte, entre <b>Backend</b> (Node.js + Express com MySQL) e <b>Frontend</b> (React com Vite).
 
 ## 🗄 Banco de dados
 
-A modelagem do banco está em [Documentos/Entrega 1/Projeto em Banco de Dados](Documentos/Entrega%201/Projeto%20em%20Banco%20de%20Dados), com o diagrama entidade-relacionamento e o modelo lógico relacional do sistema. Os scripts SQL e a descrição das tabelas acompanham a implementação inicial do banco.
+Diagrama entidade-relacionamento e modelo lógico em [Documentos/Entrega 1/Projeto em Banco de Dados](Documentos/Entrega%201/Projeto%20em%20Banco%20de%20Dados).
 
 ## 🎨 Protótipo
 
-O protótipo navegável das telas foi construído no Figma e cobre os principais fluxos dos módulos Administrador, Organizador e Fornecedor: <https://www.figma.com/design/0oyfFP6b20mcmb75p0lVVF/TrocaTicket---Telas?node-id=70-43>
+O protótipo navegável cobre os fluxos dos três módulos: <https://www.figma.com/design/0oyfFP6b20mcmb75p0lVVF/TrocaTicket---Telas?node-id=70-43>
 
 ## 🛠 Instalação
 
-A aplicação é uma plataforma Web: não há executável para instalar. Basta acessar o endereço publicado pelo navegador, em desktop ou dispositivo móvel.
-
-Para rodar localmente, siga a seção de configuração abaixo.
+Plataforma Web: não há executável, basta acessar pelo navegador em desktop ou celular. Para rodar localmente, siga a seção abaixo.
 
 ## 💻 Configuração para Desenvolvimento
 
-Ferramentas necessárias:
-
-- <a href="https://nodejs.org">Node.js</a> 22 ou superior
-- <a href="https://git-scm.com">Git</a>
-- <a href="https://dev.mysql.com/downloads/">MySQL</a> (para o backend)
-- Um editor de código, como o <a href="https://code.visualstudio.com/">VS Code</a>
-
-Clonar o repositório e rodar o front-end:
+Requer <a href="https://nodejs.org">Node.js</a> 22+, <a href="https://git-scm.com">Git</a>, <a href="https://dev.mysql.com/downloads/">MySQL</a> (backend) e um editor como o <a href="https://code.visualstudio.com/">VS Code</a>.
 
 ```sh
 git clone https://github.com/2026-2-MCC2/Projeto2.git
@@ -107,18 +95,16 @@ npm install
 npm run dev
 ```
 
-O endereço local aparece no terminal, normalmente <http://localhost:5173>.
+Abre em <http://localhost:5173>.
 
-O passo a passo detalhado da instalação, com os erros mais comuns, está em [src/Frontend/COMO_RODAR.md](src/Frontend/COMO_RODAR.md). A organização em camadas do front-end é explicada em [src/Frontend/README.md](src/Frontend/README.md).
+| Comando | O que faz |
+| --- | --- |
+| `npm run dev` | servidor de desenvolvimento |
+| `npm run build` | gera a versão de produção |
+| `npm run lint` | procura erros no código |
+| `npm run format` | formata o código |
 
-Comandos disponíveis no front-end:
-
-```sh
-npm run dev      # servidor de desenvolvimento
-npm run build    # gera a versão de produção
-npm run lint     # procura erros no código
-npm run format   # formata o código
-```
+Passo a passo com os erros mais comuns em [COMO_RODAR.md](src/Frontend/COMO_RODAR.md) e as camadas do front-end em [Frontend/README.md](src/Frontend/README.md).
 
 ## 🧰 Tecnologias
 
