@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 
 // Diz se a tela está no tamanho mobile e acompanha o redimensionamento.
-// Serve para casos em que o layout muda de verdade entre mobile e desktop,
 
 export function useIsMobile(larguraMaxima = 900) {
   const consulta = `(max-width: ${larguraMaxima}px)`

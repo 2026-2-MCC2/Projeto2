@@ -1,14 +1,10 @@
-import { Link, NavLink } from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
+import { EVENTOS } from '../../data/eventos.js'
 import simbolo from '../../assets/organizador/simbolo.png'
 import iconeOrganizador from '../../assets/organizador/icone-organizador.svg'
 import iconeSair from '../../assets/organizador/icone-sair.svg'
 
-const ITENS = [
-  { rota: '/organizador/eventos', nome: 'Todos os eventos' },
-  { rota: '/organizador/configuracoes', nome: 'Configurações' },
-]
-
-export function MenuLateral() {
+export function MenuLateral({ aoSair }) {
   return (
     <nav className="menu">
       <div className="menu__marca">
@@ -24,24 +20,40 @@ export function MenuLateral() {
         </div>
       </div>
 
-      {ITENS.map((item) => (
-        <NavLink
-          key={item.rota}
-          to={item.rota}
-          className={({ isActive }) => `menu__item${isActive ? ' menu__item--ativo' : ''}`}
-        >
-          {item.nome}
-        </NavLink>
-      ))}
+      <NavLink to="/organizador/eventos" end className={({ isActive }) => `menu__item${isActive ? ' menu__item--ativo' : ''}`}>
+        Todos os eventos
+      </NavLink>
+
+      <div className="menu__recentes">
+        <p className="menu__secao">RECENTES</p>
+
+        {EVENTOS.map((evento) => (
+          <NavLink
+            key={evento.id}
+            to={`/organizador/eventos/${evento.id}`}
+            className={({ isActive }) => `menu__evento${isActive ? ' menu__evento--ativo' : ''}`}
+          >
+            <span className={`menu__evento-marcador menu__evento-marcador--${evento.status}`} />
+            <span className="menu__evento-texto">
+              <strong>{evento.nome}</strong>
+              <small>{evento.periodoCurto}</small>
+            </span>
+          </NavLink>
+        ))}
+      </div>
+
+      <NavLink to="/organizador/configuracoes" className={({ isActive }) => `menu__item${isActive ? ' menu__item--ativo' : ''}`}>
+        Configurações
+      </NavLink>
 
       <div className="menu__usuario">
         <div>
-          <p className="menu__usuario-nome">Chico Trento</p>
+          <p className="menu__usuario-nome">Lucas Santos</p>
           <p className="menu__usuario-papel">Organizador</p>
         </div>
-        <Link to="/" className="menu__sair" aria-label="Sair">
+        <button type="button" className="menu__sair" aria-label="Sair" onClick={aoSair}>
           <img src={iconeSair} alt="" />
-        </Link>
+        </button>
       </div>
     </nav>
   )
