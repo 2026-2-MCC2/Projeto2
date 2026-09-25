@@ -52,10 +52,12 @@ jobs:
       - uses: google-github-actions/setup-gcloud@v2
       - name: Deploy no Cloud Run
         run: |
-          gcloud run deploy trocaticket-front \
+          URL=$(gcloud run deploy trocaticket-front \
             --source . \
             --region us-central1 \
             --project davi-varella-labs-prod \
             --allow-unauthenticated \
             --max-instances 2 \
-            --memory 256Mi
+            --memory 256Mi \
+            --format='value(status.url)')
+          echo "### Front no ar: $URL" >> $GITHUB_STEP_SUMMARY
