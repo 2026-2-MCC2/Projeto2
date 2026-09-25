@@ -163,7 +163,9 @@
 
   .modal,
   .modal--largo {
-    transition: transform 0.2s ease, max-height 0.2s ease;
+    transition:
+      transform 0.2s ease,
+      max-height 0.2s ease;
   }
 
   .modal--arrastando {
