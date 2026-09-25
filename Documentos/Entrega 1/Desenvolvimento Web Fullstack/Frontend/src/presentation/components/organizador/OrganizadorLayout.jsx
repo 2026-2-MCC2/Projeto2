@@ -64,7 +64,7 @@ export function OrganizadorLayout({
                     type="button"
                     className="topo__voltar"
                     aria-label="Voltar"
-                    onClick={() => navigate(voltarPara)}
+                    onClick={() => navigate(voltarPara, { viewTransition: true })}
                   >
                     <img src={iconeVoltar} alt="" />
                   </button>
@@ -102,6 +102,7 @@ export function OrganizadorLayout({
               <NavLink
                 key={aba.rota}
                 to={aba.rota}
+                viewTransition
                 className={({ isActive }) => `aba${isActive ? ' aba--ativa' : ''}`}
               >
                 <span className="aba__marcador">

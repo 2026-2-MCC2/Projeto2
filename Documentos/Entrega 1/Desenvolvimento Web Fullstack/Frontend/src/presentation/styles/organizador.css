@@ -1,11 +1,13 @@
-.organizador {
+:root {
   --org-azul: #0a50ae;
   --org-texto: #0f172a;
   --org-suave: #64748b;
   --org-apagado: #94a3b8;
   --org-borda: #e5e9f0;
   --org-fundo: #f6f8fb;
+}
 
+.organizador {
   display: flex;
   min-height: 100vh;
   background: var(--org-fundo);
@@ -70,6 +72,9 @@
 }
 
 .menu__item {
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
   padding: 0.625rem 0.75rem;
   border-radius: 8px;
   color: var(--org-texto);
@@ -100,6 +105,7 @@
 }
 
 .menu__evento {
+  transition: background 0.15s ease;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -282,6 +288,10 @@
 }
 
 .filtro {
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
   padding: 0.5rem 0.875rem;
   border: 1px solid var(--org-borda);
   border-radius: 999px;
@@ -311,6 +321,10 @@
 }
 
 .evento {
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -423,6 +437,9 @@
 }
 
 .configuracoes__aba {
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease;
   padding: 0.25rem 1rem 0;
   border: 0;
   border-bottom: 2px solid transparent;
@@ -658,6 +675,14 @@
 .etiqueta--aprovado {
   background: #ecfdf3;
   color: #15803d;
+}
+
+.etiqueta--destaque {
+  padding: 0.25rem 0.625rem;
+  background: #ffedd5;
+  color: #c2410c;
+  font-size: 0.75rem;
+  font-weight: 700;
 }
 
 .permissoes {
@@ -1040,8 +1065,13 @@
 }
 
 .abas {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 5;
   display: flex;
-  padding: 0.625rem 0.5rem 1.375rem;
+  padding: 0.625rem 0.5rem calc(1.375rem + env(safe-area-inset-bottom));
   border-top: 1px solid var(--org-borda);
   background: #fff;
   box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.04);
@@ -1151,6 +1181,9 @@
 }
 
 .evento-aba {
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease;
   padding: 0.125rem 1rem 0.625rem;
   border-bottom: 2px solid transparent;
   color: var(--org-suave);
@@ -1478,6 +1511,10 @@
   text-align: right;
 }
 
+.tabela td:last-child .cartao__link {
+  justify-content: flex-end;
+}
+
 .tabela__destaque {
   color: var(--org-texto);
   font-weight: 500;
@@ -1495,7 +1532,6 @@
 .comparacao {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  align-items: start;
   gap: 1rem;
 }
 
@@ -1510,9 +1546,19 @@
   background: #fff;
 }
 
-.proposta--recomendada {
-  border: 2px solid var(--org-azul);
-  padding: 1.3125rem;
+.proposta {
+  cursor: pointer;
+}
+
+.proposta:hover {
+  border-color: var(--org-azul);
+  background: #f7faff;
+}
+
+.proposta:hover .botao {
+  border-color: var(--org-azul);
+  background: var(--org-azul);
+  color: #fff;
 }
 
 .proposta__fornecedor {
@@ -1550,6 +1596,11 @@
 
 .proposta .botao {
   width: 100%;
+  margin-top: auto;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
 }
 
 /* ---------- cálculo do ticket ---------- */
@@ -1929,7 +1980,6 @@
   font-size: 0.6875rem;
 }
 
-
 .cenario-cartao__numeros {
   display: flex;
   flex-direction: column;
@@ -1937,6 +1987,157 @@
 }
 
 /* ---------- proposta recebida ---------- */
+
+.propostas-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.itens-em-cotacao {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.aba-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.875rem;
+  border: 1px solid var(--org-borda);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--org-suave);
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.aba-item--ativa {
+  border-color: var(--org-azul);
+  background: var(--org-azul);
+  color: #fff;
+  font-weight: 600;
+}
+
+.aba-item__conta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 0.3125rem;
+  border-radius: 6px;
+  background: #eef2f7;
+  color: var(--org-suave);
+  font-size: 0.625rem;
+  font-weight: 700;
+}
+
+.aba-item--ativa .aba-item__conta {
+  background: rgb(255 255 255 / 25%);
+  color: #fff;
+}
+
+.etiqueta--vencida {
+  padding: 0.25rem 0.625rem;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 0.6875rem;
+}
+
+.proposta--vencida .proposta__valor,
+.proposta--vencida .proposta__fornecedor {
+  color: var(--org-apagado);
+}
+
+.proposta__etiquetas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.proposta-recebida__origem {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.proposta-recebida__origem .etiqueta {
+  padding: 0.1875rem 0.5rem;
+  font-size: 0.6875rem;
+}
+
+.grupo-propostas {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.visao {
+  display: flex;
+  flex-shrink: 0;
+  gap: 0.25rem;
+  padding: 0.1875rem;
+  border: 1px solid var(--org-borda);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.visao__botao {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.visao__botao--ativo {
+  background: #e8f0fc;
+}
+
+.visao__botao--ativo img {
+  filter: brightness(0) saturate(100%) invert(22%) sepia(83%) saturate(1698%) hue-rotate(198deg)
+    brightness(93%) contrast(94%);
+}
+
+.visao__botao img {
+  width: 16px;
+  height: 16px;
+}
+
+.lista-proposta__nome {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tabela tbody tr {
+  cursor: pointer;
+}
+
+.tabela tbody tr:hover td {
+  background: #f1f6fd;
+}
+
+.tabela tbody tr:hover .tabela__destaque {
+  color: var(--org-azul);
+}
 
 .proposta-recebida__origem {
   margin: 0;
@@ -2091,6 +2292,38 @@
     font-size: 2rem;
   }
 
+  .organizador .campo input,
+  .organizador .campo textarea,
+  .organizador .campo select,
+  .barra__busca input {
+    font-size: 1rem;
+  }
+
+  .modal .campo {
+    gap: 0.5rem;
+  }
+
+  .modal .campo input,
+  .modal .campo textarea {
+    padding: 0.9375rem 0.875rem;
+  }
+
+  .modal .painel__linha {
+    gap: 1rem;
+  }
+
+  .modal .origem__opcao {
+    padding: 0.875rem 1rem;
+  }
+
+  .modal .origem__opcao--ativa {
+    padding: 0.8125rem 0.9375rem;
+  }
+
+  .modal--largo {
+    gap: 1.375rem;
+  }
+
   .origem__opcoes {
     flex-direction: column;
   }
@@ -2124,10 +2357,6 @@
     padding: 1.125rem;
   }
 
-  .proposta--recomendada {
-    padding: 1.0625rem;
-  }
-
   .proposta__cabecalho {
     flex-direction: row;
     align-items: baseline;
@@ -2141,6 +2370,12 @@
 
   .proposta__valor {
     font-size: 1.125rem;
+  }
+
+  .proposta .botao {
+    border-color: var(--org-azul);
+    background: var(--org-azul);
+    color: #fff;
   }
 
   .colunas {
@@ -2179,7 +2414,7 @@
     align-items: stretch;
     justify-content: flex-start;
     gap: 0.75rem;
-    padding: 1.25rem 1.25rem 2.5rem;
+    padding: 1.25rem 1.25rem calc(6rem + env(safe-area-inset-bottom));
   }
 
   .organizador--fluxo .organizador__conteudo {
@@ -2274,6 +2509,9 @@
   }
 
   .configuracoes__aba {
+    transition:
+      color 0.15s ease,
+      border-color 0.15s ease;
     flex: 1;
     padding: 0.5625rem 0;
     border-bottom: 0;
@@ -2360,5 +2598,58 @@
     border: 1px solid var(--org-borda);
     border-radius: 14px;
     background: #fff;
+  }
+}
+
+.evento:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 6px 18px rgb(15 23 42 / 6%);
+  transform: translateY(-2px);
+}
+
+.botao:active,
+.filtro:active,
+.novo-evento:active {
+  transform: scale(0.98);
+}
+
+.organizador__conteudo > * {
+  animation: entrar 0.22s ease backwards;
+}
+
+@keyframes entrar {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+::view-transition-old(root) {
+  animation: sair-suave 0.16s ease both;
+}
+
+::view-transition-new(root) {
+  animation: entrar-suave 0.22s ease both;
+}
+
+@keyframes sair-suave {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes entrar-suave {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
   }
 }
