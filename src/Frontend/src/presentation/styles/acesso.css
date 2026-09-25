@@ -656,4 +656,10 @@
     gap: 1.25rem;
     padding: 1.25rem 1.25rem 2.5rem;
   }
+
+  .campo input,
+  .campo textarea,
+  .campo select {
+    font-size: 1rem;
+  }
 }

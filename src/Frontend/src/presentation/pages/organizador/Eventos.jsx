@@ -29,7 +29,7 @@ export function Eventos() {
     <button
       type="button"
       className="novo-evento"
-      onClick={() => navigate('/organizador/eventos/novo')}
+      onClick={() => navigate('/organizador/eventos/novo', { viewTransition: true })}
     >
       <span className="novo-evento__marcador">
         <img src={iconeAdicionar} alt="" />

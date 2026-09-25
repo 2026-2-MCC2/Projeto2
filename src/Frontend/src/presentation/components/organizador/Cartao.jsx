@@ -10,7 +10,7 @@ export function Cartao({ titulo, link, etiqueta, children }) {
         {etiqueta && <span className="etiqueta etiqueta--cotacao">{etiqueta}</span>}
 
         {link && (
-          <Link to={link.para} className="cartao__link">
+          <Link to={link.para} className="cartao__link" viewTransition>
             {link.nome}
             <img src={iconeAvancar} alt="" />
           </Link>

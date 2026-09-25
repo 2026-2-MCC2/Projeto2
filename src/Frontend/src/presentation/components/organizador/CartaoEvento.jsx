@@ -3,7 +3,7 @@ import { STATUS } from '../../data/eventos.js'
 
 export function CartaoEvento({ evento }) {
   return (
-    <Link to={`/organizador/eventos/${evento.id}`} className="evento">
+    <Link to={`/organizador/eventos/${evento.id}`} className="evento" viewTransition>
       <span className={`etiqueta etiqueta--${evento.status}`}>{STATUS[evento.status].nome}</span>
 
       <strong className="evento__nome">{evento.nome}</strong>
