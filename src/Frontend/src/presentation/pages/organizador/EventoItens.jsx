@@ -37,13 +37,24 @@ export function EventoItens() {
         <GrupoDeItens titulo="CONTRATADO DE FORNECEDORES" itens={deFornecedores} />
         <GrupoDeItens titulo="CUSTOS PRÓPRIOS" itens={proprios} />
 
-        {adicionando && <ModalNovoItem evento={evento.detalhe.nomeCompleto} aoFechar={() => setAdicionando(false)} />}
+        {adicionando && (
+          <ModalNovoItem
+            evento={evento.detalhe.nomeCompleto}
+            aoFechar={() => setAdicionando(false)}
+          />
+        )}
       </EventoLayout>
     )
   }
 
   return (
-    <EventoLayout acoes={<Botao type="button" onClick={() => setAdicionando(true)}>Adicionar item</Botao>}>
+    <EventoLayout
+      acoes={
+        <Botao type="button" onClick={() => setAdicionando(true)}>
+          Adicionar item
+        </Botao>
+      }
+    >
       <div className="indicadores-cartao">
         {custos.indicadores.map((indicador) => (
           <div key={indicador.nome} className="indicador-cartao">
@@ -55,11 +66,21 @@ export function EventoItens() {
 
       <Tabela
         colunas={['ITEM', 'CATEGORIA', 'ORIGEM', 'VALOR']}
-        linhas={custos.linhas.map((linha) => [linha.nome, linha.categoria, linha.origem, linha.valor])}
+        linhas={custos.linhas.map((linha) => [
+          linha.nome,
+          linha.categoria,
+          linha.origem,
+          linha.valor,
+        ])}
         rodape={['Total', '', '', custos.total]}
       />
 
-      {adicionando && <ModalNovoItem evento={evento.detalhe.nomeCompleto} aoFechar={() => setAdicionando(false)} />}
+      {adicionando && (
+        <ModalNovoItem
+          evento={evento.detalhe.nomeCompleto}
+          aoFechar={() => setAdicionando(false)}
+        />
+      )}
     </EventoLayout>
   )
 }

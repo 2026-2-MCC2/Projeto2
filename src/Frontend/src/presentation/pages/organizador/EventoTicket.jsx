@@ -21,21 +21,28 @@ export function EventoTicket() {
 
       <div className="cenarios-grade">
         {calculo.cenarios.map((cenario) => (
-          <article key={cenario.nome} className={`cenario-cartao${cenario.base ? ' cenario-cartao--base' : ''}`}>
+          <article
+            key={cenario.nome}
+            className={`cenario-cartao${cenario.base ? ' cenario-cartao--base' : ''}`}
+          >
             <div className="cenario-cartao__titulo">
               <strong>
                 {cenario.nome}
                 {isMobile && ` · ${cenario.publico}`}
               </strong>
               {cenario.etiqueta && (
-                <span className="etiqueta etiqueta--cotacao">{isMobile ? 'base' : cenario.etiqueta}</span>
+                <span className="etiqueta etiqueta--cotacao">
+                  {isMobile ? 'base' : cenario.etiqueta}
+                </span>
               )}
             </div>
 
             {!isMobile && <span className="cenario-cartao__publico">{cenario.publico}</span>}
 
             <div className="cenario-cartao__numeros">
-              <strong className={`cenario-cartao__resultado${cenario.positivo ? '' : ' cenario-cartao__resultado--negativo'}`}>
+              <strong
+                className={`cenario-cartao__resultado${cenario.positivo ? '' : ' cenario-cartao__resultado--negativo'}`}
+              >
                 {cenario.resultado}
               </strong>
 
@@ -58,7 +65,9 @@ export function EventoTicket() {
       {calculo.resultado.map((dado) => (
         <div key={dado.rotulo} className="dado-linha">
           <span>{dado.rotulo}</span>
-          <strong className={dado.positivo ? 'dado-linha__positivo' : undefined}>{dado.valor}</strong>
+          <strong className={dado.positivo ? 'dado-linha__positivo' : undefined}>
+            {dado.valor}
+          </strong>
         </div>
       ))}
 
@@ -67,8 +76,8 @@ export function EventoTicket() {
       <p className="nota">
         <img src={iconeAtencao} alt="" />
         <span>
-          Cobre o custo a partir de <strong>{calculo.equilibrio.ingressos}</strong>. No cenário pessimista (8.000),
-          faltam <strong>R$ 38.100</strong>.
+          Cobre o custo a partir de <strong>{calculo.equilibrio.ingressos}</strong>. No cenário
+          pessimista (8.000), faltam <strong>R$ 38.100</strong>.
         </span>
       </p>
     </section>
@@ -99,8 +108,12 @@ export function EventoTicket() {
       </div>
 
       <div className="grafico__legenda">
-        <span className="grafico__legenda-item grafico__legenda-item--receita">Receita com ingressos</span>
-        <span className="grafico__legenda-item grafico__legenda-item--custo">Custo total do evento</span>
+        <span className="grafico__legenda-item grafico__legenda-item--receita">
+          Receita com ingressos
+        </span>
+        <span className="grafico__legenda-item grafico__legenda-item--custo">
+          Custo total do evento
+        </span>
       </div>
 
       <GraficoEquilibrio equilibrio={calculo.equilibrio} />
