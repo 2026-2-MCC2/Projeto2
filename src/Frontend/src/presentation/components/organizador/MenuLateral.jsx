@@ -23,6 +23,7 @@ export function MenuLateral({ aoSair }) {
       <NavLink
         to="/organizador/eventos"
         end
+        viewTransition
         className={({ isActive }) => `menu__item${isActive ? ' menu__item--ativo' : ''}`}
       >
         Todos os eventos
@@ -35,6 +36,7 @@ export function MenuLateral({ aoSair }) {
           <NavLink
             key={evento.id}
             to={`/organizador/eventos/${evento.id}`}
+            viewTransition
             className={({ isActive }) => `menu__evento${isActive ? ' menu__evento--ativo' : ''}`}
           >
             <span className={`menu__evento-marcador menu__evento-marcador--${evento.status}`} />
@@ -48,6 +50,7 @@ export function MenuLateral({ aoSair }) {
 
       <NavLink
         to="/organizador/configuracoes"
+        viewTransition
         className={({ isActive }) => `menu__item${isActive ? ' menu__item--ativo' : ''}`}
       >
         Configurações
