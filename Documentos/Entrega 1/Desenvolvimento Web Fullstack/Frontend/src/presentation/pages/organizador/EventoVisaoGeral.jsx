@@ -67,11 +67,20 @@ export function EventoVisaoGeral() {
   const orcamento = (
     <Cartao
       titulo={isMobile ? 'Orçamento' : 'Orçamento do evento'}
-      link={{ para: `/organizador/eventos/${id}/itens`, nome: isMobile ? 'Ver itens' : 'Ver itens de custo' }}
+      link={{
+        para: `/organizador/eventos/${id}/itens`,
+        nome: isMobile ? 'Ver itens' : 'Ver itens de custo',
+      }}
     >
       <div className="indicadores">
-        <Indicador rotulo={isMobile ? 'CONSOLIDADO' : 'CUSTO CONSOLIDADO'} valor={detalhe.orcamento.consolidado} />
-        <Indicador rotulo={isMobile ? 'PREVISTO' : 'ORÇAMENTO PREVISTO'} valor={detalhe.orcamento.previsto} />
+        <Indicador
+          rotulo={isMobile ? 'CONSOLIDADO' : 'CUSTO CONSOLIDADO'}
+          valor={detalhe.orcamento.consolidado}
+        />
+        <Indicador
+          rotulo={isMobile ? 'PREVISTO' : 'ORÇAMENTO PREVISTO'}
+          valor={detalhe.orcamento.previsto}
+        />
         <Indicador
           rotulo={isMobile ? 'ECONOMIA' : 'ECONOMIA NAS COTAÇÕES'}
           valor={detalhe.orcamento.economia}
@@ -84,7 +93,8 @@ export function EventoVisaoGeral() {
       </div>
 
       <p className="cartao__apoio">
-        {detalhe.orcamento.comprometido}% do orçamento previsto {isMobile ? 'comprometido' : 'já está comprometido'}
+        {detalhe.orcamento.comprometido}% do orçamento previsto{' '}
+        {isMobile ? 'comprometido' : 'já está comprometido'}
       </p>
     </Cartao>
   )
@@ -103,7 +113,8 @@ export function EventoVisaoGeral() {
           chave: item.nome,
           titulo: item.nome,
           apoio: isMobile ? undefined : item.categoria,
-          etiqueta: item.situacao === 'aceita' ? (isMobile ? 'Aceita' : 'Proposta aceita') : 'Em cotação',
+          etiqueta:
+            item.situacao === 'aceita' ? (isMobile ? 'Aceita' : 'Proposta aceita') : 'Em cotação',
           estiloDaEtiqueta: item.situacao === 'aceita' ? 'aprovado' : 'cotacao',
           valor: item.valor,
         }))}
@@ -114,7 +125,10 @@ export function EventoVisaoGeral() {
   const propostas = (
     <Cartao
       titulo="Propostas recebidas"
-      link={{ para: `/organizador/eventos/${id}/propostas`, nome: isMobile ? 'Comparar' : 'Comparar propostas' }}
+      link={{
+        para: `/organizador/eventos/${id}/propostas`,
+        nome: isMobile ? 'Comparar' : 'Comparar propostas',
+      }}
     >
       <ListaDeLinhas
         linhas={(isMobile ? detalhe.propostas.slice(0, 2) : detalhe.propostas).map((proposta) => ({
@@ -140,7 +154,11 @@ export function EventoVisaoGeral() {
         {detalhe.ticketEstimado.cenarios.map((cenario) => (
           <div key={cenario.nome} className="cenario">
             <span className="cenario__nome">{cenario.nome}</span>
-            <strong className={cenario.destaque ? 'cenario__valor cenario__valor--destaque' : 'cenario__valor'}>
+            <strong
+              className={
+                cenario.destaque ? 'cenario__valor cenario__valor--destaque' : 'cenario__valor'
+              }
+            >
               {cenario.valor}
             </strong>
             <small>{cenario.publico}</small>
@@ -148,7 +166,7 @@ export function EventoVisaoGeral() {
         ))}
       </div>
 
-      <Link to={`/organizador/eventos/${id}/ticket`} className="cartao__link">
+      <Link to={`/organizador/eventos/${id}/ticket`} className="cartao__link" viewTransition>
         Ver cálculo completo
       </Link>
     </Cartao>
@@ -183,7 +201,10 @@ export function EventoVisaoGeral() {
           <Cartao titulo="Andamento do planejamento">
             <div className="andamento">
               {detalhe.andamento.map((etapa) => (
-                <div key={etapa.nome} className={`andamento__etapa andamento__etapa--${etapa.situacao}`}>
+                <div
+                  key={etapa.nome}
+                  className={`andamento__etapa andamento__etapa--${etapa.situacao}`}
+                >
                   <img src={ICONE_DA_ETAPA[etapa.situacao]} alt="" />
                   {etapa.nome}
                 </div>
