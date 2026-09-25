@@ -166,7 +166,7 @@ export function EventoVisaoGeral() {
         ))}
       </div>
 
-      <Link to={`/organizador/eventos/${id}/ticket`} className="cartao__link">
+      <Link to={`/organizador/eventos/${id}/ticket`} className="cartao__link" viewTransition>
         Ver cálculo completo
       </Link>
     </Cartao>
