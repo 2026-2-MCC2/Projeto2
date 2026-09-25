@@ -21,21 +21,44 @@ export function GraficoEquilibrio({ equilibrio }) {
   const yFim = eixoY(receitaNoMaximo)
 
   return (
-    <svg className="grafico" viewBox={`0 0 ${LARGURA} ${ALTURA}`} role="img" aria-label="Ponto de equilíbrio do evento">
-      <path d={`M ${xEquilibrio} ${yCusto} L ${xFim} ${yFim} L ${xFim} ${yCusto} Z`} fill="#ecfdf3" />
+    <svg
+      className="grafico"
+      viewBox={`0 0 ${LARGURA} ${ALTURA}`}
+      role="img"
+      aria-label="Ponto de equilíbrio do evento"
+    >
+      <path
+        d={`M ${xEquilibrio} ${yCusto} L ${xFim} ${yFim} L ${xFim} ${yCusto} Z`}
+        fill="#ecfdf3"
+      />
 
       <line x1={MARGEM.esquerda} y1={MARGEM.topo} x2={MARGEM.esquerda} y2={base} stroke="#e5e9f0" />
       <line x1={MARGEM.esquerda} y1={base} x2={xFim} y2={base} stroke="#e5e9f0" />
       <line x1={MARGEM.esquerda} y1={eixoY(0.5)} x2={xFim} y2={eixoY(0.5)} stroke="#f1f4f9" />
 
-      <line x1={MARGEM.esquerda} y1={yCusto} x2={xFim} y2={yCusto} stroke="#94a3b8" strokeWidth="2" strokeDasharray="8 6" />
+      <line
+        x1={MARGEM.esquerda}
+        y1={yCusto}
+        x2={xFim}
+        y2={yCusto}
+        stroke="#94a3b8"
+        strokeWidth="2"
+        strokeDasharray="8 6"
+      />
       <text x={MARGEM.esquerda + 4} y={yCusto + 18} className="grafico__rotulo">
         {equilibrio.custoTotal}
       </text>
 
       <line x1={MARGEM.esquerda} y1={base} x2={xFim} y2={yFim} stroke="#0a50ae" strokeWidth="2.5" />
 
-      <line x1={xEquilibrio} y1={yCusto} x2={xEquilibrio} y2={base} stroke="#9dc3f0" strokeDasharray="3 4" />
+      <line
+        x1={xEquilibrio}
+        y1={yCusto}
+        x2={xEquilibrio}
+        y2={base}
+        stroke="#9dc3f0"
+        strokeDasharray="3 4"
+      />
       <circle cx={xEquilibrio} cy={yCusto} r="7" fill="#fff" stroke="#0a50ae" strokeWidth="2.5" />
 
       <text x={MARGEM.esquerda} y={ALTURA - 8} className="grafico__rotulo" textAnchor="middle">
@@ -44,7 +67,12 @@ export function GraficoEquilibrio({ equilibrio }) {
       <text x={eixoX(maximo / 3)} y={ALTURA - 8} className="grafico__rotulo" textAnchor="middle">
         5.000
       </text>
-      <text x={xEquilibrio} y={ALTURA - 8} className="grafico__rotulo grafico__rotulo--destaque" textAnchor="middle">
+      <text
+        x={xEquilibrio}
+        y={ALTURA - 8}
+        className="grafico__rotulo grafico__rotulo--destaque"
+        textAnchor="middle"
+      >
         9.600
       </text>
       <text x={xFim} y={ALTURA - 8} className="grafico__rotulo" textAnchor="end">

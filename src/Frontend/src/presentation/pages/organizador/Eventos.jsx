@@ -26,7 +26,11 @@ export function Eventos() {
   })
 
   const cardNovoEvento = (
-    <button type="button" className="novo-evento" onClick={() => navigate('/organizador/eventos/novo')}>
+    <button
+      type="button"
+      className="novo-evento"
+      onClick={() => navigate('/organizador/eventos/novo')}
+    >
       <span className="novo-evento__marcador">
         <img src={iconeAdicionar} alt="" />
       </span>

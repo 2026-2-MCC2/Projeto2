@@ -59,9 +59,15 @@ export function PropostaRecebida() {
           <Cartao titulo="Decisão sobre a proposta">
             <strong className="decisao__valor">{proposta.valor}</strong>
             <span className="etiqueta etiqueta--aprovado">{proposta.comparacao}</span>
-            <p className="cartao__apoio">Ao selecionar, o valor entra nos itens de custo e o ticket é recalculado.</p>
+            <p className="cartao__apoio">
+              Ao selecionar, o valor entra nos itens de custo e o ticket é recalculado.
+            </p>
 
-            <button type="button" className="botao botao--largo" onClick={() => setDecisao('selecionar')}>
+            <button
+              type="button"
+              className="botao botao--largo"
+              onClick={() => setDecisao('selecionar')}
+            >
               Selecionar proposta
             </button>
             <button
