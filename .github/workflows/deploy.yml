@@ -3,6 +3,8 @@ name: CI/CD
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
 
 permissions:
   contents: read
@@ -35,6 +37,7 @@ jobs:
   cd:
     name: CD
     needs: ci
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
