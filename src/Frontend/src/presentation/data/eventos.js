@@ -41,9 +41,24 @@ export const EVENTOS = [
         comprometido: 51,
       },
       itens: [
-        { nome: 'Palco coberto e som 360°', categoria: 'Estrutura', situacao: 'aceita', valor: 'R$ 29.200' },
-        { nome: 'Buffet e praça de alimentação', categoria: 'Alimentação', situacao: 'aceita', valor: 'R$ 49.800' },
-        { nome: 'Segurança e brigada', categoria: 'Segurança', situacao: 'cotacao', valor: 'R$ 68.800' },
+        {
+          nome: 'Palco coberto e som 360°',
+          categoria: 'Estrutura',
+          situacao: 'aceita',
+          valor: 'R$ 29.200',
+        },
+        {
+          nome: 'Buffet e praça de alimentação',
+          categoria: 'Alimentação',
+          situacao: 'aceita',
+          valor: 'R$ 49.800',
+        },
+        {
+          nome: 'Segurança e brigada',
+          categoria: 'Segurança',
+          situacao: 'cotacao',
+          valor: 'R$ 68.800',
+        },
       ],
       totalDeItens: 6,
       custos: {
@@ -53,17 +68,42 @@ export const EVENTOS = [
           { nome: 'Custo total do evento', valor: 'R$ 228.500' },
         ],
         linhas: [
-          { nome: 'Palco coberto e som 360°', categoria: 'Estrutura', origem: 'Proposta aceita', valor: 'R$ 29.200' },
+          {
+            nome: 'Palco coberto e som 360°',
+            categoria: 'Estrutura',
+            origem: 'Proposta aceita',
+            valor: 'R$ 29.200',
+          },
           {
             nome: 'Buffet e praça de alimentação',
             categoria: 'Alimentação',
             origem: 'Proposta aceita',
             valor: 'R$ 49.800',
           },
-          { nome: 'Iluminação cênica', categoria: 'Estrutura', origem: 'Proposta aceita', valor: 'R$ 38.600' },
-          { nome: 'Segurança e brigada', categoria: 'Segurança', origem: 'Proposta aceita', valor: 'R$ 68.800' },
-          { nome: 'Taxas e alvarás', categoria: 'Fiscal', origem: 'Custo próprio', valor: 'R$ 24.300' },
-          { nome: 'Equipe de produção', categoria: 'Operacional', origem: 'Custo próprio', valor: 'R$ 17.800' },
+          {
+            nome: 'Iluminação cênica',
+            categoria: 'Estrutura',
+            origem: 'Proposta aceita',
+            valor: 'R$ 38.600',
+          },
+          {
+            nome: 'Segurança e brigada',
+            categoria: 'Segurança',
+            origem: 'Proposta aceita',
+            valor: 'R$ 68.800',
+          },
+          {
+            nome: 'Taxas e alvarás',
+            categoria: 'Fiscal',
+            origem: 'Custo próprio',
+            valor: 'R$ 24.300',
+          },
+          {
+            nome: 'Equipe de produção',
+            categoria: 'Operacional',
+            origem: 'Custo próprio',
+            valor: 'R$ 17.800',
+          },
         ],
         total: 'R$ 228.500',
         resumoMobile: 'R$ 186.400 de fornecedores · R$ 42.100 de custos próprios',
@@ -75,7 +115,11 @@ export const EVENTOS = [
           etiqueta: 'Menor valor',
           valor: 'R$ 29.200',
         },
-        { fornecedor: 'Palco Brasil Estruturas', item: 'Palco coberto e som 360°', valor: 'R$ 31.800' },
+        {
+          fornecedor: 'Palco Brasil Estruturas',
+          item: 'Palco coberto e som 360°',
+          valor: 'R$ 31.800',
+        },
         { fornecedor: 'Prime Staff & Hospitality', item: 'Equipe de garçons', valor: 'R$ 14.200' },
       ],
       comparacao: {
@@ -88,8 +132,18 @@ export const EVENTOS = [
             validade: '30 Set 2026',
             recomendada: true,
           },
-          { fornecedor: 'Palco Brasil Estruturas', valor: 'R$ 31.800', prazo: '12h antes', validade: '28 Set 2026' },
-          { fornecedor: 'AudioMax Eventos', valor: 'R$ 34.500', prazo: '24h antes', validade: '05 Out 2026' },
+          {
+            fornecedor: 'Palco Brasil Estruturas',
+            valor: 'R$ 31.800',
+            prazo: '12h antes',
+            validade: '28 Set 2026',
+          },
+          {
+            fornecedor: 'AudioMax Eventos',
+            valor: 'R$ 34.500',
+            prazo: '24h antes',
+            validade: '05 Out 2026',
+          },
         ],
         item: 'Palco coberto e som 360°',
         recebida: {
@@ -111,7 +165,8 @@ export const EVENTOS = [
           descricao: [
             {
               titulo: 'O QUE ESTÁ INCLUÍDO',
-              texto: 'Palco coberto 12×8m com grade de proteção, som 360° de 20.000W, 24 moving heads e técnico dedicado durante todo o evento.',
+              texto:
+                'Palco coberto 12×8m com grade de proteção, som 360° de 20.000W, 24 moving heads e técnico dedicado durante todo o evento.',
             },
             {
               titulo: 'O QUE NÃO ESTÁ INCLUÍDO',
@@ -124,9 +179,24 @@ export const EVENTOS = [
           ],
         },
         outrosItens: [
-          { nome: 'Buffet e praça de alimentação', propostas: '4', menorValor: 'R$ 49.800', situacao: 'Selecionada' },
-          { nome: 'Iluminação cênica', propostas: '3', menorValor: 'R$ 38.600', situacao: 'Selecionada' },
-          { nome: 'Segurança e brigada', propostas: '2', menorValor: 'R$ 68.800', situacao: 'Em análise' },
+          {
+            nome: 'Buffet e praça de alimentação',
+            propostas: '4',
+            menorValor: 'R$ 49.800',
+            situacao: 'Selecionada',
+          },
+          {
+            nome: 'Iluminação cênica',
+            propostas: '3',
+            menorValor: 'R$ 38.600',
+            situacao: 'Selecionada',
+          },
+          {
+            nome: 'Segurança e brigada',
+            propostas: '2',
+            menorValor: 'R$ 68.800',
+            situacao: 'Em análise',
+          },
         ],
       },
       ticketEstimado: {
@@ -143,7 +213,12 @@ export const EVENTOS = [
         precoSugerido: 'R$ 23,80',
         apoioDosCenarios: 'Mantendo o preço simulado de R$ 23,80.',
         cenarios: [
-          { nome: 'Pessimista', publico: '8.000 pessoas', resultado: '− R$ 38.100', receita: 'R$ 190.400' },
+          {
+            nome: 'Pessimista',
+            publico: '8.000 pessoas',
+            resultado: '− R$ 38.100',
+            receita: 'R$ 190.400',
+          },
           {
             nome: 'Realista',
             etiqueta: 'cenário base',

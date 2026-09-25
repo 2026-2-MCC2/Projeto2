@@ -120,7 +120,11 @@ export function Modal({
               {acao?.cancelar ?? 'Voltar'}
             </Botao>
           )}
-          <Botao type="button" perigo={corDoIcone === 'vermelho'} onClick={acao?.aoConfirmar ?? aoFechar}>
+          <Botao
+            type="button"
+            perigo={corDoIcone === 'vermelho'}
+            onClick={acao?.aoConfirmar ?? aoFechar}
+          >
             {acao?.confirmar}
           </Botao>
         </div>

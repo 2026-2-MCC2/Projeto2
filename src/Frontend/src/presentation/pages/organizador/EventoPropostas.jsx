@@ -21,7 +21,9 @@ export function EventoPropostas() {
             key={proposta.fornecedor}
             className={`proposta${proposta.recomendada ? ' proposta--recomendada' : ''}`}
           >
-            {proposta.etiqueta && <span className="etiqueta etiqueta--aprovado">{proposta.etiqueta}</span>}
+            {proposta.etiqueta && (
+              <span className="etiqueta etiqueta--aprovado">{proposta.etiqueta}</span>
+            )}
 
             <div className="proposta__cabecalho">
               <strong className="proposta__fornecedor">{proposta.fornecedor}</strong>
@@ -39,7 +41,13 @@ export function EventoPropostas() {
               </div>
             </div>
 
-            <Botao type="button" secundario={!proposta.recomendada} onClick={() => navigate(`/organizador/eventos/${id}/propostas/${comparacao.recebida.id}`)}>
+            <Botao
+              type="button"
+              secundario={!proposta.recomendada}
+              onClick={() =>
+                navigate(`/organizador/eventos/${id}/propostas/${comparacao.recebida.id}`)
+              }
+            >
               {proposta.recomendada || isMobile ? 'Selecionar proposta' : 'Selecionar'}
             </Botao>
           </article>
@@ -49,10 +57,14 @@ export function EventoPropostas() {
       {!isMobile && (
         <Tabela
           colunas={['OUTROS ITENS EM COTAÇÃO', 'PROPOSTAS', 'MENOR VALOR', 'SITUAÇÃO']}
-          linhas={comparacao.outrosItens.map((item) => [item.nome, item.propostas, item.menorValor, item.situacao])}
+          linhas={comparacao.outrosItens.map((item) => [
+            item.nome,
+            item.propostas,
+            item.menorValor,
+            item.situacao,
+          ])}
         />
       )}
-
     </EventoLayout>
   )
 }
