@@ -19,7 +19,9 @@ export function EventoLayout({ acoes, comResumo = false, children }) {
   if (!evento) return <OrganizadorLayout titulo="Evento não encontrado" />
 
   const detalhe = evento.detalhe
-  const etiqueta = <span className={`etiqueta etiqueta--${evento.status}`}>{STATUS[evento.status].nome}</span>
+  const etiqueta = (
+    <span className={`etiqueta etiqueta--${evento.status}`}>{STATUS[evento.status].nome}</span>
+  )
 
   const abas = (
     <div className="evento-abas">
@@ -52,7 +54,9 @@ export function EventoLayout({ acoes, comResumo = false, children }) {
   return (
     <OrganizadorLayout>
       <div className="evento-topo">
-        <div className={`evento-topo__titulos${comResumo ? '' : ' evento-topo__titulos--espacado'}`}>
+        <div
+          className={`evento-topo__titulos${comResumo ? '' : ' evento-topo__titulos--espacado'}`}
+        >
           <Link to="/organizador/eventos" className="evento-topo__voltar">
             <img src={iconeVoltar} alt="" />
             Meus eventos

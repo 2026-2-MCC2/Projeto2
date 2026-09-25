@@ -8,7 +8,11 @@ export function BotaoAcessibilidade({ posicao = 'flutuante' }) {
   const flutuante = posicao === 'flutuante'
 
   return (
-    <button type="button" className={`acessibilidade acessibilidade--${posicao}`} aria-label="Opções de acessibilidade">
+    <button
+      type="button"
+      className={`acessibilidade acessibilidade--${posicao}`}
+      aria-label="Opções de acessibilidade"
+    >
       <img src={flutuante ? iconeClaro : iconeEscuro} alt="" />
     </button>
   )

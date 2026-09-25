@@ -20,7 +20,11 @@ export function MenuLateral({ aoSair }) {
         </div>
       </div>
 
-      <NavLink to="/organizador/eventos" end className={({ isActive }) => `menu__item${isActive ? ' menu__item--ativo' : ''}`}>
+      <NavLink
+        to="/organizador/eventos"
+        end
+        className={({ isActive }) => `menu__item${isActive ? ' menu__item--ativo' : ''}`}
+      >
         Todos os eventos
       </NavLink>
 
@@ -42,7 +46,10 @@ export function MenuLateral({ aoSair }) {
         ))}
       </div>
 
-      <NavLink to="/organizador/configuracoes" className={({ isActive }) => `menu__item${isActive ? ' menu__item--ativo' : ''}`}>
+      <NavLink
+        to="/organizador/configuracoes"
+        className={({ isActive }) => `menu__item${isActive ? ' menu__item--ativo' : ''}`}
+      >
         Configurações
       </NavLink>
 
