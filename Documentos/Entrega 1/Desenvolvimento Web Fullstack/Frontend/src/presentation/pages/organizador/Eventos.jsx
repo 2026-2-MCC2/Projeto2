@@ -71,13 +71,11 @@ export function Eventos() {
       </div>
 
       <div className="organizador__grade">
-        {isMobile && cardNovoEvento}
-
         {eventos.map((evento) => (
           <CartaoEvento key={evento.id} evento={evento} />
         ))}
 
-        {!isMobile && cardNovoEvento}
+        {cardNovoEvento}
       </div>
     </OrganizadorLayout>
   )

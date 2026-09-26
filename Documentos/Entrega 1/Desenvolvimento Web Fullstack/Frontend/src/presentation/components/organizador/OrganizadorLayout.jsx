@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { NavLink, useNavigate } from 'react-router-dom'
+import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
 import { MenuLateral } from './MenuLateral.jsx'
 import { BotaoAcessibilidade } from '../comum/BotaoAcessibilidade.jsx'
@@ -29,6 +29,8 @@ export function OrganizadorLayout({
 }) {
   const isMobile = useIsMobile()
   const navigate = useNavigate()
+  const { pathname } = useLocation()
+  const naListaDeEventos = pathname === '/organizador/eventos'
   const [confirmandoSaida, setConfirmandoSaida] = useState(false)
 
   const modalDeSaida = confirmandoSaida && <ModalSair aoFechar={() => setConfirmandoSaida(false)} />
@@ -51,12 +53,14 @@ export function OrganizadorLayout({
             subCabecalho
           ) : (
             <>
-              <div className="topo__marca">
-                <img src={simbolo} alt="" />
-                <p>
-                  TrocaTicket <span>· Gestão</span>
-                </p>
-              </div>
+              {!voltarPara && (
+                <div className="topo__marca">
+                  <img src={simbolo} alt="" />
+                  <p>
+                    TrocaTicket <span>· Gestão</span>
+                  </p>
+                </div>
+              )}
 
               <div className="topo__cabecalho">
                 {voltarPara && (
@@ -75,7 +79,7 @@ export function OrganizadorLayout({
                   {apoio && <p>{apoio}</p>}
                 </div>
                 <div className="topo__acoes">
-                  <BotaoAcessibilidade posicao="topo" />
+                  {!naListaDeEventos && <BotaoAcessibilidade posicao="topo" />}
                   <button
                     type="button"
                     className="topo__sair"
@@ -113,6 +117,8 @@ export function OrganizadorLayout({
             ))}
           </nav>
         )}
+
+        {naListaDeEventos && <BotaoAcessibilidade />}
 
         {modalDeSaida}
       </div>

@@ -1,13 +1,25 @@
 import { Link } from 'react-router-dom'
 import logotipo from '../../assets/acesso/logotipo-trocaticket.png'
+import fotoShow from '../../assets/acesso/foto-show.jpg'
 import '../../styles/acesso.css'
 
+const CHAMADA_PADRAO = (
+  <>
+    Do orçamento ao
+    <br />
+    preço do ingresso.
+  </>
+)
+
+const DESCRICAO_PADRAO =
+  'Cadastre custos, receba propostas de fornecedores e calcule o ticket médio antes de abrir as vendas.'
+
 export function AcessoLayout({
-  foto,
+  foto = fotoShow,
   tom = 'laranja',
   fotoNoMobile = true,
-  titulo,
-  descricao,
+  titulo = CHAMADA_PADRAO,
+  descricao = DESCRICAO_PADRAO,
   children,
 }) {
   return (
