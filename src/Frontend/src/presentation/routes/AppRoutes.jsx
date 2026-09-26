@@ -8,6 +8,7 @@ import { Eventos } from '../pages/organizador/Eventos.jsx'
 import { NovoEvento } from '../pages/organizador/NovoEvento.jsx'
 import { EventoVisaoGeral } from '../pages/organizador/EventoVisaoGeral.jsx'
 import { EventoItens } from '../pages/organizador/EventoItens.jsx'
+import { NovoItemCusto } from '../pages/organizador/NovoItemCusto.jsx'
 import { EventoPropostas } from '../pages/organizador/EventoPropostas.jsx'
 import { EventoTicket } from '../pages/organizador/EventoTicket.jsx'
 import { PropostaRecebida } from '../pages/organizador/PropostaRecebida.jsx'
@@ -26,6 +27,7 @@ export function AppRoutes() {
         <Route path="/organizador/eventos/novo" element={<NovoEvento />} />
         <Route path="/organizador/eventos/:id" element={<EventoVisaoGeral />} />
         <Route path="/organizador/eventos/:id/itens" element={<EventoItens />} />
+        <Route path="/organizador/eventos/:id/itens/novo" element={<NovoItemCusto />} />
         <Route path="/organizador/eventos/:id/propostas" element={<EventoPropostas />} />
         <Route path="/organizador/eventos/:id/propostas/:proposta" element={<PropostaRecebida />} />
         <Route path="/organizador/eventos/:id/ticket" element={<EventoTicket />} />
