@@ -33,6 +33,11 @@
   display: contents;
 }
 
+.acesso__topo {
+  display: flex;
+  align-items: center;
+}
+
 .acesso__marca {
   display: flex;
   align-items: center;
@@ -427,6 +432,10 @@
   width: auto;
 }
 
+.etapas__topo .acessibilidade-area {
+  margin-left: auto;
+}
+
 .etapas__progresso {
   display: flex;
   flex-direction: column;
@@ -634,11 +643,26 @@
     gap: 0;
   }
 
-  .acesso--marca-no-topo .acesso__marca {
-    justify-content: center;
+  .acesso__topo .acessibilidade-area {
+    margin-left: auto;
+  }
+
+  .acesso--marca-no-topo .acesso__topo {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
     padding: 3.5rem 1.25rem 1.125rem;
     border-bottom: 1px solid var(--acesso-borda);
     background: #fff;
+  }
+
+  .acesso--marca-no-topo .acesso__marca {
+    grid-column: 2;
+  }
+
+  .acesso--marca-no-topo .acesso__topo .acessibilidade-area {
+    grid-column: 3;
+    justify-self: end;
   }
 
   .acesso--marca-no-topo .acesso__logo {
