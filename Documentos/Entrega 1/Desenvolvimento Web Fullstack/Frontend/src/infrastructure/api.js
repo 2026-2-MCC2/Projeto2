@@ -1,8 +1,4 @@
-// Camada de infraestrutura: o único arquivo que conversa com a API.
-//
-// Toda chamada de rede do projeto passa por aqui, então a URL do backend
-// fica escrita em um lugar só. Se ela mudar, mudamos apenas este arquivo.
-
+// Toda chamada de rede passa por aqui, para a URL do backend ficar em um lugar só.
 const URL_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
 
 async function requisitar(caminho, opcoes = {}) {

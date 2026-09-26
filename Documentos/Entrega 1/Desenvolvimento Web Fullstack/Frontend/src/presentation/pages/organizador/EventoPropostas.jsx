@@ -14,6 +14,20 @@ const VISOES = [
   { valor: 'lista', nome: 'Ver em lista', icone: iconeLista },
 ]
 
+function Etiquetas({ proposta }) {
+  return (
+    <>
+      {proposta.selecionada && <span className="etiqueta etiqueta--aprovado">Selecionada</span>}
+      {estaVencida(proposta.validade) && (
+        <span className="etiqueta etiqueta--vencida">Vencida</span>
+      )}
+      {proposta.etiqueta && (
+        <span className="etiqueta etiqueta--destaque">{proposta.etiqueta}</span>
+      )}
+    </>
+  )
+}
+
 export function EventoPropostas() {
   const { id } = useParams()
   const isMobile = useIsMobile()
@@ -94,15 +108,7 @@ export function EventoPropostas() {
                 celulas: [
                   <span className="lista-proposta__nome" key="nome">
                     {proposta.fornecedor}
-                    {proposta.selecionada && (
-                      <span className="etiqueta etiqueta--aprovado">Selecionada</span>
-                    )}
-                    {estaVencida(proposta.validade) && (
-                      <span className="etiqueta etiqueta--vencida">Vencida</span>
-                    )}
-                    {proposta.etiqueta && (
-                      <span className="etiqueta etiqueta--destaque">{proposta.etiqueta}</span>
-                    )}
+                    <Etiquetas proposta={proposta} />
                   </span>,
                   proposta.valor,
                   proposta.prazo,
@@ -123,15 +129,7 @@ export function EventoPropostas() {
                   onClick={() => abrir(proposta)}
                 >
                   <div className="proposta__etiquetas">
-                    {proposta.selecionada && (
-                      <span className="etiqueta etiqueta--aprovado">Selecionada</span>
-                    )}
-                    {estaVencida(proposta.validade) && (
-                      <span className="etiqueta etiqueta--vencida">Vencida</span>
-                    )}
-                    {proposta.etiqueta && (
-                      <span className="etiqueta etiqueta--destaque">{proposta.etiqueta}</span>
-                    )}
+                    <Etiquetas proposta={proposta} />
                   </div>
 
                   <div className="proposta__cabecalho">
