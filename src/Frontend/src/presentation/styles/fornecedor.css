@@ -1,0 +1,251 @@
+.fornecedor__busca-filtros {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 59px;
+  padding: 12px 16px;
+  border: 1px solid var(--org-borda);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.fornecedor__busca {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.fornecedor__busca img {
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.fornecedor__busca input {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--org-texto);
+  font: inherit;
+  font-size: 13px;
+}
+
+.fornecedor__busca input::placeholder {
+  color: var(--org-apagado);
+  opacity: 1;
+}
+
+.fornecedor__busca input:focus {
+  outline: 0;
+}
+
+.fornecedor__filtros {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+}
+
+.fornecedor__grade {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, calc((100% - 40px) / 2)));
+  gap: 20px;
+}
+
+.fornecedor-evento {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 18px;
+  padding: 22px 24px;
+  border: 1px solid var(--org-borda);
+  border-radius: 16px;
+  background: #fff;
+}
+
+.fornecedor-evento__identificacao {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.fornecedor-evento__etiquetas {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.fornecedor-evento__categorias {
+  flex: 0 1 auto;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #e8f0fc;
+  color: var(--org-azul);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 13px;
+  white-space: nowrap;
+}
+
+.fornecedor-evento__prazo {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-left: auto;
+  color: #b45309;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.fornecedor-evento__prazo img {
+  width: 12px;
+  height: 12px;
+}
+
+.fornecedor-evento__identificacao h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.fornecedor-evento__identificacao p {
+  margin: 0;
+  color: var(--org-suave);
+  font-size: 12px;
+}
+
+.fornecedor-evento__numeros {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  padding-top: 18px;
+  border-top: 1px solid var(--org-borda);
+}
+
+.fornecedor-evento__numeros > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fornecedor-evento__numeros span {
+  color: var(--org-suave);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.fornecedor-evento__numeros strong {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.fornecedor-evento__numeros .fornecedor-evento__orcamento {
+  color: var(--org-azul);
+}
+
+.fornecedor-evento__acao {
+  min-height: 42px;
+  padding: 12px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--org-azul);
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.fornecedor__vazio {
+  margin: 0;
+  padding: 24px;
+  border: 1px solid var(--org-borda);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--org-suave);
+  font-size: 13px;
+  text-align: center;
+}
+
+@media (max-width: 1100px) {
+  .fornecedor__busca-filtros {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .fornecedor__filtros {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 900px) {
+  .organizador--fornecedor .topo {
+    padding-top: 56px;
+  }
+
+  .organizador--fornecedor .organizador__conteudo {
+    padding: 20px 20px 40px;
+  }
+
+  .organizador--fornecedor .abas {
+    padding-top: 10px;
+  }
+
+  .organizador--fornecedor .aba__marcador {
+    padding-right: 20px;
+    padding-left: 20px;
+  }
+
+  .fornecedor__busca-filtros {
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+
+  .fornecedor__busca {
+    flex: 0 0 auto;
+    width: 100%;
+    min-height: 42px;
+    padding: 12px 14px;
+    border: 1px solid var(--org-borda);
+    border-radius: 10px;
+    background: #fff;
+  }
+
+  .fornecedor__grade {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+}
+
+@media (max-width: 520px) {
+  .fornecedor-evento {
+    gap: 16px;
+    padding: 18px 16px;
+  }
+
+  .fornecedor-evento__numeros {
+    gap: 8px;
+  }
+
+  .fornecedor-evento__numeros span {
+    font-size: 9px;
+    letter-spacing: 0.2px;
+    white-space: normal;
+  }
+
+  .fornecedor-evento__numeros strong {
+    font-size: 14px;
+  }
+}
