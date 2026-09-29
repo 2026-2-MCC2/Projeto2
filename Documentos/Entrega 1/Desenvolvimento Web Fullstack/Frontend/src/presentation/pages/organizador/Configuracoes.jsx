@@ -1,6 +1,13 @@
 import { useState } from 'react'
 import { OrganizadorLayout } from '../../components/organizador/OrganizadorLayout.jsx'
-import { Acoes, Botao, Campo, CampoFixo, Linha, Painel } from '../../components/organizador/Formulario.jsx'
+import {
+  Acoes,
+  Botao,
+  Campo,
+  CampoFixo,
+  Linha,
+  Painel,
+} from '../../components/organizador/Formulario.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
 import iconeBloqueado from '../../assets/organizador/icone-bloqueado.svg'
 import iconePermitido from '../../assets/organizador/icone-permitido.svg'
@@ -53,7 +60,9 @@ function PainelDados({ isMobile }) {
     <Painel
       titulo="Dados cadastrais"
       apoio={
-        isMobile ? 'Aprovados pelo administrador.' : 'Informações enviadas no cadastro e aprovadas pelo administrador.'
+        isMobile
+          ? 'Aprovados pelo administrador.'
+          : 'Informações enviadas no cadastro e aprovadas pelo administrador.'
       }
       onSubmit={(evento) => evento.preventDefault()}
     >
@@ -87,7 +96,10 @@ function PainelDados({ isMobile }) {
 
 function PainelPerfil({ isMobile }) {
   return (
-    <Painel titulo="Perfil de acesso" apoio="Define quais funcionalidades ficam disponíveis para você.">
+    <Painel
+      titulo="Perfil de acesso"
+      apoio="Define quais funcionalidades ficam disponíveis para você."
+    >
       <div className="painel__perfil">
         <span className="etiqueta">Organizador</span>
         <p>
