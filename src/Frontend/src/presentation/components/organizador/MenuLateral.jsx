@@ -4,17 +4,44 @@ import simbolo from '../../assets/organizador/simbolo.png'
 import iconeOrganizador from '../../assets/organizador/icone-organizador.svg'
 import iconeSair from '../../assets/organizador/icone-sair.svg'
 import iconeFornecedor from '../../assets/fornecedor/icone-fornecedor.svg'
+import iconeAdministracao from '../../assets/admin/icone-administracao.svg'
 
 const PERFIS = {
-  organizador: { area: 'ORGANIZADOR', nome: 'Lucas Santos', papel: 'Organizador' },
-  fornecedor: { area: 'FORNECEDOR', nome: 'Sabor & Arte', papel: 'Fornecedor aprovado' },
+  organizador: {
+    area: 'ORGANIZADOR',
+    icone: iconeOrganizador,
+    nome: 'Lucas Santos',
+    papel: 'Organizador',
+  },
+  fornecedor: {
+    area: 'FORNECEDOR',
+    icone: iconeFornecedor,
+    nome: 'Sabor & Arte',
+    papel: 'Fornecedor aprovado',
+  },
+  admin: {
+    area: 'ADMINISTRAÇÃO',
+    icone: iconeAdministracao,
+    nome: 'Admin TrocaTicket',
+    papel: 'Administrador',
+  },
 }
 
-const ITENS_FORNECEDOR = [
-  { rota: '/fornecedor/eventos', nome: 'Eventos disponíveis', exata: true },
-  { rota: '/fornecedor/propostas', nome: 'Minhas propostas' },
-  { rota: '/fornecedor/configuracoes', nome: 'Configurações' },
-]
+// O organizador monta o menu com os eventos recentes; os outros perfis têm uma lista fixa.
+const ITENS = {
+  fornecedor: [
+    { rota: '/fornecedor/eventos', nome: 'Eventos disponíveis', exata: true },
+    { rota: '/fornecedor/propostas', nome: 'Minhas propostas' },
+    { rota: '/fornecedor/configuracoes', nome: 'Configurações' },
+  ],
+  admin: [
+    { rota: '/admin/aprovacoes', nome: 'Aprovações' },
+    { rota: '/admin/usuarios', nome: 'Usuários' },
+    { rota: '/admin/historico', nome: 'Histórico' },
+    { rota: '/admin/visao-geral', nome: 'Visão geral' },
+    { rota: '/admin/configuracoes', nome: 'Configurações' },
+  ],
+}
 
 function ItemMenu({ to, end = false, children }) {
   return (
@@ -31,7 +58,7 @@ function ItemMenu({ to, end = false, children }) {
 
 export function MenuLateral({ aoSair, perfil = 'organizador' }) {
   const dadosPerfil = PERFIS[perfil] ?? PERFIS.organizador
-  const fornecedor = perfil === 'fornecedor'
+  const itens = ITENS[perfil]
 
   return (
     <nav className="menu">
@@ -42,14 +69,14 @@ export function MenuLateral({ aoSair, perfil = 'organizador' }) {
             TrocaTicket <span>· Gestão</span>
           </p>
           <p className="menu__area">
-            <img src={fornecedor ? iconeFornecedor : iconeOrganizador} alt="" />
+            <img src={dadosPerfil.icone} alt="" />
             {dadosPerfil.area}
           </p>
         </div>
       </div>
 
-      {fornecedor ? (
-        ITENS_FORNECEDOR.map((item) => (
+      {itens ? (
+        itens.map((item) => (
           <ItemMenu key={item.rota} to={item.rota} end={item.exata}>
             {item.nome}
           </ItemMenu>

@@ -239,6 +239,13 @@
   font-size: 0.8125rem;
 }
 
+.organizador__cabecalho--com-acoes {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
 /* ---------- busca e filtros ---------- */
 
 .barra {

@@ -14,6 +14,8 @@ import { EventoTicket } from '../pages/organizador/EventoTicket.jsx'
 import { PropostaRecebida } from '../pages/organizador/PropostaRecebida.jsx'
 import { Configuracoes } from '../pages/organizador/Configuracoes.jsx'
 import { EventosDisponiveis } from '../pages/fornecedor/EventosDisponiveis.jsx'
+import { Aprovacoes } from '../pages/admin/Aprovacoes.jsx'
+import { Usuarios } from '../pages/admin/Usuarios.jsx'
 
 export function AppRoutes() {
   return (
@@ -35,6 +37,9 @@ export function AppRoutes() {
         <Route path="/organizador/configuracoes" element={<Configuracoes />} />
 
         <Route path="/fornecedor/eventos" element={<EventosDisponiveis />} />
+
+        <Route path="/admin/aprovacoes" element={<Aprovacoes />} />
+        <Route path="/admin/usuarios" element={<Usuarios />} />
 
         <Route path="*" element={<NaoEncontrada />} />
       </Routes>
