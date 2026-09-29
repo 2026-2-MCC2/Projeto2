@@ -40,7 +40,8 @@ export function OrganizadorLayout({
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const fornecedor = perfil === 'fornecedor'
-  const naListaDeEventos = pathname === (fornecedor ? '/fornecedor/eventos' : '/organizador/eventos')
+  const naListaDeEventos =
+    pathname === (fornecedor ? '/fornecedor/eventos' : '/organizador/eventos')
   const abas = fornecedor ? ABAS_FORNECEDOR : ABAS
   const [confirmandoSaida, setConfirmandoSaida] = useState(false)
 
@@ -48,7 +49,9 @@ export function OrganizadorLayout({
 
   if (isMobile) {
     return (
-      <div className={`organizador${fornecedor ? ' organizador--fornecedor' : ''}${aoVoltar ? ' organizador--fluxo' : ''}`}>
+      <div
+        className={`organizador${fornecedor ? ' organizador--fornecedor' : ''}${aoVoltar ? ' organizador--fluxo' : ''}`}
+      >
         <header className="topo">
           {aoVoltar ? (
             <div className="topo__fluxo">
