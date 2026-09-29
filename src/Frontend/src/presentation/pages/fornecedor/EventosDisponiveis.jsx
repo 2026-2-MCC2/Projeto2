@@ -20,7 +20,11 @@ function CartaoEvento({ evento }) {
           </span>
         </div>
         <h2>{evento.nome}</h2>
-        <p>{evento.data}<span aria-hidden="true"> · </span>{evento.local}</p>
+        <p>
+          {evento.data}
+          <span aria-hidden="true"> · </span>
+          {evento.local}
+        </p>
       </div>
 
       <div className="fornecedor-evento__numeros" aria-label="Dados do evento">
@@ -53,7 +57,9 @@ export function EventosDisponiveis() {
     const termo = busca.trim().toLocaleLowerCase('pt-BR')
     return EVENTOS_DISPONIVEIS.filter((evento) => {
       const correspondeCategoria = filtro === FILTROS[0] || evento.categorias.includes(filtro)
-      const texto = `${evento.nome} ${evento.local} ${evento.organizador}`.toLocaleLowerCase('pt-BR')
+      const texto = `${evento.nome} ${evento.local} ${evento.organizador}`.toLocaleLowerCase(
+        'pt-BR',
+      )
       return correspondeCategoria && texto.includes(termo)
     })
   }, [busca, filtro])
@@ -71,7 +77,9 @@ export function EventosDisponiveis() {
             <img src={iconeBuscar} alt="" />
             <input
               type="search"
-              placeholder={isMobile ? 'Buscar evento ou local' : 'Buscar evento por nome, local ou organizador'}
+              placeholder={
+                isMobile ? 'Buscar evento ou local' : 'Buscar evento por nome, local ou organizador'
+              }
               value={busca}
               onChange={(evento) => setBusca(evento.target.value)}
             />
@@ -93,10 +101,14 @@ export function EventosDisponiveis() {
 
         {eventos.length ? (
           <section className="fornecedor__grade" aria-label="Eventos disponíveis">
-            {eventos.map((evento) => <CartaoEvento key={evento.id} evento={evento} />)}
+            {eventos.map((evento) => (
+              <CartaoEvento key={evento.id} evento={evento} />
+            ))}
           </section>
         ) : (
-          <p className="fornecedor__vazio" role="status">Nenhum evento encontrado para essa busca e categoria.</p>
+          <p className="fornecedor__vazio" role="status">
+            Nenhum evento encontrado para essa busca e categoria.
+          </p>
         )}
       </>
     </OrganizadorLayout>

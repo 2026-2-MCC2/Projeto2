@@ -68,7 +68,9 @@ export function MenuLateral({ aoSair, perfil = 'organizador' }) {
                 key={evento.id}
                 to={`/organizador/eventos/${evento.id}`}
                 viewTransition
-                className={({ isActive }) => `menu__evento${isActive ? ' menu__evento--ativo' : ''}`}
+                className={({ isActive }) =>
+                  `menu__evento${isActive ? ' menu__evento--ativo' : ''}`
+                }
               >
                 <span className={`menu__evento-marcador menu__evento-marcador--${evento.status}`} />
                 <span className="menu__evento-texto">
@@ -79,9 +81,7 @@ export function MenuLateral({ aoSair, perfil = 'organizador' }) {
             ))}
           </div>
 
-          <ItemMenu to="/organizador/configuracoes">
-            Configurações
-          </ItemMenu>
+          <ItemMenu to="/organizador/configuracoes">Configurações</ItemMenu>
         </>
       )}
 
