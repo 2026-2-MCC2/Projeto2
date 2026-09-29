@@ -1,9 +1,12 @@
 import { useState } from 'react'
 import { OrganizadorLayout } from '../../components/organizador/OrganizadorLayout.jsx'
-import { Botao } from '../../components/organizador/Formulario.jsx'
+import { Botao, Campo } from '../../components/organizador/Formulario.jsx'
+import { Modal } from '../../components/comum/Modal.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
 import { USUARIOS } from '../../data/usuarios.js'
 import iconeBuscar from '../../assets/organizador/icone-buscar.svg'
+import iconeConfirmar from '../../assets/organizador/icone-modal-aceitar.svg'
+import iconeBloquear from '../../assets/admin/icone-modal-rejeitar.svg'
 import '../../styles/admin.css'
 
 const FILTROS = [
@@ -26,7 +29,57 @@ function resumo(filtro, total) {
   return `${total} cadastro${plural} com acesso à plataforma`
 }
 
-function CartaoUsuario({ usuario }) {
+function ModalAcesso({ acao, usuario, aoFechar }) {
+  const empresa = { rotulo: 'Empresa', valor: usuario.nome }
+  const perfil = { rotulo: 'Perfil', valor: PERFIS[usuario.perfil] }
+
+  if (acao === 'redefinir') {
+    return (
+      <Modal
+        icone={iconeConfirmar}
+        titulo="Enviar e-mail de redefinição de senha?"
+        mensagem="O usuário recebe um link para criar uma nova senha. O link expira em 24 horas."
+        dados={[empresa, { rotulo: 'E-mail', valor: usuario.email }]}
+        acao={{ cancelar: 'Cancelar', confirmar: 'Enviar e-mail' }}
+        aoFechar={aoFechar}
+      />
+    )
+  }
+
+  if (acao === 'reativar') {
+    return (
+      <Modal
+        icone={iconeConfirmar}
+        titulo="Reativar o acesso deste usuário?"
+        mensagem="O usuário volta a conseguir entrar na plataforma imediatamente com o mesmo perfil de antes."
+        dados={[empresa, perfil]}
+        acao={{ cancelar: 'Cancelar', confirmar: 'Reativar acesso' }}
+        aoFechar={aoFechar}
+      />
+    )
+  }
+
+  return (
+    <Modal
+      icone={iconeBloquear}
+      corDoIcone="vermelho"
+      titulo="Bloquear o acesso deste usuário?"
+      mensagem="O usuário deixa de conseguir entrar na plataforma até que o acesso seja reativado por um administrador."
+      dados={[empresa, perfil]}
+      acao={{ cancelar: 'Cancelar', confirmar: 'Bloquear acesso' }}
+      aoFechar={aoFechar}
+    >
+      <Campo rotulo="Motivo do bloqueio">
+        <textarea
+          rows={2}
+          placeholder="Ex.: inatividade prolongada ou irregularidade identificada."
+        />
+      </Campo>
+    </Modal>
+  )
+}
+
+function CartaoUsuario({ usuario, aoAgir }) {
   const status = STATUS[usuario.status]
 
   return (
@@ -49,15 +102,30 @@ function CartaoUsuario({ usuario }) {
       <div className="usuario__acoes">
         {usuario.status === 'ativo' ? (
           <>
-            <Botao type="button" secundario className="usuario__acao">
+            <Botao
+              type="button"
+              secundario
+              className="usuario__acao"
+              onClick={() => aoAgir('redefinir')}
+            >
               Redefinir senha
             </Botao>
-            <Botao type="button" secundario className="usuario__acao usuario__acao--perigo">
+            <Botao
+              type="button"
+              secundario
+              className="usuario__acao usuario__acao--perigo"
+              onClick={() => aoAgir('bloquear')}
+            >
               Bloquear acesso
             </Botao>
           </>
         ) : (
-          <Botao type="button" secundario className="usuario__acao">
+          <Botao
+            type="button"
+            secundario
+            className="usuario__acao"
+            onClick={() => aoAgir('reativar')}
+          >
             Reativar acesso
           </Botao>
         )}
@@ -70,6 +138,7 @@ export function Usuarios() {
   const isMobile = useIsMobile()
   const [busca, setBusca] = useState('')
   const [filtro, setFiltro] = useState('todos')
+  const [confirmacao, setConfirmacao] = useState(null)
 
   const doFiltro = USUARIOS.filter((usuario) => filtro === 'todos' || usuario.status === filtro)
   const termo = busca.trim().toLocaleLowerCase('pt-BR')
@@ -121,13 +190,25 @@ export function Usuarios() {
       {usuarios.length ? (
         <section className="usuarios" aria-label="Usuários">
           {usuarios.map((usuario) => (
-            <CartaoUsuario key={usuario.id} usuario={usuario} />
+            <CartaoUsuario
+              key={usuario.id}
+              usuario={usuario}
+              aoAgir={(acao) => setConfirmacao({ acao, usuario })}
+            />
           ))}
         </section>
       ) : (
         <p className="aviso" role="status">
           Nenhum cadastro encontrado para essa busca.
         </p>
+      )}
+
+      {confirmacao && (
+        <ModalAcesso
+          acao={confirmacao.acao}
+          usuario={confirmacao.usuario}
+          aoFechar={() => setConfirmacao(null)}
+        />
       )}
     </OrganizadorLayout>
   )
