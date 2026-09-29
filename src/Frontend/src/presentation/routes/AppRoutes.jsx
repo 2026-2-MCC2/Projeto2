@@ -13,6 +13,7 @@ import { EventoPropostas } from '../pages/organizador/EventoPropostas.jsx'
 import { EventoTicket } from '../pages/organizador/EventoTicket.jsx'
 import { PropostaRecebida } from '../pages/organizador/PropostaRecebida.jsx'
 import { Configuracoes } from '../pages/organizador/Configuracoes.jsx'
+import { EventosDisponiveis } from '../pages/fornecedor/EventosDisponiveis.jsx'
 
 export function AppRoutes() {
   return (
@@ -32,6 +33,8 @@ export function AppRoutes() {
         <Route path="/organizador/eventos/:id/propostas/:proposta" element={<PropostaRecebida />} />
         <Route path="/organizador/eventos/:id/ticket" element={<EventoTicket />} />
         <Route path="/organizador/configuracoes" element={<Configuracoes />} />
+
+        <Route path="/fornecedor/eventos" element={<EventosDisponiveis />} />
 
         <Route path="*" element={<NaoEncontrada />} />
       </Routes>
