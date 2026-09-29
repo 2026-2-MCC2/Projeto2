@@ -136,12 +136,6 @@
 
 /* ---------- usuários ---------- */
 
-.organizador--admin .filtro {
-  padding: 0.5rem 0.875rem;
-  border-radius: 999px;
-  font-size: 0.75rem;
-}
-
 .usuarios {
   display: flex;
   flex-direction: column;
@@ -222,10 +216,6 @@
 }
 
 @media (max-width: 900px) {
-  .organizador--admin .barra__filtros {
-    justify-content: flex-start;
-  }
-
   .usuario {
     grid-template-columns: auto minmax(0, 1fr) auto;
     grid-template-areas:
