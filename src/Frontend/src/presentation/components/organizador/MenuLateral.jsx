@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import { EVENTOS } from '../../data/eventos.js'
+import { BotaoTema } from '../comum/BotaoTema.jsx'
 import simbolo from '../../assets/organizador/simbolo.png'
 import iconeOrganizador from '../../assets/organizador/icone-organizador.svg'
 import iconeSair from '../../assets/organizador/icone-sair.svg'
@@ -18,6 +19,7 @@ export function MenuLateral({ aoSair }) {
             ORGANIZADOR
           </p>
         </div>
+        <BotaoTema />
       </div>
 
       <NavLink

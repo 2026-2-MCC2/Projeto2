@@ -2,6 +2,69 @@
   font-family: Inter, system-ui, sans-serif;
   font-size: 16px;
   color-scheme: light;
+
+  --cor-azul: #0a50ae;
+  --cor-azul-fundo: #0a50ae;
+  --cor-azul-claro: #e8f0fc;
+  --cor-texto: #0f172a;
+  --cor-suave: #64748b;
+  --cor-apagado: #94a3b8;
+  --cor-borda: #e5e9f0;
+  --cor-borda-forte: #cbd5e1;
+  --cor-fundo: #f6f8fb;
+  --cor-superficie: #fff;
+  --cor-superficie-suave: #fafbfd;
+  --cor-neutro: #f1f4f9;
+  --cor-sucesso: #15803d;
+  --cor-sucesso-claro: #ecfdf3;
+  --cor-aviso: #b45309;
+  --cor-aviso-claro: #fff4ec;
+  --cor-aviso-borda: #ffd9bc;
+  --cor-erro: #b91c1c;
+  --cor-erro-claro: #fef2f2;
+}
+
+/* O tema é definido no index.html (antes do React) e trocado pelo BotaoTema. */
+:root[data-tema='escuro'] {
+  color-scheme: dark;
+
+  --cor-azul: #60a5fa;
+  --cor-azul-fundo: #1d4ed8;
+  --cor-azul-claro: #172a4a;
+  --cor-texto: #e2e8f0;
+  --cor-suave: #94a3b8;
+  --cor-apagado: #64748b;
+  --cor-borda: #26324a;
+  --cor-borda-forte: #3a4760;
+  --cor-fundo: #0b1120;
+  --cor-superficie: #121a2c;
+  --cor-superficie-suave: #162036;
+  --cor-neutro: #1b2539;
+  --cor-sucesso: #4ade80;
+  --cor-sucesso-claro: #0f2a1e;
+  --cor-aviso: #fb923c;
+  --cor-aviso-claro: #2e1d10;
+  --cor-aviso-borda: #5c3414;
+  --cor-erro: #f87171;
+  --cor-erro-claro: #2d1518;
+}
+
+/* Os ícones SVG têm cor fixa: no escuro inverte a claridade e mantém o tom.
+   Ficam de fora os ícones brancos que ficam sobre fundo azul. */
+:root[data-tema='escuro']
+  img:is([src$='.svg'], [src^='data:image/svg']):not(.botao img, .acessibilidade--flutuante img) {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+/* Classe aplicada só durante a troca, para não interferir nas outras transições. */
+.trocando-tema,
+.trocando-tema * {
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    color 0.3s ease,
+    fill 0.3s ease,
+    stroke 0.3s ease !important;
 }
 
 * {
@@ -10,6 +73,13 @@
 
 body {
   margin: 0;
-  background: #f6f8fb;
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
   line-height: 1.35;
+}
+
+input,
+textarea,
+select {
+  background-color: var(--cor-superficie);
 }

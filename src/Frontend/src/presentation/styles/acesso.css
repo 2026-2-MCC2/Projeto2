@@ -1,25 +1,27 @@
 .acesso {
-  --acesso-azul: #0a50ae;
-  --acesso-texto: #0f172a;
-  --acesso-suave: #64748b;
-  --acesso-borda: #e5e9f0;
   --acesso-raio: 10px;
 
   display: flex;
   min-height: 100vh;
-  background: #fff;
-  color: var(--acesso-texto);
-  color-scheme: light;
+  background: var(--cor-superficie);
+  color: var(--cor-texto);
   font-family: Inter, system-ui, sans-serif;
   line-height: 1.35;
 }
 
 .acesso__formulario {
+  position: relative;
   display: flex;
   flex: 1 1 58%;
   align-items: center;
   justify-content: center;
   padding: 3rem 1.5rem;
+}
+
+.acesso__formulario > .acessibilidade {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
 }
 
 .acesso__conteudo {
@@ -47,7 +49,7 @@
 
 .acesso__selo {
   padding-top: 11px;
-  color: #94a3b8;
+  color: var(--cor-apagado);
   font-size: 1rem;
   font-weight: 500;
 }
@@ -60,7 +62,7 @@
 
 .acesso__cabecalho p {
   margin: 0;
-  color: var(--acesso-suave);
+  color: var(--cor-suave);
   font-size: 0.875rem;
 }
 
@@ -92,19 +94,19 @@
 
 .campo input {
   padding: 0.8125rem 0.875rem;
-  border: 1px solid var(--acesso-borda);
+  border: 1px solid var(--cor-borda);
   border-radius: var(--acesso-raio);
   font-size: 0.875rem;
   font-family: inherit;
-  color: var(--acesso-texto);
+  color: var(--cor-texto);
 }
 
 .campo input::placeholder {
-  color: #94a3b8;
+  color: var(--cor-apagado);
 }
 
 .campo input:focus {
-  outline: 2px solid var(--acesso-azul);
+  outline: 2px solid var(--cor-azul);
   outline-offset: 1px;
 }
 
@@ -116,7 +118,7 @@
   padding: 0.9375rem;
   border: 0;
   border-radius: var(--acesso-raio);
-  background: var(--acesso-azul);
+  background: var(--cor-azul-fundo);
   color: #fff;
   font-size: 0.875rem;
   font-weight: 600;
@@ -126,7 +128,7 @@
 }
 
 .acesso__link {
-  color: var(--acesso-azul);
+  color: var(--cor-azul);
   font-size: 0.8125rem;
   font-weight: 500;
   text-decoration: none;
@@ -151,7 +153,7 @@
 
 .acesso__nota {
   margin: 0;
-  color: var(--acesso-suave);
+  color: var(--cor-suave);
   font-size: 0.6875rem;
 }
 
@@ -168,10 +170,10 @@
   flex-direction: column;
   gap: 0.25rem;
   padding: 0.875rem 1rem;
-  border: 2px solid var(--acesso-borda);
+  border: 2px solid var(--cor-borda);
   border-radius: var(--acesso-raio);
-  background: #fff;
-  color: var(--acesso-texto);
+  background: var(--cor-superficie);
+  color: var(--cor-texto);
   font-size: 0.75rem;
   text-align: left;
   cursor: pointer;
@@ -182,25 +184,25 @@
 }
 
 .acesso__perfil span {
-  color: var(--acesso-suave);
+  color: var(--cor-suave);
 }
 
 .acesso__perfil--ativo {
-  border-color: var(--acesso-azul);
-  background: #e8f0fc;
+  border-color: var(--cor-azul);
+  background: var(--cor-azul-claro);
 }
 
 .acesso__perfil--ativo strong {
-  color: var(--acesso-azul);
+  color: var(--cor-azul);
 }
 
 .acesso__aviso {
   margin: 0;
   padding: 0.75rem 0.875rem;
-  border: 1px solid #ffd9bc;
+  border: 1px solid var(--cor-aviso-borda);
   border-radius: var(--acesso-raio);
-  background: #fff4ec;
-  color: #b45309;
+  background: var(--cor-aviso-claro);
+  color: var(--cor-aviso);
   font-size: 0.75rem;
 }
 
@@ -213,8 +215,8 @@
   gap: 0.5rem;
   padding: 0.4375rem 0.875rem 0.4375rem 0.75rem;
   border-radius: 999px;
-  background: #fff4ec;
-  color: #b45309;
+  background: var(--cor-aviso-claro);
+  color: var(--cor-aviso);
   font-size: 0.75rem;
   font-weight: 600;
 }
@@ -230,9 +232,9 @@
   gap: 1rem;
   margin: 0;
   padding: 1.25rem;
-  border: 1px solid var(--acesso-borda);
+  border: 1px solid var(--cor-borda);
   border-radius: 14px;
-  background: #fff;
+  background: var(--cor-superficie);
   list-style: none;
 }
 
@@ -250,13 +252,13 @@
 }
 
 .acesso__etapa span {
-  color: var(--acesso-suave);
+  color: var(--cor-suave);
   font-size: 0.75rem;
 }
 
 .acesso__etapa--pendente strong,
 .acesso__etapa--pendente span {
-  color: var(--acesso-suave);
+  color: var(--cor-suave);
   font-weight: 500;
 }
 
@@ -273,7 +275,7 @@
   margin: 0;
   padding: 1rem 1.125rem;
   border-radius: 14px;
-  background: #f1f4f9;
+  background: var(--cor-neutro);
   font-size: 0.75rem;
 }
 
@@ -284,7 +286,7 @@
 }
 
 .acesso__resumo dt {
-  color: var(--acesso-suave);
+  color: var(--cor-suave);
 }
 
 .acesso__resumo dd {
@@ -378,18 +380,13 @@
 /* ---------- cadastro mobile em etapas ---------- */
 
 .etapas {
-  --acesso-azul: #0a50ae;
-  --acesso-texto: #0f172a;
-  --acesso-suave: #64748b;
-  --acesso-borda: #e5e9f0;
   --acesso-raio: 10px;
 
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: #f6f8fb;
-  color: var(--acesso-texto);
-  color-scheme: light;
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
   font-family: Inter, system-ui, sans-serif;
   line-height: 1.35;
 }
@@ -399,8 +396,8 @@
   flex-direction: column;
   gap: 1rem;
   padding: 3.5rem 1.25rem 1.125rem;
-  border-bottom: 1px solid var(--acesso-borda);
-  background: #fff;
+  border-bottom: 1px solid var(--cor-borda);
+  background: var(--cor-superficie);
 }
 
 .etapas__topo {
@@ -440,12 +437,12 @@
 }
 
 .etapas__legenda strong {
-  color: var(--acesso-azul);
+  color: var(--cor-azul);
   font-weight: 600;
 }
 
 .etapas__legenda span {
-  color: var(--acesso-suave);
+  color: var(--cor-suave);
   font-weight: 500;
 }
 
@@ -458,15 +455,15 @@
   flex: 1;
   height: 4px;
   border-radius: 999px;
-  background: var(--acesso-borda);
+  background: var(--cor-borda);
 }
 
 .etapas__segmento--concluida {
-  background: #15803d;
+  background: var(--cor-sucesso);
 }
 
 .etapas__segmento--atual {
-  background: var(--acesso-azul);
+  background: var(--cor-azul-fundo);
 }
 
 .etapas__form {
@@ -491,7 +488,7 @@
 
 .etapas__titulos p {
   margin: 0;
-  color: var(--acesso-suave);
+  color: var(--cor-suave);
   font-size: 0.8125rem;
 }
 
@@ -500,17 +497,17 @@
   flex-direction: column;
   gap: 0.375rem;
   padding: 1.125rem;
-  border: 1px solid var(--acesso-borda);
+  border: 1px solid var(--cor-borda);
   border-radius: 12px;
-  background: #fff;
-  color: var(--acesso-texto);
+  background: var(--cor-superficie);
+  color: var(--cor-texto);
   text-align: left;
   cursor: pointer;
 }
 
 .etapas__perfil--ativo {
-  border: 2px solid var(--acesso-azul);
-  background: #e8f0fc;
+  border: 2px solid var(--cor-azul);
+  background: var(--cor-azul-claro);
 }
 
 .etapas__perfil-nome {
@@ -527,22 +524,22 @@
 }
 
 .etapas__perfil--ativo .etapas__perfil-nome {
-  color: var(--acesso-azul);
+  color: var(--cor-azul);
 }
 
 .etapas__perfil-resumo {
-  color: var(--acesso-suave);
+  color: var(--cor-suave);
   font-size: 0.75rem;
 }
 
 .etapas__nota {
   margin: 0;
-  color: var(--acesso-suave);
+  color: var(--cor-suave);
   font-size: 0.75rem;
 }
 
 .etapas__dica {
-  color: var(--acesso-suave);
+  color: var(--cor-suave);
   font-size: 0.6875rem;
   font-weight: 400;
 }
@@ -551,8 +548,8 @@
   position: sticky;
   bottom: 0;
   padding: 0.875rem 1.25rem 1.75rem;
-  border-top: 1px solid var(--acesso-borda);
-  background: #fff;
+  border-top: 1px solid var(--cor-borda);
+  background: var(--cor-superficie);
 }
 
 .etapas__acoes .acesso__botao {
@@ -618,7 +615,7 @@
   }
 
   .acesso--marca-no-topo {
-    background: #f6f8fb;
+    background: var(--cor-fundo);
   }
 
   .acesso--marca-no-topo .acesso__painel {
@@ -637,8 +634,8 @@
   .acesso--marca-no-topo .acesso__marca {
     justify-content: center;
     padding: 3.5rem 1.25rem 1.125rem;
-    border-bottom: 1px solid var(--acesso-borda);
-    background: #fff;
+    border-bottom: 1px solid var(--cor-borda);
+    background: var(--cor-superficie);
   }
 
   .acesso--marca-no-topo .acesso__logo {

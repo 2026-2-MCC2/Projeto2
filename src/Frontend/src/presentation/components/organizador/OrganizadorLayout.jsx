@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
 import { MenuLateral } from './MenuLateral.jsx'
 import { BotaoAcessibilidade } from '../comum/BotaoAcessibilidade.jsx'
+import { BotaoTema } from '../comum/BotaoTema.jsx'
 import { ModalSair } from '../comum/ModalSair.jsx'
 import simbolo from '../../assets/organizador/simbolo.png'
 import iconeSair from '../../assets/organizador/icone-sair.svg'
@@ -44,6 +45,7 @@ export function OrganizadorLayout({
               </button>
               <h1>{titulo}</h1>
               <img src={simbolo} alt="" className="topo__fluxo-marca" />
+              <BotaoTema />
               <BotaoAcessibilidade posicao="topo" />
             </div>
           ) : null}
@@ -75,6 +77,7 @@ export function OrganizadorLayout({
                   {apoio && <p>{apoio}</p>}
                 </div>
                 <div className="topo__acoes">
+                  <BotaoTema />
                   <BotaoAcessibilidade posicao="topo" />
                   <button
                     type="button"

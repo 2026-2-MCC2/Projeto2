@@ -1,16 +1,11 @@
 .nao-encontrada {
-  --nao-encontrada-azul: #0a50ae;
-  --nao-encontrada-texto: #0f172a;
-  --nao-encontrada-suave: #64748b;
-
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
   padding: 2rem 1.5rem;
-  background: #f6f8fb;
-  color: var(--nao-encontrada-texto);
-  color-scheme: light;
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
   font-family: Inter, system-ui, sans-serif;
   line-height: 1.35;
 }
@@ -38,7 +33,7 @@
 
 .nao-encontrada__selo {
   padding-top: 9px;
-  color: #94a3b8;
+  color: var(--cor-apagado);
   font-size: 0.8125rem;
   font-weight: 500;
 }
@@ -70,8 +65,8 @@
 .nao-encontrada__etiqueta {
   padding: 0.3125rem 0.75rem;
   border-radius: 999px;
-  background: #e8f0fc;
-  color: var(--nao-encontrada-azul);
+  background: var(--cor-azul-claro);
+  color: var(--cor-azul);
   font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.0625rem;
@@ -91,14 +86,14 @@
 
 .nao-encontrada__mensagem p {
   margin: 0;
-  color: var(--nao-encontrada-suave);
+  color: var(--cor-suave);
   font-size: 0.8125rem;
 }
 
 .nao-encontrada__botao {
   padding: 0.8125rem 1.75rem;
   border-radius: 10px;
-  background: var(--nao-encontrada-azul);
+  background: var(--cor-azul-fundo);
   color: #fff;
   font-size: 0.875rem;
   font-weight: 600;
