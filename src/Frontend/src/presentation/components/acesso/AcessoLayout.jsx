@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { BotaoTema } from '../comum/BotaoTema.jsx'
 import logotipo from '../../assets/acesso/logotipo-trocaticket.png'
 import '../../styles/acesso.css'
 
@@ -13,6 +14,7 @@ export function AcessoLayout({
   return (
     <div className={`acesso${fotoNoMobile ? '' : ' acesso--marca-no-topo'}`}>
       <div className="acesso__formulario">
+        <BotaoTema />
         <div className="acesso__conteudo">
           <Link to="/" className="acesso__marca">
             <img src={logotipo} alt="TrocaTicket" className="acesso__logo" />

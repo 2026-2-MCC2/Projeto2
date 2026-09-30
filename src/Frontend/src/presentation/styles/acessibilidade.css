@@ -14,7 +14,7 @@
   width: 52px;
   height: 52px;
   border-radius: 999px;
-  background: #0a50ae;
+  background: var(--cor-azul-fundo);
   box-shadow: 0 6px 16px rgb(0 0 0 / 18%);
 }
 
@@ -28,6 +28,7 @@
   height: 28px;
   border-radius: 8px;
   background: none;
+  font-size: 1rem;
 }
 
 .acessibilidade--topo img {
