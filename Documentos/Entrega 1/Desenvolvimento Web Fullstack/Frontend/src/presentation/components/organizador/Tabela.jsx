@@ -1,4 +1,4 @@
-export function Tabela({ colunas, linhas, rodape }) {
+export function Tabela({ colunas, linhas, rodape, aoClicarNaLinha, linhaAtiva }) {
   return (
     <table className="tabela">
       <thead>
@@ -10,9 +10,15 @@ export function Tabela({ colunas, linhas, rodape }) {
       </thead>
 
       <tbody>
-        {linhas.map((linha) => (
-          <tr key={linha[0]}>
-            {linha.map((celula, coluna) => (
+        {linhas.map((linha, indice) => (
+          <tr
+            key={linha.chave ?? indice}
+            className={
+              linha.chave && linha.chave === linhaAtiva ? 'tabela__linha--ativa' : undefined
+            }
+            onClick={aoClicarNaLinha ? () => aoClicarNaLinha(linha.chave) : undefined}
+          >
+            {(linha.celulas ?? linha).map((celula, coluna) => (
               <td key={colunas[coluna]} className={coluna === 0 ? 'tabela__destaque' : undefined}>
                 {celula}
               </td>

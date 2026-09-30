@@ -1,11 +1,12 @@
 :root {
   font-family: Inter, system-ui, sans-serif;
-  font-size: 16px;
+  font-size: calc(17px * var(--escala-texto, 1));
   color-scheme: light;
 
   --cor-azul: #0a50ae;
   --cor-azul-fundo: #0a50ae;
   --cor-azul-claro: #e8f0fc;
+  --cor-azul-suave: #f4f8fe;
   --cor-texto: #0f172a;
   --cor-suave: #64748b;
   --cor-apagado: #94a3b8;
@@ -31,6 +32,7 @@
   --cor-azul: #60a5fa;
   --cor-azul-fundo: #1d4ed8;
   --cor-azul-claro: #172a4a;
+  --cor-azul-suave: #152238;
   --cor-texto: #e2e8f0;
   --cor-suave: #94a3b8;
   --cor-apagado: #64748b;
@@ -69,6 +71,20 @@
 
 * {
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+a {
+  outline: none;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--cor-azul);
+  outline-offset: 2px;
 }
 
 body {
@@ -82,4 +98,33 @@ input,
 textarea,
 select {
   background-color: var(--cor-superficie);
+}
+
+/* ---------- puxador da folha arrastável ---------- */
+
+.puxador {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .puxador {
+    display: block;
+    width: 72px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: grab;
+    touch-action: none;
+  }
+
+  .puxador::before {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 4px;
+    margin: 14px auto;
+    border-radius: 999px;
+    background: var(--cor-borda-forte);
+  }
 }
