@@ -159,7 +159,8 @@ function ProgressoDesktop({ etapa }) {
   return (
     <div className="etapas-evento">
       {ETAPAS.map((item, indice) => {
-        const estado = item.numero < etapa ? 'concluida' : item.numero === etapa ? 'atual' : 'futura'
+        const estado =
+          item.numero < etapa ? 'concluida' : item.numero === etapa ? 'atual' : 'futura'
         const ultimo = indice === ETAPAS.length - 1
 
         return (
@@ -170,11 +171,15 @@ function ProgressoDesktop({ etapa }) {
 
             <div className="etapas-evento__rotulo">
               <span>Etapa {item.numero}</span>
-              <strong className={estado === 'futura' ? '' : 'etapas-evento__nome--destaque'}>{item.nome}</strong>
+              <strong className={estado === 'futura' ? '' : 'etapas-evento__nome--destaque'}>
+                {item.nome}
+              </strong>
             </div>
 
             {!ultimo && (
-              <div className={`etapas-evento__conector${estado === 'concluida' ? ' etapas-evento__conector--feito' : ''}`} />
+              <div
+                className={`etapas-evento__conector${estado === 'concluida' ? ' etapas-evento__conector--feito' : ''}`}
+              />
             )}
           </div>
         )
@@ -195,7 +200,12 @@ function ProgressoMobile({ etapa }) {
 
       <div className="progresso__trilho">
         {ETAPAS.map((item) => {
-          const estado = item.numero < etapa ? ' progresso__passo--feito' : item.numero === etapa ? ' progresso__passo--atual' : ''
+          const estado =
+            item.numero < etapa
+              ? ' progresso__passo--feito'
+              : item.numero === etapa
+                ? ' progresso__passo--atual'
+                : ''
           return <span key={item.numero} className={`progresso__passo${estado}`} />
         })}
       </div>
@@ -209,11 +219,17 @@ function EtapaIdentificacao({ campo, isMobile }) {
   return (
     <>
       <Grupo isMobile={isMobile} titulo="Identificação">
-        <Campo rotulo="Nome do evento" placeholder="Festival Primavera Som & Luz 2026" {...campo('nome')} />
+        <Campo
+          rotulo="Nome do evento"
+          placeholder="Festival Primavera Som & Luz 2026"
+          {...campo('nome')}
+        />
 
         <Linha>
           <Campo rotulo="Categoria" placeholder="Festival" {...campo('categoria')} />
-          {!isMobile && <CampoFixo rotulo="Tipo de ingresso" valor="Inteira — único tipo por evento" />}
+          {!isMobile && (
+            <CampoFixo rotulo="Tipo de ingresso" valor="Inteira — único tipo por evento" />
+          )}
         </Linha>
 
         <Campo rotulo="Descrição">
@@ -231,14 +247,26 @@ function EtapaIdentificacao({ campo, isMobile }) {
 
       <Grupo isMobile={isMobile} titulo="Período">
         <Linha>
-          <Campo rotulo={isMobile ? 'Início' : 'Data de início'} placeholder="18/10/2026" {...campo('dataInicio')} />
-          <Campo rotulo={isMobile ? 'Término' : 'Data de término'} placeholder="20/10/2026" {...campo('dataTermino')} />
+          <Campo
+            rotulo={isMobile ? 'Início' : 'Data de início'}
+            placeholder="18/10/2026"
+            {...campo('dataInicio')}
+          />
+          <Campo
+            rotulo={isMobile ? 'Término' : 'Data de término'}
+            placeholder="20/10/2026"
+            {...campo('dataTermino')}
+          />
         </Linha>
 
         {!isMobile && (
           <Linha>
             <Campo rotulo="Horário de abertura" placeholder="14:00" {...campo('horarioAbertura')} />
-            <Campo rotulo="Horário de encerramento" placeholder="23:00" {...campo('horarioEncerramento')} />
+            <Campo
+              rotulo="Horário de encerramento"
+              placeholder="23:00"
+              {...campo('horarioEncerramento')}
+            />
           </Linha>
         )}
       </Grupo>
@@ -257,7 +285,11 @@ function EtapaLocal({ campo, isMobile }) {
 
         <Campo
           rotulo="Endereço"
-          placeholder={isMobile ? 'Av. Francisco Matarazzo, 1705' : 'Av. Francisco Matarazzo, 1705 — Água Branca'}
+          placeholder={
+            isMobile
+              ? 'Av. Francisco Matarazzo, 1705'
+              : 'Av. Francisco Matarazzo, 1705 — Água Branca'
+          }
           {...campo('endereco')}
         />
 
@@ -265,7 +297,11 @@ function EtapaLocal({ campo, isMobile }) {
           <Campo rotulo="Cidade" placeholder="São Paulo" {...campo('cidade')} />
           <Campo rotulo="Estado" placeholder="SP" {...campo('estado')} />
           {!isMobile && (
-            <Campo rotulo="Capacidade do espaço" placeholder="20.000 pessoas" {...campo('capacidadeEspaco')} />
+            <Campo
+              rotulo="Capacidade do espaço"
+              placeholder="20.000 pessoas"
+              {...campo('capacidadeEspaco')}
+            />
           )}
         </Linha>
       </Grupo>
@@ -320,9 +356,17 @@ function EtapaCustos({ campo, dados, definir, isMobile }) {
 
       <Grupo isMobile={isMobile} titulo="Custos próprios estimados">
         <SeDesktop isMobile={isMobile} envolver={Linha}>
-          <Campo rotulo="Custos fiscais e alvarás" placeholder="R$ 24.300" {...campo('custosFiscais')} />
+          <Campo
+            rotulo="Custos fiscais e alvarás"
+            placeholder="R$ 24.300"
+            {...campo('custosFiscais')}
+          />
           <Campo rotulo="Equipe de produção" placeholder="R$ 17.800" {...campo('equipeProducao')} />
-          <Campo rotulo="Outros custos variáveis" placeholder="R$ 0,00" {...campo('outrosCustos')} />
+          <Campo
+            rotulo="Outros custos variáveis"
+            placeholder="R$ 0,00"
+            {...campo('outrosCustos')}
+          />
         </SeDesktop>
       </Grupo>
 
@@ -346,7 +390,9 @@ function EtapaCustos({ campo, dados, definir, isMobile }) {
 
 function EtapaRevisao({ dados, isMobile }) {
   const periodo = [dados.dataInicio, dados.dataTermino].filter(Boolean).join(' a ')
-  const custosProprios = [dados.custosFiscais, dados.equipeProducao, dados.outrosCustos].filter(Boolean).join(' + ')
+  const custosProprios = [dados.custosFiscais, dados.equipeProducao, dados.outrosCustos]
+    .filter(Boolean)
+    .join(' + ')
 
   if (isMobile) {
     return (
@@ -354,7 +400,10 @@ function EtapaRevisao({ dados, isMobile }) {
         <div className="resumo resumo--cartao">
           <DadoResumo rotulo="Evento" valor={dados.nome} />
           <DadoResumo rotulo="Período" valor={periodo} />
-          <DadoResumo rotulo="Local" valor={[dados.nomeEspaco, dados.estado].filter(Boolean).join(', ')} />
+          <DadoResumo
+            rotulo="Local"
+            valor={[dados.nomeEspaco, dados.estado].filter(Boolean).join(', ')}
+          />
           <DadoResumo rotulo="Público esperado" valor={dados.publicoEsperado} />
           <DadoResumo rotulo="Margem de lucro" valor={dados.margemLucro} />
           <DadoResumo rotulo="Custos próprios" valor={custosProprios} />
@@ -379,7 +428,10 @@ function EtapaRevisao({ dados, isMobile }) {
         </BlocoResumo>
 
         <BlocoResumo titulo="Local e público">
-          <DadoResumo rotulo="Espaço" valor={[dados.nomeEspaco, dados.cidade, dados.estado].filter(Boolean).join(' — ')} />
+          <DadoResumo
+            rotulo="Espaço"
+            valor={[dados.nomeEspaco, dados.cidade, dados.estado].filter(Boolean).join(' — ')}
+          />
           <DadoResumo rotulo="Público mínimo" valor={dados.publicoMinimo} />
           <DadoResumo rotulo="Público esperado" valor={dados.publicoEsperado} />
           <DadoResumo rotulo="Público máximo" valor={dados.publicoMaximo} />
@@ -388,7 +440,10 @@ function EtapaRevisao({ dados, isMobile }) {
         <BlocoResumo titulo="Financeiro">
           <DadoResumo rotulo="Margem de lucro" valor={dados.margemLucro} />
           <DadoResumo rotulo="Custos próprios" valor={custosProprios} />
-          <DadoResumo rotulo="Cenário de referência" valor={nomeDoCenario(dados.cenarioReferencia)} />
+          <DadoResumo
+            rotulo="Cenário de referência"
+            valor={nomeDoCenario(dados.cenarioReferencia)}
+          />
         </BlocoResumo>
       </div>
 
@@ -401,14 +456,15 @@ function EtapaRevisao({ dados, isMobile }) {
       </div>
 
       <p className="aviso">
-        Ao publicar, o evento e seus itens de custo ficam visíveis para os fornecedores aprovados nas categorias
-        escolhidas.
+        Ao publicar, o evento e seus itens de custo ficam visíveis para os fornecedores aprovados
+        nas categorias escolhidas.
       </p>
     </>
   )
 }
 
-const APOIO_PREVIA = 'Ainda sem propostas de fornecedores. O valor é recalculado a cada proposta selecionada.'
+const APOIO_PREVIA =
+  'Ainda sem propostas de fornecedores. O valor é recalculado a cada proposta selecionada.'
 
 function BlocoResumo({ titulo, children }) {
   return (

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { EventoLayout } from '../../components/organizador/EventoLayout.jsx'
 import { Tabela } from '../../components/organizador/Tabela.jsx'
 import { Botao } from '../../components/organizador/Formulario.jsx'
@@ -11,6 +11,7 @@ import iconeAdicionar from '../../assets/organizador/icone-adicionar-claro.svg'
 export function EventoItens() {
   const { id } = useParams()
   const isMobile = useIsMobile()
+  const navigate = useNavigate()
   const [adicionando, setAdicionando] = useState(false)
   const evento = buscarEvento(id)
   const custos = evento?.detalhe?.custos
@@ -29,21 +30,31 @@ export function EventoItens() {
           <small>{custos.resumoMobile}</small>
         </div>
 
-        <button type="button" className="botao botao--largo" onClick={() => setAdicionando(true)}>
+        <button
+          type="button"
+          className="botao botao--largo"
+          onClick={() =>
+            navigate(`/organizador/eventos/${id}/itens/novo`, { viewTransition: true })
+          }
+        >
           <img src={iconeAdicionar} alt="" />
           Adicionar item de custo
         </button>
 
         <GrupoDeItens titulo="CONTRATADO DE FORNECEDORES" itens={deFornecedores} />
         <GrupoDeItens titulo="CUSTOS PRÓPRIOS" itens={proprios} />
-
-        {adicionando && <ModalNovoItem evento={evento.detalhe.nomeCompleto} aoFechar={() => setAdicionando(false)} />}
       </EventoLayout>
     )
   }
 
   return (
-    <EventoLayout acoes={<Botao type="button" onClick={() => setAdicionando(true)}>Adicionar item</Botao>}>
+    <EventoLayout
+      acoes={
+        <Botao type="button" onClick={() => setAdicionando(true)}>
+          Adicionar item
+        </Botao>
+      }
+    >
       <div className="indicadores-cartao">
         {custos.indicadores.map((indicador) => (
           <div key={indicador.nome} className="indicador-cartao">
@@ -55,11 +66,21 @@ export function EventoItens() {
 
       <Tabela
         colunas={['ITEM', 'CATEGORIA', 'ORIGEM', 'VALOR']}
-        linhas={custos.linhas.map((linha) => [linha.nome, linha.categoria, linha.origem, linha.valor])}
+        linhas={custos.linhas.map((linha) => [
+          linha.nome,
+          linha.categoria,
+          linha.origem,
+          linha.valor,
+        ])}
         rodape={['Total', '', '', custos.total]}
       />
 
-      {adicionando && <ModalNovoItem evento={evento.detalhe.nomeCompleto} aoFechar={() => setAdicionando(false)} />}
+      {adicionando && (
+        <ModalNovoItem
+          evento={evento.detalhe.nomeCompleto}
+          aoFechar={() => setAdicionando(false)}
+        />
+      )}
     </EventoLayout>
   )
 }

@@ -11,7 +11,7 @@ const ABAS = [
   { fim: 'ticket', nome: 'Cálculo do ticket', nomeCurto: 'Ticket' },
 ]
 
-export function EventoLayout({ acoes, comResumo = false, children }) {
+export function EventoLayout({ acoes, comResumo = false, voltar, children }) {
   const { id } = useParams()
   const isMobile = useIsMobile()
   const evento = buscarEvento(id)
@@ -23,6 +23,9 @@ export function EventoLayout({ acoes, comResumo = false, children }) {
     <span className={`etiqueta etiqueta--${evento.status}`}>{STATUS[evento.status].nome}</span>
   )
 
+  const destinoDoVoltar = voltar?.para ?? '/organizador/eventos'
+  const nomeDoVoltar = voltar?.nome ?? 'Meus eventos'
+
   const abas = (
     <div className="evento-abas">
       {ABAS.map((aba) => (
@@ -30,6 +33,7 @@ export function EventoLayout({ acoes, comResumo = false, children }) {
           key={aba.nome}
           end={aba.fim === ''}
           to={`/organizador/eventos/${evento.id}${aba.fim ? `/${aba.fim}` : ''}`}
+          viewTransition
           className={({ isActive }) => `evento-aba${isActive ? ' evento-aba--ativa' : ''}`}
         >
           {isMobile ? aba.nomeCurto : aba.nome}
@@ -44,7 +48,7 @@ export function EventoLayout({ acoes, comResumo = false, children }) {
         titulo={evento.nome}
         apoio={detalhe?.resumoMobile}
         subCabecalho={abas}
-        voltarPara="/organizador/eventos"
+        voltarPara={destinoDoVoltar}
       >
         {children}
       </OrganizadorLayout>
@@ -57,9 +61,9 @@ export function EventoLayout({ acoes, comResumo = false, children }) {
         <div
           className={`evento-topo__titulos${comResumo ? '' : ' evento-topo__titulos--espacado'}`}
         >
-          <Link to="/organizador/eventos" className="evento-topo__voltar">
+          <Link to={destinoDoVoltar} className="evento-topo__voltar" viewTransition>
             <img src={iconeVoltar} alt="" />
-            Meus eventos
+            {nomeDoVoltar}
           </Link>
 
           <div className="evento-topo__nome">

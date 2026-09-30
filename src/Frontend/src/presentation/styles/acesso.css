@@ -10,18 +10,11 @@
 }
 
 .acesso__formulario {
-  position: relative;
   display: flex;
   flex: 1 1 58%;
   align-items: center;
   justify-content: center;
   padding: 3rem 1.5rem;
-}
-
-.acesso__formulario > .acessibilidade {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
 }
 
 .acesso__conteudo {
@@ -33,6 +26,15 @@
 
 .acesso__miolo {
   display: contents;
+}
+
+.acesso__topo {
+  display: flex;
+  align-items: center;
+}
+
+.acesso__topo > .acessibilidade {
+  margin-left: auto;
 }
 
 .acesso__marca {
@@ -424,6 +426,10 @@
   width: auto;
 }
 
+.etapas__topo .acessibilidade-area {
+  margin-left: auto;
+}
+
 .etapas__progresso {
   display: flex;
   flex-direction: column;
@@ -631,11 +637,36 @@
     gap: 0;
   }
 
-  .acesso--marca-no-topo .acesso__marca {
-    justify-content: center;
+  .acesso__topo .acessibilidade-area {
+    margin-left: auto;
+  }
+
+  .acesso__topo > .acessibilidade + .acessibilidade-area {
+    margin-left: 0.25rem;
+  }
+
+  .acesso--marca-no-topo .acesso__topo {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
     padding: 3.5rem 1.25rem 1.125rem;
     border-bottom: 1px solid var(--cor-borda);
     background: var(--cor-superficie);
+  }
+
+  .acesso--marca-no-topo .acesso__marca {
+    grid-column: 2;
+  }
+
+  .acesso--marca-no-topo .acesso__topo .acessibilidade-area {
+    grid-column: 3;
+    justify-self: end;
+  }
+
+  .acesso--marca-no-topo .acesso__topo > .acessibilidade {
+    grid-column: 1;
+    grid-row: 1;
+    margin-left: 0;
   }
 
   .acesso--marca-no-topo .acesso__logo {
@@ -652,5 +683,11 @@
     flex-direction: column;
     gap: 1.25rem;
     padding: 1.25rem 1.25rem 2.5rem;
+  }
+
+  .campo input,
+  .campo textarea,
+  .campo select {
+    font-size: 1rem;
   }
 }

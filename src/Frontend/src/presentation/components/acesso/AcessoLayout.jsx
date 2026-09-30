@@ -1,25 +1,44 @@
 import { Link } from 'react-router-dom'
 import { BotaoTema } from '../comum/BotaoTema.jsx'
+import { BotaoAcessibilidade } from '../comum/BotaoAcessibilidade.jsx'
+import { useIsMobile } from '../../hooks/useIsMobile.js'
 import logotipo from '../../assets/acesso/logotipo-trocaticket.png'
+import fotoShow from '../../assets/acesso/foto-show.jpg'
 import '../../styles/acesso.css'
 
+const CHAMADA_PADRAO = (
+  <>
+    Do orçamento ao
+    <br />
+    preço do ingresso.
+  </>
+)
+
+const DESCRICAO_PADRAO =
+  'Cadastre custos, receba propostas de fornecedores e calcule o ticket médio antes de abrir as vendas.'
+
 export function AcessoLayout({
-  foto,
+  foto = fotoShow,
   tom = 'laranja',
   fotoNoMobile = true,
-  titulo,
-  descricao,
+  titulo = CHAMADA_PADRAO,
+  descricao = DESCRICAO_PADRAO,
   children,
 }) {
+  const isMobile = useIsMobile()
+
   return (
     <div className={`acesso${fotoNoMobile ? '' : ' acesso--marca-no-topo'}`}>
       <div className="acesso__formulario">
-        <BotaoTema />
         <div className="acesso__conteudo">
-          <Link to="/" className="acesso__marca">
-            <img src={logotipo} alt="TrocaTicket" className="acesso__logo" />
-            <span className="acesso__selo">· Gestão</span>
-          </Link>
+          <div className="acesso__topo">
+            <Link to="/" className="acesso__marca">
+              <img src={logotipo} alt="TrocaTicket" className="acesso__logo" />
+              <span className="acesso__selo">· Gestão</span>
+            </Link>
+            <BotaoTema />
+            {isMobile && <BotaoAcessibilidade posicao="topo" />}
+          </div>
 
           <div className="acesso__miolo">{children}</div>
         </div>
@@ -36,6 +55,8 @@ export function AcessoLayout({
           <p>{descricao}</p>
         </div>
       </aside>
+
+      {!isMobile && <BotaoAcessibilidade />}
     </div>
   )
 }
