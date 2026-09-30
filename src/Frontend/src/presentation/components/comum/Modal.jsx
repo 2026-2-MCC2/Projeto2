@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect } from 'react'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
+import { useFolhaArrastavel } from '../../hooks/useFolhaArrastavel.js'
 import { Botao } from '../organizador/Formulario.jsx'
 import iconeFechar from '../../assets/comum/icone-fechar.svg'
 import '../../styles/modal.css'
@@ -19,37 +20,7 @@ export function Modal({
   children,
 }) {
   const isMobile = useIsMobile()
-  const [expandida, setExpandida] = useState(false)
-  const [arrasto, setArrasto] = useState(0)
-  const inicioDoArrasto = useRef(null)
-  const houveArrasto = useRef(false)
-
-  // No mobile a folha acompanha o dedo: puxar para baixo fecha, puxar para cima expande.
-  function aoPegar(evento) {
-    inicioDoArrasto.current = evento.clientY
-    houveArrasto.current = false
-    evento.currentTarget.setPointerCapture(evento.pointerId)
-  }
-
-  function aoArrastar(evento) {
-    if (inicioDoArrasto.current === null) return
-
-    const distancia = evento.clientY - inicioDoArrasto.current
-    if (Math.abs(distancia) > 5) houveArrasto.current = true
-    setArrasto(distancia)
-  }
-
-  function aoSoltar() {
-    if (arrasto > 100) {
-      if (expandida) setExpandida(false)
-      else aoFechar()
-    } else if (arrasto < -60) {
-      setExpandida(true)
-    }
-
-    inicioDoArrasto.current = null
-    setArrasto(0)
-  }
+  const folha = useFolhaArrastavel(aoFechar)
 
   useEffect(() => {
     function aoTeclar(evento) {
@@ -63,22 +34,18 @@ export function Modal({
   return (
     <div className="fundo-modal" onClick={aoFechar}>
       <div
-        className={`modal${largo ? ' modal--largo' : ''}${expandida ? ' modal--expandida' : ''}${arrasto ? ' modal--arrastando' : ''}`}
+        className={`modal${largo ? ' modal--largo' : ''}${folha.expandida ? ' modal--expandida' : ''}${folha.arrasto ? ' modal--arrastando' : ''}`}
         role="dialog"
         aria-modal="true"
         aria-label={titulo}
-        style={arrasto ? { transform: `translateY(${Math.max(arrasto, -40)}px)` } : undefined}
+        style={folha.estiloDoArrasto}
         onClick={(evento) => evento.stopPropagation()}
       >
         <button
           type="button"
-          className="modal__puxador"
+          className="puxador modal__puxador"
           aria-label="Fechar"
-          onClick={() => !houveArrasto.current && aoFechar()}
-          onPointerDown={aoPegar}
-          onPointerMove={aoArrastar}
-          onPointerUp={aoSoltar}
-          onPointerCancel={aoSoltar}
+          {...folha.puxador}
         />
 
         {icone && (

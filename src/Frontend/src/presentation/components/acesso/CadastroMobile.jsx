@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { BotaoAcessibilidade } from '../comum/BotaoAcessibilidade.jsx'
 import { useNavigate } from 'react-router-dom'
 import logotipo from '../../assets/acesso/logotipo-trocaticket.png'
 import setaVoltar from '../../assets/acesso/seta-voltar.svg'
@@ -68,6 +69,7 @@ export function CadastroMobile() {
             <img src={setaVoltar} alt="" />
           </button>
           <img src={logotipo} alt="TrocaTicket" className="etapas__logo" />
+          <BotaoAcessibilidade posicao="topo" />
         </div>
 
         <div className="etapas__progresso">

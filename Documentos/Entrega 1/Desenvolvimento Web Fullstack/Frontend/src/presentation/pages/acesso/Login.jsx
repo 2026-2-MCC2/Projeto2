@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AcessoLayout } from '../../components/acesso/AcessoLayout.jsx'
-import fotoShow from '../../assets/acesso/foto-show.jpg'
 
 export function Login() {
   const [email, setEmail] = useState('')
@@ -13,17 +12,7 @@ export function Login() {
   }
 
   return (
-    <AcessoLayout
-      foto={fotoShow}
-      titulo={
-        <>
-          Do orçamento ao
-          <br />
-          preço do ingresso.
-        </>
-      }
-      descricao="Cadastre custos, receba propostas de fornecedores e calcule o ticket médio antes de abrir as vendas."
-    >
+    <AcessoLayout>
       <header className="acesso__cabecalho">
         <h1>Entrar na plataforma</h1>
         <p>Planejamento, cotação e precificação de eventos.</p>
