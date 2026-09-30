@@ -1,3 +1,10 @@
+.acessibilidade-area--flutuante {
+  position: fixed;
+  right: 32px;
+  bottom: 32px;
+  z-index: 20;
+}
+
 .acessibilidade {
   display: flex;
   align-items: center;
@@ -5,22 +12,32 @@
   flex-shrink: 0;
   border: 0;
   cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
 }
 
 .acessibilidade--flutuante {
-  position: fixed;
-  right: 32px;
-  bottom: 32px;
   width: 52px;
   height: 52px;
   border-radius: 999px;
   background: #0a50ae;
-  box-shadow: 0 6px 16px rgb(0 0 0 / 18%);
+  box-shadow: 0 4px 10px rgb(10 80 174 / 30%);
+}
+
+.acessibilidade--flutuante:active {
+  transform: scale(0.96);
 }
 
 .acessibilidade--flutuante img {
-  width: 26px;
-  height: 26px;
+  width: 30px;
+  height: 30px;
+  transition: transform 0.25s ease;
+}
+
+.acessibilidade--aberta img {
+  transform: rotate(-12deg) scale(1.08);
 }
 
 .acessibilidade--topo {
@@ -33,4 +50,290 @@
 .acessibilidade--topo img {
   width: 18px;
   height: 18px;
+}
+
+/* ---------- painel ---------- */
+
+.painel-acesso {
+  position: absolute;
+  right: 0;
+  bottom: 68px;
+  z-index: 21;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 300px;
+  padding: 1.125rem 1.25rem 1.25rem;
+  border: 1px solid #e5e9f0;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 16px 40px rgb(15 23 42 / 18%);
+  animation: painel-surge 0.2s ease;
+  transform-origin: bottom right;
+}
+
+@keyframes painel-surge {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+}
+
+.painel-acesso__topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.painel-acesso__topo h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.painel-acesso__topo button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: #f6f8fb;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.painel-acesso__topo img {
+  width: 13px;
+  height: 13px;
+}
+
+.painel-acesso__bloco {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.painel-acesso__rotulo {
+  color: #64748b;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.tamanhos {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.375rem;
+}
+
+.tamanhos__botao {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  border: 1px solid #e5e9f0;
+  border-radius: 10px;
+  background: #fff;
+  color: #64748b;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    transform 0.15s ease;
+}
+
+@media (hover: hover) {
+  .tamanhos__botao:not(.tamanhos__botao--ativo):hover {
+    border-color: #0a50ae;
+    color: #0a50ae;
+  }
+
+  .opcao-acesso:hover {
+    background: #f6f8fb;
+  }
+
+  .painel-acesso__topo button:hover {
+    background: #e8f0fc;
+  }
+
+  .painel-acesso__restaurar:hover {
+    background: #f6f8fb;
+    color: #0f172a;
+  }
+
+  .acessibilidade--flutuante:hover {
+    transform: scale(1.06);
+    box-shadow: 0 10px 22px rgb(10 80 174 / 32%);
+  }
+
+  .acessibilidade--topo:hover {
+    background: #f1f4f9;
+  }
+}
+
+.tamanhos__botao--ativo {
+  border-color: #0a50ae;
+  background: #0a50ae;
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.opcao-acesso {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.opcao-acesso__texto {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.opcao-acesso__texto strong {
+  color: #0f172a;
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.opcao-acesso__texto small {
+  color: #64748b;
+  font-size: 0.6875rem;
+}
+
+.chave {
+  position: relative;
+  flex-shrink: 0;
+  width: 38px;
+  height: 22px;
+  border-radius: 999px;
+  background: #cbd5e1;
+  transition: background 0.2s ease;
+}
+
+.chave::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgb(15 23 42 / 25%);
+  transition: transform 0.2s ease;
+}
+
+.chave--ligada {
+  background: #0a50ae;
+}
+
+.chave--ligada::after {
+  transform: translateX(16px);
+}
+
+.painel-acesso__restaurar {
+  padding: 0.625rem;
+  border: 1px solid #e5e9f0;
+  border-radius: 10px;
+  background: #fff;
+  color: #64748b;
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+/* ---------- ajustes aplicados na página ---------- */
+
+:root.alto-contraste {
+  --org-texto: #000;
+  --org-suave: #384252;
+  --org-apagado: #4b5563;
+  --org-borda: #94a3b8;
+}
+
+.alto-contraste .cartao,
+.alto-contraste .painel,
+.alto-contraste .evento,
+.alto-contraste .proposta,
+.alto-contraste .tabela {
+  border-width: 2px;
+}
+
+:root.leitura-facil body {
+  letter-spacing: 0.02em;
+  line-height: 1.7;
+}
+
+.sem-movimento *,
+.sem-movimento *::before,
+.sem-movimento *::after {
+  animation-duration: 0.01ms !important;
+  transition-duration: 0.01ms !important;
+}
+
+@media (max-width: 900px) {
+  .acessibilidade-area--flutuante {
+    right: 20px;
+    bottom: calc(7rem + env(safe-area-inset-bottom));
+  }
+
+  .painel-acesso {
+    max-height: 92dvh;
+    overflow-y: auto;
+    transition:
+      transform 0.2s ease,
+      max-height 0.2s ease;
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: auto;
+    padding: 1rem 1.25rem calc(1.5rem + env(safe-area-inset-bottom));
+    border: 0;
+    border-radius: 20px 20px 0 0;
+    animation: painel-sobe 0.24s ease;
+    transform-origin: bottom center;
+  }
+
+  @keyframes painel-sobe {
+    from {
+      transform: translateY(100%);
+    }
+  }
+
+  .painel-acesso--arrastando {
+    transition: none;
+  }
+
+  .painel-acesso--expandida {
+    max-height: 96dvh;
+  }
+
+  .painel-acesso__puxador {
+    margin: -0.25rem auto 0.25rem;
+  }
 }

@@ -8,10 +8,14 @@ import { Eventos } from '../pages/organizador/Eventos.jsx'
 import { NovoEvento } from '../pages/organizador/NovoEvento.jsx'
 import { EventoVisaoGeral } from '../pages/organizador/EventoVisaoGeral.jsx'
 import { EventoItens } from '../pages/organizador/EventoItens.jsx'
+import { NovoItemCusto } from '../pages/organizador/NovoItemCusto.jsx'
 import { EventoPropostas } from '../pages/organizador/EventoPropostas.jsx'
 import { EventoTicket } from '../pages/organizador/EventoTicket.jsx'
 import { PropostaRecebida } from '../pages/organizador/PropostaRecebida.jsx'
 import { Configuracoes } from '../pages/organizador/Configuracoes.jsx'
+import { EventosDisponiveis } from '../pages/fornecedor/EventosDisponiveis.jsx'
+import { Aprovacoes } from '../pages/admin/Aprovacoes.jsx'
+import { Usuarios } from '../pages/admin/Usuarios.jsx'
 
 export function AppRoutes() {
   return (
@@ -27,10 +31,16 @@ export function AppRoutes() {
         <Route path="/organizador/eventos/novo" element={<NovoEvento />} />
         <Route path="/organizador/eventos/:id" element={<EventoVisaoGeral />} />
         <Route path="/organizador/eventos/:id/itens" element={<EventoItens />} />
+        <Route path="/organizador/eventos/:id/itens/novo" element={<NovoItemCusto />} />
         <Route path="/organizador/eventos/:id/propostas" element={<EventoPropostas />} />
         <Route path="/organizador/eventos/:id/propostas/:proposta" element={<PropostaRecebida />} />
         <Route path="/organizador/eventos/:id/ticket" element={<EventoTicket />} />
         <Route path="/organizador/configuracoes" element={<Configuracoes />} />
+
+        <Route path="/fornecedor/eventos" element={<EventosDisponiveis />} />
+
+        <Route path="/admin/aprovacoes" element={<Aprovacoes />} />
+        <Route path="/admin/usuarios" element={<Usuarios />} />
 
         <Route path="*" element={<NaoEncontrada />} />
       </Routes>
