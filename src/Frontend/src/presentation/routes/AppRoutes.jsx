@@ -14,6 +14,7 @@ import { EventoTicket } from '../pages/organizador/EventoTicket.jsx'
 import { PropostaRecebida } from '../pages/organizador/PropostaRecebida.jsx'
 import { Configuracoes } from '../pages/organizador/Configuracoes.jsx'
 import { EventosDisponiveis } from '../pages/fornecedor/EventosDisponiveis.jsx'
+import { EnviarProposta } from '../pages/fornecedor/EnviarProposta.jsx'
 import { Aprovacoes } from '../pages/admin/Aprovacoes.jsx'
 import { Usuarios } from '../pages/admin/Usuarios.jsx'
 
@@ -37,6 +38,7 @@ export function AppRoutes() {
         <Route path="/organizador/configuracoes" element={<Configuracoes />} />
 
         <Route path="/fornecedor/eventos" element={<EventosDisponiveis />} />
+        <Route path="/fornecedor/eventos/:id/propostas/etapa-1" element={<EnviarProposta />} />
 
         <Route path="/admin/aprovacoes" element={<Aprovacoes />} />
         <Route path="/admin/usuarios" element={<Usuarios />} />

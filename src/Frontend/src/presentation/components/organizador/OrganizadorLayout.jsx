@@ -39,6 +39,7 @@ const ABAS = {
 // `acoes` fica ao lado do título só no desktop; no mobile a página decide onde colocá-las.
 export function OrganizadorLayout({
   titulo,
+  sobreTitulo,
   apoio,
   acoes,
   estreito = false,
@@ -101,6 +102,7 @@ export function OrganizadorLayout({
                 )}
 
                 <div className="topo__titulos">
+                  {sobreTitulo && <p className="topo__sobre-titulo">{sobreTitulo}</p>}
                   <h1>{titulo}</h1>
                   {(apoioMobile || apoio) && <p>{apoioMobile || apoio}</p>}
                 </div>
@@ -162,6 +164,7 @@ export function OrganizadorLayout({
               className={`organizador__cabecalho${acoes ? ' organizador__cabecalho--com-acoes' : ''}`}
             >
               <div>
+                {sobreTitulo && <p className="organizador__sobre-titulo">{sobreTitulo}</p>}
                 <h1>{titulo}</h1>
                 {apoio && <p>{apoio}</p>}
               </div>
