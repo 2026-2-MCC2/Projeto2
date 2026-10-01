@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { ProgressoEtapas } from '../../components/comum/ProgressoEtapas.jsx'
 import { OrganizadorLayout } from '../../components/organizador/OrganizadorLayout.jsx'
 import { Selecao } from '../../components/organizador/Selecao.jsx'
 import {
@@ -134,7 +135,11 @@ export function NovoEvento() {
       apoio={isMobile ? undefined : etapaAtual.apoio}
       aoVoltar={isMobile ? aoVoltarNoTopo : undefined}
       rodape={isMobile ? acoes : undefined}
-      subCabecalho={isMobile ? <ProgressoMobile etapa={etapa} /> : undefined}
+      subCabecalho={
+        isMobile ? (
+          <ProgressoEtapas etapas={ETAPAS.map((item) => item.nome)} etapaAtual={etapa} />
+        ) : undefined
+      }
     >
       {!isMobile && <ProgressoDesktop etapa={etapa} />}
 
@@ -184,31 +189,6 @@ function ProgressoDesktop({ etapa }) {
           </div>
         )
       })}
-    </div>
-  )
-}
-
-function ProgressoMobile({ etapa }) {
-  return (
-    <div className="progresso">
-      <div className="progresso__legenda">
-        <strong>
-          Etapa {etapa} de {ETAPAS.length}
-        </strong>
-        <span>{ETAPAS[etapa - 1].nome}</span>
-      </div>
-
-      <div className="progresso__trilho">
-        {ETAPAS.map((item) => {
-          const estado =
-            item.numero < etapa
-              ? ' progresso__passo--feito'
-              : item.numero === etapa
-                ? ' progresso__passo--atual'
-                : ''
-          return <span key={item.numero} className={`progresso__passo${estado}`} />
-        })}
-      </div>
     </div>
   )
 }
