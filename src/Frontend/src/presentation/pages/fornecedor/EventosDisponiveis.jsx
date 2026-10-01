@@ -43,7 +43,10 @@ function CartaoEvento({ evento }) {
         </div>
       </div>
 
-      <Link className="fornecedor-evento__acao" to={`/fornecedor/eventos/${evento.id}/propostas/etapa-1`}>
+      <Link
+        className="fornecedor-evento__acao"
+        to={`/fornecedor/eventos/${evento.id}/propostas/etapa-1`}
+      >
         Ver itens e enviar proposta
       </Link>
     </article>

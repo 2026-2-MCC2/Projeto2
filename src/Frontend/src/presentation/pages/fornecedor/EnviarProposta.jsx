@@ -27,7 +27,9 @@ export function EnviarProposta() {
       titulo="Enviar proposta"
       sobreTitulo={`Eventos disponíveis · ${evento.nome}`}
       apoio={`Item: ${NOME_ITEM} — até 500 convidados VIP`}
-      subCabecalho={isMobile ? <ProgressoEtapas etapas={ETAPAS_PROPOSTA} etapaAtual={1} /> : undefined}
+      subCabecalho={
+        isMobile ? <ProgressoEtapas etapas={ETAPAS_PROPOSTA} etapaAtual={1} /> : undefined
+      }
     >
       {isMobile ? null : <ProgressoPropostaDesktop />}
 
@@ -46,13 +48,17 @@ export function EnviarProposta() {
 
             <div className="enviar-proposta__campos">
               <label className="enviar-proposta__campo">
-                <span>Valor total da proposta <b aria-hidden="true">*</b></span>
+                <span>
+                  Valor total da proposta <b aria-hidden="true">*</b>
+                </span>
                 <input type="text" inputMode="decimal" placeholder="R$ 49.800,00" />
                 <small>Orçamento previsto pelo organizador: R$ 45.000.</small>
               </label>
 
               <label className="enviar-proposta__campo">
-                <span>Validade da proposta <b aria-hidden="true">*</b></span>
+                <span>
+                  Validade da proposta <b aria-hidden="true">*</b>
+                </span>
                 <input type="text" inputMode="numeric" placeholder="30/09/2026" />
                 <small>Depois dessa data a proposta expira.</small>
               </label>
@@ -69,12 +75,24 @@ export function EnviarProposta() {
           <section className="enviar-proposta__cartao" aria-labelledby="titulo-item-cotacao">
             <h2 id="titulo-item-cotacao">Item em cotação</h2>
             <strong className="enviar-proposta__nome-item">{NOME_ITEM}</strong>
-            <div><span>Categoria</span><strong>{evento.categorias[0]}</strong></div>
-            <div><span>Orçamento previsto</span><strong>R$ 45.000</strong></div>
-            <div><span>Prazo para envio</span><strong>25 Set 2026</strong></div>
+            <div>
+              <span>Categoria</span>
+              <strong>{evento.categorias[0]}</strong>
+            </div>
+            <div>
+              <span>Orçamento previsto</span>
+              <strong>R$ 45.000</strong>
+            </div>
+            <div>
+              <span>Prazo para envio</span>
+              <strong>25 Set 2026</strong>
+            </div>
           </section>
 
-          <section className="enviar-proposta__cartao enviar-proposta__cartao--destaque" aria-labelledby="titulo-minha-proposta">
+          <section
+            className="enviar-proposta__cartao enviar-proposta__cartao--destaque"
+            aria-labelledby="titulo-minha-proposta"
+          >
             <h2 id="titulo-minha-proposta">Sua proposta</h2>
             <strong className="enviar-proposta__valor">R$ 49.800,00</strong>
             <span className="enviar-proposta__diferenca">10,7% acima do previsto</span>
@@ -94,7 +112,9 @@ function ProgressoPropostaDesktop() {
       {etapas.map((etapa, indice) => (
         <Fragment key={etapa}>
           <div className="enviar-proposta__etapa">
-            <span className={`enviar-proposta__marcador${indice === 0 ? ' enviar-proposta__marcador--atual' : ''}`}>
+            <span
+              className={`enviar-proposta__marcador${indice === 0 ? ' enviar-proposta__marcador--atual' : ''}`}
+            >
               {indice + 1}
             </span>
             <span className="enviar-proposta__rotulo-etapa">
