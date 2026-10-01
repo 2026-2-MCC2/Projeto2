@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { OrganizadorLayout } from '../../components/organizador/OrganizadorLayout.jsx'
 import { EVENTOS_DISPONIVEIS } from '../../data/eventosDisponiveis.js'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
@@ -42,9 +43,9 @@ function CartaoEvento({ evento }) {
         </div>
       </div>
 
-      <button className="fornecedor-evento__acao" type="button">
+      <Link className="fornecedor-evento__acao" to={`/fornecedor/eventos/${evento.id}/propostas/etapa-1`}>
         Ver itens e enviar proposta
-      </button>
+      </Link>
     </article>
   )
 }

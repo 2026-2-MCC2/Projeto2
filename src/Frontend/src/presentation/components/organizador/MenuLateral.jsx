@@ -30,7 +30,7 @@ const PERFIS = {
 // O organizador monta o menu com os eventos recentes; os outros perfis têm uma lista fixa.
 const ITENS = {
   fornecedor: [
-    { rota: '/fornecedor/eventos', nome: 'Eventos disponíveis', exata: true },
+    { rota: '/fornecedor/eventos', nome: 'Eventos disponíveis' },
     { rota: '/fornecedor/propostas', nome: 'Minhas propostas' },
     { rota: '/fornecedor/configuracoes', nome: 'Configurações' },
   ],
