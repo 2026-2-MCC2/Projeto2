@@ -6,6 +6,7 @@ import { Botao } from '../../components/organizador/Formulario.jsx'
 import { ModalNovoItem } from '../../components/organizador/ModalNovoItem.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
 import { buscarEvento } from '../../data/eventos.js'
+import { Icone } from '../../components/comum/Icone.jsx'
 import iconeAdicionar from '../../assets/organizador/icone-adicionar-claro.svg'
 
 export function EventoItens() {
@@ -37,7 +38,7 @@ export function EventoItens() {
             navigate(`/organizador/eventos/${id}/itens/novo`, { viewTransition: true })
           }
         >
-          <img src={iconeAdicionar} alt="" />
+          <Icone src={iconeAdicionar} />
           Adicionar item de custo
         </button>
 
