@@ -1,8 +1,6 @@
 import { Link } from 'react-router-dom'
-import { BotaoTema } from '../comum/BotaoTema.jsx'
 import { BotaoAcessibilidade } from '../comum/BotaoAcessibilidade.jsx'
-import { useIsMobile } from '../../hooks/useIsMobile.js'
-import logotipo from '../../assets/acesso/logotipo-trocaticket.png'
+import { Logotipo } from '../comum/Logotipo.jsx'
 import fotoShow from '../../assets/acesso/foto-show.jpg'
 import '../../styles/acesso.css'
 
@@ -25,19 +23,15 @@ export function AcessoLayout({
   descricao = DESCRICAO_PADRAO,
   children,
 }) {
-  const isMobile = useIsMobile()
-
   return (
     <div className={`acesso${fotoNoMobile ? '' : ' acesso--marca-no-topo'}`}>
       <div className="acesso__formulario">
         <div className="acesso__conteudo">
           <div className="acesso__topo">
             <Link to="/" className="acesso__marca">
-              <img src={logotipo} alt="TrocaTicket" className="acesso__logo" />
+              <Logotipo className="acesso__logo" />
               <span className="acesso__selo">· Gestão</span>
             </Link>
-            <BotaoTema />
-            {isMobile && <BotaoAcessibilidade posicao="topo" />}
           </div>
 
           <div className="acesso__miolo">{children}</div>
@@ -56,7 +50,7 @@ export function AcessoLayout({
         </div>
       </aside>
 
-      {!isMobile && <BotaoAcessibilidade />}
+      <BotaoAcessibilidade />
     </div>
   )
 }

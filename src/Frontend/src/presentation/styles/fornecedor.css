@@ -4,9 +4,9 @@
   gap: 12px;
   min-height: 59px;
   padding: 12px 16px;
-  border: 1px solid var(--cor-borda);
+  border: 1px solid var(--borda-padrao);
   border-radius: 12px;
-  background: var(--cor-superficie);
+  background: var(--fundo-superficie);
 }
 
 .fornecedor__busca {
@@ -17,7 +17,7 @@
   min-width: 0;
 }
 
-.fornecedor__busca img {
+.fornecedor__busca .icone {
   flex: 0 0 16px;
   width: 16px;
   height: 16px;
@@ -29,13 +29,13 @@
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--cor-texto);
+  color: var(--texto-primario);
   font: inherit;
   font-size: 13px;
 }
 
 .fornecedor__busca input::placeholder {
-  color: var(--cor-apagado);
+  color: var(--texto-terciario);
   opacity: 1;
 }
 
@@ -61,9 +61,9 @@
   flex-direction: column;
   gap: 18px;
   padding: 22px 24px;
-  border: 1px solid var(--cor-borda);
+  border: 1px solid var(--borda-padrao);
   border-radius: 16px;
-  background: var(--cor-superficie);
+  background: var(--fundo-superficie);
 }
 
 .fornecedor-evento__identificacao {
@@ -83,8 +83,8 @@
   flex: 0 1 auto;
   padding: 5px 10px;
   border-radius: 999px;
-  background: var(--cor-azul-claro);
-  color: var(--cor-azul);
+  background: var(--fundo-marca-suave);
+  color: var(--texto-marca);
   font-size: 11px;
   font-weight: 600;
   line-height: 13px;
@@ -97,13 +97,13 @@
   justify-content: flex-end;
   gap: 6px;
   margin-left: auto;
-  color: var(--cor-aviso);
+  color: var(--status-alerta-texto);
   font-size: 11px;
   font-weight: 600;
   white-space: nowrap;
 }
 
-.fornecedor-evento__prazo img {
+.fornecedor-evento__prazo .icone {
   width: 12px;
   height: 12px;
 }
@@ -116,7 +116,7 @@
 
 .fornecedor-evento__identificacao p {
   margin: 0;
-  color: var(--cor-suave);
+  color: var(--texto-secundario);
   font-size: 12px;
 }
 
@@ -125,7 +125,7 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
   padding-top: 18px;
-  border-top: 1px solid var(--cor-borda);
+  border-top: 1px solid var(--borda-padrao);
 }
 
 .fornecedor-evento__numeros > div {
@@ -136,7 +136,7 @@
 }
 
 .fornecedor-evento__numeros span {
-  color: var(--cor-suave);
+  color: var(--texto-secundario);
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.5px;
@@ -150,7 +150,7 @@
 }
 
 .fornecedor-evento__numeros .fornecedor-evento__orcamento {
-  color: var(--cor-azul);
+  color: var(--texto-marca);
 }
 
 .fornecedor-evento__acao {
@@ -158,8 +158,8 @@
   padding: 12px;
   border: 0;
   border-radius: 10px;
-  background: var(--cor-azul-fundo);
-  color: #fff;
+  background: var(--acao-primaria);
+  color: var(--acao-sobre-primaria);
   font: inherit;
   font-size: 13px;
   font-weight: 600;
@@ -169,10 +169,10 @@
 .fornecedor__vazio {
   margin: 0;
   padding: 24px;
-  border: 1px solid var(--cor-borda);
+  border: 1px solid var(--borda-padrao);
   border-radius: 12px;
-  background: var(--cor-superficie);
-  color: var(--cor-suave);
+  background: var(--fundo-superficie);
+  color: var(--texto-secundario);
   font-size: 13px;
   text-align: center;
 }
@@ -218,9 +218,9 @@
     width: 100%;
     min-height: 42px;
     padding: 12px 14px;
-    border: 1px solid var(--cor-borda);
+    border: 1px solid var(--borda-padrao);
     border-radius: 10px;
-    background: var(--cor-superficie);
+    background: var(--fundo-superficie);
   }
 
   .fornecedor__grade {

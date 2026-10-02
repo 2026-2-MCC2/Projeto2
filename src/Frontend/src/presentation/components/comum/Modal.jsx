@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
 import { useFolhaArrastavel } from '../../hooks/useFolhaArrastavel.js'
 import { Botao } from '../organizador/Formulario.jsx'
+import { Icone } from './Icone.jsx'
 import iconeFechar from '../../assets/comum/icone-fechar.svg'
 import '../../styles/modal.css'
 
@@ -50,7 +51,7 @@ export function Modal({
 
         {icone && (
           <span className={`modal__icone modal__icone--${corDoIcone}`}>
-            <img src={icone} alt="" />
+            <Icone src={icone} />
           </span>
         )}
 
@@ -63,7 +64,7 @@ export function Modal({
 
           {subtitulo && !isMobile && (
             <button type="button" className="modal__fechar" aria-label="Fechar" onClick={aoFechar}>
-              <img src={iconeFechar} alt="" />
+              <Icone src={iconeFechar} />
             </button>
           )}
         </div>

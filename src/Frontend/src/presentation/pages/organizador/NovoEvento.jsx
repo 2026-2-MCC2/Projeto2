@@ -12,6 +12,7 @@ import {
   SeDesktop,
 } from '../../components/organizador/Formulario.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
+import { Icone } from '../../components/comum/Icone.jsx'
 import iconeConcluido from '../../assets/organizador/icone-concluido.svg'
 
 // Cadastro de evento em 4 etapas
@@ -166,7 +167,7 @@ function ProgressoDesktop({ etapa }) {
         return (
           <div key={item.numero} className="etapas-evento__item">
             <div className={`etapas-evento__marcador etapas-evento__marcador--${estado}`}>
-              {estado === 'concluida' ? <img src={iconeConcluido} alt="" /> : item.numero}
+              {estado === 'concluida' ? <Icone src={iconeConcluido} /> : item.numero}
             </div>
 
             <div className="etapas-evento__rotulo">
