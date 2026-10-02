@@ -1,4 +1,5 @@
 // Peças de formulário da área do organizador.
+import { Icone } from '../comum/Icone.jsx'
 
 export function Campo({ rotulo, ajuda, children, ...props }) {
   return (
@@ -16,7 +17,7 @@ export function CampoFixo({ rotulo, valor, ajuda, icone }) {
       <span>{rotulo}</span>
       <p className="campo__bloqueado">
         {valor}
-        {icone && <img src={icone} alt="" />}
+        {icone && <Icone src={icone} />}
       </p>
       {ajuda && <small>{ajuda}</small>}
     </div>

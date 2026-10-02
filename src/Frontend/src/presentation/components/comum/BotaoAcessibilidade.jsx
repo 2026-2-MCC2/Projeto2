@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { useAcessibilidade } from '../../hooks/useAcessibilidade.js'
 import { useFolhaArrastavel } from '../../hooks/useFolhaArrastavel.js'
+import { Icone } from './Icone.jsx'
+import { BotaoTema, SeletorTema } from './BotaoTema.jsx'
 import iconeClaro from '../../assets/comum/icone-acessibilidade-claro.svg'
 import iconeEscuro from '../../assets/comum/icone-acessibilidade.svg'
 import iconeFechar from '../../assets/comum/icone-fechar.svg'
@@ -20,6 +22,7 @@ const OPCOES = [
 ]
 
 // Usado pelo organizador, pelo fornecedor e pelo administrador.
+// O flutuante leva junto o botão de tema, já que as telas sem cabeçalho não têm onde colocá-lo.
 export function BotaoAcessibilidade({ posicao = 'flutuante' }) {
   const [aberto, setAberto] = useState(false)
   const { ajustes, alternar, mudarFonte, restaurar } = useAcessibilidade()
@@ -49,6 +52,8 @@ export function BotaoAcessibilidade({ posicao = 'flutuante' }) {
 
   return (
     <div className={`acessibilidade-area acessibilidade-area--${posicao}`} ref={caixa}>
+      {flutuante && <BotaoTema posicao="flutuante" />}
+
       <button
         type="button"
         className={`acessibilidade acessibilidade--${posicao}${aberto ? ' acessibilidade--aberta' : ''}`}
@@ -56,7 +61,7 @@ export function BotaoAcessibilidade({ posicao = 'flutuante' }) {
         aria-expanded={aberto}
         onClick={() => setAberto((estava) => !estava)}
       >
-        <img src={flutuante ? iconeClaro : iconeEscuro} alt="" />
+        <Icone src={flutuante ? iconeClaro : iconeEscuro} />
       </button>
 
       {aberto && (
@@ -76,8 +81,13 @@ export function BotaoAcessibilidade({ posicao = 'flutuante' }) {
           <div className="painel-acesso__topo">
             <h2>Acessibilidade</h2>
             <button type="button" aria-label="Fechar" onClick={() => setAberto(false)}>
-              <img src={iconeFechar} alt="" />
+              <Icone src={iconeFechar} />
             </button>
+          </div>
+
+          <div className="painel-acesso__bloco">
+            <span className="painel-acesso__rotulo">Aparência</span>
+            <SeletorTema />
           </div>
 
           <div className="painel-acesso__bloco">
@@ -120,7 +130,7 @@ export function BotaoAcessibilidade({ posicao = 'flutuante' }) {
           </div>
 
           <button type="button" className="painel-acesso__restaurar" onClick={restaurar}>
-            Restaurar padrão
+            Restaurar padrões
           </button>
         </div>
       )}

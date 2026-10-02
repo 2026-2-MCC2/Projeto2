@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { OrganizadorLayout } from '../../components/organizador/OrganizadorLayout.jsx'
 import { EVENTOS_DISPONIVEIS } from '../../data/eventosDisponiveis.js'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
+import { Icone } from '../../components/comum/Icone.jsx'
 import iconeBuscar from '../../assets/organizador/icone-buscar.svg'
 import iconePrazo from '../../assets/fornecedor/icone-prazo.svg'
 import '../../styles/fornecedor.css'
@@ -15,7 +16,7 @@ function CartaoEvento({ evento }) {
         <div className="fornecedor-evento__etiquetas">
           <span className="fornecedor-evento__categorias">{evento.categorias.join(' · ')}</span>
           <span className="fornecedor-evento__prazo">
-            <img src={iconePrazo} alt="" />
+            <Icone src={iconePrazo} />
             {evento.prazo}
           </span>
         </div>
@@ -74,7 +75,7 @@ export function EventosDisponiveis() {
       <>
         <section className="fornecedor__busca-filtros" aria-label="Buscar e filtrar eventos">
           <label className="fornecedor__busca">
-            <img src={iconeBuscar} alt="" />
+            <Icone src={iconeBuscar} />
             <input
               type="search"
               placeholder={

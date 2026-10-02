@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { AcessoLayout } from '../../components/acesso/AcessoLayout.jsx'
+import { Icone } from '../../components/comum/Icone.jsx'
 import fotoMicrofone from '../../assets/acesso/foto-microfone.jpg'
 import marcadorConcluido from '../../assets/acesso/marcador-concluido.svg'
 import marcadorAtual from '../../assets/acesso/marcador-atual.svg'
@@ -48,7 +49,7 @@ export function CadastroPendente() {
       descricao="Assim que o acesso for liberado, você já começa a cadastrar eventos e receber propostas."
     >
       <span className="acesso__situacao">
-        <img src={marcadorAguardando} alt="" />
+        <Icone src={marcadorAguardando} />
         Aguardando aprovação
       </span>
 
@@ -63,7 +64,7 @@ export function CadastroPendente() {
       <ol className="acesso__linha-do-tempo">
         {ETAPAS.map((etapa) => (
           <li key={etapa.id} className={`acesso__etapa acesso__etapa--${etapa.situacao}`}>
-            <img src={etapa.marcador} alt="" className="acesso__etapa-marcador" />
+            <Icone src={etapa.marcador} className="acesso__etapa-marcador" />
             <div>
               <strong>{etapa.titulo}</strong>
               <span>{etapa.descricao}</span>
