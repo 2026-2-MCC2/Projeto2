@@ -15,6 +15,9 @@ import { PropostaRecebida } from '../pages/organizador/PropostaRecebida.jsx'
 import { Configuracoes } from '../pages/organizador/Configuracoes.jsx'
 import { EventosDisponiveis } from '../pages/fornecedor/EventosDisponiveis.jsx'
 import { EnviarProposta } from '../pages/fornecedor/EnviarProposta.jsx'
+import { EnviarPropostaEtapa2 } from '../pages/fornecedor/EnviarPropostaEtapa2.jsx'
+import { EnviarPropostaEtapa3 } from '../pages/fornecedor/EnviarPropostaEtapa3.jsx'
+import { MinhasPropostas } from '../pages/fornecedor/MinhasPropostas.jsx'
 import { Aprovacoes } from '../pages/admin/Aprovacoes.jsx'
 import { Usuarios } from '../pages/admin/Usuarios.jsx'
 
@@ -38,7 +41,16 @@ export function AppRoutes() {
         <Route path="/organizador/configuracoes" element={<Configuracoes />} />
 
         <Route path="/fornecedor/eventos" element={<EventosDisponiveis />} />
+        <Route path="/fornecedor/propostas" element={<MinhasPropostas />} />
         <Route path="/fornecedor/eventos/:id/propostas/etapa-1" element={<EnviarProposta />} />
+        <Route
+          path="/fornecedor/eventos/:id/propostas/etapa-2"
+          element={<EnviarPropostaEtapa2 />}
+        />
+        <Route
+          path="/fornecedor/eventos/:id/propostas/etapa-3"
+          element={<EnviarPropostaEtapa3 />}
+        />
 
         <Route path="/admin/aprovacoes" element={<Aprovacoes />} />
         <Route path="/admin/usuarios" element={<Usuarios />} />
