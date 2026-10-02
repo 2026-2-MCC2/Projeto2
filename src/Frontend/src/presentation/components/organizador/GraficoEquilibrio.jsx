@@ -29,7 +29,7 @@ export function GraficoEquilibrio({ equilibrio }) {
     >
       <path
         d={`M ${xEquilibrio} ${yCusto} L ${xFim} ${yFim} L ${xFim} ${yCusto} Z`}
-        style={{ fill: 'var(--cor-sucesso-claro)' }}
+        style={{ fill: 'var(--status-sucesso-fundo)' }}
       />
 
       <line
@@ -37,21 +37,21 @@ export function GraficoEquilibrio({ equilibrio }) {
         y1={MARGEM.topo}
         x2={MARGEM.esquerda}
         y2={base}
-        style={{ stroke: 'var(--cor-borda)' }}
+        style={{ stroke: 'var(--borda-padrao)' }}
       />
       <line
         x1={MARGEM.esquerda}
         y1={base}
         x2={xFim}
         y2={base}
-        style={{ stroke: 'var(--cor-borda)' }}
+        style={{ stroke: 'var(--borda-padrao)' }}
       />
       <line
         x1={MARGEM.esquerda}
         y1={eixoY(0.5)}
         x2={xFim}
         y2={eixoY(0.5)}
-        style={{ stroke: 'var(--cor-neutro)' }}
+        style={{ stroke: 'var(--fundo-sutil)' }}
       />
 
       <line
@@ -59,7 +59,7 @@ export function GraficoEquilibrio({ equilibrio }) {
         y1={yCusto}
         x2={xFim}
         y2={yCusto}
-        style={{ stroke: 'var(--cor-apagado)' }}
+        style={{ stroke: 'var(--texto-terciario)' }}
         strokeWidth="2"
         strokeDasharray="8 6"
       />
@@ -72,7 +72,7 @@ export function GraficoEquilibrio({ equilibrio }) {
         y1={base}
         x2={xFim}
         y2={yFim}
-        style={{ stroke: 'var(--cor-azul)' }}
+        style={{ stroke: 'var(--texto-marca)' }}
         strokeWidth="2.5"
       />
 
@@ -81,14 +81,14 @@ export function GraficoEquilibrio({ equilibrio }) {
         y1={yCusto}
         x2={xEquilibrio}
         y2={base}
-        stroke="#9dc3f0"
+        style={{ stroke: 'var(--texto-marca)', opacity: 0.45 }}
         strokeDasharray="3 4"
       />
       <circle
         cx={xEquilibrio}
         cy={yCusto}
         r="7"
-        style={{ fill: 'var(--cor-superficie)', stroke: 'var(--cor-azul)' }}
+        style={{ fill: 'var(--fundo-superficie)', stroke: 'var(--texto-marca)' }}
         strokeWidth="2.5"
       />
 

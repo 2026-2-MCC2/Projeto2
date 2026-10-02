@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import { EVENTOS } from '../../data/eventos.js'
-import { BotaoTema } from '../comum/BotaoTema.jsx'
+import { Icone } from '../comum/Icone.jsx'
 import simbolo from '../../assets/organizador/simbolo.png'
 import iconeOrganizador from '../../assets/organizador/icone-organizador.svg'
 import iconeSair from '../../assets/organizador/icone-sair.svg'
@@ -70,11 +70,10 @@ export function MenuLateral({ aoSair, perfil = 'organizador' }) {
             TrocaTicket <span>· Gestão</span>
           </p>
           <p className="menu__area">
-            <img src={dadosPerfil.icone} alt="" />
+            <Icone src={dadosPerfil.icone} />
             {dadosPerfil.area}
           </p>
         </div>
-        <BotaoTema />
       </div>
 
       {itens ? (
@@ -120,7 +119,7 @@ export function MenuLateral({ aoSair, perfil = 'organizador' }) {
           <p className="menu__usuario-papel">{dadosPerfil.papel}</p>
         </div>
         <button type="button" className="menu__sair" aria-label="Sair" onClick={aoSair}>
-          <img src={iconeSair} alt="" />
+          <Icone src={iconeSair} />
         </button>
       </div>
     </nav>

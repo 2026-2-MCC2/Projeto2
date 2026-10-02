@@ -4,6 +4,7 @@ import { OrganizadorLayout } from '../../components/organizador/OrganizadorLayou
 import { CartaoEvento } from '../../components/organizador/CartaoEvento.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
 import { EVENTOS, STATUS } from '../../data/eventos.js'
+import { Icone } from '../../components/comum/Icone.jsx'
 import iconeBuscar from '../../assets/organizador/icone-buscar.svg'
 import iconeAdicionar from '../../assets/organizador/icone-adicionar.svg'
 
@@ -32,7 +33,7 @@ export function Eventos() {
       onClick={() => navigate('/organizador/eventos/novo', { viewTransition: true })}
     >
       <span className="novo-evento__marcador">
-        <img src={iconeAdicionar} alt="" />
+        <Icone src={iconeAdicionar} />
       </span>
       <strong>Novo evento</strong>
       <span className="novo-evento__apoio">
@@ -47,7 +48,7 @@ export function Eventos() {
     <OrganizadorLayout titulo="Meus eventos" apoio="3 eventos em planejamento">
       <div className="barra">
         <label className="barra__busca">
-          <img src={iconeBuscar} alt="" />
+          <Icone src={iconeBuscar} />
           <input
             type="search"
             placeholder={isMobile ? 'Buscar evento' : 'Buscar evento por nome ou local'}

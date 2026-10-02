@@ -2,6 +2,13 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AcessoLayout } from '../../components/acesso/AcessoLayout.jsx'
 
+// Atalhos do protótipo enquanto não há login de verdade.
+const ATALHOS = [
+  { nome: 'Organizador', rota: '/organizador/eventos' },
+  { nome: 'Fornecedor', rota: '/fornecedor/eventos' },
+  { nome: 'Admin', rota: '/admin/aprovacoes' },
+]
+
 export function Login() {
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
@@ -56,6 +63,17 @@ export function Login() {
         </Link>
         <p className="acesso__nota">O acesso é liberado após aprovação do administrador.</p>
       </footer>
+
+      <nav className="acesso__atalhos" aria-label="Entrar no protótipo">
+        <p>Entrar no protótipo como</p>
+        <div className="acesso__atalhos-perfis">
+          {ATALHOS.map((atalho) => (
+            <Link key={atalho.rota} to={atalho.rota} className="acesso__atalho">
+              {atalho.nome}
+            </Link>
+          ))}
+        </div>
+      </nav>
     </AcessoLayout>
   )
 }

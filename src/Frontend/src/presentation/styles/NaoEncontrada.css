@@ -4,8 +4,8 @@
   justify-content: center;
   min-height: 100vh;
   padding: 2rem 1.5rem;
-  background: var(--cor-fundo);
-  color: var(--cor-texto);
+  background: var(--fundo-pagina);
+  color: var(--texto-primario);
   font-family: Inter, system-ui, sans-serif;
   line-height: 1.35;
 }
@@ -27,13 +27,12 @@
 }
 
 .nao-encontrada__logo {
-  height: 60px;
-  width: auto;
+  --logo-altura: 60px;
 }
 
 .nao-encontrada__selo {
   padding-top: 9px;
-  color: var(--cor-apagado);
+  color: var(--texto-terciario);
   font-size: 0.8125rem;
   font-weight: 500;
 }
@@ -65,8 +64,8 @@
 .nao-encontrada__etiqueta {
   padding: 0.3125rem 0.75rem;
   border-radius: 999px;
-  background: var(--cor-azul-claro);
-  color: var(--cor-azul);
+  background: var(--fundo-marca-suave);
+  color: var(--texto-marca);
   font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.0625rem;
@@ -86,15 +85,15 @@
 
 .nao-encontrada__mensagem p {
   margin: 0;
-  color: var(--cor-suave);
+  color: var(--texto-secundario);
   font-size: 0.8125rem;
 }
 
 .nao-encontrada__botao {
   padding: 0.8125rem 1.75rem;
   border-radius: 10px;
-  background: var(--cor-azul-fundo);
-  color: #fff;
+  background: var(--acao-primaria);
+  color: var(--acao-sobre-primaria);
   font-size: 0.875rem;
   font-weight: 600;
   text-decoration: none;
@@ -102,7 +101,7 @@
 
 @media (max-width: 900px) {
   .nao-encontrada__logo {
-    height: 53px;
+    --logo-altura: 53px;
   }
 
   .nao-encontrada__selo {

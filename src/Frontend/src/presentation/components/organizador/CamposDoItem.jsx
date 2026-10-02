@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Campo, Linha, SeDesktop } from './Formulario.jsx'
+import { Icone } from '../comum/Icone.jsx'
 import iconeSelecionado from '../../assets/organizador/icone-selecionado.svg'
 
 const ORIGENS = [
@@ -41,7 +42,7 @@ export function CamposDoItem({ isMobile = false, linhas = 2 }) {
             >
               <span className="origem__titulo">
                 {opcao.nome}
-                {origem === opcao.valor && <img src={iconeSelecionado} alt="" />}
+                {origem === opcao.valor && <Icone src={iconeSelecionado} />}
               </span>
               <small>{opcao.apoio}</small>
             </button>

@@ -1,39 +1,65 @@
-import { useState } from 'react'
+import { useAcessibilidade } from '../../hooks/useAcessibilidade.js'
+import { Icone } from './Icone.jsx'
+import iconeSol from '../../assets/comum/icone-sol.svg'
+import iconeLua from '../../assets/comum/icone-lua.svg'
 import '../../styles/acessibilidade.css'
 
-const DURACAO_DA_TROCA = 300
-
-// O tema fica no atributo data-tema do <html>, definido no index.html e salvo no navegador.
-
-export function BotaoTema() {
-  const [tema, setTema] = useState(() => document.documentElement.dataset.tema)
+// Mostra o ícone do tema de destino: lua no claro, sol no escuro.
+// `topo` fica no cabeçalho, logo depois da Acessibilidade; `flutuante` fica acima do botão flutuante de Acessibilidade.
+export function BotaoTema({ posicao = 'topo' }) {
+  const { tema, mudarTema } = useAcessibilidade()
   const escuro = tema === 'escuro'
-
-  function alternar() {
-    const raiz = document.documentElement
-    const novoTema = escuro ? 'claro' : 'escuro'
-
-    raiz.classList.add('trocando-tema')
-    raiz.dataset.tema = novoTema
-    setTimeout(() => raiz.classList.remove('trocando-tema'), DURACAO_DA_TROCA)
-
-    try {
-      localStorage.setItem('tema', novoTema)
-    } catch {
-      // Sem armazenamento, o tema vale só até recarregar a página.
-    }
-    setTema(novoTema)
-  }
 
   return (
     <button
       type="button"
-      className="acessibilidade acessibilidade--topo"
-      aria-label={escuro ? 'Ativar modo claro' : 'Ativar modo escuro'}
-      title={escuro ? 'Modo escuro' : 'Modo claro'}
-      onClick={alternar}
+      className={`botao-tema botao-tema--${posicao}`}
+      aria-label={escuro ? 'Ativar tema claro' : 'Ativar tema escuro'}
+      title={escuro ? 'Ativar tema claro' : 'Ativar tema escuro'}
+      onClick={() => mudarTema(escuro ? 'claro' : 'escuro')}
     >
-      <span aria-hidden="true">{escuro ? '🌙' : '☀️'}</span>
+      <Icone src={escuro ? iconeSol : iconeLua} />
     </button>
+  )
+}
+
+// Controle segmentado do painel de Acessibilidade.
+export function SeletorTema() {
+  const { tema, mudarTema } = useAcessibilidade()
+  const opcoes = [
+    { valor: 'claro', nome: 'Claro', icone: iconeSol },
+    { valor: 'escuro', nome: 'Escuro', icone: iconeLua },
+  ]
+
+  // Como em todo radiogroup, as setas trocam a opção e o Tab entra só na opção marcada.
+  function aoTeclar(evento) {
+    if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(evento.key)) return
+    evento.preventDefault()
+    const outra = opcoes.find((opcao) => opcao.valor !== tema)
+    mudarTema(outra.valor)
+    evento.currentTarget.querySelector(`[data-valor="${outra.valor}"]`)?.focus()
+  }
+
+  return (
+    <div className="seletor-tema" role="radiogroup" aria-label="Tema" onKeyDown={aoTeclar}>
+      {opcoes.map((opcao) => {
+        const ativa = tema === opcao.valor
+        return (
+          <button
+            key={opcao.valor}
+            type="button"
+            role="radio"
+            data-valor={opcao.valor}
+            tabIndex={ativa ? 0 : -1}
+            aria-checked={ativa}
+            className={`seletor-tema__opcao${ativa ? ' seletor-tema__opcao--ativa' : ''}`}
+            onClick={() => mudarTema(opcao.valor)}
+          >
+            <Icone src={opcao.icone} />
+            {opcao.nome}
+          </button>
+        )
+      })}
+    </div>
   )
 }
