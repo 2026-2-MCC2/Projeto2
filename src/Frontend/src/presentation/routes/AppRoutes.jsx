@@ -16,7 +16,9 @@ import { Configuracoes } from '../pages/organizador/Configuracoes.jsx'
 import { EventosDisponiveis } from '../pages/fornecedor/EventosDisponiveis.jsx'
 import { EnviarProposta } from '../pages/fornecedor/EnviarProposta.jsx'
 import { Aprovacoes } from '../pages/admin/Aprovacoes.jsx'
+import { Historico } from '../pages/admin/Historico.jsx'
 import { Usuarios } from '../pages/admin/Usuarios.jsx'
+import { VisaoGeral } from '../pages/admin/VisaoGeral.jsx'
 
 export function AppRoutes() {
   return (
@@ -42,6 +44,8 @@ export function AppRoutes() {
 
         <Route path="/admin/aprovacoes" element={<Aprovacoes />} />
         <Route path="/admin/usuarios" element={<Usuarios />} />
+        <Route path="/admin/historico" element={<Historico />} />
+        <Route path="/admin/visao-geral" element={<VisaoGeral />} />
 
         <Route path="*" element={<NaoEncontrada />} />
       </Routes>
