@@ -5,6 +5,7 @@ import { Tabela } from '../../components/organizador/Tabela.jsx'
 import { Botao } from '../../components/organizador/Formulario.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
 import { buscarEvento, estaVencida } from '../../data/eventos.js'
+import { Icone } from '../../components/comum/Icone.jsx'
 import iconeAvancar from '../../assets/organizador/icone-avancar.svg'
 import iconeCards from '../../assets/organizador/icone-cards.svg'
 import iconeLista from '../../assets/organizador/icone-lista.svg'
@@ -81,7 +82,7 @@ export function EventoPropostas() {
                 title={opcao.nome}
                 onClick={() => setVisao(opcao.valor)}
               >
-                <img src={opcao.icone} alt="" />
+                <Icone src={opcao.icone} />
               </button>
             ))}
           </div>
@@ -115,7 +116,7 @@ export function EventoPropostas() {
                   proposta.validade,
                   <Link key="acao" to={rotaDa(proposta)} className="cartao__link" viewTransition>
                     Ver proposta
-                    <img src={iconeAvancar} alt="" />
+                    <Icone src={iconeAvancar} />
                   </Link>,
                 ],
               }))}

@@ -4,6 +4,7 @@ import { Cartao } from '../../components/organizador/Cartao.jsx'
 import { GraficoEquilibrio } from '../../components/organizador/GraficoEquilibrio.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
 import { buscarEvento } from '../../data/eventos.js'
+import { Icone } from '../../components/comum/Icone.jsx'
 import iconeAtencao from '../../assets/organizador/icone-atencao.svg'
 
 export function EventoTicket() {
@@ -74,7 +75,7 @@ export function EventoTicket() {
       <div className="cartao__divisor" />
 
       <p className="nota">
-        <img src={iconeAtencao} alt="" />
+        <Icone src={iconeAtencao} />
         <span>
           Cobre o custo a partir de <strong>{calculo.equilibrio.ingressos}</strong>. No cenário
           pessimista (8.000), faltam <strong>R$ 38.100</strong>.

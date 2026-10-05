@@ -9,6 +9,7 @@ import {
   Painel,
 } from '../../components/organizador/Formulario.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
+import { Icone } from '../../components/comum/Icone.jsx'
 import iconeBloqueado from '../../assets/organizador/icone-bloqueado.svg'
 import iconePermitido from '../../assets/organizador/icone-permitido.svg'
 
@@ -112,7 +113,7 @@ function PainelPerfil({ isMobile }) {
       <ul className="permissoes">
         {PERMISSOES.map((permissao) => (
           <li key={permissao}>
-            <img src={iconePermitido} alt="" />
+            <Icone src={iconePermitido} />
             {permissao}
           </li>
         ))}
