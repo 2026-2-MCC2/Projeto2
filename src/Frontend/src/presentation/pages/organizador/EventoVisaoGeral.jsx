@@ -6,6 +6,7 @@ import { Botao } from '../../components/organizador/Formulario.jsx'
 import { Modal } from '../../components/comum/Modal.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
 import { buscarEvento } from '../../data/eventos.js'
+import { Icone } from '../../components/comum/Icone.jsx'
 import iconePublicar from '../../assets/comum/icone-enviar.svg'
 import iconeConcluida from '../../assets/organizador/icone-concluido-verde.svg'
 import iconeAtual from '../../assets/organizador/icone-etapa-atual.svg'
@@ -205,7 +206,7 @@ export function EventoVisaoGeral() {
                   key={etapa.nome}
                   className={`andamento__etapa andamento__etapa--${etapa.situacao}`}
                 >
-                  <img src={ICONE_DA_ETAPA[etapa.situacao]} alt="" />
+                  <Icone src={ICONE_DA_ETAPA[etapa.situacao]} />
                   {etapa.nome}
                 </div>
               ))}
