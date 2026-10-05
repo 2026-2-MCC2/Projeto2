@@ -1,9 +1,11 @@
 import { useState } from 'react'
-import { NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
 import { MenuLateral } from './MenuLateral.jsx'
 import { BotaoAcessibilidade } from '../comum/BotaoAcessibilidade.jsx'
+import { BotaoTema } from '../comum/BotaoTema.jsx'
 import { ModalSair } from '../comum/ModalSair.jsx'
+import { Icone } from '../comum/Icone.jsx'
 import simbolo from '../../assets/organizador/simbolo.png'
 import iconeSair from '../../assets/organizador/icone-sair.svg'
 import iconeVoltar from '../../assets/organizador/icone-voltar.svg'
@@ -53,7 +55,6 @@ export function OrganizadorLayout({
 }) {
   const isMobile = useIsMobile()
   const navigate = useNavigate()
-  const { pathname } = useLocation()
   const organizador = perfil === 'organizador'
   const naListaDeEventos = organizador && pathname === '/organizador/eventos'
   const minhasPropostasFornecedor = perfil === 'fornecedor' && pathname === '/fornecedor/propostas'
@@ -70,11 +71,12 @@ export function OrganizadorLayout({
           {aoVoltar ? (
             <div className="topo__fluxo">
               <button type="button" className="topo__voltar" aria-label="Voltar" onClick={aoVoltar}>
-                <img src={iconeVoltar} alt="" />
+                <Icone src={iconeVoltar} />
               </button>
               <h1>{titulo}</h1>
               <img src={simbolo} alt="" className="topo__fluxo-marca" />
               <BotaoAcessibilidade posicao="topo" />
+              <BotaoTema />
             </div>
           ) : null}
           {aoVoltar ? (
@@ -98,7 +100,7 @@ export function OrganizadorLayout({
                     aria-label="Voltar"
                     onClick={() => navigate(voltarPara, { viewTransition: true })}
                   >
-                    <img src={iconeVoltar} alt="" />
+                    <Icone src={iconeVoltar} />
                   </button>
                 )}
 
@@ -108,14 +110,15 @@ export function OrganizadorLayout({
                   {(apoioMobile || apoio) && <p>{apoioMobile || apoio}</p>}
                 </div>
                 <div className="topo__acoes">
-                  {!naListaDeEventos && <BotaoAcessibilidade posicao="topo" />}
+                  <BotaoAcessibilidade posicao="topo" />
+                  <BotaoTema />
                   <button
                     type="button"
                     className="topo__sair"
                     aria-label="Sair"
                     onClick={() => setConfirmandoSaida(true)}
                   >
-                    <img src={iconeSair} alt="" />
+                    <Icone src={iconeSair} />
                   </button>
                 </div>
               </div>
@@ -139,15 +142,13 @@ export function OrganizadorLayout({
                 className={({ isActive }) => `aba${isActive ? ' aba--ativa' : ''}`}
               >
                 <span className="aba__marcador">
-                  <img src={aba.icone} alt="" />
+                  <Icone src={aba.icone} />
                 </span>
                 {aba.nome}
               </NavLink>
             ))}
           </nav>
         )}
-
-        {naListaDeEventos && <BotaoAcessibilidade />}
 
         {modalDeSaida}
       </div>

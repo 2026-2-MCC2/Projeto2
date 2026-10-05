@@ -8,10 +8,33 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito:wght@800&display=swap"
       rel="stylesheet"
     />
+    <meta name="theme-color" content="#ffffff" />
     <title>TrocaTicket · Gestão</title>
+    <script>
+      // Aplica o tema antes do React para a página não piscar no tema errado.
+      // Mesma regra do hooks/useAcessibilidade.js: preferência salva → sistema → claro.
+      ;(function () {
+        var tema = 'claro'
+        try {
+          var salvos = JSON.parse(localStorage.getItem('trocaticket-acessibilidade') || '{}')
+          var escolha = salvos.tema || localStorage.getItem('tema') || 'sistema'
+          if (escolha === 'sistema') {
+            tema = matchMedia('(prefers-color-scheme: dark)').matches ? 'escuro' : 'claro'
+          } else {
+            tema = escolha
+          }
+        } catch (erro) {
+          // Sem armazenamento: fica no claro.
+        }
+        document.documentElement.dataset.tema = tema
+        document
+          .querySelector('meta[name="theme-color"]')
+          .setAttribute('content', tema === 'escuro' ? '#161e2c' : '#ffffff')
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>
