@@ -27,9 +27,9 @@
   flex-direction: column;
   gap: 1rem;
   padding: 1.25rem 1.5rem;
-  border: 1px solid var(--org-borda);
+  border: 1px solid var(--borda-padrao);
   border-radius: 14px;
-  background: #fff;
+  background: var(--fundo-superficie);
 }
 
 .solicitacao .fornecedor__nome {
@@ -54,7 +54,7 @@
   gap: 1.25rem;
   margin: 0;
   padding-top: 0.875rem;
-  border-top: 1px solid var(--org-borda);
+  border-top: 1px solid var(--borda-padrao);
 }
 
 .solicitacao__dado {
@@ -65,7 +65,7 @@
 }
 
 .solicitacao__dado dt {
-  color: var(--org-suave);
+  color: var(--texto-secundario);
   font-size: 0.625rem;
   font-weight: 500;
 }
@@ -82,7 +82,7 @@
   justify-content: flex-end;
   gap: 0.625rem;
   padding-top: 0.875rem;
-  border-top: 1px solid var(--org-borda);
+  border-top: 1px solid var(--borda-padrao);
 }
 
 .solicitacao__acoes .botao {
@@ -103,7 +103,7 @@
   }
 
   /* Usuários e Histórico têm ícones de 18px no design. */
-  .organizador--admin .aba__marcador img {
+  .organizador--admin .aba__marcador .icone {
     width: auto;
     height: auto;
   }
@@ -152,7 +152,7 @@
   gap: 0.25rem 1rem;
   padding: 1rem 1.25rem;
   border-radius: 14px;
-  background: #fff;
+  background: var(--fundo-superficie);
 }
 
 .usuario .usuario__avatar {
@@ -188,7 +188,7 @@
   grid-area: contato;
   align-self: start;
   margin: 0;
-  color: var(--org-suave);
+  color: var(--texto-secundario);
   font-size: 0.75rem;
   overflow-wrap: anywhere;
 }
@@ -206,13 +206,13 @@
 
 .usuario .usuario__acao {
   padding: 9px 14px;
-  color: var(--org-azul);
+  color: var(--texto-marca);
   font-size: 0.75rem;
   font-weight: 500;
 }
 
 .usuario .usuario__acao--perigo {
-  color: #b91c1c;
+  color: var(--status-perigo-texto);
 }
 
 @media (max-width: 900px) {

@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom'
-import logotipo from '../assets/acesso/logotipo-trocaticket.png'
+import { Icone } from '../components/comum/Icone.jsx'
+import { Logotipo } from '../components/comum/Logotipo.jsx'
+import { BotaoAcessibilidade } from '../components/comum/BotaoAcessibilidade.jsx'
 import ingressoEsquerda from '../assets/nao-encontrada/ingresso-esquerda.svg'
 import ingressoDireita from '../assets/nao-encontrada/ingresso-direita.svg'
 import '../styles/NaoEncontrada.css'
@@ -9,19 +11,17 @@ export function NaoEncontrada() {
     <main className="nao-encontrada">
       <div className="nao-encontrada__conteudo">
         <Link to="/" className="nao-encontrada__marca">
-          <img src={logotipo} alt="TrocaTicket" className="nao-encontrada__logo" />
+          <Logotipo className="nao-encontrada__logo" />
           <span className="nao-encontrada__selo">· Gestão</span>
         </Link>
 
         <div className="nao-encontrada__ilustracao">
-          <img
+          <Icone
             src={ingressoEsquerda}
-            alt=""
             className="nao-encontrada__ingresso nao-encontrada__ingresso--esquerda"
           />
-          <img
+          <Icone
             src={ingressoDireita}
-            alt=""
             className="nao-encontrada__ingresso nao-encontrada__ingresso--direita"
           />
         </div>
@@ -40,6 +40,8 @@ export function NaoEncontrada() {
           Voltar ao início
         </Link>
       </div>
+
+      <BotaoAcessibilidade />
     </main>
   )
 }
