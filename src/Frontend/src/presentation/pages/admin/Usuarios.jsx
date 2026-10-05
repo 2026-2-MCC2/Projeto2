@@ -4,6 +4,7 @@ import { Botao, Campo } from '../../components/organizador/Formulario.jsx'
 import { Modal } from '../../components/comum/Modal.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
 import { USUARIOS } from '../../data/usuarios.js'
+import { Icone } from '../../components/comum/Icone.jsx'
 import iconeBuscar from '../../assets/organizador/icone-buscar.svg'
 import iconeConfirmar from '../../assets/organizador/icone-modal-aceitar.svg'
 import iconeBloquear from '../../assets/admin/icone-modal-rejeitar.svg'
@@ -175,7 +176,7 @@ export function Usuarios() {
     >
       <div className="barra">
         <label className="barra__busca">
-          <img src={iconeBuscar} alt="" />
+          <Icone src={iconeBuscar} />
           <input
             type="search"
             placeholder={isMobile ? 'Buscar por empresa' : 'Buscar por empresa ou responsável'}
