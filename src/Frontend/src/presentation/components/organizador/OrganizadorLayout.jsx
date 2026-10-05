@@ -11,7 +11,7 @@ import iconeSair from '../../assets/organizador/icone-sair.svg'
 import iconeVoltar from '../../assets/organizador/icone-voltar.svg'
 import iconeEventos from '../../assets/organizador/icone-eventos.svg'
 import iconeAjustes from '../../assets/organizador/icone-ajustes.svg'
-import iconeLista from '../../assets/organizador/icone-lista.svg'
+import iconePropostas from '../../assets/fornecedor/icone-propostas.svg'
 import iconeAprovacoes from '../../assets/admin/icone-aprovacoes.svg'
 import iconeUsuarios from '../../assets/admin/icone-usuarios.svg'
 import iconeHistorico from '../../assets/admin/icone-historico.svg'
@@ -25,7 +25,7 @@ const ABAS = {
   ],
   fornecedor: [
     { rota: '/fornecedor/eventos', nome: 'Eventos', icone: iconeEventos },
-    { rota: '/fornecedor/propostas', nome: 'Propostas', icone: iconeLista },
+    { rota: '/fornecedor/propostas', nome: 'Propostas', icone: iconePropostas },
     { rota: '/fornecedor/configuracoes', nome: 'Ajustes', icone: iconeAjustes },
   ],
   admin: [
@@ -56,8 +56,10 @@ export function OrganizadorLayout({
   const isMobile = useIsMobile()
   const navigate = useNavigate()
   const organizador = perfil === 'organizador'
+  const naListaDeEventos = organizador && pathname === '/organizador/eventos'
+  const minhasPropostasFornecedor = perfil === 'fornecedor' && pathname === '/fornecedor/propostas'
   const abas = ABAS[perfil] ?? ABAS.organizador
-  const classeDoPerfil = organizador ? '' : ` organizador--${perfil}`
+  const classeDoPerfil = `${organizador ? '' : ` organizador--${perfil}`}${minhasPropostasFornecedor ? ' organizador--fornecedor-propostas' : ''}`
   const [confirmandoSaida, setConfirmandoSaida] = useState(false)
 
   const modalDeSaida = confirmandoSaida && <ModalSair aoFechar={() => setConfirmandoSaida(false)} />
