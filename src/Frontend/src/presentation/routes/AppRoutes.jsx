@@ -19,7 +19,9 @@ import { EnviarPropostaEtapa2 } from '../pages/fornecedor/EnviarPropostaEtapa2.j
 import { EnviarPropostaEtapa3 } from '../pages/fornecedor/EnviarPropostaEtapa3.jsx'
 import { MinhasPropostas } from '../pages/fornecedor/MinhasPropostas.jsx'
 import { Aprovacoes } from '../pages/admin/Aprovacoes.jsx'
+import { Historico } from '../pages/admin/Historico.jsx'
 import { Usuarios } from '../pages/admin/Usuarios.jsx'
+import { VisaoGeral } from '../pages/admin/VisaoGeral.jsx'
 
 export function AppRoutes() {
   return (
@@ -55,6 +57,8 @@ export function AppRoutes() {
 
         <Route path="/admin/aprovacoes" element={<Aprovacoes />} />
         <Route path="/admin/usuarios" element={<Usuarios />} />
+        <Route path="/admin/historico" element={<Historico />} />
+        <Route path="/admin/visao-geral" element={<VisaoGeral />} />
 
         <Route path="*" element={<NaoEncontrada />} />
       </Routes>
