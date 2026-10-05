@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { BotaoAcessibilidade } from '../comum/BotaoAcessibilidade.jsx'
+import { BotaoTema } from '../comum/BotaoTema.jsx'
+import { Logotipo } from '../comum/Logotipo.jsx'
 import { useNavigate } from 'react-router-dom'
-import logotipo from '../../assets/acesso/logotipo-trocaticket.png'
+import { Icone } from '../comum/Icone.jsx'
 import setaVoltar from '../../assets/acesso/seta-voltar.svg'
 import perfilSelecionado from '../../assets/acesso/perfil-selecionado.svg'
 import '../../styles/acesso.css'
@@ -66,10 +68,11 @@ export function CadastroMobile() {
       <header className="etapas__barra">
         <div className="etapas__topo">
           <button type="button" className="etapas__voltar" onClick={voltar} aria-label="Voltar">
-            <img src={setaVoltar} alt="" />
+            <Icone src={setaVoltar} />
           </button>
-          <img src={logotipo} alt="TrocaTicket" className="etapas__logo" />
+          <Logotipo className="etapas__logo" />
           <BotaoAcessibilidade posicao="topo" />
+          <BotaoTema />
         </div>
 
         <div className="etapas__progresso">
@@ -109,7 +112,7 @@ export function CadastroMobile() {
                 >
                   <span className="etapas__perfil-nome">
                     <strong>{opcao.nome}</strong>
-                    {dados.perfil === opcao.id && <img src={perfilSelecionado} alt="" />}
+                    {dados.perfil === opcao.id && <Icone src={perfilSelecionado} />}
                   </span>
                   <span className="etapas__perfil-resumo">{opcao.resumo}</span>
                 </button>

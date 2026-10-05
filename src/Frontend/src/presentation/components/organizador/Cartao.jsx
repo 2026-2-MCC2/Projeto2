@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { Icone } from '../comum/Icone.jsx'
 import iconeAvancar from '../../assets/organizador/icone-avancar.svg'
 
 export function Cartao({ titulo, link, etiqueta, children }) {
@@ -12,7 +13,7 @@ export function Cartao({ titulo, link, etiqueta, children }) {
         {link && (
           <Link to={link.para} className="cartao__link" viewTransition>
             {link.nome}
-            <img src={iconeAvancar} alt="" />
+            <Icone src={iconeAvancar} />
           </Link>
         )}
       </div>

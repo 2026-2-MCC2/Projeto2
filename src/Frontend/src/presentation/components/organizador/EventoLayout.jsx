@@ -2,6 +2,7 @@ import { Link, NavLink, useParams } from 'react-router-dom'
 import { OrganizadorLayout } from './OrganizadorLayout.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
 import { buscarEvento, STATUS } from '../../data/eventos.js'
+import { Icone } from '../comum/Icone.jsx'
 import iconeVoltar from '../../assets/organizador/icone-voltar.svg'
 
 const ABAS = [
@@ -62,7 +63,7 @@ export function EventoLayout({ acoes, comResumo = false, voltar, children }) {
           className={`evento-topo__titulos${comResumo ? '' : ' evento-topo__titulos--espacado'}`}
         >
           <Link to={destinoDoVoltar} className="evento-topo__voltar" viewTransition>
-            <img src={iconeVoltar} alt="" />
+            <Icone src={iconeVoltar} />
             {nomeDoVoltar}
           </Link>
 

@@ -1,15 +1,10 @@
 .acesso {
-  --acesso-azul: #0a50ae;
-  --acesso-texto: #0f172a;
-  --acesso-suave: #64748b;
-  --acesso-borda: #e5e9f0;
   --acesso-raio: 10px;
 
   display: flex;
   min-height: 100vh;
-  background: #fff;
-  color: var(--acesso-texto);
-  color-scheme: light;
+  background: var(--fundo-superficie);
+  color: var(--texto-primario);
   font-family: Inter, system-ui, sans-serif;
   line-height: 1.35;
 }
@@ -46,13 +41,12 @@
 }
 
 .acesso__logo {
-  height: 71px;
-  width: auto;
+  --logo-altura: 71px;
 }
 
 .acesso__selo {
   padding-top: 11px;
-  color: #94a3b8;
+  color: var(--texto-terciario);
   font-size: 1rem;
   font-weight: 500;
 }
@@ -65,7 +59,7 @@
 
 .acesso__cabecalho p {
   margin: 0;
-  color: var(--acesso-suave);
+  color: var(--texto-secundario);
   font-size: 0.875rem;
 }
 
@@ -97,19 +91,19 @@
 
 .campo input {
   padding: 0.8125rem 0.875rem;
-  border: 1px solid var(--acesso-borda);
+  border: 1px solid var(--borda-padrao);
   border-radius: var(--acesso-raio);
   font-size: 0.875rem;
   font-family: inherit;
-  color: var(--acesso-texto);
+  color: var(--texto-primario);
 }
 
 .campo input::placeholder {
-  color: #94a3b8;
+  color: var(--texto-terciario);
 }
 
 .campo input:focus {
-  outline: 2px solid var(--acesso-azul);
+  outline: 2px solid var(--texto-marca);
   outline-offset: 1px;
 }
 
@@ -121,8 +115,8 @@
   padding: 0.9375rem;
   border: 0;
   border-radius: var(--acesso-raio);
-  background: var(--acesso-azul);
-  color: #fff;
+  background: var(--acao-primaria);
+  color: var(--acao-sobre-primaria);
   font-size: 0.875rem;
   font-weight: 600;
   text-align: center;
@@ -131,7 +125,7 @@
 }
 
 .acesso__link {
-  color: var(--acesso-azul);
+  color: var(--texto-marca);
   font-size: 0.8125rem;
   font-weight: 500;
   text-decoration: none;
@@ -156,8 +150,51 @@
 
 .acesso__nota {
   margin: 0;
-  color: var(--acesso-suave);
+  color: var(--texto-secundario);
   font-size: 0.6875rem;
+}
+
+.acesso__atalhos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--borda-padrao);
+}
+
+.acesso__atalhos p {
+  margin: 0;
+  color: var(--texto-secundario);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+.acesso__atalhos-perfis {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.acesso__atalho {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  padding: 0.625rem 0;
+  border: 1px solid var(--borda-padrao);
+  border-radius: 8px;
+  background: var(--fundo-superficie);
+  color: var(--texto-marca);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: border-color 0.15s ease;
+}
+
+@media (hover: hover) {
+  .acesso__atalho:hover {
+    border-color: var(--texto-marca);
+  }
 }
 
 /* ---------- seleção de perfil ---------- */
@@ -173,10 +210,10 @@
   flex-direction: column;
   gap: 0.25rem;
   padding: 0.875rem 1rem;
-  border: 2px solid var(--acesso-borda);
+  border: 2px solid var(--borda-padrao);
   border-radius: var(--acesso-raio);
-  background: #fff;
-  color: var(--acesso-texto);
+  background: var(--fundo-superficie);
+  color: var(--texto-primario);
   font-size: 0.75rem;
   text-align: left;
   cursor: pointer;
@@ -187,25 +224,25 @@
 }
 
 .acesso__perfil span {
-  color: var(--acesso-suave);
+  color: var(--texto-secundario);
 }
 
 .acesso__perfil--ativo {
-  border-color: var(--acesso-azul);
-  background: #e8f0fc;
+  border-color: var(--texto-marca);
+  background: var(--fundo-marca-suave);
 }
 
 .acesso__perfil--ativo strong {
-  color: var(--acesso-azul);
+  color: var(--texto-marca);
 }
 
 .acesso__aviso {
   margin: 0;
   padding: 0.75rem 0.875rem;
-  border: 1px solid #ffd9bc;
+  border: 1px solid var(--status-alerta-borda);
   border-radius: var(--acesso-raio);
-  background: #fff4ec;
-  color: #b45309;
+  background: var(--status-alerta-fundo);
+  color: var(--status-alerta-texto);
   font-size: 0.75rem;
 }
 
@@ -218,13 +255,13 @@
   gap: 0.5rem;
   padding: 0.4375rem 0.875rem 0.4375rem 0.75rem;
   border-radius: 999px;
-  background: #fff4ec;
-  color: #b45309;
+  background: var(--status-alerta-fundo);
+  color: var(--status-alerta-texto);
   font-size: 0.75rem;
   font-weight: 600;
 }
 
-.acesso__situacao img {
+.acesso__situacao .icone {
   width: 8px;
   height: 8px;
 }
@@ -235,9 +272,9 @@
   gap: 1rem;
   margin: 0;
   padding: 1.25rem;
-  border: 1px solid var(--acesso-borda);
+  border: 1px solid var(--borda-padrao);
   border-radius: 14px;
-  background: #fff;
+  background: var(--fundo-superficie);
   list-style: none;
 }
 
@@ -255,13 +292,13 @@
 }
 
 .acesso__etapa span {
-  color: var(--acesso-suave);
+  color: var(--texto-secundario);
   font-size: 0.75rem;
 }
 
 .acesso__etapa--pendente strong,
 .acesso__etapa--pendente span {
-  color: var(--acesso-suave);
+  color: var(--texto-secundario);
   font-weight: 500;
 }
 
@@ -278,7 +315,7 @@
   margin: 0;
   padding: 1rem 1.125rem;
   border-radius: 14px;
-  background: #f1f4f9;
+  background: var(--fundo-sutil);
   font-size: 0.75rem;
 }
 
@@ -289,7 +326,7 @@
 }
 
 .acesso__resumo dt {
-  color: var(--acesso-suave);
+  color: var(--texto-secundario);
 }
 
 .acesso__resumo dd {
@@ -310,7 +347,7 @@
   padding: 3.5rem;
   background-size: cover;
   background-position: center;
-  color: #fff;
+  color: var(--acao-sobre-primaria);
 }
 
 .acesso__cor {
@@ -383,18 +420,13 @@
 /* ---------- cadastro mobile em etapas ---------- */
 
 .etapas {
-  --acesso-azul: #0a50ae;
-  --acesso-texto: #0f172a;
-  --acesso-suave: #64748b;
-  --acesso-borda: #e5e9f0;
   --acesso-raio: 10px;
 
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: #f6f8fb;
-  color: var(--acesso-texto);
-  color-scheme: light;
+  background: var(--fundo-pagina);
+  color: var(--texto-primario);
   font-family: Inter, system-ui, sans-serif;
   line-height: 1.35;
 }
@@ -404,8 +436,8 @@
   flex-direction: column;
   gap: 1rem;
   padding: 3.5rem 1.25rem 1.125rem;
-  border-bottom: 1px solid var(--acesso-borda);
-  background: #fff;
+  border-bottom: 1px solid var(--borda-padrao);
+  background: var(--fundo-superficie);
 }
 
 .etapas__topo {
@@ -422,14 +454,13 @@
   cursor: pointer;
 }
 
-.etapas__voltar img {
+.etapas__voltar .icone {
   width: 20px;
   height: 20px;
 }
 
 .etapas__logo {
-  height: 39px;
-  width: auto;
+  --logo-altura: 39px;
 }
 
 .etapas__topo .acessibilidade-area {
@@ -449,12 +480,12 @@
 }
 
 .etapas__legenda strong {
-  color: var(--acesso-azul);
+  color: var(--texto-marca);
   font-weight: 600;
 }
 
 .etapas__legenda span {
-  color: var(--acesso-suave);
+  color: var(--texto-secundario);
   font-weight: 500;
 }
 
@@ -467,15 +498,15 @@
   flex: 1;
   height: 4px;
   border-radius: 999px;
-  background: var(--acesso-borda);
+  background: var(--borda-padrao);
 }
 
 .etapas__segmento--concluida {
-  background: #15803d;
+  background: var(--status-sucesso-forte);
 }
 
 .etapas__segmento--atual {
-  background: var(--acesso-azul);
+  background: var(--acao-primaria);
 }
 
 .etapas__form {
@@ -500,7 +531,7 @@
 
 .etapas__titulos p {
   margin: 0;
-  color: var(--acesso-suave);
+  color: var(--texto-secundario);
   font-size: 0.8125rem;
 }
 
@@ -509,17 +540,17 @@
   flex-direction: column;
   gap: 0.375rem;
   padding: 1.125rem;
-  border: 1px solid var(--acesso-borda);
+  border: 1px solid var(--borda-padrao);
   border-radius: 12px;
-  background: #fff;
-  color: var(--acesso-texto);
+  background: var(--fundo-superficie);
+  color: var(--texto-primario);
   text-align: left;
   cursor: pointer;
 }
 
 .etapas__perfil--ativo {
-  border: 2px solid var(--acesso-azul);
-  background: #e8f0fc;
+  border: 2px solid var(--texto-marca);
+  background: var(--fundo-marca-suave);
 }
 
 .etapas__perfil-nome {
@@ -530,28 +561,28 @@
   font-size: 0.9375rem;
 }
 
-.etapas__perfil-nome img {
+.etapas__perfil-nome .icone {
   width: 18px;
   height: 18px;
 }
 
 .etapas__perfil--ativo .etapas__perfil-nome {
-  color: var(--acesso-azul);
+  color: var(--texto-marca);
 }
 
 .etapas__perfil-resumo {
-  color: var(--acesso-suave);
+  color: var(--texto-secundario);
   font-size: 0.75rem;
 }
 
 .etapas__nota {
   margin: 0;
-  color: var(--acesso-suave);
+  color: var(--texto-secundario);
   font-size: 0.75rem;
 }
 
 .etapas__dica {
-  color: var(--acesso-suave);
+  color: var(--texto-secundario);
   font-size: 0.6875rem;
   font-weight: 400;
 }
@@ -560,8 +591,8 @@
   position: sticky;
   bottom: 0;
   padding: 0.875rem 1.25rem 1.75rem;
-  border-top: 1px solid var(--acesso-borda);
-  background: #fff;
+  border-top: 1px solid var(--borda-padrao);
+  background: var(--fundo-superficie);
 }
 
 .etapas__acoes .acesso__botao {
@@ -595,7 +626,7 @@
   .acesso__formulario {
     flex: 1 1 auto;
     align-items: flex-start;
-    padding: 2rem 1.5rem 3rem;
+    padding: 2rem 1.5rem calc(8.5rem + env(safe-area-inset-bottom));
   }
 
   .acesso__conteudo {
@@ -604,7 +635,7 @@
   }
 
   .acesso__logo {
-    height: 57px;
+    --logo-altura: 57px;
   }
 
   .acesso__selo {
@@ -627,7 +658,7 @@
   }
 
   .acesso--marca-no-topo {
-    background: #f6f8fb;
+    background: var(--fundo-pagina);
   }
 
   .acesso--marca-no-topo .acesso__painel {
@@ -643,30 +674,21 @@
     gap: 0;
   }
 
-  .acesso__topo .acessibilidade-area {
-    margin-left: auto;
-  }
-
   .acesso--marca-no-topo .acesso__topo {
     display: grid;
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
     padding: 3.5rem 1.25rem 1.125rem;
-    border-bottom: 1px solid var(--acesso-borda);
-    background: #fff;
+    border-bottom: 1px solid var(--borda-padrao);
+    background: var(--fundo-superficie);
   }
 
   .acesso--marca-no-topo .acesso__marca {
     grid-column: 2;
   }
 
-  .acesso--marca-no-topo .acesso__topo .acessibilidade-area {
-    grid-column: 3;
-    justify-self: end;
-  }
-
   .acesso--marca-no-topo .acesso__logo {
-    height: 50px;
+    --logo-altura: 50px;
   }
 
   .acesso--marca-no-topo .acesso__selo {
@@ -678,7 +700,7 @@
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
-    padding: 1.25rem 1.25rem 2.5rem;
+    padding: 1.25rem 1.25rem calc(8.5rem + env(safe-area-inset-bottom));
   }
 
   .campo input,
@@ -686,4 +708,9 @@
   .campo select {
     font-size: 1rem;
   }
+}
+
+/* Acessibilidade e tema ficam juntos no cabeçalho, como no Figma. */
+.etapas__topo .acessibilidade-area + .botao-tema {
+  margin-left: calc(4px - 0.75rem);
 }

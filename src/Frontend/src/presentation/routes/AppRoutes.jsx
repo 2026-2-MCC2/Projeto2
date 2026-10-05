@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { NaoEncontrada } from '../pages/NaoEncontrada.jsx'
 import { Login } from '../pages/acesso/Login.jsx'
 import { Cadastro } from '../pages/acesso/Cadastro.jsx'
@@ -30,6 +30,7 @@ export function AppRoutes() {
         <Route path="/recuperar-senha" element={<RecuperarSenha />} />
         <Route path="/cadastro-pendente" element={<CadastroPendente />} />
 
+        <Route path="/organizador" element={<Navigate to="/organizador/eventos" replace />} />
         <Route path="/organizador/eventos" element={<Eventos />} />
         <Route path="/organizador/eventos/novo" element={<NovoEvento />} />
         <Route path="/organizador/eventos/:id" element={<EventoVisaoGeral />} />

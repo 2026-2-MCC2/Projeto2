@@ -22,21 +22,21 @@
   width: 52px;
   height: 52px;
   border-radius: 999px;
-  background: #0a50ae;
-  box-shadow: 0 4px 10px rgb(10 80 174 / 30%);
+  background: var(--acao-primaria);
+  box-shadow: var(--sombra-flutuante);
 }
 
 .acessibilidade--flutuante:active {
   transform: scale(0.96);
 }
 
-.acessibilidade--flutuante img {
+.acessibilidade--flutuante .icone {
   width: 30px;
   height: 30px;
   transition: transform 0.25s ease;
 }
 
-.acessibilidade--aberta img {
+.acessibilidade--aberta .icone {
   transform: rotate(-12deg) scale(1.08);
 }
 
@@ -45,11 +45,128 @@
   height: 28px;
   border-radius: 8px;
   background: none;
+  font-size: 1rem;
 }
 
-.acessibilidade--topo img {
+.acessibilidade--topo .icone {
   width: 18px;
   height: 18px;
+}
+
+/* ---------- tema ---------- */
+
+/* Mesma sombra nos dois botões flutuantes; no escuro ela vira neutra. */
+:root {
+  --sombra-flutuante: 0 4px 10px rgb(10 80 174 / 30%);
+}
+
+:root[data-tema='escuro'] {
+  --sombra-flutuante: 0 6px 16px rgb(0 0 0 / 18%);
+}
+
+.botao-tema {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    background 0.15s ease;
+}
+
+.botao-tema--topo {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+}
+
+.botao-tema--topo .icone {
+  width: 16px;
+  height: 16px;
+}
+
+/* 12px acima do botão flutuante de Acessibilidade (52px), centralizado nele. */
+.botao-tema--flutuante {
+  position: absolute;
+  right: 4px;
+  bottom: calc(100% + 12px);
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--borda-padrao);
+  border-radius: 999px;
+  background: var(--fundo-superficie);
+  box-shadow: var(--sombra-flutuante);
+}
+
+.botao-tema--flutuante .icone {
+  width: 20px;
+  height: 20px;
+}
+
+.botao-tema--flutuante:active {
+  transform: scale(0.96);
+}
+
+@media (hover: hover) {
+  .botao-tema--topo:hover,
+  .botao-tema--flutuante:hover {
+    background: var(--fundo-sutil);
+  }
+
+  .botao-tema:hover .icone {
+    --icone-cor: var(--texto-primario);
+  }
+}
+
+.seletor-tema {
+  display: flex;
+  gap: 3px;
+  height: 40px;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--fundo-sutil);
+}
+
+.seletor-tema__opcao {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: none;
+  color: var(--texto-secundario);
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.seletor-tema__opcao .icone {
+  width: 16px;
+  height: 16px;
+}
+
+.seletor-tema__opcao--ativa {
+  border-color: var(--borda-padrao);
+  background: var(--fundo-superficie);
+  color: var(--texto-primario);
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgb(15 23 41 / 6%);
+}
+
+.seletor-tema__opcao--ativa .icone {
+  --icone-cor: var(--texto-marca);
 }
 
 /* ---------- painel ---------- */
@@ -64,9 +181,9 @@
   gap: 1rem;
   width: 300px;
   padding: 1.125rem 1.25rem 1.25rem;
-  border: 1px solid #e5e9f0;
+  border: 1px solid var(--borda-padrao);
   border-radius: 16px;
-  background: #fff;
+  background: var(--fundo-superficie);
   box-shadow: 0 16px 40px rgb(15 23 42 / 18%);
   animation: painel-surge 0.2s ease;
   transform-origin: bottom right;
@@ -88,7 +205,7 @@
 
 .painel-acesso__topo h2 {
   margin: 0;
-  color: #0f172a;
+  color: var(--texto-primario);
   font-size: 0.9375rem;
   font-weight: 600;
 }
@@ -102,12 +219,12 @@
   padding: 0;
   border: 0;
   border-radius: 8px;
-  background: #f6f8fb;
+  background: var(--fundo-pagina);
   cursor: pointer;
   transition: background 0.15s ease;
 }
 
-.painel-acesso__topo img {
+.painel-acesso__topo .icone {
   width: 13px;
   height: 13px;
 }
@@ -119,7 +236,7 @@
 }
 
 .painel-acesso__rotulo {
-  color: #64748b;
+  color: var(--texto-secundario);
   font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -137,10 +254,10 @@
   align-items: center;
   justify-content: center;
   height: 40px;
-  border: 1px solid #e5e9f0;
+  border: 1px solid var(--borda-padrao);
   border-radius: 10px;
-  background: #fff;
-  color: #64748b;
+  background: var(--fundo-superficie);
+  color: var(--texto-secundario);
   font-family: inherit;
   font-weight: 600;
   cursor: pointer;
@@ -153,21 +270,21 @@
 
 @media (hover: hover) {
   .tamanhos__botao:not(.tamanhos__botao--ativo):hover {
-    border-color: #0a50ae;
-    color: #0a50ae;
+    border-color: var(--texto-marca);
+    color: var(--texto-marca);
   }
 
   .opcao-acesso:hover {
-    background: #f6f8fb;
+    background: var(--fundo-pagina);
   }
 
   .painel-acesso__topo button:hover {
-    background: #e8f0fc;
+    background: var(--fundo-marca-suave);
   }
 
   .painel-acesso__restaurar:hover {
-    background: #f6f8fb;
-    color: #0f172a;
+    background: var(--fundo-pagina);
+    color: var(--texto-primario);
   }
 
   .acessibilidade--flutuante:hover {
@@ -176,14 +293,14 @@
   }
 
   .acessibilidade--topo:hover {
-    background: #f1f4f9;
+    background: var(--fundo-sutil);
   }
 }
 
 .tamanhos__botao--ativo {
-  border-color: #0a50ae;
-  background: #0a50ae;
-  color: #fff;
+  border-color: var(--acao-primaria);
+  background: var(--acao-primaria);
+  color: var(--acao-sobre-primaria);
   transform: translateY(-1px);
 }
 
@@ -210,13 +327,13 @@
 }
 
 .opcao-acesso__texto strong {
-  color: #0f172a;
+  color: var(--texto-primario);
   font-size: 0.8125rem;
   font-weight: 500;
 }
 
 .opcao-acesso__texto small {
-  color: #64748b;
+  color: var(--texto-secundario);
   font-size: 0.6875rem;
 }
 
@@ -226,7 +343,7 @@
   width: 38px;
   height: 22px;
   border-radius: 999px;
-  background: #cbd5e1;
+  background: var(--borda-forte);
   transition: background 0.2s ease;
 }
 
@@ -238,13 +355,13 @@
   width: 16px;
   height: 16px;
   border-radius: 999px;
-  background: #fff;
+  background: var(--fundo-superficie);
   box-shadow: 0 1px 3px rgb(15 23 42 / 25%);
   transition: transform 0.2s ease;
 }
 
 .chave--ligada {
-  background: #0a50ae;
+  background: var(--acao-primaria);
 }
 
 .chave--ligada::after {
@@ -253,10 +370,10 @@
 
 .painel-acesso__restaurar {
   padding: 0.625rem;
-  border: 1px solid #e5e9f0;
+  border: 1px solid var(--borda-padrao);
   border-radius: 10px;
-  background: #fff;
-  color: #64748b;
+  background: var(--fundo-superficie);
+  color: var(--texto-secundario);
   font-family: inherit;
   font-size: 0.75rem;
   font-weight: 500;
@@ -269,10 +386,20 @@
 /* ---------- ajustes aplicados na página ---------- */
 
 :root.alto-contraste {
-  --org-texto: #000;
-  --org-suave: #384252;
-  --org-apagado: #4b5563;
-  --org-borda: #94a3b8;
+  --texto-primario: #000;
+  --texto-secundario: #384252;
+  --texto-terciario: #4b5563;
+  --icone-padrao: #384252;
+  --borda-padrao: #94a3b8;
+}
+
+/* No escuro o contraste sobe sem chegar ao branco puro, como no resto do tema. */
+:root.alto-contraste[data-tema='escuro'] {
+  --texto-primario: #f5f7fa;
+  --texto-secundario: #cfd6e1;
+  --texto-terciario: #a3aebf;
+  --icone-padrao: #cfd6e1;
+  --borda-padrao: #5b687d;
 }
 
 .alto-contraste .cartao,
@@ -298,7 +425,7 @@
 @media (max-width: 900px) {
   .acessibilidade-area--flutuante {
     right: 20px;
-    bottom: calc(7rem + env(safe-area-inset-bottom));
+    bottom: calc(1.25rem + env(safe-area-inset-bottom));
   }
 
   .painel-acesso {
