@@ -1,5 +1,4 @@
-// Os SVGs são colocados direto na página (e não via <img>) para as cores seguirem os tokens do tema.
-// O mapa liga a URL importada de cada arquivo ao conteúdo dele, então as telas continuam importando a URL.
+// SVG direto na página (e não em <img>) para as cores seguirem o tema
 const URLS = import.meta.glob('../../assets/**/*.svg', {
   query: '?url',
   import: 'default',

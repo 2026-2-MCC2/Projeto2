@@ -231,7 +231,7 @@
 
 .organizador__cabecalho .organizador__sobre-titulo {
   margin: 0 0 0.375rem;
-  color: var(--org-suave);
+  color: var(--texto-secundario);
   font-size: 0.75rem;
 }
 
@@ -462,6 +462,40 @@
   font-weight: 600;
 }
 
+.categorias {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.categoria {
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+  padding: 0.5rem 0.875rem;
+  border: 1px solid var(--borda-padrao);
+  border-radius: 999px;
+  background: var(--fundo-superficie);
+  color: var(--texto-secundario);
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.categoria--ativa {
+  border: 0;
+  background: var(--fundo-marca-suave);
+  color: var(--texto-marca);
+  font-weight: 600;
+}
+
+.categorias__aviso {
+  margin: 0;
+  color: var(--texto-secundario);
+  font-size: 0.75rem;
+}
+
 .painel {
   display: flex;
   flex-direction: column;
@@ -676,6 +710,11 @@
 }
 
 .etiqueta--aprovado {
+  background: var(--status-sucesso-fundo);
+  color: var(--status-sucesso-texto);
+}
+
+.etiqueta--sucesso {
   background: var(--status-sucesso-fundo);
   color: var(--status-sucesso-texto);
 }
@@ -1015,7 +1054,7 @@
 
 .topo__cabecalho .topo__sobre-titulo {
   margin: 0 0 0.25rem;
-  color: var(--org-suave);
+  color: var(--texto-secundario);
   font-size: 0.6875rem;
 }
 
@@ -2542,6 +2581,19 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   }
 
+  .configuracoes__abas--quatro .configuracoes__aba {
+    font-size: 0.6875rem;
+  }
+
+  .configuracoes__abas ~ .painel .painel__acoes {
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+
+  .configuracoes__abas ~ .painel .painel__acoes .botao {
+    width: auto;
+  }
+
   .painel {
     gap: 0.875rem;
     padding: 1.125rem;
@@ -2556,6 +2608,12 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 0.875rem;
+  }
+
+  .painel__perfil--so-etiquetas {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.625rem;
   }
 
   .preveia-ticket {

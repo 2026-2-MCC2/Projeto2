@@ -3,7 +3,6 @@
   font-size: calc(17px * var(--escala-texto, 1));
   color-scheme: light;
 
-  /* Tokens da coleção "Tema TrocaTicket" do Figma (modo Claro). */
   --fundo-pagina: #f6f8fb;
   --fundo-superficie: #fff;
   --fundo-sutil: #f1f4f9;
@@ -28,7 +27,6 @@
   --status-perigo-texto: #b91c1c;
 }
 
-/* Modo Escuro. O atributo é aplicado no index.html, antes da primeira pintura. */
 :root[data-tema='escuro'] {
   color-scheme: dark;
 
@@ -56,7 +54,6 @@
   --status-perigo-texto: #f59a9a;
 }
 
-/* SVG inserido pelo componente Icone; o tamanho vem do arquivo e pode ser trocado pelo CSS de cada tela. */
 .icone {
   display: inline-flex;
   flex-shrink: 0;
@@ -69,7 +66,6 @@
   height: 100%;
 }
 
-/* Classe aplicada só durante a troca, para não interferir nas outras transições. */
 @media (prefers-reduced-motion: no-preference) {
   .trocando-tema:not(.sem-movimento),
   .trocando-tema:not(.sem-movimento) * {
@@ -144,7 +140,6 @@ select {
 
 /* ---------- logotipo ---------- */
 
-/* Medidas em em sobre a altura do logo, nas proporções do componente "Logotipo · Negativo" do Figma. */
 .logotipo {
   display: inline-flex;
   align-items: center;

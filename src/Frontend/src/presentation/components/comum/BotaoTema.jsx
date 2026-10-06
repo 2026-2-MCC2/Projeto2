@@ -4,8 +4,7 @@ import iconeSol from '../../assets/comum/icone-sol.svg'
 import iconeLua from '../../assets/comum/icone-lua.svg'
 import '../../styles/acessibilidade.css'
 
-// Mostra o ícone do tema de destino: lua no claro, sol no escuro.
-// `topo` fica no cabeçalho, logo depois da Acessibilidade; `flutuante` fica acima do botão flutuante de Acessibilidade.
+// mostra o ícone do tema de destino: lua no claro, sol no escuro
 export function BotaoTema({ posicao = 'topo' }) {
   const { tema, mudarTema } = useAcessibilidade()
   const escuro = tema === 'escuro'

@@ -16,7 +16,6 @@ export function Modal({
   dados,
   acao,
   largo = false,
-  semCancelarNoMobile = false,
   aoFechar,
   children,
 }) {
@@ -83,11 +82,9 @@ export function Modal({
         {children}
 
         <div className="modal__acoes">
-          {!(isMobile && semCancelarNoMobile) && (
-            <Botao type="button" secundario onClick={aoFechar}>
-              {acao?.cancelar ?? 'Voltar'}
-            </Botao>
-          )}
+          <Botao type="button" secundario onClick={aoFechar}>
+            {acao?.cancelar ?? 'Voltar'}
+          </Botao>
           <Botao
             type="button"
             perigo={corDoIcone === 'vermelho'}

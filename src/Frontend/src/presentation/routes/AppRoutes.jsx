@@ -12,14 +12,16 @@ import { NovoItemCusto } from '../pages/organizador/NovoItemCusto.jsx'
 import { EventoPropostas } from '../pages/organizador/EventoPropostas.jsx'
 import { EventoTicket } from '../pages/organizador/EventoTicket.jsx'
 import { PropostaRecebida } from '../pages/organizador/PropostaRecebida.jsx'
-import { Configuracoes } from '../pages/organizador/Configuracoes.jsx'
+import { Configuracoes } from '../pages/Configuracoes.jsx'
 import { EventosDisponiveis } from '../pages/fornecedor/EventosDisponiveis.jsx'
 import { EnviarProposta } from '../pages/fornecedor/EnviarProposta.jsx'
 import { EnviarPropostaEtapa2 } from '../pages/fornecedor/EnviarPropostaEtapa2.jsx'
 import { EnviarPropostaEtapa3 } from '../pages/fornecedor/EnviarPropostaEtapa3.jsx'
 import { MinhasPropostas } from '../pages/fornecedor/MinhasPropostas.jsx'
 import { Aprovacoes } from '../pages/admin/Aprovacoes.jsx'
+import { Historico } from '../pages/admin/Historico.jsx'
 import { Usuarios } from '../pages/admin/Usuarios.jsx'
+import { VisaoGeral } from '../pages/admin/VisaoGeral.jsx'
 
 export function AppRoutes() {
   return (
@@ -41,8 +43,10 @@ export function AppRoutes() {
         <Route path="/organizador/eventos/:id/ticket" element={<EventoTicket />} />
         <Route path="/organizador/configuracoes" element={<Configuracoes />} />
 
+        <Route path="/fornecedor" element={<Navigate to="/fornecedor/eventos" replace />} />
         <Route path="/fornecedor/eventos" element={<EventosDisponiveis />} />
         <Route path="/fornecedor/propostas" element={<MinhasPropostas />} />
+        <Route path="/fornecedor/configuracoes" element={<Configuracoes perfil="fornecedor" />} />
         <Route path="/fornecedor/eventos/:id/propostas/etapa-1" element={<EnviarProposta />} />
         <Route
           path="/fornecedor/eventos/:id/propostas/etapa-2"
@@ -53,8 +57,12 @@ export function AppRoutes() {
           element={<EnviarPropostaEtapa3 />}
         />
 
+        <Route path="/admin" element={<Navigate to="/admin/aprovacoes" replace />} />
         <Route path="/admin/aprovacoes" element={<Aprovacoes />} />
         <Route path="/admin/usuarios" element={<Usuarios />} />
+        <Route path="/admin/historico" element={<Historico />} />
+        <Route path="/admin/visao-geral" element={<VisaoGeral />} />
+        <Route path="/admin/configuracoes" element={<Configuracoes perfil="admin" />} />
 
         <Route path="*" element={<NaoEncontrada />} />
       </Routes>

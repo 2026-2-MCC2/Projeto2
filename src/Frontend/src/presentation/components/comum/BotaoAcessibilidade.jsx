@@ -21,8 +21,7 @@ const OPCOES = [
   { chave: 'movimento', nome: 'Reduzir animações', apoio: 'Desliga as transições das telas.' },
 ]
 
-// Usado pelo organizador, pelo fornecedor e pelo administrador.
-// O flutuante leva junto o botão de tema, já que as telas sem cabeçalho não têm onde colocá-lo.
+// o flutuante leva junto o botão de tema, porque essas telas não têm cabeçalho
 export function BotaoAcessibilidade({ posicao = 'flutuante' }) {
   const [aberto, setAberto] = useState(false)
   const { ajustes, alternar, mudarFonte, restaurar } = useAcessibilidade()

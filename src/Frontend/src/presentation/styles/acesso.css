@@ -710,7 +710,6 @@
   }
 }
 
-/* Acessibilidade e tema ficam juntos no cabeçalho, como no Figma. */
 .etapas__topo .acessibilidade-area + .botao-tema {
   margin-left: calc(4px - 0.75rem);
 }

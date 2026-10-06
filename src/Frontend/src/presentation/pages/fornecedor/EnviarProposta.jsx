@@ -8,6 +8,7 @@ import { EVENTOS_DISPONIVEIS } from '../../data/eventosDisponiveis.js'
 import { ETAPAS_PROPOSTA, NOME_ITEM_PROPOSTA } from '../../data/propostaFornecedor.js'
 import { ResumoItemCotacao, ResumoProposta } from '../../components/fornecedor/ResumoProposta.jsx'
 import '../../styles/fornecedor.css'
+import { Icone } from '../../components/comum/Icone.jsx'
 import iconeConcluido from '../../assets/organizador/icone-concluido-verde.svg'
 
 export function EnviarProposta() {
@@ -101,7 +102,7 @@ export function ProgressoPropostaDesktop({ etapaAtual = 1 }) {
                     : ''
               }`}
             >
-              {indice + 1 < etapaAtual ? <img src={iconeConcluido} alt="" /> : indice + 1}
+              {indice + 1 < etapaAtual ? <Icone src={iconeConcluido} /> : indice + 1}
             </span>
             <span className="enviar-proposta__rotulo-etapa">
               <small>Etapa {indice + 1}</small>
