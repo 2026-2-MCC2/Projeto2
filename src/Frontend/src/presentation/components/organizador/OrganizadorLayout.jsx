@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { NavLink, useNavigate } from 'react-router-dom'
+import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
 import { MenuLateral } from './MenuLateral.jsx'
 import { BotaoAcessibilidade } from '../comum/BotaoAcessibilidade.jsx'
@@ -37,8 +37,7 @@ const ABAS = {
   ],
 }
 
-// No mobile o menu lateral vira barra superior e abas embaixo; com `aoVoltar` a tela entra em modo de fluxo.
-// `acoes` fica ao lado do título só no desktop; no mobile a página decide onde colocá-las.
+// no mobile o menu vira barra no topo e abas embaixo; com aoVoltar a tela fica em modo de fluxo
 export function OrganizadorLayout({
   titulo,
   sobreTitulo,
@@ -55,8 +54,8 @@ export function OrganizadorLayout({
 }) {
   const isMobile = useIsMobile()
   const navigate = useNavigate()
+  const { pathname } = useLocation()
   const organizador = perfil === 'organizador'
-  const naListaDeEventos = organizador && pathname === '/organizador/eventos'
   const minhasPropostasFornecedor = perfil === 'fornecedor' && pathname === '/fornecedor/propostas'
   const abas = ABAS[perfil] ?? ABAS.organizador
   const classeDoPerfil = `${organizador ? '' : ` organizador--${perfil}`}${minhasPropostasFornecedor ? ' organizador--fornecedor-propostas' : ''}`

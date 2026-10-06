@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { OrganizadorLayout } from '../../components/organizador/OrganizadorLayout.jsx'
 import { EVENTOS_ADMIN, INDICADORES_ADMIN } from '../../data/visaoGeral.js'
+import { Icone } from '../../components/comum/Icone.jsx'
 import iconeBuscar from '../../assets/organizador/icone-buscar.svg'
 import '../../styles/admin.css'
 
@@ -33,7 +34,9 @@ function EtiquetaSituacao({ situacao }) {
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .replaceAll(' ', '-')
-  return <span className={`visao-geral__etiqueta visao-geral__etiqueta--${variacao}`}>{situacao}</span>
+  return (
+    <span className={`visao-geral__etiqueta visao-geral__etiqueta--${variacao}`}>{situacao}</span>
+  )
 }
 
 function TabelaEventos({ eventos }) {
@@ -89,7 +92,7 @@ export function VisaoGeral() {
       <Indicadores />
 
       <label className="visao-geral__busca">
-        <img src={iconeBuscar} alt="" />
+        <Icone src={iconeBuscar} />
         <input
           type="search"
           placeholder="Buscar evento ou organizador"

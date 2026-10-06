@@ -55,7 +55,6 @@
 
 /* ---------- tema ---------- */
 
-/* Mesma sombra nos dois botões flutuantes; no escuro ela vira neutra. */
 :root {
   --sombra-flutuante: 0 4px 10px rgb(10 80 174 / 30%);
 }
@@ -89,7 +88,6 @@
   height: 16px;
 }
 
-/* 12px acima do botão flutuante de Acessibilidade (52px), centralizado nele. */
 .botao-tema--flutuante {
   position: absolute;
   right: 4px;
@@ -393,7 +391,6 @@
   --borda-padrao: #94a3b8;
 }
 
-/* No escuro o contraste sobe sem chegar ao branco puro, como no resto do tema. */
 :root.alto-contraste[data-tema='escuro'] {
   --texto-primario: #f5f7fa;
   --texto-secundario: #cfd6e1;

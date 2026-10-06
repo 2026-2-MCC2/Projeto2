@@ -8,9 +8,7 @@ const FILTROS = ['Todos', 'Aprovado', 'Rejeitado', 'Bloqueado']
 
 function EtiquetaAcao({ acao }) {
   return (
-    <span className={`historico__etiqueta historico__etiqueta--${acao.toLowerCase()}`}>
-      {acao}
-    </span>
+    <span className={`historico__etiqueta historico__etiqueta--${acao.toLowerCase()}`}>{acao}</span>
   )
 }
 

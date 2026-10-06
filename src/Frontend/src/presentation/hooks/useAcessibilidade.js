@@ -23,7 +23,7 @@ function ler() {
 
 let ajustes = ler()
 
-export function temaAplicado(tema = ajustes.tema) {
+function temaAplicado(tema = ajustes.tema) {
   if (tema === 'sistema') return sistemaEscuro.matches ? 'escuro' : 'claro'
   return tema
 }

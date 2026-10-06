@@ -78,7 +78,7 @@ export function MenuLateral({ aoSair, perfil = 'organizador' }) {
 
       {itens ? (
         itens.map((item) => (
-          <ItemMenu key={item.rota} to={item.rota} end={item.exata}>
+          <ItemMenu key={item.rota} to={item.rota}>
             {item.nome}
           </ItemMenu>
         ))
