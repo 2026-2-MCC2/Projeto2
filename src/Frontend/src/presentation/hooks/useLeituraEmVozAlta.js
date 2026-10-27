@@ -36,23 +36,45 @@ function textoParaLer() {
   return document.getElementById('conteudo')?.innerText ?? document.body.innerText
 }
 
+// ao parar ou recomeçar, os trechos da leitura antiga são ignorados
+let leituraAtual = 0
+
 function ler() {
-  sintese.cancel()
   const trechos = dividirEmTrechos(textoParaLer())
   if (!trechos.length) return
 
+  const esta = ++leituraAtual
   const voz = vozEmPortugues()
-  trechos.forEach((trecho, indice) => {
-    const fala = new SpeechSynthesisUtterance(trecho)
+  sintese.cancel()
+  mudarEstado(true)
+
+  // Um trecho por vez
+  function falar(indice) {
+    if (esta !== leituraAtual) return
+    if (indice === trechos.length) {
+      mudarEstado(false)
+      return
+    }
+
+    const fala = new SpeechSynthesisUtterance(trechos[indice])
     fala.lang = 'pt-BR'
     if (voz) fala.voice = voz
-    if (indice === trechos.length - 1) fala.onend = () => mudarEstado(false)
+    fala.onend = () => falar(indice + 1)
+    fala.onerror = (evento) => {
+      if (evento.error === 'canceled' || evento.error === 'interrupted') return
+      console.error('Leitura em voz alta falhou:', evento.error)
+      if (esta === leituraAtual) mudarEstado(false)
+    }
+    sintese.resume() // o Chrome às vezes deixa a síntese travada em pausa
     sintese.speak(fala)
-  })
-  mudarEstado(true)
+  }
+
+  // falar logo depois do cancel() às vezes faz o Chrome descartar a fala sem aviso
+  setTimeout(() => falar(0), 100)
 }
 
 function parar() {
+  leituraAtual++
   sintese.cancel()
   mudarEstado(false)
 }
