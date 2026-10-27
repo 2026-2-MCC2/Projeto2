@@ -530,7 +530,7 @@
   width: 100%;
   min-height: 47px;
   padding: 14px;
-  border: 1px solid var(--borda-padrao);
+  border: 1px solid var(--borda-campo);
   border-radius: 10px;
   background: var(--fundo-superficie);
   color: var(--texto-primario);
@@ -659,7 +659,7 @@
   width: 100%;
   min-height: 45px;
   padding: 13px 14px;
-  border: 1px solid var(--borda-padrao);
+  border: 1px solid var(--borda-campo);
   border-radius: 10px;
   background-color: var(--fundo-superficie);
   color: var(--texto-primario);
@@ -861,7 +861,7 @@
   width: 100%;
   min-height: 56px;
   padding: 13px 14px;
-  border: 1px solid var(--borda-padrao);
+  border: 1px solid var(--borda-campo);
   border-radius: 10px;
   background: var(--fundo-superficie);
   color: var(--texto-primario);

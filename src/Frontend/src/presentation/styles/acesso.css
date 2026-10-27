@@ -91,7 +91,7 @@
 
 .campo input {
   padding: 0.8125rem 0.875rem;
-  border: 1px solid var(--borda-padrao);
+  border: 1px solid var(--borda-campo);
   border-radius: var(--acesso-raio);
   font-size: 0.875rem;
   font-family: inherit;

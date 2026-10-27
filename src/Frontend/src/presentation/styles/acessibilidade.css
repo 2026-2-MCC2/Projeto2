@@ -389,6 +389,7 @@
   --texto-terciario: #4b5563;
   --icone-padrao: #384252;
   --borda-padrao: #94a3b8;
+  --borda-campo: #64748b;
 }
 
 :root.alto-contraste[data-tema='escuro'] {
@@ -397,6 +398,7 @@
   --texto-terciario: #a3aebf;
   --icone-padrao: #cfd6e1;
   --borda-padrao: #5b687d;
+  --borda-campo: #8a96ab;
 }
 
 .alto-contraste .cartao,

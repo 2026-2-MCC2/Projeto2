@@ -9,9 +9,10 @@
   --fundo-marca-suave: #e8f0fc;
   --borda-padrao: #e5e9f0;
   --borda-forte: #cbd5e1;
+  --borda-campo: #7c8799; /* contraste de 3:1 (WCAG 1.4.11) */
   --texto-primario: #0f172a;
-  --texto-secundario: #64748b;
-  --texto-terciario: #94a3b8;
+  --texto-secundario: #4b5563;
+  --texto-terciario: #5f6b7d; /* contraste de 4,5:1 (WCAG 1.4.3) */
   --texto-marca: #0a50ae;
   --icone-padrao: #64748b;
   --acao-primaria: #0a50ae;
@@ -36,9 +37,10 @@
   --fundo-marca-suave: #1c2b45;
   --borda-padrao: #263042;
   --borda-forte: #3a4659;
+  --borda-campo: #65738a;
   --texto-primario: #e7ebf2;
   --texto-secundario: #a3aebf;
-  --texto-terciario: #758199;
+  --texto-terciario: #8a96ab;
   --texto-marca: #8db4f0;
   --icone-padrao: #a3aebf;
   --acao-primaria: #2563c9;
