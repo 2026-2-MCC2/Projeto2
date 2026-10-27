@@ -52,6 +52,7 @@ export function Cadastro() {
           <button
             key={opcao.id}
             type="button"
+            aria-pressed={perfil === opcao.id}
             className={`acesso__perfil${perfil === opcao.id ? ' acesso__perfil--ativo' : ''}`}
             onClick={() => setPerfil(opcao.id)}
           >

@@ -114,6 +114,7 @@ export function CadastroMobile() {
                 <button
                   key={opcao.id}
                   type="button"
+                  aria-pressed={dados.perfil === opcao.id}
                   className={`etapas__perfil${dados.perfil === opcao.id ? ' etapas__perfil--ativo' : ''}`}
                   onClick={() => setDados({ ...dados, perfil: opcao.id })}
                 >

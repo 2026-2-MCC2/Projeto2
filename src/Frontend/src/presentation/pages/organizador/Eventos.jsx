@@ -62,6 +62,7 @@ export function Eventos() {
             <button
               key={opcao.id}
               type="button"
+              aria-pressed={filtro === opcao.id}
               className={`filtro${filtro === opcao.id ? ' filtro--ativo' : ''}`}
               onClick={() => setFiltro(opcao.id)}
             >

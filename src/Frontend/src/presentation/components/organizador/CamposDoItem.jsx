@@ -45,6 +45,7 @@ export function CamposDoItem({ isMobile = false, linhas = 2 }) {
             <button
               key={opcao.valor}
               type="button"
+              aria-pressed={origem === opcao.valor}
               className={`origem__opcao${origem === opcao.valor ? ' origem__opcao--ativa' : ''}`}
               onClick={() => setOrigem(opcao.valor)}
             >
