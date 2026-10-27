@@ -123,7 +123,13 @@ export function EventoPropostas() {
         )}
       </div>
 
-      <div id="painel-propostas" role="tabpanel" aria-labelledby={`aba-${itemAberto}`} tabIndex={0}>
+      <div
+        id="painel-propostas"
+        className="painel-propostas"
+        role="tabpanel"
+        aria-labelledby={`aba-${itemAberto}`}
+        tabIndex={0}
+      >
         {visiveis.map((item) => (
           <section key={item.id} className="grupo-propostas">
             <p className="proposta-recebida__origem">

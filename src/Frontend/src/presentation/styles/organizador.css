@@ -2006,6 +2006,12 @@
   gap: 0.75rem;
 }
 
+.painel-propostas {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
 .visao {
   display: flex;
   flex-shrink: 0;
