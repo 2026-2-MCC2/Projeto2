@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { Icone } from '../components/comum/Icone.jsx'
 import { Logotipo } from '../components/comum/Logotipo.jsx'
 import { BotaoAcessibilidade } from '../components/comum/BotaoAcessibilidade.jsx'
+import { TituloDaPagina } from '../components/comum/TituloDaPagina.jsx'
 import ingressoEsquerda from '../assets/nao-encontrada/ingresso-esquerda.svg'
 import ingressoDireita from '../assets/nao-encontrada/ingresso-direita.svg'
 import '../styles/NaoEncontrada.css'
@@ -9,6 +10,7 @@ import '../styles/NaoEncontrada.css'
 export function NaoEncontrada() {
   return (
     <main className="nao-encontrada">
+      <TituloDaPagina titulo="Página não encontrada" />
       <div className="nao-encontrada__conteudo">
         <Link to="/" className="nao-encontrada__marca">
           <Logotipo className="nao-encontrada__logo" />

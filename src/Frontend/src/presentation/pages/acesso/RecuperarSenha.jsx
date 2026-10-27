@@ -14,7 +14,7 @@ export function RecuperarSenha() {
   }
 
   return (
-    <AcessoLayout>
+    <AcessoLayout tituloDaPagina="Recuperar senha">
       {enviado ? (
         <>
           <header className="acesso__cabecalho">

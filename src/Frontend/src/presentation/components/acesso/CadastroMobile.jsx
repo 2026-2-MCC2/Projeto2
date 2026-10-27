@@ -4,6 +4,7 @@ import { BotaoTema } from '../comum/BotaoTema.jsx'
 import { Logotipo } from '../comum/Logotipo.jsx'
 import { useNavigate } from 'react-router-dom'
 import { Icone } from '../comum/Icone.jsx'
+import { TituloDaPagina } from '../comum/TituloDaPagina.jsx'
 import { useValidacao } from '../../hooks/useValidacao.js'
 import { validarConfirmacaoSenha } from '../../../domain/validacao.js'
 import setaVoltar from '../../assets/acesso/seta-voltar.svg'
@@ -70,6 +71,7 @@ export function CadastroMobile() {
 
   return (
     <div className="etapas">
+      <TituloDaPagina titulo="Criar cadastro" />
       <header className="etapas__barra">
         <div className="etapas__topo">
           <button type="button" className="etapas__voltar" onClick={voltar} aria-label="Voltar">

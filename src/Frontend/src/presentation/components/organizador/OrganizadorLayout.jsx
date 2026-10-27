@@ -6,6 +6,7 @@ import { BotaoAcessibilidade } from '../comum/BotaoAcessibilidade.jsx'
 import { BotaoTema } from '../comum/BotaoTema.jsx'
 import { ModalSair } from '../comum/ModalSair.jsx'
 import { Icone } from '../comum/Icone.jsx'
+import { TituloDaPagina } from '../comum/TituloDaPagina.jsx'
 import simbolo from '../../assets/organizador/simbolo.png'
 import iconeSair from '../../assets/organizador/icone-sair.svg'
 import iconeVoltar from '../../assets/organizador/icone-voltar.svg'
@@ -62,10 +63,12 @@ export function OrganizadorLayout({
   const [confirmandoSaida, setConfirmandoSaida] = useState(false)
 
   const modalDeSaida = confirmandoSaida && <ModalSair aoFechar={() => setConfirmandoSaida(false)} />
+  const tituloDaPagina = titulo && <TituloDaPagina titulo={titulo} />
 
   if (isMobile) {
     return (
       <div className={`organizador${classeDoPerfil}${aoVoltar ? ' organizador--fluxo' : ''}`}>
+        {tituloDaPagina}
         <header className="topo">
           {aoVoltar ? (
             <div className="topo__fluxo">
@@ -156,6 +159,7 @@ export function OrganizadorLayout({
 
   return (
     <div className={`organizador${classeDoPerfil}`}>
+      {tituloDaPagina}
       <MenuLateral perfil={perfil} aoSair={() => setConfirmandoSaida(true)} />
 
       <main className="organizador__conteudo">

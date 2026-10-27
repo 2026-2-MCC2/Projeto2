@@ -30,6 +30,7 @@ export function Cadastro() {
 
   return (
     <AcessoLayout
+      tituloDaPagina="Criar cadastro"
       foto={fotoMusica}
       tom="azul"
       titulo={

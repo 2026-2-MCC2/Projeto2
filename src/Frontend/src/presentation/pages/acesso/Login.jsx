@@ -21,7 +21,7 @@ export function Login() {
   }
 
   return (
-    <AcessoLayout>
+    <AcessoLayout tituloDaPagina="Entrar">
       <header className="acesso__cabecalho">
         <h1>Entrar na plataforma</h1>
         <p>Planejamento, cotação e precificação de eventos.</p>

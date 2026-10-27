@@ -3,6 +3,7 @@ import { OrganizadorLayout } from './OrganizadorLayout.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
 import { buscarEvento, STATUS } from '../../data/eventos.js'
 import { Icone } from '../comum/Icone.jsx'
+import { TituloDaPagina } from '../comum/TituloDaPagina.jsx'
 import iconeVoltar from '../../assets/organizador/icone-voltar.svg'
 
 const ABAS = [
@@ -58,6 +59,7 @@ export function EventoLayout({ acoes, comResumo = false, voltar, children }) {
 
   return (
     <OrganizadorLayout>
+      <TituloDaPagina titulo={detalhe?.nomeCompleto ?? evento.nome} />
       <div className="evento-topo">
         <div
           className={`evento-topo__titulos${comResumo ? '' : ' evento-topo__titulos--espacado'}`}
