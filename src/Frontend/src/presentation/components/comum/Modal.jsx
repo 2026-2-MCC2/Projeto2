@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
 import { useFolhaArrastavel } from '../../hooks/useFolhaArrastavel.js'
 import { useValidacao } from '../../hooks/useValidacao.js'
+import { useFocoPreso } from '../../hooks/useFocoPreso.js'
 import { Botao } from '../organizador/Formulario.jsx'
 import { Icone } from './Icone.jsx'
 import iconeFechar from '../../assets/comum/icone-fechar.svg'
@@ -25,12 +26,12 @@ export function Modal({
   const isMobile = useIsMobile()
   const folha = useFolhaArrastavel(aoFechar)
   const validacao = useValidacao()
+  const caixa = useFocoPreso()
   const confirmar = acao?.aoConfirmar ?? aoFechar
 
   const Caixa = children ? 'form' : 'div'
   const propsDoFormulario = children
     ? {
-        ...validacao,
         onSubmit: (evento) => {
           evento.preventDefault()
           confirmar()
@@ -48,13 +49,14 @@ export function Modal({
   }, [aoFechar])
 
   return (
-    <div className="fundo-modal" onClick={aoFechar}>
+    <div className="fundo-modal" ref={caixa} onClick={aoFechar}>
       <Caixa
         className={`modal${largo ? ' modal--largo' : ''}${folha.expandida ? ' modal--expandida' : ''}${folha.arrasto ? ' modal--arrastando' : ''}`}
         role="dialog"
         aria-modal="true"
         aria-label={titulo}
         style={folha.estiloDoArrasto}
+        ref={children ? validacao.ref : undefined}
         onClick={(evento) => evento.stopPropagation()}
         {...propsDoFormulario}
       >
