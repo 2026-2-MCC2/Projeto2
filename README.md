@@ -73,6 +73,8 @@ Projeto2
 
 ## 🗄 Banco de dados
 
+Estrutura das tabelas, campos e tipos de dados em [Documentos/Entrega 2/Projeto em Banco de Dados](Documentos/Entrega%202/Projeto%20em%20Banco%20de%20Dados/README.md).
+
 Diagrama entidade-relacionamento e modelo lógico em [Documentos/Entrega 1/Projeto em Banco de Dados](Documentos/Entrega%201/Projeto%20em%20Banco%20de%20Dados).
 
 ## 🎨 Protótipo
