@@ -285,6 +285,12 @@
   outline: none;
 }
 
+/* o input não tem borda: o foco aparece na caixa da busca */
+.barra__busca:focus-within {
+  outline: 2px solid var(--texto-marca);
+  outline-offset: 2px;
+}
+
 .barra__filtros {
   display: flex;
   gap: 0.5rem;

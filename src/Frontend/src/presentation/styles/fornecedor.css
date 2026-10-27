@@ -43,6 +43,12 @@
   outline: 0;
 }
 
+/* o input não tem borda: o foco aparece na caixa da busca */
+.fornecedor__busca:focus-within {
+  outline: 2px solid var(--texto-marca);
+  outline-offset: 2px;
+}
+
 .fornecedor__filtros {
   display: flex;
   flex: 0 0 auto;
