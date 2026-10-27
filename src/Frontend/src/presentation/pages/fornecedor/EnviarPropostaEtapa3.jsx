@@ -1,8 +1,7 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import { OrganizadorLayout } from '../../components/organizador/OrganizadorLayout.jsx'
 import { Botao } from '../../components/organizador/Formulario.jsx'
-import { ProgressoEtapas } from '../../components/comum/ProgressoEtapas.jsx'
-import { ProgressoPropostaDesktop } from './EnviarProposta.jsx'
+import { PassosDasEtapas, ProgressoEtapas } from '../../components/comum/ProgressoEtapas.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
 import { useValidacao } from '../../hooks/useValidacao.js'
 import { EVENTOS_DISPONIVEIS } from '../../data/eventosDisponiveis.js'
@@ -60,7 +59,7 @@ export function EnviarPropostaEtapa3() {
       }
       rodape={acoes}
     >
-      {!isMobile && <ProgressoPropostaDesktop etapaAtual={3} />}
+      {!isMobile && <PassosDasEtapas etapas={ETAPAS_PROPOSTA} etapaAtual={3} tom="sucesso" />}
       <div className="proposta-condicoes">
         <form
           id="form-proposta-condicoes"

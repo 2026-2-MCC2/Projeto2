@@ -2,8 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { OrganizadorLayout } from '../../components/organizador/OrganizadorLayout.jsx'
 import { Botao } from '../../components/organizador/Formulario.jsx'
-import { ProgressoEtapas } from '../../components/comum/ProgressoEtapas.jsx'
-import { ProgressoPropostaDesktop } from './EnviarProposta.jsx'
+import { PassosDasEtapas, ProgressoEtapas } from '../../components/comum/ProgressoEtapas.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
 import { useValidacao } from '../../hooks/useValidacao.js'
 import { EVENTOS_DISPONIVEIS } from '../../data/eventosDisponiveis.js'
@@ -109,7 +108,7 @@ export function EnviarPropostaEtapa2() {
       }
       rodape={acoes}
     >
-      {!isMobile && <ProgressoPropostaDesktop etapaAtual={2} />}
+      {!isMobile && <PassosDasEtapas etapas={ETAPAS_PROPOSTA} etapaAtual={2} tom="sucesso" />}
       <div className="proposta-detalhes">
         <form
           id="form-proposta-detalhes"

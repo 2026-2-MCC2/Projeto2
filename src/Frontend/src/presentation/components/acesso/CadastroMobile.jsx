@@ -4,6 +4,7 @@ import { BotaoTema } from '../comum/BotaoTema.jsx'
 import { Logotipo } from '../comum/Logotipo.jsx'
 import { useNavigate } from 'react-router-dom'
 import { Icone } from '../comum/Icone.jsx'
+import { ProgressoEtapas } from '../comum/ProgressoEtapas.jsx'
 import { TituloDaPagina } from '../comum/TituloDaPagina.jsx'
 import { useValidacao } from '../../hooks/useValidacao.js'
 import { validarConfirmacaoSenha } from '../../../domain/validacao.js'
@@ -82,23 +83,7 @@ export function CadastroMobile() {
           <BotaoTema />
         </div>
 
-        <div className="etapas__progresso">
-          <div className="etapas__legenda">
-            <strong>
-              Etapa {etapa} de {ETAPAS.length}
-            </strong>
-            <span>{ETAPAS[etapa - 1]}</span>
-          </div>
-
-          <div className="etapas__trilho">
-            {ETAPAS.map((rotulo, indice) => (
-              <span
-                key={rotulo}
-                className={`etapas__segmento etapas__segmento--${situacaoDaEtapa(indice + 1, etapa)}`}
-              />
-            ))}
-          </div>
-        </div>
+        <ProgressoEtapas etapas={ETAPAS} etapaAtual={etapa} />
       </header>
 
       <form className="etapas__form" onSubmit={aoEnviar} {...validacao}>
@@ -253,10 +238,4 @@ export function CadastroMobile() {
       </form>
     </div>
   )
-}
-
-function situacaoDaEtapa(numero, etapaAtual) {
-  if (numero < etapaAtual) return 'concluida'
-  if (numero === etapaAtual) return 'atual'
-  return 'pendente'
 }

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ProgressoEtapas } from '../../components/comum/ProgressoEtapas.jsx'
+import { PassosDasEtapas, ProgressoEtapas } from '../../components/comum/ProgressoEtapas.jsx'
 import { OrganizadorLayout } from '../../components/organizador/OrganizadorLayout.jsx'
 import { Selecao } from '../../components/organizador/Selecao.jsx'
 import {
@@ -19,8 +19,6 @@ import {
   validarPublicoMaximo,
   validarTermino,
 } from '../../../domain/validacao.js'
-import { Icone } from '../../components/comum/Icone.jsx'
-import iconeConcluido from '../../assets/organizador/icone-concluido.svg'
 
 // Cadastro de evento em 4 etapas
 
@@ -158,7 +156,7 @@ export function NovoEvento() {
         ) : undefined
       }
     >
-      {!isMobile && <ProgressoDesktop etapa={etapa} />}
+      {!isMobile && <PassosDasEtapas etapas={ETAPAS.map((item) => item.nome)} etapaAtual={etapa} />}
 
       <form
         id="form-novo-evento"
@@ -173,41 +171,6 @@ export function NovoEvento() {
         {!isMobile && acoes}
       </form>
     </OrganizadorLayout>
-  )
-}
-
-/* ---------- indicadores de etapa ---------- */
-
-function ProgressoDesktop({ etapa }) {
-  return (
-    <div className="etapas-evento">
-      {ETAPAS.map((item, indice) => {
-        const estado =
-          item.numero < etapa ? 'concluida' : item.numero === etapa ? 'atual' : 'futura'
-        const ultimo = indice === ETAPAS.length - 1
-
-        return (
-          <div key={item.numero} className="etapas-evento__item">
-            <div className={`etapas-evento__marcador etapas-evento__marcador--${estado}`}>
-              {estado === 'concluida' ? <Icone src={iconeConcluido} /> : item.numero}
-            </div>
-
-            <div className="etapas-evento__rotulo">
-              <span>Etapa {item.numero}</span>
-              <strong className={estado === 'futura' ? '' : 'etapas-evento__nome--destaque'}>
-                {item.nome}
-              </strong>
-            </div>
-
-            {!ultimo && (
-              <div
-                className={`etapas-evento__conector${estado === 'concluida' ? ' etapas-evento__conector--feito' : ''}`}
-              />
-            )}
-          </div>
-        )
-      })}
-    </div>
   )
 }
 

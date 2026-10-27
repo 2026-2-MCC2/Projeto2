@@ -1,7 +1,6 @@
-import { Fragment } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { OrganizadorLayout } from '../../components/organizador/OrganizadorLayout.jsx'
-import { ProgressoEtapas } from '../../components/comum/ProgressoEtapas.jsx'
+import { PassosDasEtapas, ProgressoEtapas } from '../../components/comum/ProgressoEtapas.jsx'
 import { Botao } from '../../components/organizador/Formulario.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
 import { useValidacao } from '../../hooks/useValidacao.js'
@@ -9,8 +8,6 @@ import { EVENTOS_DISPONIVEIS } from '../../data/eventosDisponiveis.js'
 import { ETAPAS_PROPOSTA, NOME_ITEM_PROPOSTA } from '../../data/propostaFornecedor.js'
 import { ResumoItemCotacao, ResumoProposta } from '../../components/fornecedor/ResumoProposta.jsx'
 import '../../styles/fornecedor.css'
-import { Icone } from '../../components/comum/Icone.jsx'
-import iconeConcluido from '../../assets/organizador/icone-concluido-verde.svg'
 
 export function EnviarProposta() {
   const { id } = useParams()
@@ -35,7 +32,7 @@ export function EnviarProposta() {
         isMobile ? <ProgressoEtapas etapas={ETAPAS_PROPOSTA} etapaAtual={1} /> : undefined
       }
     >
-      {isMobile ? null : <ProgressoPropostaDesktop />}
+      {!isMobile && <PassosDasEtapas etapas={ETAPAS_PROPOSTA} etapaAtual={1} tom="sucesso" />}
 
       <form
         id="form-enviar-proposta"
@@ -97,44 +94,5 @@ export function EnviarProposta() {
         </aside>
       </form>
     </OrganizadorLayout>
-  )
-}
-
-export function ProgressoPropostaDesktop({ etapaAtual = 1 }) {
-  const etapas = ['Valor e validade', 'Descrição e fotos', 'Condições e envio']
-
-  return (
-    <nav className="enviar-proposta__progresso" aria-label="Etapas da proposta">
-      {etapas.map((etapa, indice) => (
-        <Fragment key={etapa}>
-          <div className="enviar-proposta__etapa">
-            <span
-              className={`enviar-proposta__marcador${
-                indice + 1 === etapaAtual
-                  ? ' enviar-proposta__marcador--atual'
-                  : indice + 1 < etapaAtual
-                    ? ' enviar-proposta__marcador--feito'
-                    : ''
-              }`}
-            >
-              {indice + 1 < etapaAtual ? <Icone src={iconeConcluido} /> : indice + 1}
-            </span>
-            <span className="enviar-proposta__rotulo-etapa">
-              <small>Etapa {indice + 1}</small>
-              <strong
-                className={indice + 1 === etapaAtual ? 'enviar-proposta__rotulo-etapa--atual' : ''}
-              >
-                {etapa}
-              </strong>
-            </span>
-          </div>
-          {indice < etapas.length - 1 && (
-            <span
-              className={`enviar-proposta__conector${indice + 1 < etapaAtual ? ' enviar-proposta__conector--feito' : ''}`}
-            />
-          )}
-        </Fragment>
-      ))}
-    </nav>
   )
 }
