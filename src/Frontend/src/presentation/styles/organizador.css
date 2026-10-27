@@ -150,6 +150,17 @@
   font-size: 0.625rem;
 }
 
+.menu__item--ajuda {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: auto;
+}
+
+.menu__item--ajuda + .menu__usuario {
+  margin-top: 0.5rem;
+}
+
 .menu__usuario {
   display: flex;
   align-items: center;
@@ -438,6 +449,64 @@
 }
 
 /* ---------- configurações ---------- */
+
+/* ---------- dúvidas ---------- */
+
+.duvidas {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.duvida {
+  border: 1px solid var(--borda-padrao);
+  border-radius: 12px;
+  background: var(--fundo-superficie);
+}
+
+.duvida__pergunta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.125rem;
+  color: var(--texto-primario);
+  font-size: 0.875rem;
+  font-weight: 600;
+  list-style: none;
+  cursor: pointer;
+}
+
+.duvida__pergunta::-webkit-details-marker {
+  display: none;
+}
+
+.duvida__pergunta::after {
+  content: '+';
+  flex-shrink: 0;
+  color: var(--texto-marca);
+  font-size: 1.25rem;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.duvida[open] .duvida__pergunta::after {
+  content: '−';
+}
+
+.duvida__pergunta:focus-visible {
+  border-radius: 12px;
+  outline: 2px solid var(--texto-marca);
+  outline-offset: 2px;
+}
+
+.duvida__resposta {
+  margin: 0;
+  padding: 0 1.125rem 1rem;
+  color: var(--texto-secundario);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+}
 
 .configuracoes__abas {
   display: flex;

@@ -13,6 +13,7 @@ import { EventoPropostas } from '../pages/organizador/EventoPropostas.jsx'
 import { EventoTicket } from '../pages/organizador/EventoTicket.jsx'
 import { PropostaRecebida } from '../pages/organizador/PropostaRecebida.jsx'
 import { Configuracoes } from '../pages/Configuracoes.jsx'
+import { Duvidas } from '../pages/Duvidas.jsx'
 import { EventosDisponiveis } from '../pages/fornecedor/EventosDisponiveis.jsx'
 import { EnviarProposta } from '../pages/fornecedor/EnviarProposta.jsx'
 import { EnviarPropostaEtapa2 } from '../pages/fornecedor/EnviarPropostaEtapa2.jsx'
@@ -42,11 +43,13 @@ export function AppRoutes() {
         <Route path="/organizador/eventos/:id/propostas/:proposta" element={<PropostaRecebida />} />
         <Route path="/organizador/eventos/:id/ticket" element={<EventoTicket />} />
         <Route path="/organizador/configuracoes" element={<Configuracoes />} />
+        <Route path="/organizador/duvidas" element={<Duvidas />} />
 
         <Route path="/fornecedor" element={<Navigate to="/fornecedor/eventos" replace />} />
         <Route path="/fornecedor/eventos" element={<EventosDisponiveis />} />
         <Route path="/fornecedor/propostas" element={<MinhasPropostas />} />
         <Route path="/fornecedor/configuracoes" element={<Configuracoes perfil="fornecedor" />} />
+        <Route path="/fornecedor/duvidas" element={<Duvidas perfil="fornecedor" />} />
         <Route path="/fornecedor/eventos/:id/propostas/etapa-1" element={<EnviarProposta />} />
         <Route
           path="/fornecedor/eventos/:id/propostas/etapa-2"
@@ -63,6 +66,7 @@ export function AppRoutes() {
         <Route path="/admin/historico" element={<Historico />} />
         <Route path="/admin/visao-geral" element={<VisaoGeral />} />
         <Route path="/admin/configuracoes" element={<Configuracoes perfil="admin" />} />
+        <Route path="/admin/duvidas" element={<Duvidas perfil="admin" />} />
 
         <Route path="*" element={<NaoEncontrada />} />
       </Routes>

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
 import { MenuLateral } from './MenuLateral.jsx'
 import { BotaoAcessibilidade } from '../comum/BotaoAcessibilidade.jsx'
@@ -11,6 +11,7 @@ import { PularParaConteudo } from '../comum/PularParaConteudo.jsx'
 import simbolo from '../../assets/organizador/simbolo.png'
 import iconeSair from '../../assets/organizador/icone-sair.svg'
 import iconeVoltar from '../../assets/organizador/icone-voltar.svg'
+import iconeDuvidas from '../../assets/comum/icone-duvidas.svg'
 import iconeEventos from '../../assets/organizador/icone-eventos.svg'
 import iconeAjustes from '../../assets/organizador/icone-ajustes.svg'
 import iconePropostas from '../../assets/fornecedor/icone-propostas.svg'
@@ -114,6 +115,14 @@ export function OrganizadorLayout({
                   {(apoioMobile || apoio) && <p>{apoioMobile || apoio}</p>}
                 </div>
                 <div className="topo__acoes">
+                  <Link
+                    to={`/${perfil}/duvidas`}
+                    className="acessibilidade acessibilidade--topo"
+                    aria-label="Dúvidas"
+                    viewTransition
+                  >
+                    <Icone src={iconeDuvidas} />
+                  </Link>
                   <BotaoAcessibilidade posicao="topo" />
                   <BotaoTema />
                   <button
