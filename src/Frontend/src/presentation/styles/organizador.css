@@ -633,8 +633,14 @@
   cursor: pointer;
 }
 
-.selecao__opcao:hover {
+.selecao__opcao:hover,
+.selecao__opcao--destacada {
   background: var(--fundo-pagina);
+}
+
+.selecao__opcao--destacada {
+  outline: 2px solid var(--texto-marca);
+  outline-offset: -2px;
 }
 
 .selecao__opcao--ativa {
