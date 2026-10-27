@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useAcessibilidade } from '../../hooks/useAcessibilidade.js'
 import { useFolhaArrastavel } from '../../hooks/useFolhaArrastavel.js'
 import { Icone } from './Icone.jsx'
@@ -32,6 +32,30 @@ export function BotaoAcessibilidade({ posicao = 'flutuante' }) {
   const caixa = useRef(null)
   const folha = useFolhaArrastavel(() => setAberto(false))
   const flutuante = posicao === 'flutuante'
+  const painel = useRef(null)
+  const [largo, setLargo] = useState(false)
+  const [medicao, setMedicao] = useState(0)
+
+  // No desktop, se o painel estreito não cabe na altura da tela, ele vira duas colunas.
+  useLayoutEffect(() => {
+    if (!aberto) return
+
+    const medirDeNovo = () => {
+      setLargo(false)
+      setMedicao((atual) => atual + 1)
+    }
+
+    medirDeNovo()
+    document.fonts?.ready.then(medirDeNovo) // a OpenDyslexic chega depois e muda a altura
+    window.addEventListener('resize', medirDeNovo)
+    return () => window.removeEventListener('resize', medirDeNovo)
+  }, [aberto, ajustes.fonte, ajustes.leitura])
+
+  useLayoutEffect(() => {
+    const elemento = painel.current
+    if (!elemento || largo || !window.matchMedia('(min-width: 901px)').matches) return
+    if (elemento.scrollHeight > elemento.clientHeight) setLargo(true)
+  }, [medicao, largo])
 
   useEffect(() => {
     if (!aberto) return
@@ -69,7 +93,8 @@ export function BotaoAcessibilidade({ posicao = 'flutuante' }) {
 
       {aberto && (
         <div
-          className={`painel-acesso${folha.expandida ? ' painel-acesso--expandida' : ''}${folha.arrasto ? ' painel-acesso--arrastando' : ''}`}
+          ref={painel}
+          className={`painel-acesso${largo ? ' painel-acesso--largo' : ''}${folha.expandida ? ' painel-acesso--expandida' : ''}${folha.arrasto ? ' painel-acesso--arrastando' : ''}`}
           role="dialog"
           aria-label="Opções de acessibilidade"
           style={folha.estiloDoArrasto}
@@ -114,7 +139,7 @@ export function BotaoAcessibilidade({ posicao = 'flutuante' }) {
             </div>
           </div>
 
-          <div className="painel-acesso__bloco">
+          <div className="painel-acesso__bloco painel-acesso__bloco--opcoes">
             {OPCOES.map((opcao) => (
               <button
                 key={opcao.chave}
