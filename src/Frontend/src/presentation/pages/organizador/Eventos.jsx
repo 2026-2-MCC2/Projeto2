@@ -18,6 +18,8 @@ export function Eventos() {
   const navigate = useNavigate()
   const [busca, setBusca] = useState('')
   const [filtro, setFiltro] = useState('todos')
+  const emPlanejamento = EVENTOS.filter((evento) => evento.status === 'planejamento').length
+  const resumoDoPlanejamento = `${emPlanejamento} ${emPlanejamento === 1 ? 'evento' : 'eventos'} em planejamento`
 
   const termo = busca.trim().toLowerCase()
   const eventos = EVENTOS.filter((evento) => {
@@ -45,7 +47,7 @@ export function Eventos() {
   )
 
   return (
-    <OrganizadorLayout titulo="Meus eventos" apoio="3 eventos em planejamento">
+    <OrganizadorLayout titulo="Meus eventos" apoio={resumoDoPlanejamento}>
       <div className="barra">
         <label className="barra__busca">
           <Icone src={iconeBuscar} />
