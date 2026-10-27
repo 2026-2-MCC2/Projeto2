@@ -59,11 +59,6 @@ defaults:
   run:
     working-directory: src/Backend
 
-env:
-  SERVICE_NAME: trocaticket-event-planning-api
-  GCP_PROJECT_ID: davi-varella-labs-prod
-  GCP_REGION: us-central1
-
 jobs:
   ci:
     name: CI (formatação e testes)
@@ -101,6 +96,11 @@ jobs:
     needs: ci
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
+    # só no deploy: no CI, GCP_PROJECT_ID sobrescreveria o do local.env usado pelos testes
+    env:
+      SERVICE_NAME: trocaticket-event-planning-api
+      GCP_PROJECT_ID: davi-varella-labs-prod
+      GCP_REGION: us-central1
     steps:
       - uses: actions/checkout@v4
 
