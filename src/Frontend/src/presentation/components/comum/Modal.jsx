@@ -1,12 +1,15 @@
 import { useEffect } from 'react'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
 import { useFolhaArrastavel } from '../../hooks/useFolhaArrastavel.js'
+import { useValidacao } from '../../hooks/useValidacao.js'
 import { Botao } from '../organizador/Formulario.jsx'
 import { Icone } from './Icone.jsx'
 import iconeFechar from '../../assets/comum/icone-fechar.svg'
 import '../../styles/modal.css'
 
 // No mobile vira uma folha que sobe de baixo e pode ser arrastada.
+// Com campos dentro (children), o modal vira um formulário: o botão de confirmar só age com os
+// campos válidos (ver hooks/useValidacao.js).
 export function Modal({
   icone,
   corDoIcone = 'azul',
@@ -21,6 +24,19 @@ export function Modal({
 }) {
   const isMobile = useIsMobile()
   const folha = useFolhaArrastavel(aoFechar)
+  const validacao = useValidacao()
+  const confirmar = acao?.aoConfirmar ?? aoFechar
+
+  const Caixa = children ? 'form' : 'div'
+  const propsDoFormulario = children
+    ? {
+        ...validacao,
+        onSubmit: (evento) => {
+          evento.preventDefault()
+          confirmar()
+        },
+      }
+    : {}
 
   useEffect(() => {
     function aoTeclar(evento) {
@@ -33,13 +49,14 @@ export function Modal({
 
   return (
     <div className="fundo-modal" onClick={aoFechar}>
-      <div
+      <Caixa
         className={`modal${largo ? ' modal--largo' : ''}${folha.expandida ? ' modal--expandida' : ''}${folha.arrasto ? ' modal--arrastando' : ''}`}
         role="dialog"
         aria-modal="true"
         aria-label={titulo}
         style={folha.estiloDoArrasto}
         onClick={(evento) => evento.stopPropagation()}
+        {...propsDoFormulario}
       >
         <button
           type="button"
@@ -86,14 +103,14 @@ export function Modal({
             {acao?.cancelar ?? 'Voltar'}
           </Botao>
           <Botao
-            type="button"
+            type={children ? 'submit' : 'button'}
             perigo={corDoIcone === 'vermelho'}
-            onClick={acao?.aoConfirmar ?? aoFechar}
+            onClick={children ? undefined : confirmar}
           >
             {acao?.confirmar}
           </Botao>
         </div>
-      </div>
+      </Caixa>
     </div>
   )
 }

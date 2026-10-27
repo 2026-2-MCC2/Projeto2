@@ -4,6 +4,7 @@ import { OrganizadorLayout } from '../../components/organizador/OrganizadorLayou
 import { ProgressoEtapas } from '../../components/comum/ProgressoEtapas.jsx'
 import { Botao } from '../../components/organizador/Formulario.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
+import { useValidacao } from '../../hooks/useValidacao.js'
 import { EVENTOS_DISPONIVEIS } from '../../data/eventosDisponiveis.js'
 import { ETAPAS_PROPOSTA, NOME_ITEM_PROPOSTA } from '../../data/propostaFornecedor.js'
 import { ResumoItemCotacao, ResumoProposta } from '../../components/fornecedor/ResumoProposta.jsx'
@@ -15,6 +16,7 @@ export function EnviarProposta() {
   const { id } = useParams()
   const navigate = useNavigate()
   const isMobile = useIsMobile()
+  const validacao = useValidacao()
   const evento = EVENTOS_DISPONIVEIS.find((item) => item.id === id) ?? EVENTOS_DISPONIVEIS[0]
 
   const acoes = (
@@ -43,6 +45,7 @@ export function EnviarProposta() {
           navigate(`/fornecedor/eventos/${id}/propostas/etapa-2`)
         }}
         data-evento-id={evento.id}
+        {...validacao}
       >
         <section className="enviar-proposta__formulario">
           <div className="enviar-proposta__secao">
@@ -56,7 +59,13 @@ export function EnviarProposta() {
                 <span>
                   Valor total da proposta <b aria-hidden="true">*</b>
                 </span>
-                <input type="text" inputMode="decimal" placeholder="R$ 49.800,00" />
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  placeholder="R$ 49.800,00"
+                  data-validar="valorPositivo"
+                  required
+                />
                 <small>Orçamento previsto pelo organizador: R$ 45.000.</small>
               </label>
 
@@ -64,7 +73,13 @@ export function EnviarProposta() {
                 <span>
                   Validade da proposta <b aria-hidden="true">*</b>
                 </span>
-                <input type="text" inputMode="numeric" placeholder="30/09/2026" />
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="30/09/2026"
+                  data-validar="dataFutura"
+                  required
+                />
                 <small>Depois dessa data a proposta expira.</small>
               </label>
             </div>

@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AcessoLayout } from '../../components/acesso/AcessoLayout.jsx'
+import { useValidacao } from '../../hooks/useValidacao.js'
 
 export function RecuperarSenha() {
   const [enviado, setEnviado] = useState(false)
+  const validacao = useValidacao()
 
   function aoEnviar(evento) {
     evento.preventDefault()
@@ -34,10 +36,10 @@ export function RecuperarSenha() {
             <p>Informe o e-mail cadastrado para receber o link de redefinição.</p>
           </header>
 
-          <form className="acesso__campos" onSubmit={aoEnviar}>
+          <form className="acesso__campos" onSubmit={aoEnviar} {...validacao}>
             <label className="campo">
               <span>E-mail</span>
-              <input type="email" placeholder="voce@email.com" required />
+              <input type="email" data-validar="email" placeholder="voce@email.com" required />
             </label>
 
             <button type="submit" className="acesso__botao">

@@ -74,6 +74,7 @@ function ModalAcesso({ acao, usuario, aoFechar }) {
         <textarea
           rows={2}
           placeholder="Ex.: inatividade prolongada ou irregularidade identificada."
+          required
         />
       </Campo>
     </Modal>

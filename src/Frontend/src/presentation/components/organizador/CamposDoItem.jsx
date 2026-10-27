@@ -19,13 +19,21 @@ export function CamposDoItem({ isMobile = false, linhas = 2 }) {
 
   return (
     <>
-      <Campo rotulo="Descrição do item" placeholder="Iluminação cênica do palco principal" />
+      <Campo
+        rotulo="Descrição do item"
+        placeholder="Iluminação cênica do palco principal"
+        required
+      />
 
       <SeDesktop isMobile={isMobile} envolver={Linha}>
-        <Campo rotulo="Categoria" placeholder="Estrutura" />
+        <Campo rotulo="Categoria" placeholder="Estrutura" required />
+        {/* o valor previsto é opcional; o custo próprio precisa de valor */}
         <Campo
           rotulo={porCotacao ? 'Valor previsto' : 'Valor do custo'}
           placeholder="R$ 38.000,00"
+          inputMode="decimal"
+          data-validar={porCotacao ? 'valor' : 'valorPositivo'}
+          required={!porCotacao}
         />
       </SeDesktop>
 

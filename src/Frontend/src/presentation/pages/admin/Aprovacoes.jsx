@@ -55,7 +55,7 @@ function ModalDecisao({ decisao, solicitacao, aoFechar }) {
       aoFechar={aoFechar}
     >
       <Campo rotulo="Motivo da rejeição">
-        <textarea rows={2} placeholder="Ex.: documentação fiscal incompleta." />
+        <textarea rows={2} placeholder="Ex.: documentação fiscal incompleta." required />
       </Campo>
     </Modal>
   )

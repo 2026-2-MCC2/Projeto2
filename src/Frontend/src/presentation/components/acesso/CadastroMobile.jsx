@@ -4,6 +4,8 @@ import { BotaoTema } from '../comum/BotaoTema.jsx'
 import { Logotipo } from '../comum/Logotipo.jsx'
 import { useNavigate } from 'react-router-dom'
 import { Icone } from '../comum/Icone.jsx'
+import { useValidacao } from '../../hooks/useValidacao.js'
+import { validarConfirmacaoSenha } from '../../../domain/validacao.js'
 import setaVoltar from '../../assets/acesso/seta-voltar.svg'
 import perfilSelecionado from '../../assets/acesso/perfil-selecionado.svg'
 import '../../styles/acesso.css'
@@ -38,6 +40,9 @@ export function CadastroMobile() {
   const navegar = useNavigate()
   const [etapa, setEtapa] = useState(1)
   const [dados, setDados] = useState(DADOS_INICIAIS)
+  const validacao = useValidacao({
+    confirmacaoSenha: (valor, valores) => validarConfirmacaoSenha(valor, valores.senha),
+  })
 
   function preencher(campo) {
     return (evento) => setDados({ ...dados, [campo]: evento.target.value })
@@ -94,7 +99,7 @@ export function CadastroMobile() {
         </div>
       </header>
 
-      <form className="etapas__form" onSubmit={aoEnviar}>
+      <form className="etapas__form" onSubmit={aoEnviar} {...validacao}>
         <div className="etapas__conteudo">
           {etapa === 1 && (
             <>
@@ -146,6 +151,7 @@ export function CadastroMobile() {
                 <span>CNPJ</span>
                 <input
                   type="text"
+                  data-validar="cnpj"
                   placeholder="00.000.000/0001-00"
                   value={dados.cnpj}
                   onChange={preencher('cnpj')}
@@ -157,6 +163,7 @@ export function CadastroMobile() {
                 <span>Telefone</span>
                 <input
                   type="tel"
+                  data-validar="telefone"
                   placeholder="(11) 90000-0000"
                   value={dados.telefone}
                   onChange={preencher('telefone')}
@@ -188,6 +195,7 @@ export function CadastroMobile() {
                 <span>E-mail</span>
                 <input
                   type="email"
+                  data-validar="email"
                   placeholder="voce@email.com"
                   value={dados.email}
                   onChange={preencher('email')}
@@ -199,8 +207,9 @@ export function CadastroMobile() {
                 <span>Senha</span>
                 <input
                   type="password"
+                  name="senha"
+                  data-validar="senha"
                   placeholder="Mínimo de 8 caracteres"
-                  minLength={8}
                   value={dados.senha}
                   onChange={preencher('senha')}
                   required
@@ -212,8 +221,8 @@ export function CadastroMobile() {
                 <span>Confirmar senha</span>
                 <input
                   type="password"
+                  name="confirmacaoSenha"
                   placeholder="Repita a senha"
-                  minLength={8}
                   value={dados.confirmacaoSenha}
                   onChange={preencher('confirmacaoSenha')}
                   required

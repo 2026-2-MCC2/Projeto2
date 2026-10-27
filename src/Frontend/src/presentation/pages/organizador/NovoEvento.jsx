@@ -13,6 +13,12 @@ import {
   SeDesktop,
 } from '../../components/organizador/Formulario.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
+import { useValidacao } from '../../hooks/useValidacao.js'
+import {
+  validarPublicoEsperado,
+  validarPublicoMaximo,
+  validarTermino,
+} from '../../../domain/validacao.js'
 import { Icone } from '../../components/comum/Icone.jsx'
 import iconeConcluido from '../../assets/organizador/icone-concluido.svg'
 
@@ -75,6 +81,14 @@ const CENARIOS = [
   { valor: 'maximo', nome: 'Público máximo' },
 ]
 
+// regras que comparam campos da mesma etapa
+const REGRAS_ENTRE_CAMPOS = {
+  dataTermino: (valor, valores) => validarTermino(valor, valores.dataInicio),
+  publicoMaximo: (valor, valores) => validarPublicoMaximo(valor, valores.publicoMinimo),
+  publicoEsperado: (valor, valores) =>
+    validarPublicoEsperado(valor, valores.publicoMinimo, valores.publicoMaximo),
+}
+
 const nomeDoCenario = (valor) => CENARIOS.find((cenario) => cenario.valor === valor)?.nome
 
 export function NovoEvento() {
@@ -82,6 +96,7 @@ export function NovoEvento() {
   const navigate = useNavigate()
   const [etapa, setEtapa] = useState(1)
   const [dados, setDados] = useState(VALOR_INICIAL)
+  const validacao = useValidacao(REGRAS_ENTRE_CAMPOS)
 
   const etapaAtual = ETAPAS[etapa - 1]
   const ultimaEtapa = etapa === ETAPAS.length
@@ -89,6 +104,7 @@ export function NovoEvento() {
   const definir = (nome, valor) => setDados((atual) => ({ ...atual, [nome]: valor }))
 
   const campo = (nome) => ({
+    name: nome,
     value: dados[nome],
     onChange: (evento) => definir(nome, evento.target.value),
   })
@@ -148,6 +164,7 @@ export function NovoEvento() {
         id="form-novo-evento"
         className={isMobile ? 'novo-evento-form' : 'painel'}
         onSubmit={ultimaEtapa ? publicar : avancar}
+        {...validacao}
       >
         {isMobile && <p className="secao__apoio">{etapaAtual.apoioMobile}</p>}
 
@@ -203,11 +220,12 @@ function EtapaIdentificacao({ campo, isMobile }) {
         <Campo
           rotulo="Nome do evento"
           placeholder="Festival Primavera Som & Luz 2026"
+          required
           {...campo('nome')}
         />
 
         <Linha>
-          <Campo rotulo="Categoria" placeholder="Festival" {...campo('categoria')} />
+          <Campo rotulo="Categoria" placeholder="Festival" required {...campo('categoria')} />
           {!isMobile && (
             <CampoFixo rotulo="Tipo de ingresso" valor="Inteira — único tipo por evento" />
           )}
@@ -231,21 +249,33 @@ function EtapaIdentificacao({ campo, isMobile }) {
           <Campo
             rotulo={isMobile ? 'Início' : 'Data de início'}
             placeholder="18/10/2026"
+            inputMode="numeric"
+            data-validar="dataFutura"
+            required
             {...campo('dataInicio')}
           />
           <Campo
             rotulo={isMobile ? 'Término' : 'Data de término'}
             placeholder="20/10/2026"
+            inputMode="numeric"
+            data-validar="data"
+            required
             {...campo('dataTermino')}
           />
         </Linha>
 
         {!isMobile && (
           <Linha>
-            <Campo rotulo="Horário de abertura" placeholder="14:00" {...campo('horarioAbertura')} />
+            <Campo
+              rotulo="Horário de abertura"
+              placeholder="14:00"
+              data-validar="horario"
+              {...campo('horarioAbertura')}
+            />
             <Campo
               rotulo="Horário de encerramento"
               placeholder="23:00"
+              data-validar="horario"
               {...campo('horarioEncerramento')}
             />
           </Linha>
@@ -255,13 +285,22 @@ function EtapaIdentificacao({ campo, isMobile }) {
   )
 }
 
+const CAMPO_PUBLICO = { inputMode: 'numeric', 'data-validar': 'inteiro', required: true }
+
 function EtapaLocal({ campo, isMobile }) {
   return (
     <>
       <Grupo isMobile={isMobile} titulo="Local">
         <Linha>
-          <Campo rotulo="Nome do espaço" placeholder="Allianz Parque" {...campo('nomeEspaco')} />
-          {!isMobile && <Campo rotulo="CEP" placeholder="05001-100" {...campo('cep')} />}
+          <Campo
+            rotulo="Nome do espaço"
+            placeholder="Allianz Parque"
+            required
+            {...campo('nomeEspaco')}
+          />
+          {!isMobile && (
+            <Campo rotulo="CEP" placeholder="05001-100" data-validar="cep" {...campo('cep')} />
+          )}
         </Linha>
 
         <Campo
@@ -271,16 +310,24 @@ function EtapaLocal({ campo, isMobile }) {
               ? 'Av. Francisco Matarazzo, 1705'
               : 'Av. Francisco Matarazzo, 1705 — Água Branca'
           }
+          required
           {...campo('endereco')}
         />
 
         <Linha>
-          <Campo rotulo="Cidade" placeholder="São Paulo" {...campo('cidade')} />
-          <Campo rotulo="Estado" placeholder="SP" {...campo('estado')} />
+          <Campo rotulo="Cidade" placeholder="São Paulo" required {...campo('cidade')} />
+          <Campo
+            rotulo="Estado"
+            placeholder="SP"
+            data-validar="estado"
+            required
+            {...campo('estado')}
+          />
           {!isMobile && (
             <Campo
               rotulo="Capacidade do espaço"
               placeholder="20.000 pessoas"
+              data-validar="inteiro"
               {...campo('capacidadeEspaco')}
             />
           )}
@@ -291,10 +338,25 @@ function EtapaLocal({ campo, isMobile }) {
         {isMobile ? (
           <>
             <Linha>
-              <Campo rotulo="Público mínimo" placeholder="8.000" {...campo('publicoMinimo')} />
-              <Campo rotulo="Público máximo" placeholder="15.000" {...campo('publicoMaximo')} />
+              <Campo
+                rotulo="Público mínimo"
+                placeholder="8.000"
+                {...CAMPO_PUBLICO}
+                {...campo('publicoMinimo')}
+              />
+              <Campo
+                rotulo="Público máximo"
+                placeholder="15.000"
+                {...CAMPO_PUBLICO}
+                {...campo('publicoMaximo')}
+              />
             </Linha>
-            <Campo rotulo="Público esperado" placeholder="12.000" {...campo('publicoEsperado')} />
+            <Campo
+              rotulo="Público esperado"
+              placeholder="12.000"
+              {...CAMPO_PUBLICO}
+              {...campo('publicoEsperado')}
+            />
           </>
         ) : (
           <Linha>
@@ -302,18 +364,21 @@ function EtapaLocal({ campo, isMobile }) {
               rotulo="Público mínimo"
               placeholder="8.000"
               ajuda="Cenário conservador do cálculo do ticket."
+              {...CAMPO_PUBLICO}
               {...campo('publicoMinimo')}
             />
             <Campo
               rotulo="Público esperado"
               placeholder="12.000"
               ajuda="Usado como referência principal."
+              {...CAMPO_PUBLICO}
               {...campo('publicoEsperado')}
             />
             <Campo
               rotulo="Público máximo"
               placeholder="15.000"
               ajuda="Limitado pela capacidade do espaço."
+              {...CAMPO_PUBLICO}
               {...campo('publicoMaximo')}
             />
           </Linha>
@@ -323,6 +388,8 @@ function EtapaLocal({ campo, isMobile }) {
   )
 }
 
+const CAMPO_VALOR = { inputMode: 'decimal', 'data-validar': 'valor' }
+
 function EtapaCustos({ campo, dados, definir, isMobile }) {
   return (
     <>
@@ -331,6 +398,9 @@ function EtapaCustos({ campo, dados, definir, isMobile }) {
           rotulo="Margem de lucro"
           placeholder="20%"
           ajuda={isMobile ? undefined : 'Aplicada sobre a receita do evento.'}
+          inputMode="decimal"
+          data-validar="percentual"
+          required
           {...campo('margemLucro')}
         />
       </Grupo>
@@ -340,12 +410,19 @@ function EtapaCustos({ campo, dados, definir, isMobile }) {
           <Campo
             rotulo="Custos fiscais e alvarás"
             placeholder="R$ 24.300"
+            {...CAMPO_VALOR}
             {...campo('custosFiscais')}
           />
-          <Campo rotulo="Equipe de produção" placeholder="R$ 17.800" {...campo('equipeProducao')} />
+          <Campo
+            rotulo="Equipe de produção"
+            placeholder="R$ 17.800"
+            {...CAMPO_VALOR}
+            {...campo('equipeProducao')}
+          />
           <Campo
             rotulo="Outros custos variáveis"
             placeholder="R$ 0,00"
+            {...CAMPO_VALOR}
             {...campo('outrosCustos')}
           />
         </SeDesktop>
