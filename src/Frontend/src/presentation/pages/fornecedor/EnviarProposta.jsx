@@ -1,6 +1,7 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import { OrganizadorLayout } from '../../components/organizador/OrganizadorLayout.jsx'
 import { Vazio } from '../../components/comum/EstadoDaTela.jsx'
+import { EntradaData } from '../../components/comum/EntradaData.jsx'
 import { PassosDasEtapas, ProgressoEtapas } from '../../components/comum/ProgressoEtapas.jsx'
 import { Botao } from '../../components/organizador/Formulario.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
@@ -86,12 +87,11 @@ export function EnviarProposta() {
                 <span>
                   Validade da proposta <b aria-hidden="true">*</b>
                 </span>
-                <input
-                  type="text"
-                  inputMode="numeric"
+                <EntradaData
                   placeholder="30/09/2026"
                   data-validar="dataFutura"
                   required
+                  semPassado
                 />
                 <small>Depois dessa data a proposta expira.</small>
               </label>

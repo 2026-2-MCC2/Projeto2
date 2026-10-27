@@ -2469,12 +2469,21 @@
     background: var(--fundo-superficie);
   }
 
+  /* uma linha só, rolando de borda a borda da tela em vez de cortar no padding da página */
   .barra__filtros {
-    flex-wrap: wrap;
-    justify-content: center;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin: 0 -1.25rem;
+    padding: 0.125rem 1.25rem;
+    scrollbar-width: none;
+  }
+
+  .barra__filtros::-webkit-scrollbar {
+    display: none;
   }
 
   .filtro {
+    flex-shrink: 0;
     padding: 0.5625rem 0.875rem;
     font-size: 0.75rem;
   }

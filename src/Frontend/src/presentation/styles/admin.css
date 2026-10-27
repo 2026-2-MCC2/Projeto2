@@ -16,31 +16,6 @@
 
 /* ---------- histórico ---------- */
 
-.historico__filtros {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.historico__filtro {
-  padding: 0.45rem 0.875rem;
-  border: 1px solid var(--borda-padrao);
-  border-radius: 999px;
-  background: var(--fundo-superficie);
-  color: var(--texto-secundario);
-  font: inherit;
-  font-size: 0.75rem;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.historico__filtro--ativo {
-  border-color: var(--acao-primaria);
-  background: var(--acao-primaria);
-  color: var(--acao-sobre-primaria);
-  font-weight: 600;
-}
-
 .historico {
   overflow: hidden;
   border-radius: 14px;
@@ -506,17 +481,6 @@
 
   .solicitacao {
     padding: 1.125rem;
-  }
-
-  .historico__filtros {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    margin: 0 -0.25rem;
-    padding: 0.25rem;
-  }
-
-  .historico__filtro {
-    flex-shrink: 0;
   }
 
   .historico__cabecalho {

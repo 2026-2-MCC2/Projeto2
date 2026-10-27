@@ -14,14 +14,12 @@ function EtiquetaAcao({ acao }) {
 
 function Filtros({ selecionado, aoSelecionar }) {
   return (
-    <div className="historico__filtros" aria-label="Filtrar histórico por ação">
+    <div className="barra__filtros" aria-label="Filtrar histórico por ação">
       {FILTROS.map((filtro) => (
         <button
           key={filtro}
           type="button"
-          className={`historico__filtro${
-            selecionado === filtro ? ' historico__filtro--ativo' : ''
-          }`}
+          className={`filtro${selecionado === filtro ? ' filtro--ativo' : ''}`}
           aria-pressed={selecionado === filtro}
           onClick={() => aoSelecionar(filtro)}
         >

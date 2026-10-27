@@ -1,8 +1,13 @@
 // O erro mostra o campo translation do padrão de erro da API.
 
-export function Carregando({ mensagem = 'Carregando…' }) {
+// telaInteira: ocupa a página toda, para quando ainda não há layout (carregando uma rota)
+export function Carregando({ mensagem = 'Carregando…', telaInteira = false }) {
   return (
-    <div className="estado-tela" role="status" aria-live="polite">
+    <div
+      className={`estado-tela${telaInteira ? ' estado-tela--pagina' : ''}`}
+      role="status"
+      aria-live="polite"
+    >
       <span className="estado-tela__indicador" aria-hidden="true" />
       <p>{mensagem}</p>
     </div>
