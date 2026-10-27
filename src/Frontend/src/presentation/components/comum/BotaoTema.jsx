@@ -5,7 +5,7 @@ import iconeLua from '../../assets/comum/icone-lua.svg'
 import '../../styles/acessibilidade.css'
 
 // mostra o ícone do tema de destino: lua no claro, sol no escuro
-export function BotaoTema({ posicao = 'topo' }) {
+export function BotaoTema({ posicao = 'flutuante' }) {
   const { tema, mudarTema } = useAcessibilidade()
   const escuro = tema === 'escuro'
 

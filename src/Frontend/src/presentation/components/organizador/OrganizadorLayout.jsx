@@ -3,7 +3,6 @@ import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
 import { MenuLateral } from './MenuLateral.jsx'
 import { BotaoAcessibilidade } from '../comum/BotaoAcessibilidade.jsx'
-import { BotaoTema } from '../comum/BotaoTema.jsx'
 import { ModalSair } from '../comum/ModalSair.jsx'
 import { Icone } from '../comum/Icone.jsx'
 import { TituloDaPagina } from '../comum/TituloDaPagina.jsx'
@@ -81,7 +80,6 @@ export function OrganizadorLayout({
               <h1>{titulo}</h1>
               <img src={simbolo} alt="" className="topo__fluxo-marca" />
               <BotaoAcessibilidade posicao="topo" />
-              <BotaoTema />
             </div>
           ) : null}
           {aoVoltar ? (
@@ -124,7 +122,6 @@ export function OrganizadorLayout({
                     <Icone src={iconeDuvidas} />
                   </Link>
                   <BotaoAcessibilidade posicao="topo" />
-                  <BotaoTema />
                   <button
                     type="button"
                     className="topo__sair"

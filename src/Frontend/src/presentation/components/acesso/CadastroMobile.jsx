@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { BotaoAcessibilidade } from '../comum/BotaoAcessibilidade.jsx'
-import { BotaoTema } from '../comum/BotaoTema.jsx'
 import { Logotipo } from '../comum/Logotipo.jsx'
 import { useNavigate } from 'react-router-dom'
 import { Icone } from '../comum/Icone.jsx'
@@ -80,7 +79,6 @@ export function CadastroMobile() {
           </button>
           <Logotipo className="etapas__logo" />
           <BotaoAcessibilidade posicao="topo" />
-          <BotaoTema />
         </div>
 
         <ProgressoEtapas etapas={ETAPAS} etapaAtual={etapa} />

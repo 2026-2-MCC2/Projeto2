@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useAcessibilidade } from '../../hooks/useAcessibilidade.js'
 import { useFolhaArrastavel } from '../../hooks/useFolhaArrastavel.js'
+import { useIsMobile } from '../../hooks/useIsMobile.js'
 import { leituraDisponivel, useLeituraEmVozAlta } from '../../hooks/useLeituraEmVozAlta.js'
 import { Icone } from './Icone.jsx'
 import { BotaoTema, SeletorTema } from './BotaoTema.jsx'
@@ -28,7 +29,7 @@ const OPCOES = [
   { chave: 'movimento', nome: 'Reduzir animações', apoio: 'Desliga as transições das telas.' },
 ]
 
-// o flutuante leva junto o botão de tema, porque essas telas não têm cabeçalho
+// no desktop o flutuante leva junto o botão de tema, porque essas telas não têm cabeçalho
 export function BotaoAcessibilidade({ posicao = 'flutuante' }) {
   const [aberto, setAberto] = useState(false)
   const { ajustes, alternar, mudarFonte, restaurar } = useAcessibilidade()
@@ -36,6 +37,7 @@ export function BotaoAcessibilidade({ posicao = 'flutuante' }) {
   const caixa = useRef(null)
   const folha = useFolhaArrastavel(() => setAberto(false))
   const flutuante = posicao === 'flutuante'
+  const isMobile = useIsMobile()
   const painel = useRef(null)
   const [largo, setLargo] = useState(false)
   const [medicao, setMedicao] = useState(0)
@@ -83,7 +85,7 @@ export function BotaoAcessibilidade({ posicao = 'flutuante' }) {
 
   return (
     <div className={`acessibilidade-area acessibilidade-area--${posicao}`} ref={caixa}>
-      {flutuante && <BotaoTema posicao="flutuante" />}
+      {flutuante && !isMobile && <BotaoTema />}
 
       <button
         type="button"
