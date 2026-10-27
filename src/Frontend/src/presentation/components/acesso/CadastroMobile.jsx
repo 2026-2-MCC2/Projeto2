@@ -143,6 +143,7 @@ export function CadastroMobile() {
                 <span>Nome ou razão social</span>
                 <input
                   type="text"
+                  autoComplete="organization"
                   placeholder="TrocaTicket Produções Ltda."
                   value={dados.razaoSocial}
                   onChange={preencher('razaoSocial')}
@@ -166,6 +167,7 @@ export function CadastroMobile() {
                 <span>Telefone</span>
                 <input
                   type="tel"
+                  autoComplete="tel"
                   data-validar="telefone"
                   placeholder="(11) 90000-0000"
                   value={dados.telefone}
@@ -178,6 +180,7 @@ export function CadastroMobile() {
                 <span>Cidade e estado</span>
                 <input
                   type="text"
+                  autoComplete="address-level2"
                   placeholder="São Paulo, SP"
                   value={dados.cidade}
                   onChange={preencher('cidade')}
@@ -198,6 +201,7 @@ export function CadastroMobile() {
                 <span>E-mail</span>
                 <input
                   type="email"
+                  autoComplete="email"
                   data-validar="email"
                   placeholder="voce@email.com"
                   value={dados.email}
@@ -211,6 +215,7 @@ export function CadastroMobile() {
                 <input
                   type="password"
                   name="senha"
+                  autoComplete="new-password"
                   data-validar="senha"
                   placeholder="Mínimo de 8 caracteres"
                   value={dados.senha}
@@ -225,6 +230,7 @@ export function CadastroMobile() {
                 <input
                   type="password"
                   name="confirmacaoSenha"
+                  autoComplete="new-password"
                   placeholder="Repita a senha"
                   value={dados.confirmacaoSenha}
                   onChange={preencher('confirmacaoSenha')}

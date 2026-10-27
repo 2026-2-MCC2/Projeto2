@@ -39,7 +39,13 @@ export function RecuperarSenha() {
           <form className="acesso__campos" onSubmit={aoEnviar} {...validacao}>
             <label className="campo">
               <span>E-mail</span>
-              <input type="email" data-validar="email" placeholder="voce@email.com" required />
+              <input
+                type="email"
+                autoComplete="email"
+                data-validar="email"
+                placeholder="voce@email.com"
+                required
+              />
             </label>
 
             <button type="submit" className="acesso__botao">

@@ -32,6 +32,7 @@ export function Login() {
           <span>E-mail</span>
           <input
             type="email"
+            autoComplete="email"
             data-validar="email"
             placeholder="voce@email.com"
             value={email}
@@ -44,6 +45,7 @@ export function Login() {
           <span>Senha</span>
           <input
             type="password"
+            autoComplete="current-password"
             placeholder="••••••••"
             value={senha}
             onChange={(evento) => setSenha(evento.target.value)}

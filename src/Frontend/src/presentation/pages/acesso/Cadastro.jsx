@@ -65,7 +65,12 @@ export function Cadastro() {
       <form className="acesso__campos" onSubmit={aoEnviar} {...validacao}>
         <label className="campo">
           <span>Nome ou razão social</span>
-          <input type="text" placeholder="TrocaTicket Produções Ltda." required />
+          <input
+            type="text"
+            autoComplete="organization"
+            placeholder="TrocaTicket Produções Ltda."
+            required
+          />
         </label>
 
         <div className="acesso__linha">
@@ -76,19 +81,32 @@ export function Cadastro() {
 
           <label className="campo">
             <span>Telefone</span>
-            <input type="tel" data-validar="telefone" placeholder="(11) 90000-0000" required />
+            <input
+              type="tel"
+              autoComplete="tel"
+              data-validar="telefone"
+              placeholder="(11) 90000-0000"
+              required
+            />
           </label>
         </div>
 
         <label className="campo">
           <span>E-mail</span>
-          <input type="email" data-validar="email" placeholder="voce@email.com" required />
+          <input
+            type="email"
+            autoComplete="email"
+            data-validar="email"
+            placeholder="voce@email.com"
+            required
+          />
         </label>
 
         <label className="campo">
           <span>Senha</span>
           <input
             type="password"
+            autoComplete="new-password"
             data-validar="senha"
             placeholder="Mínimo de 8 caracteres"
             required

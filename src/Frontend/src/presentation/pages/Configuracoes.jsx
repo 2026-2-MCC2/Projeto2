@@ -167,12 +167,12 @@ function DadosCadastrais({ empresa, isMobile }) {
   )
   const telefone = (
     <Campo rotulo="Telefone">
-      <input type="tel" data-validar="telefone" placeholder="(11) 98765-4321" />
+      <input type="tel" autoComplete="tel" data-validar="telefone" placeholder="(11) 98765-4321" />
     </Campo>
   )
   const email = (
     <Campo rotulo="E-mail">
-      <input type="email" data-validar="email" placeholder={empresa.email} />
+      <input type="email" autoComplete="email" data-validar="email" placeholder={empresa.email} />
     </Campo>
   )
 
@@ -224,7 +224,12 @@ function DadosAdmin({ isMobile }) {
       <Linha>
         <Campo rotulo="Nome" placeholder="Admin TrocaTicket" />
         <Campo rotulo="E-mail">
-          <input type="email" data-validar="email" placeholder="admin@trocaticket.com.br" />
+          <input
+            type="email"
+            autoComplete="email"
+            data-validar="email"
+            placeholder="admin@trocaticket.com.br"
+          />
         </Campo>
       </Linha>
     </PainelDados>
@@ -304,7 +309,12 @@ function PainelPerfil({ etiquetas, aviso, avisoMobile, apoio, permissoes, isMobi
 }
 
 const CAMPOS_DE_SENHA = [
-  { nome: 'senhaAtual', rotulo: 'Senha atual', placeholder: '••••••••' },
+  {
+    nome: 'senhaAtual',
+    rotulo: 'Senha atual',
+    placeholder: '••••••••',
+    preencher: 'current-password',
+  },
   {
     nome: 'novaSenha',
     rotulo: 'Nova senha',
@@ -332,6 +342,7 @@ function PainelSenha() {
             <input
               type="password"
               name={item.nome}
+              autoComplete={item.preencher ?? 'new-password'}
               placeholder={item.placeholder}
               data-validar={item.regra}
               required
