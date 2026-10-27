@@ -925,7 +925,23 @@
   }
 
   .organizador--fornecedor .organizador__conteudo {
-    padding: 20px 20px 40px;
+    padding: 20px 20px calc(7.5rem + env(safe-area-inset-bottom));
+  }
+
+  .fornecedor__filtros {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin: 0 -20px;
+    padding: 2px 20px;
+    scrollbar-width: none;
+  }
+
+  .fornecedor__filtros::-webkit-scrollbar {
+    display: none;
+  }
+
+  .fornecedor__filtros .filtro {
+    flex-shrink: 0;
   }
 
   .organizador--fornecedor .abas {
