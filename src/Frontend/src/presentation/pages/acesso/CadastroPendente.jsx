@@ -34,6 +34,7 @@ const ETAPAS = [
 export function CadastroPendente() {
   return (
     <AcessoLayout
+      tituloDaPagina="Cadastro em análise"
       foto={fotoMicrofone}
       tom="azul"
       fotoNoMobile={false}

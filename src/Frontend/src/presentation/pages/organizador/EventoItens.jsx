@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { EventoLayout } from '../../components/organizador/EventoLayout.jsx'
+import { Vazio } from '../../components/comum/EstadoDaTela.jsx'
 import { Tabela } from '../../components/organizador/Tabela.jsx'
 import { Botao } from '../../components/organizador/Formulario.jsx'
 import { ModalNovoItem } from '../../components/organizador/ModalNovoItem.jsx'
@@ -17,7 +18,16 @@ export function EventoItens() {
   const evento = buscarEvento(id)
   const custos = evento?.detalhe?.custos
 
-  if (!custos) return <EventoLayout />
+  if (!custos) {
+    return (
+      <EventoLayout>
+        <Vazio
+          titulo="Nenhum item de custo ainda"
+          mensagem="Os itens de custo do evento aparecem aqui assim que forem cadastrados."
+        />
+      </EventoLayout>
+    )
+  }
 
   if (isMobile) {
     const deFornecedores = custos.linhas.filter((linha) => linha.origem !== 'Custo próprio')

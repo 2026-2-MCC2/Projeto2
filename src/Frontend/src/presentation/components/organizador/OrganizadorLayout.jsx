@@ -1,14 +1,16 @@
 import { useState } from 'react'
-import { NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
 import { MenuLateral } from './MenuLateral.jsx'
 import { BotaoAcessibilidade } from '../comum/BotaoAcessibilidade.jsx'
-import { BotaoTema } from '../comum/BotaoTema.jsx'
 import { ModalSair } from '../comum/ModalSair.jsx'
 import { Icone } from '../comum/Icone.jsx'
+import { TituloDaPagina } from '../comum/TituloDaPagina.jsx'
+import { PularParaConteudo } from '../comum/PularParaConteudo.jsx'
 import simbolo from '../../assets/organizador/simbolo.png'
 import iconeSair from '../../assets/organizador/icone-sair.svg'
 import iconeVoltar from '../../assets/organizador/icone-voltar.svg'
+import iconeDuvidas from '../../assets/comum/icone-duvidas.svg'
 import iconeEventos from '../../assets/organizador/icone-eventos.svg'
 import iconeAjustes from '../../assets/organizador/icone-ajustes.svg'
 import iconePropostas from '../../assets/fornecedor/icone-propostas.svg'
@@ -62,10 +64,13 @@ export function OrganizadorLayout({
   const [confirmandoSaida, setConfirmandoSaida] = useState(false)
 
   const modalDeSaida = confirmandoSaida && <ModalSair aoFechar={() => setConfirmandoSaida(false)} />
+  const tituloDaPagina = titulo && <TituloDaPagina titulo={titulo} />
 
   if (isMobile) {
     return (
       <div className={`organizador${classeDoPerfil}${aoVoltar ? ' organizador--fluxo' : ''}`}>
+        {tituloDaPagina}
+        <PularParaConteudo />
         <header className="topo">
           {aoVoltar ? (
             <div className="topo__fluxo">
@@ -75,7 +80,6 @@ export function OrganizadorLayout({
               <h1>{titulo}</h1>
               <img src={simbolo} alt="" className="topo__fluxo-marca" />
               <BotaoAcessibilidade posicao="topo" />
-              <BotaoTema />
             </div>
           ) : null}
           {aoVoltar ? (
@@ -109,8 +113,15 @@ export function OrganizadorLayout({
                   {(apoioMobile || apoio) && <p>{apoioMobile || apoio}</p>}
                 </div>
                 <div className="topo__acoes">
+                  <Link
+                    to={`/${perfil}/duvidas`}
+                    className="acessibilidade acessibilidade--topo"
+                    aria-label="Dúvidas"
+                    viewTransition
+                  >
+                    <Icone src={iconeDuvidas} />
+                  </Link>
                   <BotaoAcessibilidade posicao="topo" />
-                  <BotaoTema />
                   <button
                     type="button"
                     className="topo__sair"
@@ -127,7 +138,9 @@ export function OrganizadorLayout({
           )}
         </header>
 
-        <main className="organizador__conteudo">{children}</main>
+        <main id="conteudo" tabIndex={-1} className="organizador__conteudo">
+          {children}
+        </main>
 
         {aoVoltar ? (
           rodape && <div className="rodape-fluxo">{rodape}</div>
@@ -156,9 +169,11 @@ export function OrganizadorLayout({
 
   return (
     <div className={`organizador${classeDoPerfil}`}>
+      {tituloDaPagina}
+      <PularParaConteudo />
       <MenuLateral perfil={perfil} aoSair={() => setConfirmandoSaida(true)} />
 
-      <main className="organizador__conteudo">
+      <main id="conteudo" tabIndex={-1} className="organizador__conteudo">
         <div className={`organizador__area${estreito ? ' organizador__area--estreita' : ''}`}>
           {titulo && (
             <header

@@ -4,6 +4,7 @@ import { Icone } from '../comum/Icone.jsx'
 import simbolo from '../../assets/organizador/simbolo.png'
 import iconeOrganizador from '../../assets/organizador/icone-organizador.svg'
 import iconeSair from '../../assets/organizador/icone-sair.svg'
+import iconeDuvidas from '../../assets/comum/icone-duvidas.svg'
 import iconeFornecedor from '../../assets/fornecedor/icone-fornecedor.svg'
 import iconeAdministracao from '../../assets/admin/icone-administracao.svg'
 
@@ -44,13 +45,15 @@ const ITENS = {
   ],
 }
 
-function ItemMenu({ to, end = false, children }) {
+function ItemMenu({ to, end = false, classe = '', children }) {
   return (
     <NavLink
       to={to}
       end={end}
       viewTransition
-      className={({ isActive }) => `menu__item${isActive ? ' menu__item--ativo' : ''}`}
+      className={({ isActive }) =>
+        `menu__item${isActive ? ' menu__item--ativo' : ''}${classe ? ` ${classe}` : ''}`
+      }
     >
       {children}
     </NavLink>
@@ -112,6 +115,11 @@ export function MenuLateral({ aoSair, perfil = 'organizador' }) {
           <ItemMenu to="/organizador/configuracoes">Configurações</ItemMenu>
         </>
       )}
+
+      <ItemMenu to={`/${perfil}/duvidas`} classe="menu__item--ajuda">
+        <Icone src={iconeDuvidas} />
+        Dúvidas
+      </ItemMenu>
 
       <div className="menu__usuario">
         <div>

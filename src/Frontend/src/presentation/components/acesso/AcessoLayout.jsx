@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom'
 import { BotaoAcessibilidade } from '../comum/BotaoAcessibilidade.jsx'
 import { Logotipo } from '../comum/Logotipo.jsx'
+import { TituloDaPagina } from '../comum/TituloDaPagina.jsx'
+import { PularParaConteudo } from '../comum/PularParaConteudo.jsx'
 import fotoShow from '../../assets/acesso/foto-show.jpg'
 import '../../styles/acesso.css'
 
@@ -16,6 +18,7 @@ const DESCRICAO_PADRAO =
   'Cadastre custos, receba propostas de fornecedores e calcule o ticket médio antes de abrir as vendas.'
 
 export function AcessoLayout({
+  tituloDaPagina,
   foto = fotoShow,
   tom = 'laranja',
   fotoNoMobile = true,
@@ -25,7 +28,9 @@ export function AcessoLayout({
 }) {
   return (
     <div className={`acesso${fotoNoMobile ? '' : ' acesso--marca-no-topo'}`}>
-      <div className="acesso__formulario">
+      <TituloDaPagina titulo={tituloDaPagina} />
+      <PularParaConteudo />
+      <main id="conteudo" tabIndex={-1} className="acesso__formulario">
         <div className="acesso__conteudo">
           <div className="acesso__topo">
             <Link to="/" className="acesso__marca">
@@ -36,7 +41,7 @@ export function AcessoLayout({
 
           <div className="acesso__miolo">{children}</div>
         </div>
-      </div>
+      </main>
 
       <aside
         className={`acesso__painel acesso__painel--${tom}`}

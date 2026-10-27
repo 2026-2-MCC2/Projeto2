@@ -1,9 +1,10 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import { OrganizadorLayout } from '../../components/organizador/OrganizadorLayout.jsx'
+import { Vazio } from '../../components/comum/EstadoDaTela.jsx'
 import { Botao } from '../../components/organizador/Formulario.jsx'
-import { ProgressoEtapas } from '../../components/comum/ProgressoEtapas.jsx'
-import { ProgressoPropostaDesktop } from './EnviarProposta.jsx'
+import { PassosDasEtapas, ProgressoEtapas } from '../../components/comum/ProgressoEtapas.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
+import { useValidacao } from '../../hooks/useValidacao.js'
 import { EVENTOS_DISPONIVEIS } from '../../data/eventosDisponiveis.js'
 import {
   ETAPAS_PROPOSTA,
@@ -31,7 +32,23 @@ export function EnviarPropostaEtapa3() {
   const { id } = useParams()
   const navigate = useNavigate()
   const isMobile = useIsMobile()
-  const evento = EVENTOS_DISPONIVEIS.find((item) => item.id === id) ?? EVENTOS_DISPONIVEIS[0]
+  const validacao = useValidacao()
+  const evento = EVENTOS_DISPONIVEIS.find((item) => item.id === id)
+
+  if (!evento) {
+    return (
+      <OrganizadorLayout
+        perfil="fornecedor"
+        titulo="Evento não encontrado"
+        voltarPara="/fornecedor/eventos"
+      >
+        <Vazio
+          titulo="Este evento não está disponível"
+          mensagem="Ele pode ter sido encerrado. Veja os eventos abertos para proposta."
+        />
+      </OrganizadorLayout>
+    )
+  }
   const voltar = () => navigate(`/fornecedor/eventos/${evento.id}/propostas/etapa-2`)
 
   const acoes = (
@@ -58,7 +75,7 @@ export function EnviarPropostaEtapa3() {
       }
       rodape={acoes}
     >
-      {!isMobile && <ProgressoPropostaDesktop etapaAtual={3} />}
+      {!isMobile && <PassosDasEtapas etapas={ETAPAS_PROPOSTA} etapaAtual={3} tom="sucesso" />}
       <div className="proposta-condicoes">
         <form
           id="form-proposta-condicoes"
@@ -69,6 +86,7 @@ export function EnviarPropostaEtapa3() {
             salvarPropostaFornecedor({ evento, item: NOME_ITEM_PROPOSTA, valor: 49800 })
             navigate('/fornecedor/propostas')
           }}
+          {...validacao}
         >
           <div className="proposta-condicoes__conteudo">
             <h2 className="proposta-condicoes__titulo-mobile">Condições e revisão</h2>
@@ -84,6 +102,7 @@ export function EnviarPropostaEtapa3() {
                     id="prazo-montagem"
                     type="text"
                     placeholder="Montagem 4h antes do evento"
+                    required
                   />
                 </CampoCondicao>
                 <CampoCondicao id="prazo-pagamento" rotulo="Condição de pagamento" obrigatorio>
@@ -91,6 +110,7 @@ export function EnviarPropostaEtapa3() {
                     id="prazo-pagamento"
                     type="text"
                     placeholder="50% na assinatura, 50% até 5 dias antes"
+                    required
                   />
                 </CampoCondicao>
                 <CampoCondicao id="equipe-envolvida" rotulo="Equipe envolvida" somenteDesktop>

@@ -1,20 +1,19 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ProgressoEtapas } from '../../components/comum/ProgressoEtapas.jsx'
+import { PassosDasEtapas, ProgressoEtapas } from '../../components/comum/ProgressoEtapas.jsx'
 import { OrganizadorLayout } from '../../components/organizador/OrganizadorLayout.jsx'
-import { Selecao } from '../../components/organizador/Selecao.jsx'
-import {
-  Acoes,
-  Botao,
-  Campo,
-  CampoFixo,
-  Grupo,
-  Linha,
-  SeDesktop,
-} from '../../components/organizador/Formulario.jsx'
+import { Acoes, Botao } from '../../components/organizador/Formulario.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
-import { Icone } from '../../components/comum/Icone.jsx'
-import iconeConcluido from '../../assets/organizador/icone-concluido.svg'
+import { useValidacao } from '../../hooks/useValidacao.js'
+import { EtapaIdentificacao } from './novoEvento/EtapaIdentificacao.jsx'
+import { EtapaLocal } from './novoEvento/EtapaLocal.jsx'
+import { EtapaCustos } from './novoEvento/EtapaCustos.jsx'
+import { EtapaRevisao } from './novoEvento/EtapaRevisao.jsx'
+import {
+  validarPublicoEsperado,
+  validarPublicoMaximo,
+  validarTermino,
+} from '../../../domain/validacao.js'
 
 // Cadastro de evento em 4 etapas
 
@@ -69,19 +68,20 @@ const VALOR_INICIAL = {
   cenarioReferencia: 'esperado',
 }
 
-const CENARIOS = [
-  { valor: 'minimo', nome: 'Público mínimo' },
-  { valor: 'esperado', nome: 'Público esperado' },
-  { valor: 'maximo', nome: 'Público máximo' },
-]
-
-const nomeDoCenario = (valor) => CENARIOS.find((cenario) => cenario.valor === valor)?.nome
+// regras que comparam campos da mesma etapa
+const REGRAS_ENTRE_CAMPOS = {
+  dataTermino: (valor, valores) => validarTermino(valor, valores.dataInicio),
+  publicoMaximo: (valor, valores) => validarPublicoMaximo(valor, valores.publicoMinimo),
+  publicoEsperado: (valor, valores) =>
+    validarPublicoEsperado(valor, valores.publicoMinimo, valores.publicoMaximo),
+}
 
 export function NovoEvento() {
   const isMobile = useIsMobile()
   const navigate = useNavigate()
   const [etapa, setEtapa] = useState(1)
   const [dados, setDados] = useState(VALOR_INICIAL)
+  const validacao = useValidacao(REGRAS_ENTRE_CAMPOS)
 
   const etapaAtual = ETAPAS[etapa - 1]
   const ultimaEtapa = etapa === ETAPAS.length
@@ -89,6 +89,7 @@ export function NovoEvento() {
   const definir = (nome, valor) => setDados((atual) => ({ ...atual, [nome]: valor }))
 
   const campo = (nome) => ({
+    name: nome,
     value: dados[nome],
     onChange: (evento) => definir(nome, evento.target.value),
   })
@@ -142,12 +143,13 @@ export function NovoEvento() {
         ) : undefined
       }
     >
-      {!isMobile && <ProgressoDesktop etapa={etapa} />}
+      {!isMobile && <PassosDasEtapas etapas={ETAPAS.map((item) => item.nome)} etapaAtual={etapa} />}
 
       <form
         id="form-novo-evento"
         className={isMobile ? 'novo-evento-form' : 'painel'}
         onSubmit={ultimaEtapa ? publicar : avancar}
+        {...validacao}
       >
         {isMobile && <p className="secao__apoio">{etapaAtual.apoioMobile}</p>}
 
@@ -156,311 +158,5 @@ export function NovoEvento() {
         {!isMobile && acoes}
       </form>
     </OrganizadorLayout>
-  )
-}
-
-/* ---------- indicadores de etapa ---------- */
-
-function ProgressoDesktop({ etapa }) {
-  return (
-    <div className="etapas-evento">
-      {ETAPAS.map((item, indice) => {
-        const estado =
-          item.numero < etapa ? 'concluida' : item.numero === etapa ? 'atual' : 'futura'
-        const ultimo = indice === ETAPAS.length - 1
-
-        return (
-          <div key={item.numero} className="etapas-evento__item">
-            <div className={`etapas-evento__marcador etapas-evento__marcador--${estado}`}>
-              {estado === 'concluida' ? <Icone src={iconeConcluido} /> : item.numero}
-            </div>
-
-            <div className="etapas-evento__rotulo">
-              <span>Etapa {item.numero}</span>
-              <strong className={estado === 'futura' ? '' : 'etapas-evento__nome--destaque'}>
-                {item.nome}
-              </strong>
-            </div>
-
-            {!ultimo && (
-              <div
-                className={`etapas-evento__conector${estado === 'concluida' ? ' etapas-evento__conector--feito' : ''}`}
-              />
-            )}
-          </div>
-        )
-      })}
-    </div>
-  )
-}
-
-/* ---------- etapas ---------- */
-
-function EtapaIdentificacao({ campo, isMobile }) {
-  return (
-    <>
-      <Grupo isMobile={isMobile} titulo="Identificação">
-        <Campo
-          rotulo="Nome do evento"
-          placeholder="Festival Primavera Som & Luz 2026"
-          {...campo('nome')}
-        />
-
-        <Linha>
-          <Campo rotulo="Categoria" placeholder="Festival" {...campo('categoria')} />
-          {!isMobile && (
-            <CampoFixo rotulo="Tipo de ingresso" valor="Inteira — único tipo por evento" />
-          )}
-        </Linha>
-
-        <Campo rotulo="Descrição">
-          <textarea
-            rows={3}
-            placeholder={
-              isMobile
-                ? 'Festival de música ao ar livre com três palcos.'
-                : 'Festival de música ao ar livre com três palcos, área gastronômica e espaço VIP.'
-            }
-            {...campo('descricao')}
-          />
-        </Campo>
-      </Grupo>
-
-      <Grupo isMobile={isMobile} titulo="Período">
-        <Linha>
-          <Campo
-            rotulo={isMobile ? 'Início' : 'Data de início'}
-            placeholder="18/10/2026"
-            {...campo('dataInicio')}
-          />
-          <Campo
-            rotulo={isMobile ? 'Término' : 'Data de término'}
-            placeholder="20/10/2026"
-            {...campo('dataTermino')}
-          />
-        </Linha>
-
-        {!isMobile && (
-          <Linha>
-            <Campo rotulo="Horário de abertura" placeholder="14:00" {...campo('horarioAbertura')} />
-            <Campo
-              rotulo="Horário de encerramento"
-              placeholder="23:00"
-              {...campo('horarioEncerramento')}
-            />
-          </Linha>
-        )}
-      </Grupo>
-    </>
-  )
-}
-
-function EtapaLocal({ campo, isMobile }) {
-  return (
-    <>
-      <Grupo isMobile={isMobile} titulo="Local">
-        <Linha>
-          <Campo rotulo="Nome do espaço" placeholder="Allianz Parque" {...campo('nomeEspaco')} />
-          {!isMobile && <Campo rotulo="CEP" placeholder="05001-100" {...campo('cep')} />}
-        </Linha>
-
-        <Campo
-          rotulo="Endereço"
-          placeholder={
-            isMobile
-              ? 'Av. Francisco Matarazzo, 1705'
-              : 'Av. Francisco Matarazzo, 1705 — Água Branca'
-          }
-          {...campo('endereco')}
-        />
-
-        <Linha>
-          <Campo rotulo="Cidade" placeholder="São Paulo" {...campo('cidade')} />
-          <Campo rotulo="Estado" placeholder="SP" {...campo('estado')} />
-          {!isMobile && (
-            <Campo
-              rotulo="Capacidade do espaço"
-              placeholder="20.000 pessoas"
-              {...campo('capacidadeEspaco')}
-            />
-          )}
-        </Linha>
-      </Grupo>
-
-      <Grupo isMobile={isMobile} titulo="Público estimado">
-        {isMobile ? (
-          <>
-            <Linha>
-              <Campo rotulo="Público mínimo" placeholder="8.000" {...campo('publicoMinimo')} />
-              <Campo rotulo="Público máximo" placeholder="15.000" {...campo('publicoMaximo')} />
-            </Linha>
-            <Campo rotulo="Público esperado" placeholder="12.000" {...campo('publicoEsperado')} />
-          </>
-        ) : (
-          <Linha>
-            <Campo
-              rotulo="Público mínimo"
-              placeholder="8.000"
-              ajuda="Cenário conservador do cálculo do ticket."
-              {...campo('publicoMinimo')}
-            />
-            <Campo
-              rotulo="Público esperado"
-              placeholder="12.000"
-              ajuda="Usado como referência principal."
-              {...campo('publicoEsperado')}
-            />
-            <Campo
-              rotulo="Público máximo"
-              placeholder="15.000"
-              ajuda="Limitado pela capacidade do espaço."
-              {...campo('publicoMaximo')}
-            />
-          </Linha>
-        )}
-      </Grupo>
-    </>
-  )
-}
-
-function EtapaCustos({ campo, dados, definir, isMobile }) {
-  return (
-    <>
-      <Grupo isMobile={isMobile} titulo="Margem de lucro">
-        <Campo
-          rotulo="Margem de lucro"
-          placeholder="20%"
-          ajuda={isMobile ? undefined : 'Aplicada sobre a receita do evento.'}
-          {...campo('margemLucro')}
-        />
-      </Grupo>
-
-      <Grupo isMobile={isMobile} titulo="Custos próprios estimados">
-        <SeDesktop isMobile={isMobile} envolver={Linha}>
-          <Campo
-            rotulo="Custos fiscais e alvarás"
-            placeholder="R$ 24.300"
-            {...campo('custosFiscais')}
-          />
-          <Campo rotulo="Equipe de produção" placeholder="R$ 17.800" {...campo('equipeProducao')} />
-          <Campo
-            rotulo="Outros custos variáveis"
-            placeholder="R$ 0,00"
-            {...campo('outrosCustos')}
-          />
-        </SeDesktop>
-      </Grupo>
-
-      <Grupo isMobile={isMobile} titulo="Regras de cálculo">
-        <Linha>
-          {!isMobile && <CampoFixo rotulo="Arredondamento do ticket" valor="Duas casas decimais" />}
-
-          <Campo rotulo="Cenário de referência">
-            <Selecao
-              valor={dados.cenarioReferencia}
-              opcoes={CENARIOS}
-              aoEscolher={(valor) => definir('cenarioReferencia', valor)}
-              rotuloAcessivel="Cenário de referência"
-            />
-          </Campo>
-        </Linha>
-      </Grupo>
-    </>
-  )
-}
-
-function EtapaRevisao({ dados, isMobile }) {
-  const periodo = [dados.dataInicio, dados.dataTermino].filter(Boolean).join(' a ')
-  const custosProprios = [dados.custosFiscais, dados.equipeProducao, dados.outrosCustos]
-    .filter(Boolean)
-    .join(' + ')
-
-  if (isMobile) {
-    return (
-      <>
-        <div className="resumo resumo--cartao">
-          <DadoResumo rotulo="Evento" valor={dados.nome} />
-          <DadoResumo rotulo="Período" valor={periodo} />
-          <DadoResumo
-            rotulo="Local"
-            valor={[dados.nomeEspaco, dados.estado].filter(Boolean).join(', ')}
-          />
-          <DadoResumo rotulo="Público esperado" valor={dados.publicoEsperado} />
-          <DadoResumo rotulo="Margem de lucro" valor={dados.margemLucro} />
-          <DadoResumo rotulo="Custos próprios" valor={custosProprios} />
-        </div>
-
-        <div className="preveia-ticket preveia-ticket--mobile">
-          <p className="preveia-ticket__titulo">Prévia do ticket no público esperado</p>
-          <strong>—</strong>
-          <p className="preveia-ticket__apoio">{APOIO_PREVIA}</p>
-        </div>
-      </>
-    )
-  }
-
-  return (
-    <>
-      <div className="resumo">
-        <BlocoResumo titulo="Dados do evento">
-          <DadoResumo rotulo="Nome" valor={dados.nome} />
-          <DadoResumo rotulo="Categoria" valor={dados.categoria} />
-          <DadoResumo rotulo="Período" valor={periodo} />
-        </BlocoResumo>
-
-        <BlocoResumo titulo="Local e público">
-          <DadoResumo
-            rotulo="Espaço"
-            valor={[dados.nomeEspaco, dados.cidade, dados.estado].filter(Boolean).join(' — ')}
-          />
-          <DadoResumo rotulo="Público mínimo" valor={dados.publicoMinimo} />
-          <DadoResumo rotulo="Público esperado" valor={dados.publicoEsperado} />
-          <DadoResumo rotulo="Público máximo" valor={dados.publicoMaximo} />
-        </BlocoResumo>
-
-        <BlocoResumo titulo="Financeiro">
-          <DadoResumo rotulo="Margem de lucro" valor={dados.margemLucro} />
-          <DadoResumo rotulo="Custos próprios" valor={custosProprios} />
-          <DadoResumo
-            rotulo="Cenário de referência"
-            valor={nomeDoCenario(dados.cenarioReferencia)}
-          />
-        </BlocoResumo>
-      </div>
-
-      <div className="preveia-ticket">
-        <div>
-          <p className="preveia-ticket__titulo">Prévia do ticket no público esperado</p>
-          <p className="preveia-ticket__apoio">{APOIO_PREVIA}</p>
-        </div>
-        <strong>—</strong>
-      </div>
-
-      <p className="aviso">
-        Ao publicar, o evento e seus itens de custo ficam visíveis para os fornecedores aprovados
-        nas categorias escolhidas.
-      </p>
-    </>
-  )
-}
-
-const APOIO_PREVIA =
-  'Ainda sem propostas de fornecedores. O valor é recalculado a cada proposta selecionada.'
-
-function BlocoResumo({ titulo, children }) {
-  return (
-    <div className="resumo__bloco">
-      <h2 className="secao__titulo">{titulo}</h2>
-      {children}
-    </div>
-  )
-}
-
-function DadoResumo({ rotulo, valor }) {
-  return (
-    <div className="resumo__dado">
-      <span>{rotulo}</span>
-      <strong>{valor || '—'}</strong>
-    </div>
   )
 }

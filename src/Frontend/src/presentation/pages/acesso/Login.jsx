@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AcessoLayout } from '../../components/acesso/AcessoLayout.jsx'
+import { useValidacao } from '../../hooks/useValidacao.js'
 
 // Atalhos do protótipo enquanto não há login de verdade.
 const ATALHOS = [
@@ -12,6 +13,7 @@ const ATALHOS = [
 export function Login() {
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
+  const validacao = useValidacao()
 
   function aoEnviar(evento) {
     evento.preventDefault()
@@ -19,17 +21,19 @@ export function Login() {
   }
 
   return (
-    <AcessoLayout>
+    <AcessoLayout tituloDaPagina="Entrar">
       <header className="acesso__cabecalho">
         <h1>Entrar na plataforma</h1>
         <p>Planejamento, cotação e precificação de eventos.</p>
       </header>
 
-      <form className="acesso__campos" onSubmit={aoEnviar}>
+      <form className="acesso__campos" onSubmit={aoEnviar} {...validacao}>
         <label className="campo">
           <span>E-mail</span>
           <input
             type="email"
+            autoComplete="email"
+            data-validar="email"
             placeholder="voce@email.com"
             value={email}
             onChange={(evento) => setEmail(evento.target.value)}
@@ -41,6 +45,7 @@ export function Login() {
           <span>Senha</span>
           <input
             type="password"
+            autoComplete="current-password"
             placeholder="••••••••"
             value={senha}
             onChange={(evento) => setSenha(evento.target.value)}

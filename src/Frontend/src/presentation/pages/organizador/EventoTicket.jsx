@@ -1,5 +1,6 @@
 import { useParams } from 'react-router-dom'
 import { EventoLayout } from '../../components/organizador/EventoLayout.jsx'
+import { Vazio } from '../../components/comum/EstadoDaTela.jsx'
 import { Cartao } from '../../components/organizador/Cartao.jsx'
 import { GraficoEquilibrio } from '../../components/organizador/GraficoEquilibrio.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
@@ -12,7 +13,16 @@ export function EventoTicket() {
   const isMobile = useIsMobile()
   const calculo = buscarEvento(id)?.detalhe?.calculo
 
-  if (!calculo) return <EventoLayout />
+  if (!calculo) {
+    return (
+      <EventoLayout>
+        <Vazio
+          titulo="Cálculo ainda indisponível"
+          mensagem="O ticket é calculado quando o evento tiver custos e propostas selecionadas."
+        />
+      </EventoLayout>
+    )
+  }
 
   const cenarios = (
     <Cartao titulo="Resultado por cenário de público">

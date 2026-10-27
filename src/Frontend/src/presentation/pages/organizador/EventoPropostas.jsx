@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { EventoLayout } from '../../components/organizador/EventoLayout.jsx'
+import { Vazio } from '../../components/comum/EstadoDaTela.jsx'
 import { Tabela } from '../../components/organizador/Tabela.jsx'
 import { Botao } from '../../components/organizador/Formulario.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
@@ -37,7 +38,16 @@ export function EventoPropostas() {
   const [itemAberto, setItemAberto] = useState('todos')
   const itens = buscarEvento(id)?.detalhe?.comparacao?.itens
 
-  if (!itens) return <EventoLayout />
+  if (!itens) {
+    return (
+      <EventoLayout>
+        <Vazio
+          titulo="Nenhuma proposta recebida"
+          mensagem="As propostas aparecem aqui quando o evento for publicado e os fornecedores responderem."
+        />
+      </EventoLayout>
+    )
+  }
 
   const visiveis = itemAberto === 'todos' ? itens : itens.filter((item) => item.id === itemAberto)
   const emLista = !isMobile && visao === 'lista'
@@ -51,16 +61,40 @@ export function EventoPropostas() {
     ...itens.map((item) => ({ id: item.id, nome: item.nome, conta: item.propostas.length })),
   ]
 
+  // abas da WAI-ARIA: só a aba ativa entra no Tab; as setas trocam de aba
+  function aoTeclarNasAbas(evento) {
+    const atual = abas.findIndex((aba) => aba.id === itemAberto)
+    const destino = {
+      ArrowRight: (atual + 1) % abas.length,
+      ArrowLeft: (atual - 1 + abas.length) % abas.length,
+      Home: 0,
+      End: abas.length - 1,
+    }[evento.key]
+    if (destino === undefined) return
+
+    evento.preventDefault()
+    setItemAberto(abas[destino].id)
+    document.getElementById(`aba-${abas[destino].id}`)?.focus()
+  }
+
   return (
     <EventoLayout>
       <div className="propostas-topo">
-        <div className="itens-em-cotacao" role="tablist" aria-label="Itens em cotação">
+        <div
+          className="itens-em-cotacao"
+          role="tablist"
+          aria-label="Itens em cotação"
+          onKeyDown={aoTeclarNasAbas}
+        >
           {abas.map((aba) => (
             <button
               key={aba.id}
               type="button"
+              id={`aba-${aba.id}`}
               role="tab"
               aria-selected={aba.id === itemAberto}
+              aria-controls="painel-propostas"
+              tabIndex={aba.id === itemAberto ? 0 : -1}
               className={`aba-item${aba.id === itemAberto ? ' aba-item--ativa' : ''}`}
               onClick={() => setItemAberto(aba.id)}
             >
@@ -89,75 +123,83 @@ export function EventoPropostas() {
         )}
       </div>
 
-      {visiveis.map((item) => (
-        <section key={item.id} className="grupo-propostas">
-          <p className="proposta-recebida__origem">
-            {item.propostas.length} propostas para <strong>{item.nome}</strong>
-            <span
-              className={`etiqueta etiqueta--${item.situacao === 'Selecionada' ? 'aprovado' : 'cotacao'}`}
-            >
-              {item.situacao}
-            </span>
-          </p>
+      <div
+        id="painel-propostas"
+        className="painel-propostas"
+        role="tabpanel"
+        aria-labelledby={`aba-${itemAberto}`}
+        tabIndex={0}
+      >
+        {visiveis.map((item) => (
+          <section key={item.id} className="grupo-propostas">
+            <p className="proposta-recebida__origem">
+              {item.propostas.length} propostas para <strong>{item.nome}</strong>
+              <span
+                className={`etiqueta etiqueta--${item.situacao === 'Selecionada' ? 'aprovado' : 'cotacao'}`}
+              >
+                {item.situacao}
+              </span>
+            </p>
 
-          {emLista ? (
-            <Tabela
-              colunas={['FORNECEDOR', 'VALOR', 'PRAZO DE ENTREGA', 'VALIDADE', '']}
-              aoClicarNaLinha={(chave) => abrir(item.propostas.find((p) => p.id === chave))}
-              linhas={item.propostas.map((proposta) => ({
-                chave: proposta.id,
-                celulas: [
-                  <span className="lista-proposta__nome" key="nome">
-                    {proposta.fornecedor}
-                    <Etiquetas proposta={proposta} />
-                  </span>,
-                  proposta.valor,
-                  proposta.prazo,
-                  proposta.validade,
-                  <Link key="acao" to={rotaDa(proposta)} className="cartao__link" viewTransition>
-                    Ver proposta
-                    <Icone src={iconeAvancar} />
-                  </Link>,
-                ],
-              }))}
-            />
-          ) : (
-            <div className="comparacao">
-              {item.propostas.map((proposta) => (
-                <article
-                  key={proposta.id}
-                  className={`proposta${estaVencida(proposta.validade) ? ' proposta--vencida' : ''}`}
-                  onClick={() => abrir(proposta)}
-                >
-                  <div className="proposta__etiquetas">
-                    <Etiquetas proposta={proposta} />
-                  </div>
-
-                  <div className="proposta__cabecalho">
-                    <strong className="proposta__fornecedor">{proposta.fornecedor}</strong>
-                    <strong className="proposta__valor">{proposta.valor}</strong>
-                  </div>
-
-                  <div className="proposta__dados">
-                    <div>
-                      <span>Prazo de entrega</span>
-                      <strong>{proposta.prazo}</strong>
+            {emLista ? (
+              <Tabela
+                colunas={['FORNECEDOR', 'VALOR', 'PRAZO DE ENTREGA', 'VALIDADE', '']}
+                aoClicarNaLinha={(chave) => abrir(item.propostas.find((p) => p.id === chave))}
+                linhas={item.propostas.map((proposta) => ({
+                  chave: proposta.id,
+                  celulas: [
+                    <span className="lista-proposta__nome" key="nome">
+                      {proposta.fornecedor}
+                      <Etiquetas proposta={proposta} />
+                    </span>,
+                    proposta.valor,
+                    proposta.prazo,
+                    proposta.validade,
+                    <Link key="acao" to={rotaDa(proposta)} className="cartao__link" viewTransition>
+                      Ver proposta
+                      <Icone src={iconeAvancar} />
+                    </Link>,
+                  ],
+                }))}
+              />
+            ) : (
+              <div className="comparacao">
+                {item.propostas.map((proposta) => (
+                  <article
+                    key={proposta.id}
+                    className={`proposta${estaVencida(proposta.validade) ? ' proposta--vencida' : ''}`}
+                    onClick={() => abrir(proposta)}
+                  >
+                    <div className="proposta__etiquetas">
+                      <Etiquetas proposta={proposta} />
                     </div>
-                    <div>
-                      <span>{isMobile ? 'Validade' : 'Validade da proposta'}</span>
-                      <strong>{proposta.validade}</strong>
-                    </div>
-                  </div>
 
-                  <Botao type="button" secundario>
-                    Ver proposta
-                  </Botao>
-                </article>
-              ))}
-            </div>
-          )}
-        </section>
-      ))}
+                    <div className="proposta__cabecalho">
+                      <strong className="proposta__fornecedor">{proposta.fornecedor}</strong>
+                      <strong className="proposta__valor">{proposta.valor}</strong>
+                    </div>
+
+                    <div className="proposta__dados">
+                      <div>
+                        <span>Prazo de entrega</span>
+                        <strong>{proposta.prazo}</strong>
+                      </div>
+                      <div>
+                        <span>{isMobile ? 'Validade' : 'Validade da proposta'}</span>
+                        <strong>{proposta.validade}</strong>
+                      </div>
+                    </div>
+
+                    <Botao type="button" secundario>
+                      Ver proposta
+                    </Botao>
+                  </article>
+                ))}
+              </div>
+            )}
+          </section>
+        ))}
+      </div>
     </EventoLayout>
   )
 }

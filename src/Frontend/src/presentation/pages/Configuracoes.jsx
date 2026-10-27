@@ -9,6 +9,8 @@ import {
   Painel,
 } from '../components/organizador/Formulario.jsx'
 import { useIsMobile } from '../hooks/useIsMobile.js'
+import { useValidacao } from '../hooks/useValidacao.js'
+import { validarConfirmacaoSenha } from '../../domain/validacao.js'
 import { Icone } from '../components/comum/Icone.jsx'
 import iconeBloqueado from '../assets/organizador/icone-bloqueado.svg'
 import iconePermitido from '../assets/organizador/icone-permitido.svg'
@@ -133,9 +135,17 @@ export function Configuracoes({ perfil = 'organizador' }) {
   )
 }
 
+// Os campos mostram os dados atuais no placeholder: vazio mantém o valor, preenchido é validado.
 function PainelDados({ titulo = 'Dados cadastrais', apoio, children }) {
+  const validacao = useValidacao()
+
   return (
-    <Painel titulo={titulo} apoio={apoio} onSubmit={(evento) => evento.preventDefault()}>
+    <Painel
+      titulo={titulo}
+      apoio={apoio}
+      onSubmit={(evento) => evento.preventDefault()}
+      {...validacao}
+    >
       {children}
 
       <Acoes>
@@ -157,12 +167,12 @@ function DadosCadastrais({ empresa, isMobile }) {
   )
   const telefone = (
     <Campo rotulo="Telefone">
-      <input type="tel" placeholder="(11) 98765-4321" />
+      <input type="tel" autoComplete="tel" data-validar="telefone" placeholder="(11) 98765-4321" />
     </Campo>
   )
   const email = (
     <Campo rotulo="E-mail">
-      <input type="email" placeholder={empresa.email} />
+      <input type="email" autoComplete="email" data-validar="email" placeholder={empresa.email} />
     </Campo>
   )
 
@@ -214,7 +224,12 @@ function DadosAdmin({ isMobile }) {
       <Linha>
         <Campo rotulo="Nome" placeholder="Admin TrocaTicket" />
         <Campo rotulo="E-mail">
-          <input type="email" placeholder="admin@trocaticket.com.br" />
+          <input
+            type="email"
+            autoComplete="email"
+            data-validar="email"
+            placeholder="admin@trocaticket.com.br"
+          />
         </Campo>
       </Linha>
     </PainelDados>
@@ -294,22 +309,44 @@ function PainelPerfil({ etiquetas, aviso, avisoMobile, apoio, permissoes, isMobi
 }
 
 const CAMPOS_DE_SENHA = [
-  { rotulo: 'Senha atual', placeholder: '••••••••' },
-  { rotulo: 'Nova senha', placeholder: 'Mínimo de 8 caracteres', minimo: 8 },
-  { rotulo: 'Confirmar nova senha', placeholder: 'Repita a nova senha', minimo: 8 },
+  {
+    nome: 'senhaAtual',
+    rotulo: 'Senha atual',
+    placeholder: '••••••••',
+    preencher: 'current-password',
+  },
+  {
+    nome: 'novaSenha',
+    rotulo: 'Nova senha',
+    placeholder: 'Mínimo de 8 caracteres',
+    regra: 'senha',
+  },
+  { nome: 'confirmacaoSenha', rotulo: 'Confirmar nova senha', placeholder: 'Repita a nova senha' },
 ]
 
 function PainelSenha() {
+  const validacao = useValidacao({
+    confirmacaoSenha: (valor, valores) => validarConfirmacaoSenha(valor, valores.novaSenha),
+  })
+
   return (
     <Painel
       titulo="Senha"
       apoio="Use uma senha com pelo menos 8 caracteres."
       onSubmit={(evento) => evento.preventDefault()}
+      {...validacao}
     >
       <Linha>
         {CAMPOS_DE_SENHA.map((item) => (
-          <Campo key={item.rotulo} rotulo={item.rotulo}>
-            <input type="password" placeholder={item.placeholder} minLength={item.minimo} />
+          <Campo key={item.nome} rotulo={item.rotulo}>
+            <input
+              type="password"
+              name={item.nome}
+              autoComplete={item.preencher ?? 'new-password'}
+              placeholder={item.placeholder}
+              data-validar={item.regra}
+              required
+            />
           </Campo>
         ))}
       </Linha>

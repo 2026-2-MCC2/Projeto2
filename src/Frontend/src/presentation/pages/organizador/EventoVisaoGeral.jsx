@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { EventoLayout } from '../../components/organizador/EventoLayout.jsx'
+import { Vazio } from '../../components/comum/EstadoDaTela.jsx'
 import { Cartao, ListaDeLinhas } from '../../components/organizador/Cartao.jsx'
 import { Botao } from '../../components/organizador/Formulario.jsx'
 import { Modal } from '../../components/comum/Modal.jsx'
@@ -24,7 +25,16 @@ export function EventoVisaoGeral() {
   const [publicando, setPublicando] = useState(false)
   const detalhe = buscarEvento(id)?.detalhe
 
-  if (!detalhe) return <EventoLayout />
+  if (!detalhe) {
+    return (
+      <EventoLayout>
+        <Vazio
+          titulo="Sem informações do evento"
+          mensagem="O resumo aparece quando o evento tiver itens de custo cadastrados."
+        />
+      </EventoLayout>
+    )
+  }
 
   const acoes = (
     <>

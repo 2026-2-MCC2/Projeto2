@@ -5,7 +5,7 @@
   min-height: 100vh;
   background: var(--fundo-superficie);
   color: var(--texto-primario);
-  font-family: Inter, system-ui, sans-serif;
+  font-family: var(--fonte-texto);
   line-height: 1.35;
 }
 
@@ -91,7 +91,7 @@
 
 .campo input {
   padding: 0.8125rem 0.875rem;
-  border: 1px solid var(--borda-padrao);
+  border: 1px solid var(--borda-campo);
   border-radius: var(--acesso-raio);
   font-size: 0.875rem;
   font-family: inherit;
@@ -427,7 +427,7 @@
   min-height: 100vh;
   background: var(--fundo-pagina);
   color: var(--texto-primario);
-  font-family: Inter, system-ui, sans-serif;
+  font-family: var(--fonte-texto);
   line-height: 1.35;
 }
 
@@ -465,48 +465,6 @@
 
 .etapas__topo .acessibilidade-area {
   margin-left: auto;
-}
-
-.etapas__progresso {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.etapas__legenda {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.75rem;
-}
-
-.etapas__legenda strong {
-  color: var(--texto-marca);
-  font-weight: 600;
-}
-
-.etapas__legenda span {
-  color: var(--texto-secundario);
-  font-weight: 500;
-}
-
-.etapas__trilho {
-  display: flex;
-  gap: 0.375rem;
-}
-
-.etapas__segmento {
-  flex: 1;
-  height: 4px;
-  border-radius: 999px;
-  background: var(--borda-padrao);
-}
-
-.etapas__segmento--concluida {
-  background: var(--status-sucesso-forte);
-}
-
-.etapas__segmento--atual {
-  background: var(--acao-primaria);
 }
 
 .etapas__form {

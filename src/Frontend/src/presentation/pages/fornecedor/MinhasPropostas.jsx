@@ -1,9 +1,6 @@
 import { useMemo } from 'react'
 import { OrganizadorLayout } from '../../components/organizador/OrganizadorLayout.jsx'
-import {
-  lerPropostasFornecedor,
-  PROPOSTAS_FORNECEDOR_INICIAIS,
-} from '../../data/propostaFornecedor.js'
+import { lerPropostasFornecedor } from '../../data/propostaFornecedor.js'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
 import '../../styles/fornecedor.css'
 
@@ -84,9 +81,13 @@ function TabelaPropostas({ propostas }) {
 export function MinhasPropostas() {
   const isMobile = useIsMobile()
   const propostas = useMemo(() => lerPropostasFornecedor(), [])
-  const propostasNovas = propostas.length - PROPOSTAS_FORNECEDOR_INICIAIS.length
-  const totais = { 'Em análise': 2, Aceita: 3, Recusada: 1 }
-  const enviadas = 6 + propostasNovas
+  const enviadas = propostas.length
+  const totais = Object.fromEntries(
+    SITUACOES.map((situacao) => [
+      situacao,
+      propostas.filter((proposta) => proposta.situacao === situacao).length,
+    ]),
+  )
 
   return (
     <OrganizadorLayout

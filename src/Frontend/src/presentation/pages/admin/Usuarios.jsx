@@ -74,6 +74,7 @@ function ModalAcesso({ acao, usuario, aoFechar }) {
         <textarea
           rows={2}
           placeholder="Ex.: inatividade prolongada ou irregularidade identificada."
+          required
         />
       </Campo>
     </Modal>
@@ -179,6 +180,7 @@ export function Usuarios() {
           <Icone src={iconeBuscar} />
           <input
             type="search"
+            aria-label="Buscar usuário"
             placeholder={isMobile ? 'Buscar por empresa' : 'Buscar por empresa ou responsável'}
             value={busca}
             onChange={(evento) => setBusca(evento.target.value)}

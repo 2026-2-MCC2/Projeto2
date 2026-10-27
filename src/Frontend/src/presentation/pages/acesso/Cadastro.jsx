@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { AcessoLayout } from '../../components/acesso/AcessoLayout.jsx'
 import { CadastroMobile } from '../../components/acesso/CadastroMobile.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
+import { useValidacao } from '../../hooks/useValidacao.js'
 import fotoMusica from '../../assets/acesso/foto-musica.jpg'
 
 const PERFIS = [
@@ -14,6 +15,7 @@ export function Cadastro() {
   const navegar = useNavigate()
   const isMobile = useIsMobile()
   const [perfil, setPerfil] = useState('organizador')
+  const validacao = useValidacao()
 
   function aoEnviar(evento) {
     evento.preventDefault()
@@ -28,6 +30,7 @@ export function Cadastro() {
 
   return (
     <AcessoLayout
+      tituloDaPagina="Criar cadastro"
       foto={fotoMusica}
       tom="azul"
       titulo={
@@ -49,6 +52,7 @@ export function Cadastro() {
           <button
             key={opcao.id}
             type="button"
+            aria-pressed={perfil === opcao.id}
             className={`acesso__perfil${perfil === opcao.id ? ' acesso__perfil--ativo' : ''}`}
             onClick={() => setPerfil(opcao.id)}
           >
@@ -58,32 +62,55 @@ export function Cadastro() {
         ))}
       </div>
 
-      <form className="acesso__campos" onSubmit={aoEnviar}>
+      <form className="acesso__campos" onSubmit={aoEnviar} {...validacao}>
         <label className="campo">
           <span>Nome ou razão social</span>
-          <input type="text" placeholder="TrocaTicket Produções Ltda." required />
+          <input
+            type="text"
+            autoComplete="organization"
+            placeholder="TrocaTicket Produções Ltda."
+            required
+          />
         </label>
 
         <div className="acesso__linha">
           <label className="campo">
             <span>CNPJ</span>
-            <input type="text" placeholder="00.000.000/0001-00" required />
+            <input type="text" data-validar="cnpj" placeholder="00.000.000/0001-00" required />
           </label>
 
           <label className="campo">
             <span>Telefone</span>
-            <input type="tel" placeholder="(11) 90000-0000" required />
+            <input
+              type="tel"
+              autoComplete="tel"
+              data-validar="telefone"
+              placeholder="(11) 90000-0000"
+              required
+            />
           </label>
         </div>
 
         <label className="campo">
           <span>E-mail</span>
-          <input type="email" placeholder="voce@email.com" required />
+          <input
+            type="email"
+            autoComplete="email"
+            data-validar="email"
+            placeholder="voce@email.com"
+            required
+          />
         </label>
 
         <label className="campo">
           <span>Senha</span>
-          <input type="password" placeholder="Mínimo de 8 caracteres" minLength={8} required />
+          <input
+            type="password"
+            autoComplete="new-password"
+            data-validar="senha"
+            placeholder="Mínimo de 8 caracteres"
+            required
+          />
         </label>
 
         <p className="acesso__aviso">O cadastro fica pendente até a aprovação do administrador.</p>

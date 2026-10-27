@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { OrganizadorLayout } from '../../components/organizador/OrganizadorLayout.jsx'
+import { Vazio } from '../../components/comum/EstadoDaTela.jsx'
 import { Botao } from '../../components/organizador/Formulario.jsx'
-import { ProgressoEtapas } from '../../components/comum/ProgressoEtapas.jsx'
-import { ProgressoPropostaDesktop } from './EnviarProposta.jsx'
+import { PassosDasEtapas, ProgressoEtapas } from '../../components/comum/ProgressoEtapas.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
+import { useValidacao } from '../../hooks/useValidacao.js'
 import { EVENTOS_DISPONIVEIS } from '../../data/eventosDisponiveis.js'
 import { ETAPAS_PROPOSTA, NOME_ITEM_PROPOSTA } from '../../data/propostaFornecedor.js'
 import { ResumoItemCotacao, ResumoProposta } from '../../components/fornecedor/ResumoProposta.jsx'
@@ -78,7 +79,23 @@ export function EnviarPropostaEtapa2() {
   const { id } = useParams()
   const navigate = useNavigate()
   const isMobile = useIsMobile()
-  const evento = EVENTOS_DISPONIVEIS.find((item) => item.id === id) ?? EVENTOS_DISPONIVEIS[0]
+  const validacao = useValidacao()
+  const evento = EVENTOS_DISPONIVEIS.find((item) => item.id === id)
+
+  if (!evento) {
+    return (
+      <OrganizadorLayout
+        perfil="fornecedor"
+        titulo="Evento não encontrado"
+        voltarPara="/fornecedor/eventos"
+      >
+        <Vazio
+          titulo="Este evento não está disponível"
+          mensagem="Ele pode ter sido encerrado. Veja os eventos abertos para proposta."
+        />
+      </OrganizadorLayout>
+    )
+  }
   const voltar = () => navigate(`/fornecedor/eventos/${evento.id}/propostas/etapa-1`)
 
   const acoes = (
@@ -107,7 +124,7 @@ export function EnviarPropostaEtapa2() {
       }
       rodape={acoes}
     >
-      {!isMobile && <ProgressoPropostaDesktop etapaAtual={2} />}
+      {!isMobile && <PassosDasEtapas etapas={ETAPAS_PROPOSTA} etapaAtual={2} tom="sucesso" />}
       <div className="proposta-detalhes">
         <form
           id="form-proposta-detalhes"
@@ -117,6 +134,7 @@ export function EnviarPropostaEtapa2() {
             submit.preventDefault()
             navigate(`/fornecedor/eventos/${evento.id}/propostas/etapa-3`)
           }}
+          {...validacao}
         >
           <div className="proposta-detalhes__conteudo">
             <h2 className="proposta-detalhes__titulo-mobile">Descrição e fotos do serviço</h2>

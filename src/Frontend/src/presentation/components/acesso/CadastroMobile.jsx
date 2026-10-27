@@ -1,9 +1,12 @@
 import { useState } from 'react'
 import { BotaoAcessibilidade } from '../comum/BotaoAcessibilidade.jsx'
-import { BotaoTema } from '../comum/BotaoTema.jsx'
 import { Logotipo } from '../comum/Logotipo.jsx'
 import { useNavigate } from 'react-router-dom'
 import { Icone } from '../comum/Icone.jsx'
+import { ProgressoEtapas } from '../comum/ProgressoEtapas.jsx'
+import { TituloDaPagina } from '../comum/TituloDaPagina.jsx'
+import { useValidacao } from '../../hooks/useValidacao.js'
+import { validarConfirmacaoSenha } from '../../../domain/validacao.js'
 import setaVoltar from '../../assets/acesso/seta-voltar.svg'
 import perfilSelecionado from '../../assets/acesso/perfil-selecionado.svg'
 import '../../styles/acesso.css'
@@ -38,6 +41,9 @@ export function CadastroMobile() {
   const navegar = useNavigate()
   const [etapa, setEtapa] = useState(1)
   const [dados, setDados] = useState(DADOS_INICIAIS)
+  const validacao = useValidacao({
+    confirmacaoSenha: (valor, valores) => validarConfirmacaoSenha(valor, valores.senha),
+  })
 
   function preencher(campo) {
     return (evento) => setDados({ ...dados, [campo]: evento.target.value })
@@ -65,6 +71,7 @@ export function CadastroMobile() {
 
   return (
     <div className="etapas">
+      <TituloDaPagina titulo="Criar cadastro" />
       <header className="etapas__barra">
         <div className="etapas__topo">
           <button type="button" className="etapas__voltar" onClick={voltar} aria-label="Voltar">
@@ -72,29 +79,12 @@ export function CadastroMobile() {
           </button>
           <Logotipo className="etapas__logo" />
           <BotaoAcessibilidade posicao="topo" />
-          <BotaoTema />
         </div>
 
-        <div className="etapas__progresso">
-          <div className="etapas__legenda">
-            <strong>
-              Etapa {etapa} de {ETAPAS.length}
-            </strong>
-            <span>{ETAPAS[etapa - 1]}</span>
-          </div>
-
-          <div className="etapas__trilho">
-            {ETAPAS.map((rotulo, indice) => (
-              <span
-                key={rotulo}
-                className={`etapas__segmento etapas__segmento--${situacaoDaEtapa(indice + 1, etapa)}`}
-              />
-            ))}
-          </div>
-        </div>
+        <ProgressoEtapas etapas={ETAPAS} etapaAtual={etapa} />
       </header>
 
-      <form className="etapas__form" onSubmit={aoEnviar}>
+      <form className="etapas__form" onSubmit={aoEnviar} {...validacao}>
         <div className="etapas__conteudo">
           {etapa === 1 && (
             <>
@@ -107,6 +97,7 @@ export function CadastroMobile() {
                 <button
                   key={opcao.id}
                   type="button"
+                  aria-pressed={dados.perfil === opcao.id}
                   className={`etapas__perfil${dados.perfil === opcao.id ? ' etapas__perfil--ativo' : ''}`}
                   onClick={() => setDados({ ...dados, perfil: opcao.id })}
                 >
@@ -135,6 +126,7 @@ export function CadastroMobile() {
                 <span>Nome ou razão social</span>
                 <input
                   type="text"
+                  autoComplete="organization"
                   placeholder="TrocaTicket Produções Ltda."
                   value={dados.razaoSocial}
                   onChange={preencher('razaoSocial')}
@@ -146,6 +138,7 @@ export function CadastroMobile() {
                 <span>CNPJ</span>
                 <input
                   type="text"
+                  data-validar="cnpj"
                   placeholder="00.000.000/0001-00"
                   value={dados.cnpj}
                   onChange={preencher('cnpj')}
@@ -157,6 +150,8 @@ export function CadastroMobile() {
                 <span>Telefone</span>
                 <input
                   type="tel"
+                  autoComplete="tel"
+                  data-validar="telefone"
                   placeholder="(11) 90000-0000"
                   value={dados.telefone}
                   onChange={preencher('telefone')}
@@ -168,6 +163,7 @@ export function CadastroMobile() {
                 <span>Cidade e estado</span>
                 <input
                   type="text"
+                  autoComplete="address-level2"
                   placeholder="São Paulo, SP"
                   value={dados.cidade}
                   onChange={preencher('cidade')}
@@ -188,6 +184,8 @@ export function CadastroMobile() {
                 <span>E-mail</span>
                 <input
                   type="email"
+                  autoComplete="email"
+                  data-validar="email"
                   placeholder="voce@email.com"
                   value={dados.email}
                   onChange={preencher('email')}
@@ -199,8 +197,10 @@ export function CadastroMobile() {
                 <span>Senha</span>
                 <input
                   type="password"
+                  name="senha"
+                  autoComplete="new-password"
+                  data-validar="senha"
                   placeholder="Mínimo de 8 caracteres"
-                  minLength={8}
                   value={dados.senha}
                   onChange={preencher('senha')}
                   required
@@ -212,8 +212,9 @@ export function CadastroMobile() {
                 <span>Confirmar senha</span>
                 <input
                   type="password"
+                  name="confirmacaoSenha"
+                  autoComplete="new-password"
                   placeholder="Repita a senha"
-                  minLength={8}
                   value={dados.confirmacaoSenha}
                   onChange={preencher('confirmacaoSenha')}
                   required
@@ -235,10 +236,4 @@ export function CadastroMobile() {
       </form>
     </div>
   )
-}
-
-function situacaoDaEtapa(numero, etapaAtual) {
-  if (numero < etapaAtual) return 'concluida'
-  if (numero === etapaAtual) return 'atual'
-  return 'pendente'
 }

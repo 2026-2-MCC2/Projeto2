@@ -3,11 +3,13 @@ import { OrganizadorLayout } from '../../components/organizador/OrganizadorLayou
 import { CamposDoItem } from '../../components/organizador/CamposDoItem.jsx'
 import { Acoes, Botao } from '../../components/organizador/Formulario.jsx'
 import { buscarEvento } from '../../data/eventos.js'
+import { useValidacao } from '../../hooks/useValidacao.js'
 
 export function NovoItemCusto() {
   const { id } = useParams()
   const navigate = useNavigate()
   const evento = buscarEvento(id)
+  const validacao = useValidacao()
 
   const voltar = () => navigate(`/organizador/eventos/${id}/itens`, { viewTransition: true })
 
@@ -28,6 +30,7 @@ export function NovoItemCusto() {
           submissao.preventDefault()
           voltar()
         }}
+        {...validacao}
       >
         <p className="secao__apoio">{evento?.detalhe?.nomeCompleto}</p>
 

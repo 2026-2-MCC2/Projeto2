@@ -3,6 +3,8 @@ import { OrganizadorLayout } from './OrganizadorLayout.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
 import { buscarEvento, STATUS } from '../../data/eventos.js'
 import { Icone } from '../comum/Icone.jsx'
+import { TituloDaPagina } from '../comum/TituloDaPagina.jsx'
+import { Vazio } from '../comum/EstadoDaTela.jsx'
 import iconeVoltar from '../../assets/organizador/icone-voltar.svg'
 
 const ABAS = [
@@ -17,7 +19,17 @@ export function EventoLayout({ acoes, comResumo = false, voltar, children }) {
   const isMobile = useIsMobile()
   const evento = buscarEvento(id)
 
-  if (!evento) return <OrganizadorLayout titulo="Evento não encontrado" />
+  if (!evento) {
+    return (
+      <OrganizadorLayout titulo="Evento não encontrado" voltarPara="/organizador/eventos">
+        <Vazio titulo="Este evento não existe" mensagem="Confira o endereço ou volte para a lista.">
+          <Link to="/organizador/eventos" className="botao botao--secundario">
+            Ver meus eventos
+          </Link>
+        </Vazio>
+      </OrganizadorLayout>
+    )
+  }
 
   const detalhe = evento.detalhe
   const etiqueta = (
@@ -58,6 +70,7 @@ export function EventoLayout({ acoes, comResumo = false, voltar, children }) {
 
   return (
     <OrganizadorLayout>
+      <TituloDaPagina titulo={detalhe?.nomeCompleto ?? evento.nome} />
       <div className="evento-topo">
         <div
           className={`evento-topo__titulos${comResumo ? '' : ' evento-topo__titulos--espacado'}`}
