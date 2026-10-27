@@ -28,7 +28,7 @@ export function AcessoLayout({
   return (
     <div className={`acesso${fotoNoMobile ? '' : ' acesso--marca-no-topo'}`}>
       <TituloDaPagina titulo={tituloDaPagina} />
-      <div className="acesso__formulario">
+      <main className="acesso__formulario">
         <div className="acesso__conteudo">
           <div className="acesso__topo">
             <Link to="/" className="acesso__marca">
@@ -39,7 +39,7 @@ export function AcessoLayout({
 
           <div className="acesso__miolo">{children}</div>
         </div>
-      </div>
+      </main>
 
       <aside
         className={`acesso__painel acesso__painel--${tom}`}
