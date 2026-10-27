@@ -1,0 +1,134 @@
+# Back-end (trocaticket-event-planning-api): CI e deploy no Cloud Run.
+#
+# MONOREPO
+# O GitHub só lê workflows desta pasta (.github/workflows na raiz do repositório), por isso o
+# workflow do back-end fica aqui e não dentro de src/Backend. Para cada parte só rodar quando ela
+# muda, os dois workflows filtram por pasta ("paths"):
+#   mudou src/Backend/**   ->  roda este arquivo (backend.yml)
+#   mudou src/Frontend/**  ->  roda o frontend.yml
+#   mudou só documentação  ->  não roda nenhum dos dois
+# E todo comando "run" daqui roda dentro de src/Backend (defaults.run.working-directory).
+#
+# QUANDO RODA
+#   pull request para main ou dev  ->  só o CI (formatação + testes de integração com Docker)
+#   push na main (ex.: merge do PR) ->  CI e, se passar, deploy no Cloud Run
+#
+# COMO O DEPLOY FUNCIONA
+# "gcloud run deploy --source ." envia a pasta src/Backend para o Google Cloud, que monta a imagem
+# usando o Dockerfile dela (Cloud Build) e publica uma nova versão no Cloud Run. A versão antiga
+# continua atendendo até a nova responder ao health check: se a nova não subir, nada sai do ar.
+#
+# CONFIGURAÇÃO NECESSÁRIA (uma vez)
+# No Google Cloud (mesmo projeto do front-end):
+#   1. Cloud SQL: instância MySQL 8, com o banco event_planning e um usuário da aplicação.
+#      Rode o src/Backend/database/database.sql nela (pelo Cloud SQL Studio).
+#   2. Secret Manager: dois secrets
+#        - trocaticket-event-planning-db-credentials, em JSON:
+#          { "username": "...", "password": "...", "socket_path": "/cloudsql/PROJETO:REGIAO:INSTANCIA" }
+#        - trocaticket-event-planning-jwt-secret: um texto longo e aleatório (ex.: gerado com "openssl rand -base64 48")
+#   3. Service account com que a API roda, com os papéis roles/cloudsql.client e
+#      roles/secretmanager.secretAccessor.
+#   4. A service account de deploy (secret GCP_SA_EMAIL, a mesma do front-end) precisa poder usar a
+#      service account do passo 3 (roles/iam.serviceAccountUser).
+# No GitHub (Settings > Secrets and variables > Actions):
+#   Secrets (já existem, os mesmos do front-end): GCP_WIF_PROVIDER, GCP_SA_EMAIL
+#   Variables:
+#     CLOUD_SQL_INSTANCE          PROJETO:REGIAO:INSTANCIA
+#     API_SERVICE_ACCOUNT         e-mail da service account do passo 3
+#     CORS_ALLOWED_ORIGINS        URL do front-end no Cloud Run (ex.: https://trocaticket-front-xyz.a.run.app)
+
+name: Backend CI/CD
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/Backend/**'
+      - '.github/workflows/backend.yml'
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - 'src/Backend/**'
+      - '.github/workflows/backend.yml'
+
+permissions:
+  contents: read
+  id-token: write
+
+defaults:
+  run:
+    working-directory: src/Backend
+
+env:
+  SERVICE_NAME: trocaticket-event-planning-api
+  GCP_PROJECT_ID: davi-varella-labs-prod
+  GCP_REGION: us-central1
+
+jobs:
+  ci:
+    name: CI (formatação e testes)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: src/Backend/package-lock.json
+
+      - run: npm ci
+
+      - name: Formatação (Prettier)
+        run: npm run format:check
+
+      - name: Sobe API, MySQL e emulador do Secret Manager
+        run: docker compose up -d --build
+
+      - name: Testes
+        run: npm test
+
+      - name: Logs da API (só aparece se algo falhou)
+        if: failure()
+        run: docker compose logs api
+
+      - name: Derruba os containers
+        if: always()
+        run: docker compose down -v
+
+  cd:
+    name: Deploy no Cloud Run
+    needs: ci
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_SA_EMAIL }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      # --allow-unauthenticated   o navegador chama a API direto; quem protege as rotas é o login (JWT)
+      # --min-instances 0         sem acesso, desliga tudo e não cobra. Na semana da apresentação,
+      #                           troquem para 1: assim a primeira requisição não espera a API "acordar"
+      # --max-instances 3         até 3 cópias da API rodando ao mesmo tempo se o acesso aumentar
+      # --add-cloudsql-instances  cria o socket /cloudsql/... para a API falar com o Cloud SQL
+      # O separador ^@^ no --set-env-vars permite usar vírgula dentro do valor do CORS_ALLOWED_ORIGINS
+      - name: Deploy
+        run: |
+          URL=$(gcloud run deploy "$SERVICE_NAME" \
+            --source . \
+            --region "$GCP_REGION" \
+            --project "$GCP_PROJECT_ID" \
+            --allow-unauthenticated \
+            --min-instances 0 \
+            --max-instances 3 \
+            --memory 512Mi \
+            --service-account "${{ vars.API_SERVICE_ACCOUNT }}" \
+            --add-cloudsql-instances "${{ vars.CLOUD_SQL_INSTANCE }}" \
+            --set-env-vars "^@^APP_ENV=production@SERVICE_NAME=$SERVICE_NAME@GCP_PROJECT_ID=$GCP_PROJECT_ID@DB_NAME=event_planning@DB_CREDENTIALS_SECRET_NAME=trocaticket-event-planning-db-credentials@JWT_SECRET_NAME=trocaticket-event-planning-jwt-secret@CORS_ALLOWED_ORIGINS=${{ vars.CORS_ALLOWED_ORIGINS }}@GIT_COMMIT=${{ github.sha }}@GIT_BRANCH=${{ github.ref_name }}" \
+            --format='value(status.url)')
+          echo "### API no ar: $URL/event_planning/" >> $GITHUB_STEP_SUMMARY
