@@ -1,3 +1,4 @@
+import { EntradaData } from '../../../components/comum/EntradaData.jsx'
 import { Campo, CampoFixo, Grupo, Linha } from '../../../components/organizador/Formulario.jsx'
 
 export function EtapaIdentificacao({ campo, isMobile }) {
@@ -33,22 +34,24 @@ export function EtapaIdentificacao({ campo, isMobile }) {
 
       <Grupo isMobile={isMobile} titulo="Período">
         <Linha>
-          <Campo
-            rotulo={isMobile ? 'Início' : 'Data de início'}
-            placeholder="18/10/2026"
-            inputMode="numeric"
-            data-validar="dataFutura"
-            required
-            {...campo('dataInicio')}
-          />
-          <Campo
-            rotulo={isMobile ? 'Término' : 'Data de término'}
-            placeholder="20/10/2026"
-            inputMode="numeric"
-            data-validar="data"
-            required
-            {...campo('dataTermino')}
-          />
+          <Campo rotulo={isMobile ? 'Início' : 'Data de início'}>
+            <EntradaData
+              placeholder="18/10/2026"
+              data-validar="dataFutura"
+              required
+              semPassado
+              {...campo('dataInicio')}
+            />
+          </Campo>
+          <Campo rotulo={isMobile ? 'Término' : 'Data de término'}>
+            <EntradaData
+              placeholder="20/10/2026"
+              data-validar="data"
+              required
+              semPassado
+              {...campo('dataTermino')}
+            />
+          </Campo>
         </Linha>
 
         {!isMobile && (

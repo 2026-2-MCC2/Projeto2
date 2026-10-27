@@ -158,6 +158,50 @@ textarea:user-invalid {
   line-height: 1.3;
 }
 
+/* ---------- campo de data (components/comum/EntradaData.jsx) ---------- */
+
+/* grade de uma célula: campo e ícone se sobrepõem, e a mensagem de erro cai na linha de baixo */
+.entrada-data {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.organizador .entrada-data .entrada-data__texto {
+  grid-area: 1 / 1;
+  width: 100%;
+  padding-right: 2.75rem;
+}
+
+.entrada-data__calendario {
+  --icone-padrao: var(--texto-secundario);
+  position: relative;
+  display: flex;
+  grid-area: 1 / 1;
+  align-items: center;
+  align-self: center;
+  justify-content: center;
+  justify-self: end;
+  width: 2.25rem;
+  height: 2.25rem;
+  margin-right: 0.25rem;
+}
+
+.entrada-data__calendario .icone {
+  width: 18px;
+  height: 18px;
+}
+
+.entrada-data__calendario input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
 /* ---------- estados da tela ---------- */
 
 .estado-tela {
