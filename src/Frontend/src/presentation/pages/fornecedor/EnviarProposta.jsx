@@ -1,5 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import { OrganizadorLayout } from '../../components/organizador/OrganizadorLayout.jsx'
+import { Vazio } from '../../components/comum/EstadoDaTela.jsx'
 import { PassosDasEtapas, ProgressoEtapas } from '../../components/comum/ProgressoEtapas.jsx'
 import { Botao } from '../../components/organizador/Formulario.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
@@ -14,7 +15,22 @@ export function EnviarProposta() {
   const navigate = useNavigate()
   const isMobile = useIsMobile()
   const validacao = useValidacao()
-  const evento = EVENTOS_DISPONIVEIS.find((item) => item.id === id) ?? EVENTOS_DISPONIVEIS[0]
+  const evento = EVENTOS_DISPONIVEIS.find((item) => item.id === id)
+
+  if (!evento) {
+    return (
+      <OrganizadorLayout
+        perfil="fornecedor"
+        titulo="Evento não encontrado"
+        voltarPara="/fornecedor/eventos"
+      >
+        <Vazio
+          titulo="Este evento não está disponível"
+          mensagem="Ele pode ter sido encerrado. Veja os eventos abertos para proposta."
+        />
+      </OrganizadorLayout>
+    )
+  }
 
   const acoes = (
     <Botao type="submit" form="form-enviar-proposta">

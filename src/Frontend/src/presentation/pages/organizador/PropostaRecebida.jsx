@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { EventoLayout } from '../../components/organizador/EventoLayout.jsx'
+import { Vazio } from '../../components/comum/EstadoDaTela.jsx'
 import { Cartao } from '../../components/organizador/Cartao.jsx'
 import { Modal } from '../../components/comum/Modal.jsx'
 import { buscarEvento } from '../../data/eventos.js'
@@ -15,7 +16,16 @@ export function PropostaRecebida() {
   const item = itens?.find((linha) => linha.propostas.some((p) => p.id === idDaProposta))
   const proposta = item?.propostas.find((p) => p.id === idDaProposta)
 
-  if (!proposta) return <EventoLayout />
+  if (!proposta) {
+    return (
+      <EventoLayout>
+        <Vazio
+          titulo="Proposta não encontrada"
+          mensagem="Ela pode ter sido removida. Volte para a lista de propostas do evento."
+        />
+      </EventoLayout>
+    )
+  }
 
   const fechar = () => setDecisao(null)
   const outras = item.propostas.filter((p) => p.id !== proposta.id)

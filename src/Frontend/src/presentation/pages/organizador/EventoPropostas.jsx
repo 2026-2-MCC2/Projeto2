@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { EventoLayout } from '../../components/organizador/EventoLayout.jsx'
+import { Vazio } from '../../components/comum/EstadoDaTela.jsx'
 import { Tabela } from '../../components/organizador/Tabela.jsx'
 import { Botao } from '../../components/organizador/Formulario.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
@@ -37,7 +38,16 @@ export function EventoPropostas() {
   const [itemAberto, setItemAberto] = useState('todos')
   const itens = buscarEvento(id)?.detalhe?.comparacao?.itens
 
-  if (!itens) return <EventoLayout />
+  if (!itens) {
+    return (
+      <EventoLayout>
+        <Vazio
+          titulo="Nenhuma proposta recebida"
+          mensagem="As propostas aparecem aqui quando o evento for publicado e os fornecedores responderem."
+        />
+      </EventoLayout>
+    )
+  }
 
   const visiveis = itemAberto === 'todos' ? itens : itens.filter((item) => item.id === itemAberto)
   const emLista = !isMobile && visao === 'lista'
