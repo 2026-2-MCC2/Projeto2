@@ -95,6 +95,7 @@ export function VisaoGeral() {
         <Icone src={iconeBuscar} />
         <input
           type="search"
+          aria-label="Buscar evento ou organizador"
           placeholder="Buscar evento ou organizador"
           value={busca}
           onChange={(evento) => setBusca(evento.target.value)}

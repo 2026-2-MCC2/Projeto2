@@ -82,6 +82,7 @@ export function EventosDisponiveis() {
             <Icone src={iconeBuscar} />
             <input
               type="search"
+              aria-label="Buscar evento"
               placeholder={
                 isMobile ? 'Buscar evento ou local' : 'Buscar evento por nome, local ou organizador'
               }

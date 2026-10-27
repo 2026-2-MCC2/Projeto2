@@ -180,6 +180,7 @@ export function Usuarios() {
           <Icone src={iconeBuscar} />
           <input
             type="search"
+            aria-label="Buscar usuário"
             placeholder={isMobile ? 'Buscar por empresa' : 'Buscar por empresa ou responsável'}
             value={busca}
             onChange={(evento) => setBusca(evento.target.value)}

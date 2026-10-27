@@ -51,6 +51,7 @@ export function Eventos() {
           <Icone src={iconeBuscar} />
           <input
             type="search"
+            aria-label="Buscar evento"
             placeholder={isMobile ? 'Buscar evento' : 'Buscar evento por nome ou local'}
             value={busca}
             onChange={(evento) => setBusca(evento.target.value)}
