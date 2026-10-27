@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { BotaoAcessibilidade } from '../comum/BotaoAcessibilidade.jsx'
 import { Logotipo } from '../comum/Logotipo.jsx'
 import { TituloDaPagina } from '../comum/TituloDaPagina.jsx'
+import { PularParaConteudo } from '../comum/PularParaConteudo.jsx'
 import fotoShow from '../../assets/acesso/foto-show.jpg'
 import '../../styles/acesso.css'
 
@@ -28,7 +29,8 @@ export function AcessoLayout({
   return (
     <div className={`acesso${fotoNoMobile ? '' : ' acesso--marca-no-topo'}`}>
       <TituloDaPagina titulo={tituloDaPagina} />
-      <main className="acesso__formulario">
+      <PularParaConteudo />
+      <main id="conteudo" tabIndex={-1} className="acesso__formulario">
         <div className="acesso__conteudo">
           <div className="acesso__topo">
             <Link to="/" className="acesso__marca">

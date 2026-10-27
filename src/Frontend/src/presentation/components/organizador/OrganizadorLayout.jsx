@@ -7,6 +7,7 @@ import { BotaoTema } from '../comum/BotaoTema.jsx'
 import { ModalSair } from '../comum/ModalSair.jsx'
 import { Icone } from '../comum/Icone.jsx'
 import { TituloDaPagina } from '../comum/TituloDaPagina.jsx'
+import { PularParaConteudo } from '../comum/PularParaConteudo.jsx'
 import simbolo from '../../assets/organizador/simbolo.png'
 import iconeSair from '../../assets/organizador/icone-sair.svg'
 import iconeVoltar from '../../assets/organizador/icone-voltar.svg'
@@ -69,6 +70,7 @@ export function OrganizadorLayout({
     return (
       <div className={`organizador${classeDoPerfil}${aoVoltar ? ' organizador--fluxo' : ''}`}>
         {tituloDaPagina}
+        <PularParaConteudo />
         <header className="topo">
           {aoVoltar ? (
             <div className="topo__fluxo">
@@ -130,7 +132,9 @@ export function OrganizadorLayout({
           )}
         </header>
 
-        <main className="organizador__conteudo">{children}</main>
+        <main id="conteudo" tabIndex={-1} className="organizador__conteudo">
+          {children}
+        </main>
 
         {aoVoltar ? (
           rodape && <div className="rodape-fluxo">{rodape}</div>
@@ -160,9 +164,10 @@ export function OrganizadorLayout({
   return (
     <div className={`organizador${classeDoPerfil}`}>
       {tituloDaPagina}
+      <PularParaConteudo />
       <MenuLateral perfil={perfil} aoSair={() => setConfirmandoSaida(true)} />
 
-      <main className="organizador__conteudo">
+      <main id="conteudo" tabIndex={-1} className="organizador__conteudo">
         <div className={`organizador__area${estreito ? ' organizador__area--estreita' : ''}`}>
           {titulo && (
             <header

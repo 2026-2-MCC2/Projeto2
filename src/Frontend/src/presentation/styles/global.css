@@ -109,6 +109,28 @@ select {
   background-color: var(--fundo-superficie);
 }
 
+.pular-conteudo {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 1000;
+  padding: 0.625rem 1rem;
+  border-radius: 10px;
+  background: var(--acao-primaria);
+  color: var(--acao-sobre-primaria);
+  font-weight: 600;
+  text-decoration: none;
+  transform: translateY(-200%);
+}
+
+.pular-conteudo:focus {
+  transform: none;
+}
+
+#conteudo:focus {
+  outline: none;
+}
+
 /* Campo inválido, só depois que a pessoa mexeu nele ou tentou enviar (ver hooks/useValidacao.js).
    O !important vence as bordas dos campos definidas em cada tela. */
 input:user-invalid,
