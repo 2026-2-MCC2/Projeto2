@@ -6,7 +6,7 @@
   padding: 2rem 1.5rem;
   background: var(--fundo-pagina);
   color: var(--texto-primario);
-  font-family: Inter, system-ui, sans-serif;
+  font-family: var(--fonte-texto);
   line-height: 1.35;
 }
 

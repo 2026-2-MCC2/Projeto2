@@ -1,5 +1,6 @@
 :root {
-  font-family: Inter, system-ui, sans-serif;
+  --fonte-texto: Inter, system-ui, sans-serif; /* a leitura facilitada troca por OpenDyslexic */
+  font-family: var(--fonte-texto);
   font-size: calc(17px * var(--escala-texto, 1));
   color-scheme: light;
 
@@ -109,6 +110,15 @@ input,
 textarea,
 select {
   background-color: var(--fundo-superficie);
+}
+
+/* o navegador fixa botões e campos em 13,33px; 0,7843rem dá o mesmo tamanho, mas acompanha a escala */
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
+  font-size: 0.7843rem;
 }
 
 .pular-conteudo {

@@ -3,7 +3,7 @@
   min-height: 100vh;
   background: var(--fundo-pagina);
   color: var(--texto-primario);
-  font-family: Inter, system-ui, sans-serif;
+  font-family: var(--fonte-texto);
   line-height: 1.35;
 }
 
@@ -1681,7 +1681,7 @@
 
 .grafico__rotulo {
   fill: var(--texto-terciario);
-  font-size: 11px;
+  font-size: calc(11px * var(--escala-texto, 1)); /* acompanha o tamanho do texto */
 }
 
 .grafico__rotulo--destaque {

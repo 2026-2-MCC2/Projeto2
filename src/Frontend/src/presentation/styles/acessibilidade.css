@@ -409,6 +409,33 @@
   border-width: 2px;
 }
 
+/* a OpenDyslexic é bem maior que a Inter no mesmo tamanho: o size-adjust reduz só as letras */
+@font-face {
+  font-family: 'OpenDyslexic Ajustada';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  size-adjust: 80%;
+  src:
+    url('@fontsource/opendyslexic/files/opendyslexic-latin-400-normal.woff2') format('woff2'),
+    url('@fontsource/opendyslexic/files/opendyslexic-latin-400-normal.woff') format('woff');
+}
+
+@font-face {
+  font-family: 'OpenDyslexic Ajustada';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  size-adjust: 80%;
+  src:
+    url('@fontsource/opendyslexic/files/opendyslexic-latin-700-normal.woff2') format('woff2'),
+    url('@fontsource/opendyslexic/files/opendyslexic-latin-700-normal.woff') format('woff');
+}
+
+:root.leitura-facil {
+  --fonte-texto: 'OpenDyslexic Ajustada', Inter, sans-serif;
+}
+
 :root.leitura-facil body {
   letter-spacing: 0.02em;
   line-height: 1.7;

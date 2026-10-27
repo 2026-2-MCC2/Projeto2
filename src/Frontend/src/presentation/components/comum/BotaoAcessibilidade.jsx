@@ -17,7 +17,11 @@ const TAMANHOS = [
 
 const OPCOES = [
   { chave: 'contraste', nome: 'Alto contraste', apoio: 'Reforça as cores e as bordas.' },
-  { chave: 'leitura', nome: 'Leitura facilitada', apoio: 'Mais espaço entre letras e linhas.' },
+  {
+    chave: 'leitura',
+    nome: 'Leitura facilitada',
+    apoio: 'Fonte OpenDyslexic e mais espaço entre letras e linhas.',
+  },
   { chave: 'movimento', nome: 'Reduzir animações', apoio: 'Desliga as transições das telas.' },
 ]
 
@@ -98,6 +102,7 @@ export function BotaoAcessibilidade({ posicao = 'flutuante' }) {
                   key={tamanho.valor}
                   type="button"
                   title={tamanho.titulo}
+                  aria-label={tamanho.titulo}
                   aria-pressed={ajustes.fonte === tamanho.valor}
                   className={`tamanhos__botao${ajustes.fonte === tamanho.valor ? ' tamanhos__botao--ativo' : ''}`}
                   style={{ fontSize: `${0.75 + indice * 0.125}rem` }}
