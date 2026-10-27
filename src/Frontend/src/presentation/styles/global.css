@@ -140,6 +140,14 @@ textarea:user-invalid {
   border-color: var(--acao-perigo) !important;
 }
 
+.mensagem-erro {
+  display: block;
+  color: var(--status-perigo-texto);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
 /* ---------- puxador da folha arrastável ---------- */
 
 .puxador {
