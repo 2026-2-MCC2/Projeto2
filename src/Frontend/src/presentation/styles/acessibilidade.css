@@ -206,7 +206,7 @@
 
 .painel-acesso--largo .painel-acesso__bloco--opcoes {
   grid-column: 2;
-  grid-row: 2 / span 2;
+  grid-row: 2 / span 3;
 }
 
 @keyframes painel-surge {
@@ -386,6 +386,23 @@
 
 .chave--ligada::after {
   transform: translateX(16px);
+}
+
+.painel-acesso__ouvir-icone {
+  --icone-padrao: var(--texto-marca);
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: var(--fundo-marca-suave);
+}
+
+.painel-acesso__ouvir--lendo .painel-acesso__ouvir-icone {
+  --icone-padrao: var(--acao-sobre-primaria);
+  background: var(--acao-primaria);
 }
 
 .painel-acesso__restaurar {

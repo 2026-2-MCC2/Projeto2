@@ -1,11 +1,14 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useAcessibilidade } from '../../hooks/useAcessibilidade.js'
 import { useFolhaArrastavel } from '../../hooks/useFolhaArrastavel.js'
+import { leituraDisponivel, useLeituraEmVozAlta } from '../../hooks/useLeituraEmVozAlta.js'
 import { Icone } from './Icone.jsx'
 import { BotaoTema, SeletorTema } from './BotaoTema.jsx'
 import iconeClaro from '../../assets/comum/icone-acessibilidade-claro.svg'
 import iconeEscuro from '../../assets/comum/icone-acessibilidade.svg'
 import iconeFechar from '../../assets/comum/icone-fechar.svg'
+import iconeOuvir from '../../assets/comum/icone-ouvir.svg'
+import iconeParar from '../../assets/comum/icone-parar.svg'
 import '../../styles/acessibilidade.css'
 
 const TAMANHOS = [
@@ -29,6 +32,7 @@ const OPCOES = [
 export function BotaoAcessibilidade({ posicao = 'flutuante' }) {
   const [aberto, setAberto] = useState(false)
   const { ajustes, alternar, mudarFonte, restaurar } = useAcessibilidade()
+  const leitura = useLeituraEmVozAlta()
   const caixa = useRef(null)
   const folha = useFolhaArrastavel(() => setAberto(false))
   const flutuante = posicao === 'flutuante'
@@ -138,6 +142,26 @@ export function BotaoAcessibilidade({ posicao = 'flutuante' }) {
               ))}
             </div>
           </div>
+
+          {leituraDisponivel && (
+            <div className="painel-acesso__bloco">
+              <span className="painel-acesso__rotulo">Leitura em voz alta</span>
+              <button
+                type="button"
+                className={`opcao-acesso painel-acesso__ouvir${leitura.lendo ? ' painel-acesso__ouvir--lendo' : ''}`}
+                aria-pressed={leitura.lendo}
+                onClick={leitura.lendo ? leitura.parar : leitura.ler}
+              >
+                <span className="opcao-acesso__texto">
+                  <strong>{leitura.lendo ? 'Parar leitura' : 'Ouvir a página'}</strong>
+                  <small>Lê o texto selecionado ou, sem seleção, a página.</small>
+                </span>
+                <span className="painel-acesso__ouvir-icone">
+                  <Icone src={leitura.lendo ? iconeParar : iconeOuvir} />
+                </span>
+              </button>
+            </div>
+          )}
 
           <div className="painel-acesso__bloco painel-acesso__bloco--opcoes">
             {OPCOES.map((opcao) => (
