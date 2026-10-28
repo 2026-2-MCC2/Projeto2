@@ -1,6 +1,3 @@
-# Front-end: CI e deploy no Cloud Run.
-# Monorepo: só roda quando algo muda em src/Frontend/ (ou neste arquivo).
-# O back-end tem o workflow próprio, em backend.yml.
 name: Frontend CI/CD
 
 on:

@@ -1,38 +1,20 @@
-# Sobe o ambiente local completo com um comando: a API, o MySQL e o emulador do Secret Manager.
-#
-#   docker compose up -d --build   sobe tudo em segundo plano (--build reconstrói a imagem da API)
-#   docker compose ps              mostra o que está rodando
-#   docker compose logs -f api     acompanha os logs da API (Ctrl+C para sair)
-#   docker compose down            desliga tudo
-#   docker compose down -v         desliga e apaga os dados do banco (use depois de mudar o database.sql)
-#
-# Se uma porta já estiver em uso na sua máquina, troque na hora de subir, ex.:
-#   API_PORT=3400 docker compose up -d --build   (e rode os testes com API_PORT=3400 npm test)
-#   DB_PORT=3307 docker compose up -d --build    (útil se você já tem um MySQL instalado na 3306)
-
 services:
-  # A API. O código de src/ é compartilhado com o container (volumes), e o "node --watch"
-  # reinicia a API sozinho sempre que um arquivo muda: é só salvar e testar de novo.
   api:
     build: .
     ports:
-      - '${API_PORT:-3300}:3300' # porta da sua máquina : porta dentro do container
+      - '${API_PORT:-3300}:3300'
     env_file: local.env
     environment:
-      SECRET_MANAGER_EMULATOR_HOST: secret-manager:9090 # dentro do Docker, os serviços se acham pelo nome
+      SECRET_MANAGER_EMULATOR_HOST: secret-manager:9090
     volumes:
       - ./src:/app/src
     command: node --watch src/server.js
     depends_on:
       db:
-        condition: service_healthy # só sobe a API quando o banco estiver pronto
+        condition: service_healthy
       secret-manager:
         condition: service_started
 
-  # MySQL 8, o mesmo banco usado no Cloud SQL em produção.
-  # Na primeira vez que sobe, roda o database/database.sql para criar as tabelas.
-  # Para acessar pelo terminal: docker compose exec db mysql -u my_user -pmy_pwd event_planning
-  # Também dá para conectar pelo MySQL Workbench: host localhost, porta 3306, usuário my_user, senha my_pwd.
   db:
     image: mysql:8.4
     environment:
@@ -45,14 +27,10 @@ services:
     volumes:
       - ./database/database.sql:/docker-entrypoint-initdb.d/01.sql:ro
     healthcheck:
-      # Conecta por TCP (127.0.0.1). Enquanto o MySQL ainda está rodando o database.sql ele não
-      # aceita conexões TCP, então a API só sobe depois que as tabelas já existem.
       test: ['CMD', 'mysqladmin', 'ping', '-h', '127.0.0.1', '-u', 'my_user', '-pmy_pwd']
       interval: 2s
       retries: 60
 
-  # Imita o Secret Manager do Google Cloud na sua máquina. Guarda os secrets só em memória:
-  # começa vazio toda vez, e o "npm test" cria os secrets necessários (tests/global_setup.js).
   secret-manager:
     image: ghcr.io/blackwell-systems/gcp-secret-manager-emulator-dual:1.9.0
     ports:
