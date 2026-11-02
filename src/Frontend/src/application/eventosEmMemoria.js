@@ -7,6 +7,11 @@ export function guardarEventos(eventos) {
   ouvintes.forEach((ouvinte) => ouvinte())
 }
 
+export function limparEventosEmMemoria() {
+  eventosPorChave.clear()
+  ouvintes.forEach((ouvinte) => ouvinte())
+}
+
 export function buscarEventoEmMemoria(eventKey) {
   return eventosPorChave.get(eventKey)
 }

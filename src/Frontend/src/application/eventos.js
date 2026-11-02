@@ -1,7 +1,7 @@
 import { api } from '../infrastructure/api.js'
 import { paraData, paraNumero } from '../domain/validacao.js'
-import { mascararCep } from '../domain/formatacao.js'
-import { guardarEventos } from './eventosEmMemoria.js'
+import { digitos, mascararCep } from '../domain/formatacao.js'
+import { guardarEventos, limparEventosEmMemoria } from './eventosEmMemoria.js'
 
 const CENARIOS_MAPA = {
   minimo: 'minimum',
@@ -338,27 +338,42 @@ export function formatarEventoParaExibicao(evento) {
   return formatado
 }
 
-const HORARIO_PADRAO = '12:00'
+// o horário é opcional: sem ele o evento ocupa o dia inteiro, e a edição mostra o campo vazio de novo
+const ABERTURA_SEM_HORARIO = '00:00'
+const ENCERRAMENTO_SEM_HORARIO = '23:59'
 
 // data inválida nunca vira "hoje": a tela mostra o erro e a pessoa corrige
-function juntarDataEHorario(dataTexto, horarioTexto) {
+function juntarDataEHorario(dataTexto, horarioTexto, horarioSemPreencher) {
   const data = paraData(dataTexto ?? '')
   if (!data) throw new Error('Confira as datas do evento: uma delas não existe no calendário.')
 
   const horario = /^([01]\d|2[0-3]):[0-5]\d$/.test(horarioTexto ?? '')
     ? horarioTexto
-    : HORARIO_PADRAO
+    : horarioSemPreencher
   const [horas, minutos] = horario.split(':').map(Number)
   data.setHours(horas, minutos, 0, 0)
   return data
 }
 
 // encerramento antes da abertura no mesmo dia é um evento que passa da meia-noite
+export function passaDaMeiaNoite({
+  dataInicio,
+  dataTermino,
+  horarioAbertura,
+  horarioEncerramento,
+}) {
+  const horariosPreenchidos = Boolean(horarioAbertura && horarioEncerramento)
+  return horariosPreenchidos && dataInicio === dataTermino && horarioEncerramento < horarioAbertura
+}
+
 function periodoDoEvento(dados) {
-  const inicio = juntarDataEHorario(dados.dataInicio, dados.horarioAbertura)
-  const termino = juntarDataEHorario(dados.dataTermino, dados.horarioEncerramento)
-  const mesmoDia = inicio.toDateString() === termino.toDateString()
-  if (mesmoDia && termino < inicio) termino.setDate(termino.getDate() + 1)
+  const inicio = juntarDataEHorario(dados.dataInicio, dados.horarioAbertura, ABERTURA_SEM_HORARIO)
+  const termino = juntarDataEHorario(
+    dados.dataTermino,
+    dados.horarioEncerramento,
+    ENCERRAMENTO_SEM_HORARIO,
+  )
+  if (passaDaMeiaNoite(dados)) termino.setDate(termino.getDate() + 1)
   return { startDate: inicio.toISOString(), endDate: termino.toISOString() }
 }
 
@@ -419,7 +434,7 @@ export function montarPayloadEvento(dados) {
     address: dados.endereco.trim(),
     city: dados.cidade.trim(),
     state: (dados.estado || 'SP').toUpperCase().trim(),
-    zip_code: dados.cep ? dados.cep.replace(/\D/g, '') : null,
+    zip_code: dados.cep ? digitos(dados.cep) : null,
     venue_capacity: venueCapacity || null,
     min_audience: minAudience,
     expected_audience: expectedAudience,
@@ -455,6 +470,12 @@ function esquecerRecentes() {
   recentesEmCache = null
 }
 
+// ao sair, nada do organizador anterior pode aparecer para quem entrar na mesma aba
+export function esquecerEventosDaSessao() {
+  esquecerRecentes()
+  limparEventosEmMemoria()
+}
+
 export function listarEventosRecentes(quantidade) {
   if (recentesEmCache?.quantidade !== quantidade) {
     const carregamento = api
@@ -470,15 +491,20 @@ export function listarEventosRecentes(quantidade) {
 }
 
 // busca todas as páginas para a lista nunca esconder eventos
+// a primeira página informa o total; as demais são buscadas juntas, e as telas são avisadas uma vez
 export async function listarTodosOsEventos({ status, search } = {}) {
-  const eventos = []
-  for (let page = 0; ; page++) {
-    const resposta = await api.get(
-      montarBuscaDeEventos({ status, search, limit: EVENTOS_POR_PAGINA, page }),
-    )
-    eventos.push(...formatarEGuardar(resposta.data))
-    if (resposta.is_last_page) return eventos
-  }
+  const buscarPagina = (page) =>
+    api.get(montarBuscaDeEventos({ status, search, limit: EVENTOS_POR_PAGINA, page }))
+
+  const primeira = await buscarPagina(0)
+  const totalDePaginas = Math.ceil(primeira.total / EVENTOS_POR_PAGINA)
+  const demais = await Promise.all(
+    Array.from({ length: Math.max(totalDePaginas - 1, 0) }, (_, indice) =>
+      buscarPagina(indice + 1),
+    ),
+  )
+
+  return formatarEGuardar([primeira, ...demais].flatMap((pagina) => pagina.data))
 }
 
 /**
@@ -523,17 +549,19 @@ export async function atualizarEvento(eventKey, dadosFormulario) {
 
 const CENARIO_DO_FORMULARIO = { minimum: 'minimo', expected: 'esperado', maximum: 'maximo' }
 
-const doisDigitos = (numero) => String(numero).padStart(2, '0')
+const dataDoFormulario = (dataIso) => new Date(dataIso).toLocaleDateString('pt-BR')
 
-function dataDoFormulario(dataIso) {
-  const data = new Date(dataIso)
-  return `${doisDigitos(data.getDate())}/${doisDigitos(data.getMonth() + 1)}/${data.getFullYear()}`
+function horarioDoFormulario(dataIso, horarioSemPreencher) {
+  const horario = new Date(dataIso).toLocaleTimeString('pt-BR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+  return horario === horarioSemPreencher ? '' : horario
 }
 
-function horarioDoFormulario(dataIso) {
-  const data = new Date(dataIso)
-  return `${doisDigitos(data.getHours())}:${doisDigitos(data.getMinutes())}`
-}
+// 0.125 vira "12,5": arredondar para inteiro mudaria a margem a cada edição
+const margemDoFormulario = (fracao) =>
+  String(Number((Number(fracao) * 100).toFixed(2))).replace('.', ',')
 
 // o caminho inverso do montarPayloadEvento: preenche o formulário com o evento salvo
 export function eventoParaFormulario(eventoDaApi) {
@@ -545,8 +573,8 @@ export function eventoParaFormulario(eventoDaApi) {
     descricao: eventoDaApi.description ?? '',
     dataInicio: dataDoFormulario(eventoDaApi.start_date),
     dataTermino: dataDoFormulario(eventoDaApi.end_date),
-    horarioAbertura: horarioDoFormulario(eventoDaApi.start_date),
-    horarioEncerramento: horarioDoFormulario(eventoDaApi.end_date),
+    horarioAbertura: horarioDoFormulario(eventoDaApi.start_date, ABERTURA_SEM_HORARIO),
+    horarioEncerramento: horarioDoFormulario(eventoDaApi.end_date, ENCERRAMENTO_SEM_HORARIO),
     nomeEspaco: eventoDaApi.venue_name,
     cep: eventoDaApi.zip_code ? mascararCep(eventoDaApi.zip_code) : '',
     endereco: eventoDaApi.address,
@@ -556,7 +584,7 @@ export function eventoParaFormulario(eventoDaApi) {
     publicoMinimo: numero(eventoDaApi.min_audience),
     publicoEsperado: numero(eventoDaApi.expected_audience),
     publicoMaximo: numero(eventoDaApi.max_audience),
-    margemLucro: String(Math.round(Number(eventoDaApi.profit_margin) * 100)),
+    margemLucro: margemDoFormulario(eventoDaApi.profit_margin),
     custosFiscais: '',
     equipeProducao: '',
     outrosCustos: '',

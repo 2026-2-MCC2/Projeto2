@@ -1,7 +1,8 @@
+import { passaDaMeiaNoite } from '../../../../application/eventos.js'
 import { EntradaData } from '../../../components/comum/EntradaData.jsx'
 import { Campo, CampoFixo, Grupo, Linha } from '../../../components/organizador/Formulario.jsx'
 
-export function EtapaIdentificacao({ campo, isMobile }) {
+export function EtapaIdentificacao({ campo, isMobile, dados }) {
   return (
     <>
       <Grupo isMobile={isMobile} titulo="Identificação">
@@ -66,6 +67,11 @@ export function EtapaIdentificacao({ campo, isMobile }) {
               rotulo="Horário de encerramento"
               placeholder="23:00"
               data-validar="horario"
+              ajuda={
+                passaDaMeiaNoite(dados)
+                  ? 'Antes da abertura: o evento termina no dia seguinte.'
+                  : undefined
+              }
               {...campo('horarioEncerramento')}
             />
           </Linha>

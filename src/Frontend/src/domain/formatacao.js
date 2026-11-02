@@ -1,6 +1,6 @@
 // valor fora do formato esperado volta como veio, para nunca esconder um dado
 
-const digitos = (texto) => String(texto ?? '').replace(/\D/g, '')
+export const digitos = (texto) => String(texto ?? '').replace(/\D/g, '')
 
 export function formatarCep(cep) {
   const numeros = digitos(cep)

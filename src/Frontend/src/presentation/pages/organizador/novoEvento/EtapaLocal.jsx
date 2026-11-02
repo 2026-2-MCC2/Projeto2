@@ -25,11 +25,13 @@ export function EtapaLocal({ campo, definir, atualizarCampos, isMobile }) {
       ultimoCepBuscado.current = null
       return
     }
-    preencherCampos({
+    // CEP geral de cidade não traz rua: o que a pessoa já digitou continua
+    const encontrados = {
       cidade: enderecoEncontrado.cidade,
       estado: enderecoEncontrado.estado,
       endereco: enderecoEncontrado.enderecoCompleto || enderecoEncontrado.logradouro,
-    })
+    }
+    preencherCampos(Object.fromEntries(Object.entries(encontrados).filter(([, valor]) => valor)))
   }
 
   function preencherCampos(novos) {

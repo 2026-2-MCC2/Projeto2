@@ -1,4 +1,5 @@
 import { api } from '../infrastructure/api.js'
+import { esquecerEventosDaSessao } from './eventos.js'
 import { guardarSessao, lerSessao, limparSessao } from '../infrastructure/armazenamentoDaSessao.js'
 import { obterDadosDoUsuarioAtual } from '../infrastructure/usuarios.js'
 
@@ -43,6 +44,7 @@ export function acompanhamentoDoCadastro(falhaNoLogin) {
 
 export function sair() {
   limparSessao()
+  esquecerEventosDaSessao()
 }
 
 export function usuarioAtual() {

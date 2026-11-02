@@ -120,7 +120,7 @@ export function FormularioDeEvento({
   )
 
   const etapasDoFormulario = {
-    1: <EtapaIdentificacao campo={campo} isMobile={isMobile} />,
+    1: <EtapaIdentificacao campo={campo} dados={dados} isMobile={isMobile} />,
     2: (
       <EtapaLocal
         campo={campo}
