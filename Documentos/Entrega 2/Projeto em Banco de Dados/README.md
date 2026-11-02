@@ -1,32 +1,28 @@
 # Banco de dados
 
-Banco MySQL 8 Gestão Troca Ticket.
+Banco **MySQL 8** da Gestão Troca Ticket, com 11 tabelas. O script de criação está em [`database.sql`](database.sql) e segue o [modelo da Entrega 1](../../Entrega%201/Projeto%20em%20Banco%20de%20Dados).
 
-As tabelas são criadas pelo [`database.sql`](database.sql) (cópia do [original no backend](../../../src/Backend/database/database.sql), que é o usado pela API) e seguem o [modelo lógico da Entrega 1](../../Entrega%201/Projeto%20em%20Banco%20de%20Dados).
+## Como as tabelas se ligam
 
-## Relacionamentos
+| Tabela          | Relação       | Tabela              | Cardinalidade |
+| --------------- | ------------- | ------------------- | ------------- |
+| `user`          | é             | `organizer`         | 1 : 0..1      |
+| `user`          | é             | `supplier`          | 1 : 0..1      |
+| `user`          | tem histórico | `user_status_event` | 1 : N         |
+| `supplier`      | atua em       | `item_category`     | N : N         |
+| `organizer`     | cria          | `event`             | 1 : N         |
+| `event`         | possui        | `internal_cost`     | 1 : N         |
+| `event`         | possui        | `budget_item`       | 1 : N         |
+| `item_category` | classifica    | `budget_item`       | 1 : N         |
+| `budget_item`   | recebe        | `proposal`          | 1 : N         |
+| `supplier`      | envia         | `proposal`          | 1 : N         |
+| `proposal`      | tem           | `proposal_photo`    | 1 : N         |
 
-| Tabela          | Relação    | Tabela          | Cardinalidade |
-| --------------- | ---------- | --------------- | ------------- |
-| `user`          | é          | `organizer`     | 1 : 0..1      |
-| `user`          | é          | `supplier`      | 1 : 0..1      |
-| `organizer`     | cria       | `event`         | 1 : N         |
-| `event`         | possui     | `internal_cost` | 1 : N         |
-| `event`         | possui     | `budget_item`   | 1 : N         |
-| `item_category` | classifica | `budget_item`   | 1 : N         |
-| `budget_item`   | recebe     | `proposal`      | 1 : N         |
-| `supplier`      | envia      | `proposal`      | 1 : N         |
+## Do modelo da Entrega 1 para o banco
 
-- Cada usuário é organizador **ou** fornecedor, conforme o `profile`. O administrador só tem a linha em `user`.
-- Um evento tem vários custos internos e vários itens de orçamento.
-- Cada item recebe propostas de vários fornecedores, mas no máximo uma de cada fornecedor.
-- Apagar um evento apaga junto os custos, os itens e as propostas dele (`ON DELETE CASCADE`).
+As entidades do modelo foram mantidas, com nomes em inglês (padrão do código):
 
-## Correspondência com o modelo lógico
-
-Mesmas entidades e relacionamentos do modelo, com nomes em inglês (padrão do backend):
-
-| Modelo lógico    | Tabela          |
+| Modelo           | Tabela          |
 | ---------------- | --------------- |
 | `Usuario`        | `user`          |
 | `Organizador`    | `organizer`     |
@@ -37,129 +33,151 @@ Mesmas entidades e relacionamentos do modelo, com nomes em inglês (padrão do b
 | `Item_orcamento` | `budget_item`   |
 | `Proposta`       | `proposal`      |
 
-Os atributos seguem a mesma tradução (ex.: `data_inicio` → `start_date`). Além do modelo, foram adicionados:
+Três tabelas novas surgiram na implementação:
 
-- `created_at` e chave pública `<tabela>_key`;
-- `UNIQUE`, `CHECK` e `ENUM` para validar os dados;
-- FK simples (`organizer_id`, `supplier_id`) no lugar das chaves compostas do modelo.
+- `user_status_event`: histórico de quem aprovou, rejeitou ou bloqueou cada cadastro, e por quê.
+- `supplier_category`: o fornecedor pode atuar em várias categorias (antes era uma só).
+- `proposal_photo`: fotos de trabalhos anteriores anexadas à proposta.
 
 ## Tabelas
 
-Toda tabela tem `id` (`INT`, chave primária, gerada automaticamente) e `created_at` (`TIMESTAMP`, data de criação). As tabelas que aparecem na API também têm uma chave pública `<tabela>_key` (`CHAR(36)`, UUID), usada nas URLs no lugar do `id`.
+Toda tabela tem `id` (chave primária, gerada automaticamente) e `created_at` (data de criação). As tabelas usadas pela API também têm uma chave pública `<tabela>_key` (UUID), que vai nas URLs no lugar do `id`. Esses campos não se repetem abaixo.
 
-**PK** = chave primária, **FK** = chave estrangeira, **UK** = valor único.
+**FK** = chave estrangeira · **único** = não pode repetir.
 
 ### user
 
-Todos que acessam o sistema. O cadastro nasce `pending` e só entra no sistema depois que o administrador aprova.
+Todos que acessam o sistema. O cadastro começa pendente até o administrador aprovar.
 
-| Campo           | Tipo                                     | Regras                       |
-| --------------- | ---------------------------------------- | ---------------------------- |
-| `id`            | INT                                      | PK                           |
-| `user_key`      | CHAR(36)                                 | UK                           |
-| `name`          | VARCHAR(150)                             | obrigatório                  |
-| `email`         | VARCHAR(150)                             | UK                           |
-| `password_hash` | VARCHAR(100)                             | hash da senha, nunca a senha |
-| `profile`       | ENUM('admin','organizador','fornecedor') | obrigatório                  |
-| `status`        | ENUM('pending','approved','rejected')    | padrão `pending`             |
-| `approved_at`   | DATETIME                                 | opcional, data da aprovação  |
+| Campo           | Tipo                                       | Regra                    |
+| --------------- | ------------------------------------------ | ------------------------ |
+| `name`          | VARCHAR(150)                               | obrigatório              |
+| `email`         | VARCHAR(150)                               | único                    |
+| `password_hash` | VARCHAR(100)                               | só o hash, nunca a senha |
+| `profile`       | ENUM(admin, organizador, fornecedor)       | obrigatório              |
+| `status`        | ENUM(pending, approved, rejected, blocked) | começa em `pending`      |
+| `approved_at`   | DATETIME                                   | opcional                 |
 
-### organizer
+### user_status_event
 
-Dados do usuário organizador (1 para 1 com `user`).
+Cada decisão do administrador sobre um cadastro.
 
-| Campo     | Tipo        | Regras             |
-| --------- | ----------- | ------------------ |
-| `id`      | INT         | PK                 |
-| `user_id` | INT         | FK → `user.id`, UK |
-| `cnpj`    | CHAR(14)    | UK, só os números  |
-| `phone`   | VARCHAR(20) | obrigatório        |
+| Campo            | Tipo                    | Regra                           |
+| ---------------- | ----------------------- | ------------------------------- |
+| `user_id`        | INT                     | FK → `user` (quem foi decidido) |
+| `admin_user_id`  | INT                     | FK → `user` (quem decidiu)      |
+| `old_status`     | ENUM (mesmos do `user`) | obrigatório                     |
+| `new_status`     | ENUM (mesmos do `user`) | obrigatório                     |
+| `reason`         | VARCHAR(500)            | motivo, obrigatório ao rejeitar |
+| `event_datetime` | DATETIME                | quando foi decidido             |
 
-### supplier
+### organizer e supplier
 
-Dados do usuário fornecedor (1 para 1 com `user`).
+Dados da empresa do organizador e do fornecedor. As duas tabelas têm os mesmos campos.
 
-| Campo          | Tipo         | Regras                             |
-| -------------- | ------------ | ---------------------------------- |
-| `id`           | INT          | PK                                 |
-| `user_id`      | INT          | FK → `user.id`, UK                 |
-| `cnpj`         | CHAR(14)     | UK, só os números                  |
-| `service_area` | VARCHAR(100) | área de atuação (ex.: alimentação) |
-| `phone`        | VARCHAR(20)  | obrigatório                        |
+| Campo              | Tipo         | Regra                 |
+| ------------------ | ------------ | --------------------- |
+| `user_id`          | INT          | FK → `user`, único    |
+| `cnpj`             | CHAR(14)     | único, só os números  |
+| `phone`            | VARCHAR(20)  | obrigatório           |
+| `responsible_name` | VARCHAR(150) | opcional              |
+| `city`             | VARCHAR(100) | opcional              |
+| `state`            | CHAR(2)      | opcional, sigla da UF |
+
+### item_category e supplier_category
+
+`item_category` guarda as categorias, que já vêm cadastradas: Alimentação, Bebidas, Comunicação, Decoração, Equipe, Estrutura, Logística, Segurança, Tecnologia e Outros.
+
+| Campo  | Tipo        | Regra |
+| ------ | ----------- | ----- |
+| `name` | VARCHAR(50) | único |
+
+`supplier_category` liga cada fornecedor às categorias em que atua. A chave primária é o par dos dois campos.
+
+| Campo         | Tipo | Regra                |
+| ------------- | ---- | -------------------- |
+| `supplier_id` | INT  | FK → `supplier`      |
+| `category_id` | INT  | FK → `item_category` |
 
 ### event
 
 Evento criado por um organizador.
 
-| Campo           | Tipo                                                | Regras                                    |
-| --------------- | --------------------------------------------------- | ----------------------------------------- |
-| `id`            | INT                                                 | PK                                        |
-| `event_key`     | CHAR(36)                                            | UK                                        |
-| `organizer_id`  | INT                                                 | FK → `organizer.id`                       |
-| `name`          | VARCHAR(150)                                        | obrigatório                               |
-| `location`      | VARCHAR(200)                                        | obrigatório                               |
-| `start_date`    | DATETIME                                            | obrigatório                               |
-| `end_date`      | DATETIME                                            | maior ou igual a `start_date`             |
-| `min_audience`  | INT                                                 | maior que 0                               |
-| `max_audience`  | INT                                                 | maior ou igual a `min_audience`           |
-| `profit_margin` | DECIMAL(5,4)                                        | fração de 0 até menos de 1 (0.2000 = 20%) |
-| `status`        | ENUM('draft','open_for_quotes','closed','canceled') | padrão `draft`                            |
+| Campo                | Tipo                                           | Regra                              |
+| -------------------- | ---------------------------------------------- | ---------------------------------- |
+| `organizer_id`       | INT                                            | FK → `organizer`                   |
+| `name`               | VARCHAR(150)                                   | obrigatório                        |
+| `category`           | VARCHAR(80)                                    | tipo do evento (ex.: festival)     |
+| `description`        | TEXT                                           | opcional                           |
+| `venue_name`         | VARCHAR(150)                                   | nome do espaço                     |
+| `address`            | VARCHAR(200)                                   | obrigatório                        |
+| `city` / `state`     | VARCHAR(100) / CHAR(2)                         | obrigatórios                       |
+| `zip_code`           | CHAR(8)                                        | opcional                           |
+| `venue_capacity`     | INT                                            | opcional                           |
+| `start_date`         | DATETIME                                       | obrigatório                        |
+| `end_date`           | DATETIME                                       | não pode ser antes do início       |
+| `min_audience`       | INT                                            | maior que 0                        |
+| `expected_audience`  | INT                                            | entre o mínimo e o máximo          |
+| `max_audience`       | INT                                            | até a capacidade do espaço         |
+| `profit_margin`      | DECIMAL(5,4)                                   | de 0 até menos de 1 (0.2000 = 20%) |
+| `reference_scenario` | ENUM(minimum, expected, maximum)               | começa em `expected`               |
+| `status`             | ENUM(draft, open_for_quotes, closed, canceled) | começa em `draft`                  |
 
-A margem entra no cálculo do ticket: `ticket = custo total / [público × (1 − margem)]`. Por isso ela não pode ser 1, que daria divisão por zero.
+A margem entra no cálculo do ticket: `ticket = custo total ÷ [público × (1 − margem)]`.
 
 ### internal_cost
 
-Custos do próprio evento, que não passam por cotação (impostos, taxas, operação).
+Custos do próprio evento, que não passam por cotação.
 
-| Campo               | Tipo                      | Regras             |
-| ------------------- | ------------------------- | ------------------ |
-| `id`                | INT                       | PK                 |
-| `internal_cost_key` | CHAR(36)                  | UK                 |
-| `event_id`          | INT                       | FK → `event.id`    |
-| `type`              | ENUM('tax','operational') | obrigatório        |
-| `description`       | VARCHAR(255)              | obrigatório        |
-| `amount`            | DECIMAL(12,2)             | maior ou igual a 0 |
-
-### item_category
-
-Categorias dos itens de orçamento. Já nasce com Estrutura, Alimentação, Segurança e Outros.
-
-| Campo  | Tipo        | Regras |
-| ------ | ----------- | ------ |
-| `id`   | INT         | PK     |
-| `name` | VARCHAR(50) | UK     |
+| Campo         | Tipo                          | Regra              |
+| ------------- | ----------------------------- | ------------------ |
+| `event_id`    | INT                           | FK → `event`       |
+| `type`        | ENUM(tax, operational, other) | obrigatório        |
+| `description` | VARCHAR(255)                  | obrigatório        |
+| `amount`      | DECIMAL(12,2)                 | maior ou igual a 0 |
 
 ### budget_item
 
-Item que o evento precisa contratar e que os fornecedores cotam (ex.: palco, buffet).
+Item que o evento precisa contratar e que os fornecedores cotam.
 
-| Campo             | Tipo                      | Regras                              |
-| ----------------- | ------------------------- | ----------------------------------- |
-| `id`              | INT                       | PK                                  |
-| `budget_item_key` | CHAR(36)                  | UK                                  |
-| `event_id`        | INT                       | FK → `event.id`                     |
-| `category_id`     | INT                       | FK → `item_category.id`             |
-| `description`     | VARCHAR(255)              | obrigatório                         |
-| `type`            | ENUM('product','service') | obrigatório                         |
-| `quantity`        | INT                       | maior que 0                         |
-| `estimated_value` | DECIMAL(12,2)             | opcional, estimativa do organizador |
+| Campo             | Tipo                   | Regra                |
+| ----------------- | ---------------------- | -------------------- |
+| `event_id`        | INT                    | FK → `event`         |
+| `category_id`     | INT                    | FK → `item_category` |
+| `description`     | VARCHAR(255)           | obrigatório          |
+| `type`            | ENUM(product, service) | obrigatório          |
+| `quantity`        | INT                    | maior que 0          |
+| `estimated_value` | DECIMAL(12,2)          | opcional             |
+| `notes`           | TEXT                   | opcional             |
 
 ### proposal
 
-Proposta de um fornecedor para um item de orçamento. A proposta com `selected` verdadeiro é a escolhida pelo organizador e entra no custo total do evento.
+Proposta de um fornecedor para um item. Cada fornecedor manda uma proposta por item.
 
-| Campo            | Tipo                               | Regras                |
-| ---------------- | ---------------------------------- | --------------------- |
-| `id`             | INT                                | PK                    |
-| `proposal_key`   | CHAR(36)                           | UK                    |
-| `budget_item_id` | INT                                | FK → `budget_item.id` |
-| `supplier_id`    | INT                                | FK → `supplier.id`    |
-| `amount`         | DECIMAL(12,2)                      | maior que 0           |
-| `description`    | TEXT                               | obrigatório           |
-| `valid_until`    | DATE                               | validade da proposta  |
-| `notes`          | TEXT                               | opcional              |
-| `status`         | ENUM('sent','accepted','rejected') | padrão `sent`         |
-| `selected`       | BOOLEAN                            | padrão falso          |
-| `sent_at`        | TIMESTAMP                          | data de envio         |
+| Campo            | Tipo                                         | Regra                 |
+| ---------------- | -------------------------------------------- | --------------------- |
+| `budget_item_id` | INT                                          | FK → `budget_item`    |
+| `supplier_id`    | INT                                          | FK → `supplier`       |
+| `amount`         | DECIMAL(12,2)                                | maior que 0           |
+| `description`    | TEXT                                         | obrigatório           |
+| `not_included`   | VARCHAR(500)                                 | opcional              |
+| `delivery_terms` | VARCHAR(255)                                 | prazo de entrega      |
+| `payment_terms`  | VARCHAR(255)                                 | condição de pagamento |
+| `team`           | VARCHAR(255)                                 | opcional              |
+| `warranty`       | VARCHAR(255)                                 | opcional              |
+| `valid_until`    | DATE                                         | validade da proposta  |
+| `notes`          | TEXT                                         | opcional              |
+| `status`         | ENUM(sent, under_review, accepted, rejected) | começa em `sent`      |
+| `selected`       | BOOLEAN                                      | proposta escolhida    |
 
-O par (`budget_item_id`, `supplier_id`) é único: cada fornecedor manda uma proposta por item.
+### proposal_photo
+
+Até 5 fotos por proposta.
+
+| Campo         | Tipo         | Regra                 |
+| ------------- | ------------ | --------------------- |
+| `proposal_id` | INT          | FK → `proposal`       |
+| `position`    | TINYINT      | de 1 a 5, sem repetir |
+| `url`         | VARCHAR(500) | endereço do arquivo   |
+
+Apagar um evento apaga junto seus custos, itens, propostas e fotos.
