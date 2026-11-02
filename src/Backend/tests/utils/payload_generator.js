@@ -24,4 +24,31 @@ export class PayloadGenerator {
       ...overrides,
     })
   }
+
+  static createEventPayload(overrides = {}) {
+    return {
+      name: 'Festival Primavera Som & Luz 2026',
+      category: 'Festival',
+      description: 'Festival de música ao ar livre com três palcos e praça de alimentação.',
+      start_date: '2026-10-18T14:00:00.000Z',
+      end_date: '2026-10-20T23:00:00.000Z',
+      venue_name: 'Allianz Parque',
+      address: 'Av. Francisco Matarazzo, 1705',
+      city: 'São Paulo',
+      state: 'SP',
+      zip_code: '05001100',
+      venue_capacity: 20000,
+      min_audience: 8000,
+      expected_audience: 12000,
+      max_audience: 15000,
+      profit_margin: 0.2,
+      reference_scenario: 'expected',
+      status: 'draft',
+      internal_costs: [
+        { type: 'tax', description: 'Custos fiscais e alvarás', amount: 24300.0 },
+        { type: 'operational', description: 'Equipe de produção', amount: 17800.0 },
+      ],
+      ...overrides,
+    }
+  }
 }

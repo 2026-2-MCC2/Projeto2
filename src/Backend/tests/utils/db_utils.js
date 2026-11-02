@@ -72,6 +72,12 @@ export class DbUtils {
             [...userIds, ...userIds],
           )
         }
+        const [organizers] = await connection.execute(`SELECT id FROM organizer WHERE user_id IN (${idPlaceholders})`, userIds)
+        const organizerIds = organizers.map((org) => org.id)
+        if (organizerIds.length > 0) {
+          const orgPlaceholders = organizerIds.map(() => '?').join(', ')
+          await connection.execute(`DELETE FROM event WHERE organizer_id IN (${orgPlaceholders})`, organizerIds)
+        }
         await connection.execute(`DELETE FROM user WHERE id IN (${idPlaceholders})`, userIds)
       }
 
