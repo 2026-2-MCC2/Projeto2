@@ -1,5 +1,6 @@
 import { api } from '../infrastructure/api.js'
 import { guardarSessao, lerSessao, limparSessao } from '../infrastructure/armazenamentoDaSessao.js'
+import { obterDadosDoUsuarioAtual } from '../infrastructure/usuarios.js'
 
 // também usada quando alguém tenta abrir a área de outro perfil
 const ROTAS_INICIAIS = {
@@ -54,4 +55,30 @@ export function perfilAtual() {
 
 export function rotaInicialDoPerfil(perfil) {
   return ROTAS_INICIAIS[perfil] ?? '/'
+}
+
+export async function carregarPerfilAtual() {
+  const dados = await obterDadosDoUsuarioAtual()
+  if (dados) {
+    const atual = lerSessao()
+    if (atual?.token) {
+      guardarSessao({
+        token: atual.token,
+        usuario: {
+          ...atual.usuario,
+          chave: dados.user_key,
+          nome: dados.name,
+          email: dados.email,
+          perfil: dados.profile,
+          cnpj: dados.cnpj,
+          phone: dados.phone,
+          responsible_name: dados.responsible_name,
+          city: dados.city,
+          state: dados.state,
+          categories: dados.categories,
+        },
+      })
+    }
+  }
+  return dados
 }

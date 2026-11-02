@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { OrganizadorLayout } from '../components/organizador/OrganizadorLayout.jsx'
 import {
   Acoes,
@@ -11,6 +11,8 @@ import {
 import { useIsMobile } from '../hooks/useIsMobile.js'
 import { useValidacao } from '../hooks/useValidacao.js'
 import { CATEGORIAS_DE_ATUACAO } from '../../domain/categoriasDeAtuacao.js'
+import { formatarCnpj, formatarTelefone } from '../../domain/formatacao.js'
+import { carregarPerfilAtual, usuarioAtual } from '../../application/sessao.js'
 import { validarConfirmacaoSenha } from '../../domain/validacao.js'
 import { Icone } from '../components/comum/Icone.jsx'
 import iconeBloqueado from '../assets/organizador/icone-bloqueado.svg'
@@ -89,7 +91,20 @@ const CONFIGURACOES = {
 export function Configuracoes({ perfil = 'organizador' }) {
   const isMobile = useIsMobile()
   const [aba, setAba] = useState('dados')
+  const [usuario, setUsuario] = useState(() => usuarioAtual())
   const config = CONFIGURACOES[perfil]
+
+  useEffect(() => {
+    let ativo = true
+    carregarPerfilAtual()
+      .then((dados) => {
+        if (ativo && dados) setUsuario(dados)
+      })
+      .catch(() => {})
+    return () => {
+      ativo = false
+    }
+  }, [])
 
   return (
     <OrganizadorLayout
@@ -114,9 +129,11 @@ export function Configuracoes({ perfil = 'organizador' }) {
       </div>
 
       {aba === 'dados' && config.empresa && (
-        <DadosCadastrais empresa={config.empresa} isMobile={isMobile} />
+        <DadosCadastrais empresa={config.empresa} usuario={usuario} isMobile={isMobile} />
       )}
-      {aba === 'dados' && perfil === 'admin' && <DadosAdmin isMobile={isMobile} />}
+      {aba === 'dados' && perfil === 'admin' && (
+        <DadosAdmin usuario={usuario} isMobile={isMobile} />
+      )}
       {aba === 'categorias' && <PainelCategorias isMobile={isMobile} />}
       {aba === 'perfil' && <PainelPerfil {...config.perfil} isMobile={isMobile} />}
       {aba === 'senha' && <PainelSenha />}
@@ -145,30 +162,50 @@ function PainelDados({ titulo = 'Dados cadastrais', apoio, children }) {
 }
 
 // no mobile o figma mostra só nome, cnpj, telefone e e-mail
-function DadosCadastrais({ empresa, isMobile }) {
+function DadosCadastrais({ empresa, usuario, isMobile }) {
+  const cnpjFormatado = usuario?.cnpj ? formatarCnpj(usuario.cnpj) : '—'
+  const telefoneFormatado = usuario?.phone ? formatarTelefone(usuario.phone) : ''
+  const nomeExibicao = usuario?.name || empresa.nome
+  const responsavelExibicao = usuario?.responsible_name || empresa.responsavel
+  const emailExibicao = usuario?.email || empresa.email
+
   const cnpj = (
     <CampoFixo
       rotulo="CNPJ"
-      valor="12.345.678/0001-90"
+      valor={cnpjFormatado}
       icone={iconeBloqueado}
       ajuda="O CNPJ não pode ser alterado depois da aprovação do cadastro."
     />
   )
   const telefone = (
     <Campo rotulo="Telefone">
-      <input type="tel" autoComplete="tel" data-validar="telefone" placeholder="(11) 98765-4321" />
+      <input
+        type="tel"
+        autoComplete="tel"
+        data-validar="telefone"
+        defaultValue={telefoneFormatado}
+        placeholder={telefoneFormatado || '(11) 90000-0000'}
+      />
     </Campo>
   )
   const email = (
     <Campo rotulo="E-mail">
-      <input type="email" autoComplete="email" data-validar="email" placeholder={empresa.email} />
+      <input
+        type="email"
+        autoComplete="email"
+        data-validar="email"
+        defaultValue={emailExibicao}
+        placeholder={emailExibicao}
+      />
     </Campo>
   )
 
   if (isMobile) {
     return (
       <PainelDados apoio="Aprovados pelo administrador.">
-        <Campo rotulo={empresa.rotuloNome} placeholder={empresa.nomeMobile ?? empresa.nome} />
+        <Campo rotulo={empresa.rotuloNome}>
+          <input type="text" defaultValue={nomeExibicao} placeholder={nomeExibicao} />
+        </Campo>
         {cnpj}
         {telefone}
         {email}
@@ -178,7 +215,9 @@ function DadosCadastrais({ empresa, isMobile }) {
 
   return (
     <PainelDados apoio="Informações enviadas no cadastro e aprovadas pelo administrador.">
-      <Campo rotulo={empresa.rotuloNome} placeholder={empresa.nome} />
+      <Campo rotulo={empresa.rotuloNome}>
+        <input type="text" defaultValue={nomeExibicao} placeholder={nomeExibicao} />
+      </Campo>
 
       <Linha>
         {cnpj}
@@ -186,21 +225,23 @@ function DadosCadastrais({ empresa, isMobile }) {
       </Linha>
 
       <Linha>
-        <Campo rotulo="Responsável" placeholder={empresa.responsavel} />
+        <Campo rotulo="Responsável">
+          <input type="text" defaultValue={responsavelExibicao} placeholder={responsavelExibicao} />
+        </Campo>
         {email}
       </Linha>
 
       {empresa.comEndereco && (
         <Linha>
-          <Campo rotulo="Cidade" placeholder="São Paulo" />
-          <Campo rotulo="Estado" placeholder="SP" />
+          <Campo rotulo="Cidade" placeholder={usuario?.city || 'São Paulo'} />
+          <Campo rotulo="Estado" placeholder={usuario?.state || 'SP'} />
         </Linha>
       )}
     </PainelDados>
   )
 }
 
-function DadosAdmin({ isMobile }) {
+function DadosAdmin({ usuario, isMobile }) {
   return (
     <PainelDados
       titulo="Dados da conta"
@@ -211,13 +252,20 @@ function DadosAdmin({ isMobile }) {
       }
     >
       <Linha>
-        <Campo rotulo="Nome" placeholder="Admin TrocaTicket" />
+        <Campo rotulo="Nome">
+          <input
+            type="text"
+            defaultValue={usuario?.name || 'Admin TrocaTicket'}
+            placeholder={usuario?.name || 'Admin TrocaTicket'}
+          />
+        </Campo>
         <Campo rotulo="E-mail">
           <input
             type="email"
             autoComplete="email"
             data-validar="email"
-            placeholder="admin@trocaticket.com.br"
+            defaultValue={usuario?.email || 'admin@trocaticket.com.br'}
+            placeholder={usuario?.email || 'admin@trocaticket.com.br'}
           />
         </Campo>
       </Linha>

@@ -47,3 +47,7 @@ export function reativarUsuario(chave) {
 export function enviarRedefinicaoDeSenha(chave) {
   return api.post(`${caminhoDoUsuario(chave)}/redefinicao-de-senha`)
 }
+
+export function obterDadosDoUsuarioAtual() {
+  return api.get('/me')
+}
