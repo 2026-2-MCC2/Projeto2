@@ -43,7 +43,6 @@ export class PayloadGenerator {
       max_audience: 15000,
       profit_margin: 0.2,
       reference_scenario: 'expected',
-      status: 'draft',
       internal_costs: [
         { type: 'tax', description: 'Custos fiscais e alvarás', amount: 24300.0 },
         { type: 'operational', description: 'Equipe de produção', amount: 17800.0 },

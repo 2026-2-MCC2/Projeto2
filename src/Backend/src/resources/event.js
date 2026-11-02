@@ -23,7 +23,7 @@ export class EventResource {
     SecurityTools.requireProfile(req.context, [USER_PROFILES.ORGANIZER])
 
     const limit = getParamAsInt(req, 'limit', { minValue: 1, maxValue: 100, default: 20 })
-    const page = getParamAsInt(req, 'page', { minValue: 0, default: 0 })
+    const page = getParamAsInt(req, 'page', { minValue: 0, maxValue: 10000, default: 0 })
     const status = getParam(req, 'status')
     const search = getParam(req, 'search')
 

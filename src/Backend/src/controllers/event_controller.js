@@ -9,10 +9,8 @@ import {
   EventInvalidDate,
   EventExpectedAudienceLessThanMin,
   EventMaxAudienceLessThanExpected,
-  EventMinAudienceInvalid,
   EventStatusConflict,
   InvalidParameter,
-  InvalidProfitMargin,
   NotFoundEvent,
   NotFoundOrganizer,
   NotFoundUser,
@@ -86,10 +84,6 @@ export class EventController extends BaseController {
    * Valida faixas de público mínimo, esperado e máximo, além da capacidade do espaço.
    */
   #validateAudience(minAudience, expectedAudience, maxAudience, venueCapacity) {
-    if (minAudience <= 0) {
-      throw new EventMinAudienceInvalid()
-    }
-
     if (expectedAudience < minAudience) {
       throw new EventExpectedAudienceLessThanMin()
     }
@@ -100,15 +94,6 @@ export class EventController extends BaseController {
 
     if (venueCapacity !== null && venueCapacity !== undefined && maxAudience > venueCapacity) {
       throw new EventCapacityLessThanMaxAudience()
-    }
-  }
-
-  /**
-   * Valida margem de lucro como fração válida (0 <= margem < 1).
-   */
-  #validateProfitMargin(profitMargin) {
-    if (profitMargin < 0 || profitMargin >= 1) {
-      throw new InvalidProfitMargin()
     }
   }
 
@@ -147,13 +132,12 @@ export class EventController extends BaseController {
 
     this.#validateDates(payload.start_date, payload.end_date)
     this.#validateAudience(payload.min_audience, payload.expected_audience, payload.max_audience, payload.venue_capacity)
-    this.#validateProfitMargin(payload.profit_margin)
 
     const eventData = {
       ...this.#buildEventFields(payload),
       organizer_id: organizer.id,
       reference_scenario: payload.reference_scenario ?? REFERENCE_SCENARIOS.EXPECTED,
-      status: payload.status ?? EVENT_STATUSES.DRAFT,
+      status: EVENT_STATUSES.DRAFT,
     }
 
     const internalCosts = payload.internal_costs ?? []
@@ -237,7 +221,6 @@ export class EventController extends BaseController {
 
     this.#validateDates(payload.start_date, payload.end_date)
     this.#validateAudience(payload.min_audience, payload.expected_audience, payload.max_audience, payload.venue_capacity)
-    this.#validateProfitMargin(payload.profit_margin)
 
     const updatedFields = {
       ...this.#buildEventFields(payload),

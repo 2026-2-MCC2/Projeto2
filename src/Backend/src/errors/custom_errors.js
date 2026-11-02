@@ -147,18 +147,6 @@ export class EventEndDateBeforeStartDate extends ApiException {
   }
 }
 
-export class EventMinAudienceInvalid extends ApiException {
-  static code = 'EVP000015'
-
-  constructor() {
-    const title = 'Invalid minimum audience'
-    const httpStatus = 400
-    const description = 'Minimum audience must be an integer greater than zero.'
-    const translation = 'O público mínimo do evento deve ser um número inteiro maior que zero.'
-    super(title, EventMinAudienceInvalid.code, httpStatus, description, translation)
-  }
-}
-
 export class EventExpectedAudienceLessThanMin extends ApiException {
   static code = 'EVP000016'
 
@@ -192,18 +180,6 @@ export class EventCapacityLessThanMaxAudience extends ApiException {
     const description = 'Venue capacity cannot be less than maximum audience.'
     const translation = 'A capacidade do espaço não pode ser menor que o público máximo do evento.'
     super(title, EventCapacityLessThanMaxAudience.code, httpStatus, description, translation)
-  }
-}
-
-export class InvalidProfitMargin extends ApiException {
-  static code = 'EVP000019'
-
-  constructor() {
-    const title = 'Invalid profit margin'
-    const httpStatus = 400
-    const description = 'Profit margin must be between 0 and 0.9999.'
-    const translation = 'A margem de lucro deve ser maior ou igual a zero e menor que 100%.'
-    super(title, InvalidProfitMargin.code, httpStatus, description, translation)
   }
 }
 

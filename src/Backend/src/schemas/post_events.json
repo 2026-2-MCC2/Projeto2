@@ -95,13 +95,6 @@
         "maximum"
       ]
     },
-    "status": {
-      "type": "string",
-      "enum": [
-        "draft",
-        "open_for_quotes"
-      ]
-    },
     "internal_costs": {
       "type": "array",
       "items": {
