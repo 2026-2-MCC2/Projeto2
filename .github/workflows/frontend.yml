@@ -34,7 +34,10 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run format:check
-      - run: npm run build
+      - name: Build do front-end
+        run: npm run build
+        env:
+          VITE_API_URL: ${{ vars.VITE_API_URL || 'https://trocaticket-event-planning-api-267501118468.us-central1.run.app/event_planning' }}
       - uses: actions/upload-artifact@v4
         with:
           name: dist
