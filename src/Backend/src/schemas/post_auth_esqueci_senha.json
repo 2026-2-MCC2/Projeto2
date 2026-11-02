@@ -1,0 +1,15 @@
+{
+  "title": "PostAuthEsqueciSenha",
+  "type": "object",
+  "properties": {
+    "email": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 150
+    }
+  },
+  "required": [
+    "email"
+  ],
+  "additionalProperties": false
+}

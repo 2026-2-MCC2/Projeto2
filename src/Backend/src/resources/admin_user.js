@@ -1,5 +1,7 @@
 import { USER_PROFILES } from '../constants.js'
+import { EmailConnector } from '../connectors/email_connector.js'
 import { AdminUserController } from '../controllers/admin_user_controller.js'
+import { PasswordResetController } from '../controllers/password_reset_controller.js'
 import { getParam, getParamAsInt } from '../utils/request_params.js'
 import { SecurityTools } from '../utils/security_tools.js'
 import { SchemaHandler } from '../utils/schema_handler.js'
@@ -8,7 +10,7 @@ export class AdminUserResource {
   async onGetList(req, res) {
     SecurityTools.requireProfile(req.context, [USER_PROFILES.ADMIN])
 
-    const limit = getParamAsInt(req, 'limit', { minValue: 0, maxValue: 100, default: 10 })
+    const limit = getParamAsInt(req, 'limit', { minValue: 1, maxValue: 100, default: 10 })
     const page = getParamAsInt(req, 'page', { minValue: 0, default: 0 })
     const offset = page * limit
     const status = getParam(req, 'status')
@@ -31,8 +33,19 @@ export class AdminUserResource {
 
     const controller = new AdminUserController(req.context)
     const { status, reason } = req.context.media
-    const userDto = await controller.decideStatus(userKey, status, reason)
+    const { userDto, email } = await controller.changeStatus(userKey, status, reason)
 
     res.status(202).json(userDto)
+    EmailConnector.sendInBackground(email)
+  }
+
+  async onPostPasswordResetByKey(req, res, userKey) {
+    SecurityTools.requireProfile(req.context, [USER_PROFILES.ADMIN])
+
+    const controller = new PasswordResetController(req.context)
+    const email = await controller.createResetEmailByUserKey(userKey)
+
+    res.status(202).end()
+    if (email !== null) EmailConnector.sendInBackground(email)
   }
 }

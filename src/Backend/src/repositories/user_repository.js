@@ -95,7 +95,9 @@ export class UserRepository {
 
     const oldStatus = user.status
     user.status = newStatus
-    user.approved_at = newStatus === 'approved' ? new Date() : null
+    if (newStatus === 'approved' && user.approved_at === null) {
+      user.approved_at = new Date()
+    }
     await user.save({ transaction: this.session })
 
     await UserStatusEvent.create(

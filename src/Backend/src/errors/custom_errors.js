@@ -110,3 +110,15 @@ export class AccountBlocked extends ApiException {
     super(title, AccountBlocked.code, httpStatus, description, translation)
   }
 }
+
+export class InvalidPasswordResetToken extends ApiException {
+  static code = 'EVP000012'
+
+  constructor() {
+    const title = 'Invalid password reset link'
+    const httpStatus = 400
+    const description = 'The password reset link is invalid, expired or already used.'
+    const translation = 'Este link de redefinição é inválido ou já venceu. Peça um novo em "Esqueceu sua senha?".'
+    super(title, InvalidPasswordResetToken.code, httpStatus, description, translation)
+  }
+}

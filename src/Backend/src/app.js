@@ -42,12 +42,15 @@ export function create() {
   const authResource = new AuthResource()
   addRoute(app, `${API_PREFIX}/auth/cadastro`, authResource, 'Cadastro')
   addRoute(app, `${API_PREFIX}/auth/login`, authResource, 'Login')
+  addRoute(app, `${API_PREFIX}/auth/esqueci-senha`, authResource, 'EsqueciSenha')
+  addRoute(app, `${API_PREFIX}/auth/redefinir-senha`, authResource, 'RedefinirSenha')
 
   addRoute(app, `${API_PREFIX}/me`, new MeResource())
 
   const adminUserResource = new AdminUserResource()
   addRoute(app, `${API_PREFIX}/admin/users`, adminUserResource, 'List')
   addRoute(app, `${API_PREFIX}/admin/users/:user_key/status`, adminUserResource, 'ByKey')
+  addRoute(app, `${API_PREFIX}/admin/users/:user_key/redefinicao-de-senha`, adminUserResource, 'PasswordResetByKey')
 
   const sinkResource = new SinkResource()
   addSink(app, sinkResource)

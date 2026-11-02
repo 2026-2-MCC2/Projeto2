@@ -67,7 +67,7 @@ export class SecurityTools {
       throw new Unauthorized()
     }
 
-    return { userKey: tokenContent.user_key, profile: tokenContent.profile }
+    return { userKey: tokenContent.user_key, profile: tokenContent.profile, issuedAt: tokenContent.iat }
   }
 
   // Barra a requisição (403) se o perfil do usuário logado não estiver na lista de perfis permitidos.

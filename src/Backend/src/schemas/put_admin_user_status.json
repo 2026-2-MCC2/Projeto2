@@ -6,11 +6,12 @@
       "type": "string",
       "enum": [
         "approved",
-        "rejected"
+        "rejected",
+        "blocked"
       ]
     },
     "reason": {
-      "description": "Motivo da decisão. Obrigatório ao rejeitar, para o usuário saber o que corrigir.",
+      "description": "Motivo da decisão. Obrigatório ao rejeitar ou bloquear, para o usuário saber o porquê.",
       "type": "string",
       "maxLength": 500,
       "pattern": "\\S"
@@ -23,7 +24,10 @@
   "if": {
     "properties": {
       "status": {
-        "const": "rejected"
+        "enum": [
+          "rejected",
+          "blocked"
+        ]
       }
     }
   },
