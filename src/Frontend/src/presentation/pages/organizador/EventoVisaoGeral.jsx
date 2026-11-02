@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { EventoLayout } from '../../components/organizador/EventoLayout.jsx'
 import { Vazio } from '../../components/comum/EstadoDaTela.jsx'
 import { Cartao, ListaDeLinhas } from '../../components/organizador/Cartao.jsx'
@@ -32,6 +32,7 @@ export function EventoVisaoGeral() {
   const isMobile = useIsMobile()
   const [confirmandoPublicacao, setConfirmandoPublicacao] = useState(false)
   const [publicando, setPublicando] = useState(false)
+  const navigate = useNavigate()
   const { evento } = useEvento(id)
   const detalhe = evento?.detalhe
 
@@ -60,11 +61,19 @@ export function EventoVisaoGeral() {
     }
   }
 
+  const podeEditar = !['aprovado', 'cancelado'].includes(evento.status)
+
   const acoes = (
     <>
-      <Botao type="button" secundario>
-        Editar evento
-      </Botao>
+      {podeEditar && (
+        <Botao
+          type="button"
+          secundario
+          onClick={() => navigate(`/organizador/eventos/${id}/editar`, { viewTransition: true })}
+        >
+          Editar evento
+        </Botao>
+      )}
       {evento.status === 'planejamento' && (
         <Botao type="button" onClick={() => setConfirmandoPublicacao(true)}>
           Publicar para cotação

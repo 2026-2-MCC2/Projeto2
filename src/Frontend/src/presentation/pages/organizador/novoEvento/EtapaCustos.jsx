@@ -10,7 +10,8 @@ import { CENARIOS } from './cenarios.js'
 
 const CAMPO_VALOR = { inputMode: 'decimal', 'data-validar': 'valor' }
 
-export function EtapaCustos({ campo, dados, definir, isMobile }) {
+// na edição os custos próprios ficam de fora: eles são mantidos na aba Itens de custo
+export function EtapaCustos({ campo, dados, definir, comCustosProprios, isMobile }) {
   return (
     <>
       <Grupo isMobile={isMobile} titulo="Margem de lucro">
@@ -25,28 +26,30 @@ export function EtapaCustos({ campo, dados, definir, isMobile }) {
         />
       </Grupo>
 
-      <Grupo isMobile={isMobile} titulo="Custos próprios estimados">
-        <SeDesktop isMobile={isMobile} envolver={Linha}>
-          <Campo
-            rotulo="Custos fiscais e alvarás"
-            placeholder="R$ 24.300"
-            {...CAMPO_VALOR}
-            {...campo('custosFiscais')}
-          />
-          <Campo
-            rotulo="Equipe de produção"
-            placeholder="R$ 17.800"
-            {...CAMPO_VALOR}
-            {...campo('equipeProducao')}
-          />
-          <Campo
-            rotulo="Outros custos variáveis"
-            placeholder="R$ 0,00"
-            {...CAMPO_VALOR}
-            {...campo('outrosCustos')}
-          />
-        </SeDesktop>
-      </Grupo>
+      {comCustosProprios && (
+        <Grupo isMobile={isMobile} titulo="Custos próprios estimados">
+          <SeDesktop isMobile={isMobile} envolver={Linha}>
+            <Campo
+              rotulo="Custos fiscais e alvarás"
+              placeholder="R$ 24.300"
+              {...CAMPO_VALOR}
+              {...campo('custosFiscais')}
+            />
+            <Campo
+              rotulo="Equipe de produção"
+              placeholder="R$ 17.800"
+              {...CAMPO_VALOR}
+              {...campo('equipeProducao')}
+            />
+            <Campo
+              rotulo="Outros custos variáveis"
+              placeholder="R$ 0,00"
+              {...CAMPO_VALOR}
+              {...campo('outrosCustos')}
+            />
+          </SeDesktop>
+        </Grupo>
+      )}
 
       <Grupo isMobile={isMobile} titulo="Regras de cálculo">
         <Linha>

@@ -1,5 +1,6 @@
 import { api } from '../infrastructure/api.js'
 import { paraData, paraNumero } from '../domain/validacao.js'
+import { mascararCep } from '../domain/formatacao.js'
 import { guardarEventos } from './eventosEmMemoria.js'
 
 const CENARIOS_MAPA = {
@@ -508,6 +509,59 @@ export async function criarEvento(dadosFormulario) {
   const resposta = await api.post('/events', payload)
   esquecerRecentes()
   return formatarEGuardar([resposta])[0]
+}
+
+// a edição não mexe nos custos próprios: eles têm a aba Itens de custo
+export async function atualizarEvento(eventKey, dadosFormulario) {
+  const payload = montarPayloadEvento(dadosFormulario)
+  delete payload.status
+  delete payload.internal_costs
+  const resposta = await api.put(`/events/${eventKey}`, payload)
+  esquecerRecentes()
+  return formatarEGuardar([resposta])[0]
+}
+
+const CENARIO_DO_FORMULARIO = { minimum: 'minimo', expected: 'esperado', maximum: 'maximo' }
+
+const doisDigitos = (numero) => String(numero).padStart(2, '0')
+
+function dataDoFormulario(dataIso) {
+  const data = new Date(dataIso)
+  return `${doisDigitos(data.getDate())}/${doisDigitos(data.getMonth() + 1)}/${data.getFullYear()}`
+}
+
+function horarioDoFormulario(dataIso) {
+  const data = new Date(dataIso)
+  return `${doisDigitos(data.getHours())}:${doisDigitos(data.getMinutes())}`
+}
+
+// o caminho inverso do montarPayloadEvento: preenche o formulário com o evento salvo
+export function eventoParaFormulario(eventoDaApi) {
+  const numero = (valor) => (valor ? String(valor) : '')
+
+  return {
+    nome: eventoDaApi.name,
+    categoria: eventoDaApi.category,
+    descricao: eventoDaApi.description ?? '',
+    dataInicio: dataDoFormulario(eventoDaApi.start_date),
+    dataTermino: dataDoFormulario(eventoDaApi.end_date),
+    horarioAbertura: horarioDoFormulario(eventoDaApi.start_date),
+    horarioEncerramento: horarioDoFormulario(eventoDaApi.end_date),
+    nomeEspaco: eventoDaApi.venue_name,
+    cep: eventoDaApi.zip_code ? mascararCep(eventoDaApi.zip_code) : '',
+    endereco: eventoDaApi.address,
+    cidade: eventoDaApi.city,
+    estado: eventoDaApi.state,
+    capacidadeEspaco: numero(eventoDaApi.venue_capacity),
+    publicoMinimo: numero(eventoDaApi.min_audience),
+    publicoEsperado: numero(eventoDaApi.expected_audience),
+    publicoMaximo: numero(eventoDaApi.max_audience),
+    margemLucro: String(Math.round(Number(eventoDaApi.profit_margin) * 100)),
+    custosFiscais: '',
+    equipeProducao: '',
+    outrosCustos: '',
+    cenarioReferencia: CENARIO_DO_FORMULARIO[eventoDaApi.reference_scenario] ?? 'esperado',
+  }
 }
 
 /**
