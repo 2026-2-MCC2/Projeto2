@@ -33,10 +33,7 @@ export function RecuperarSenha() {
         <>
           <header className="acesso__cabecalho">
             <h1>Verifique seu e-mail</h1>
-            <p>
-              Se houver uma conta aprovada com esse e-mail, enviamos um link para criar uma senha
-              nova. O link vale por 1 hora. Se não encontrar, confira a caixa de spam.
-            </p>
+            <p>Enviamos o link de recuperação para o seu e-mail. Válido por 1 hora.</p>
           </header>
 
           <Link to="/" className="acesso__botao">
