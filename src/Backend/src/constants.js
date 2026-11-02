@@ -33,6 +33,17 @@ export const CORS_ALLOWED_ORIGINS = (process.env.CORS_ALLOWED_ORIGINS ?? '')
   .map((origin) => origin.trim())
   .filter((origin) => origin !== '')
 
+export const SMTP_HOST = process.env.SMTP_HOST ?? ''
+export const SMTP_PORT = Number(process.env.SMTP_PORT ?? 587)
+// secret com { "user": "...", "password": "..." }; vazio = servidor sem login (mailpit local)
+export const SMTP_CREDENTIALS_SECRET_NAME = process.env.SMTP_CREDENTIALS_SECRET_NAME ?? ''
+export const EMAIL_FROM = process.env.EMAIL_FROM ?? ''
+export const FRONT_URL = process.env.FRONT_URL ?? ''
+
+export const PASSWORD_RESET_EXPIRATION_MINUTES = Number(process.env.PASSWORD_RESET_EXPIRATION_MINUTES ?? 60)
+// intervalo mínimo entre dois pedidos de redefinição para a mesma conta, contra abuso
+export const PASSWORD_RESET_COOLDOWN_SECONDS = Number(process.env.PASSWORD_RESET_COOLDOWN_SECONDS ?? 120)
+
 export const SECRET_MANAGER_EMULATOR_HOST = process.env.SECRET_MANAGER_EMULATOR_HOST ?? ''
 
 export const USER_PROFILES = Object.freeze({
@@ -53,7 +64,13 @@ export const USER_STATUSES = Object.freeze({
 export const BYPASS_ENDPOINTS = [API_PREFIX, `${API_PREFIX}/`, `${API_PREFIX}/health_check`]
 
 // toda rota fora desta lista exige token, assim uma rota nova já nasce protegida
-export const PUBLIC_ENDPOINTS = [...BYPASS_ENDPOINTS, `${API_PREFIX}/auth/login`, `${API_PREFIX}/auth/cadastro`]
+export const PUBLIC_ENDPOINTS = [
+  ...BYPASS_ENDPOINTS,
+  `${API_PREFIX}/auth/login`,
+  `${API_PREFIX}/auth/cadastro`,
+  `${API_PREFIX}/auth/esqueci-senha`,
+  `${API_PREFIX}/auth/redefinir-senha`,
+]
 
 export function checkVariables() {
   const requiredVariables = {
@@ -63,6 +80,9 @@ export function checkVariables() {
     DB_NAME,
     DB_CREDENTIALS_SECRET_NAME,
     JWT_SECRET_NAME,
+    SMTP_HOST,
+    EMAIL_FROM,
+    FRONT_URL,
   }
 
   const variablesWithoutValue = []

@@ -1,0 +1,5 @@
+Olá, {{nome}}.
+
+Seu acesso à plataforma foi reativado. Você já pode entrar de novo com o seu e-mail e a sua senha:
+
+{{link}}

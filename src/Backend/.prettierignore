@@ -1,3 +1,5 @@
 node_modules
 package-lock.json
 src/schemas
+# html de e-mail fica como foi escrito: alguns clientes de e-mail são sensíveis a espaços e quebras
+src/templates/emails

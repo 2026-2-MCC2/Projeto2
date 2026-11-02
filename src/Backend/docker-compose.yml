@@ -14,6 +14,8 @@ services:
         condition: service_healthy
       secret-manager:
         condition: service_started
+      mailpit:
+        condition: service_started
 
   db:
     image: mysql:8.4
@@ -35,3 +37,9 @@ services:
     image: ghcr.io/blackwell-systems/gcp-secret-manager-emulator-dual:1.9.0
     ports:
       - '${SECRET_MANAGER_PORT:-9090}:9090'
+
+  # servidor de e-mail de mentira: recebe tudo que a API envia e mostra em http://localhost:8025
+  mailpit:
+    image: axllent/mailpit:v1.21.8
+    ports:
+      - '${MAILPIT_WEB_PORT:-8025}:8025'

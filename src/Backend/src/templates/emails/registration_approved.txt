@@ -1,0 +1,5 @@
+Olá, {{nome}}.
+
+Seu cadastro foi aprovado pelo administrador. Você já pode entrar na plataforma com o e-mail e a senha cadastrados:
+
+{{link}}
