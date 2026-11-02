@@ -18,13 +18,13 @@ export class Mailpit {
   }
 
   // o envio acontece depois da resposta da API, então espera o e-mail chegar
-  static async waitForEmailTo(address, { timeoutMs = 10_000 } = {}) {
+  static async waitForEmailTo(address, { timeoutMs = 10_000, expectedCount = 1 } = {}) {
     const deadline = Date.now() + timeoutMs
 
     while (Date.now() < deadline) {
-      const [latest] = await Mailpit.listEmailsTo(address)
-      if (latest !== undefined) {
-        const message = await getJson(`/api/v1/message/${latest.ID}`)
+      const messages = await Mailpit.listEmailsTo(address)
+      if (messages.length >= expectedCount) {
+        const message = await getJson(`/api/v1/message/${messages[0].ID}`)
         return { subject: message.Subject, html: message.HTML, text: message.Text }
       }
       await sleep(200)

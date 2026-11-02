@@ -1,20 +1,14 @@
 import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 
 const TEMPLATES_PATH = new URL('../templates/emails/', import.meta.url)
+const LOGO_PATH = fileURLToPath(new URL('logo.png', TEMPLATES_PATH))
 
 const cache = new Map()
 
 function readTemplate(fileName) {
   if (!cache.has(fileName)) cache.set(fileName, readFileSync(new URL(fileName, TEMPLATES_PATH), 'utf8'))
   return cache.get(fileName)
-}
-
-function getLogoBase64() {
-  if (!cache.has('logo_base64')) {
-    const buffer = readFileSync(new URL('logo.png', TEMPLATES_PATH))
-    cache.set('logo_base64', buffer.toString('base64'))
-  }
-  return cache.get('logo_base64')
 }
 
 const HTML_ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }
@@ -33,11 +27,15 @@ export class EmailTemplates {
     const body = fill(readTemplate(`${name}.html`), variables, escapeHtml)
     return {
       subject: fill(readTemplate(`${name}.subject.txt`), variables, String).trim(),
-      html: readTemplate('base.html')
-        .replace('{{conteudo}}', body)
-        .replace('{{logo}}', getLogoBase64())
-        .replaceAll('{{ano}}', String(new Date().getFullYear())),
+      html: readTemplate('base.html').replace('{{conteudo}}', body).replaceAll('{{ano}}', String(new Date().getFullYear())),
       text: fill(readTemplate(`${name}.txt`), variables, String),
+      attachments: [
+        {
+          filename: 'logo.png',
+          path: LOGO_PATH,
+          cid: 'logo_trocaticket',
+        },
+      ],
     }
   }
 }

@@ -241,8 +241,8 @@ describe('Admin user status', () => {
     const [loginStatus] = await RequestGenerator.POST_auth_login({ email: target.email, password: PASSWORD })
     assert.equal(loginStatus, 200)
 
-    const [latestEmail] = await Mailpit.listEmailsTo(target.email)
-    assert.equal(latestEmail.Subject, 'Seu acesso ao TrocaTicket foi reativado')
+    const latestEmail = await Mailpit.waitForEmailTo(target.email, { expectedCount: 2 })
+    assert.equal(latestEmail.subject, 'Seu acesso ao TrocaTicket foi reativado')
   })
 
   test('o histórico registra o admin que decidiu, mesmo com vários admins', async () => {

@@ -32,12 +32,12 @@ async function getTransport() {
 const wait = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds))
 
 export class EmailConnector {
-  static async send({ to, subject, html, text }) {
+  static async send({ to, subject, html, text, attachments }) {
     const transport = await getTransport()
 
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
       try {
-        await transport.sendMail({ from: EMAIL_FROM, to, subject, html, text })
+        await transport.sendMail({ from: EMAIL_FROM, to, subject, html, text, attachments })
         return
       } catch (error) {
         if (attempt === MAX_ATTEMPTS) throw error
