@@ -9,6 +9,7 @@ import { EtapaIdentificacao } from './novoEvento/EtapaIdentificacao.jsx'
 import { EtapaLocal } from './novoEvento/EtapaLocal.jsx'
 import { EtapaCustos } from './novoEvento/EtapaCustos.jsx'
 import { EtapaRevisao } from './novoEvento/EtapaRevisao.jsx'
+import { criarEvento, publicarEventoParaCotacao } from '../../../application/eventos.js'
 import {
   validarPublicoEsperado,
   validarPublicoMaximo,
@@ -103,9 +104,25 @@ export function NovoEvento() {
     setEtapa((atual) => Math.max(atual - 1, 1))
   }
 
-  function publicar(evento) {
+  const [salvando, setSalvando] = useState(false)
+  const [erroApi, setErroApi] = useState('')
+
+  async function publicar(evento) {
     evento.preventDefault()
-    navigate('/organizador/eventos')
+    setSalvando(true)
+    setErroApi('')
+    try {
+      const novoEvento = await criarEvento(dados)
+      try {
+        await publicarEventoParaCotacao(novoEvento.id)
+      } catch (errStatus) {
+        console.warn('Evento criado como rascunho, mas status não foi alterado:', errStatus)
+      }
+      navigate('/organizador/eventos', { viewTransition: true })
+    } catch (err) {
+      setErroApi(err.message || 'Erro ao cadastrar evento.')
+      setSalvando(false)
+    }
   }
 
   // Na 1ª etapa a seta do topo sai do cadastro; nas demais volta uma etapa.
@@ -114,12 +131,12 @@ export function NovoEvento() {
   const acoes = (
     <Acoes>
       {etapa > 1 && (
-        <Botao type="button" secundario onClick={voltar}>
+        <Botao type="button" secundario onClick={voltar} disabled={salvando}>
           Voltar
         </Botao>
       )}
-      <Botao type="submit" form="form-novo-evento">
-        {ultimaEtapa ? 'Publicar para cotação' : 'Continuar'}
+      <Botao type="submit" form="form-novo-evento" disabled={salvando}>
+        {salvando ? 'Publicando...' : ultimaEtapa ? 'Publicar para cotação' : 'Continuar'}
       </Botao>
     </Acoes>
   )
@@ -152,6 +169,23 @@ export function NovoEvento() {
         {...validacao}
       >
         {isMobile && <p className="secao__apoio">{etapaAtual.apoioMobile}</p>}
+
+        {erroApi && (
+          <p
+            className="formulario__erro"
+            role="alert"
+            style={{
+              color: 'var(--status-alerta-texto, #c92a2a)',
+              background: 'var(--status-alerta-fundo, #ffe3e3)',
+              padding: '0.75rem 1rem',
+              borderRadius: '6px',
+              margin: '0.5rem 0 1rem 0',
+              fontWeight: 500,
+            }}
+          >
+            {erroApi}
+          </p>
+        )}
 
         {etapasDoFormulario[etapa]}
 
