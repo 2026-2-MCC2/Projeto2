@@ -156,27 +156,37 @@ export function EventoVisaoGeral() {
   const propostas = (
     <Cartao
       titulo="Propostas recebidas"
-      link={{
-        para: `/organizador/eventos/${id}/propostas`,
-        nome: isMobile ? 'Comparar' : 'Comparar propostas',
-      }}
+      link={
+        detalhe.propostas.length > 0
+          ? {
+              para: `/organizador/eventos/${id}/propostas`,
+              nome: isMobile ? 'Comparar' : 'Comparar propostas',
+            }
+          : undefined
+      }
     >
-      <ListaDeLinhas
-        linhas={(isMobile ? detalhe.propostas.slice(0, 2) : detalhe.propostas).map((proposta) => ({
-          chave: proposta.fornecedor,
-          titulo: proposta.fornecedor,
-          apoio: isMobile ? undefined : proposta.item,
-          etiqueta: isMobile ? undefined : proposta.etiqueta,
-          estiloDaEtiqueta: 'aprovado',
-          valor: proposta.valor,
-        }))}
-      />
+      {detalhe.propostas.length === 0 ? (
+        <p className="cartao__vazio">Não há propostas</p>
+      ) : (
+        <ListaDeLinhas
+          linhas={(isMobile ? detalhe.propostas.slice(0, 2) : detalhe.propostas).map((proposta) => ({
+            chave: proposta.fornecedor,
+            titulo: proposta.fornecedor,
+            apoio: isMobile ? undefined : proposta.item,
+            etiqueta: isMobile ? undefined : proposta.etiqueta,
+            estiloDaEtiqueta: 'aprovado',
+            valor: proposta.valor,
+          }))}
+        />
+      )}
     </Cartao>
   )
 
   const ticket = (
     <Cartao titulo="Ticket estimado" etiqueta={detalhe.ticketEstimado.cenario}>
-      <strong className="ticket__valor">{detalhe.ticketEstimado.valor}</strong>
+      <strong className="ticket__valor" title={detalhe.ticketEstimado.valor}>
+        {detalhe.ticketEstimado.valor}
+      </strong>
       <p className="cartao__apoio">{detalhe.ticketEstimado.explicacao}</p>
 
       <div className="cartao__divisor" />
@@ -186,6 +196,7 @@ export function EventoVisaoGeral() {
           <div key={cenario.nome} className="cenario">
             <span className="cenario__nome">{cenario.nome}</span>
             <strong
+              title={cenario.valor}
               className={
                 cenario.destaque ? 'cenario__valor cenario__valor--destaque' : 'cenario__valor'
               }
@@ -254,7 +265,9 @@ function Indicador({ rotulo, valor, positivo = false }) {
   return (
     <div className="indicador">
       <span>{rotulo}</span>
-      <strong className={positivo ? 'indicador__valor--positivo' : undefined}>{valor}</strong>
+      <strong title={valor} className={positivo ? 'indicador__valor--positivo' : undefined}>
+        {valor}
+      </strong>
     </div>
   )
 }
