@@ -1,6 +1,4 @@
-// O erro mostra o campo translation do padrão de erro da API.
-
-// telaInteira: ocupa a página toda, para quando ainda não há layout (carregando uma rota)
+// telaInteira: para quando ainda não há layout (carregando uma rota)
 export function Carregando({ mensagem = 'Carregando…', telaInteira = false }) {
   return (
     <div
@@ -18,7 +16,7 @@ export function ErroNaTela({ erro, aoTentarDeNovo }) {
   return (
     <div className="estado-tela estado-tela--erro" role="alert">
       <strong>Não foi possível carregar.</strong>
-      <p>{erro?.translation ?? 'Tente novamente em alguns instantes.'}</p>
+      <p>{erro?.message ?? 'Tente novamente em alguns instantes.'}</p>
       {aoTentarDeNovo && (
         <button type="button" className="botao botao--secundario" onClick={aoTentarDeNovo}>
           Tentar de novo

@@ -8,9 +8,7 @@ import { Icone } from './Icone.jsx'
 import iconeFechar from '../../assets/comum/icone-fechar.svg'
 import '../../styles/modal.css'
 
-// No mobile vira uma folha que sobe de baixo e pode ser arrastada.
-// Com campos dentro (children), o modal vira um formulário: o botão de confirmar só age com os
-// campos válidos (ver hooks/useValidacao.js).
+// com children, vira formulário: o botão de confirmar só age com os campos válidos
 export function Modal({
   icone,
   corDoIcone = 'azul',
@@ -108,6 +106,7 @@ export function Modal({
             type={children ? 'submit' : 'button'}
             perigo={corDoIcone === 'vermelho'}
             onClick={children ? undefined : confirmar}
+            disabled={acao?.ocupado}
           >
             {acao?.confirmar}
           </Botao>

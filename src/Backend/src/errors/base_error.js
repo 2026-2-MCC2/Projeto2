@@ -19,7 +19,7 @@
 // Aqui ficam os erros genéricos (prefixo APP). Erros de regra de negócio ficam em custom_errors.js.
 
 export class ApiException extends Error {
-  constructor(title, code, httpStatus, description, translation) {
+  constructor(title, code, httpStatus, description, translation, details = undefined) {
     super(description)
     this.title = title
     this.code = code
@@ -27,6 +27,7 @@ export class ApiException extends Error {
     this.description = description
     // a tradução é a mensagem em português, pronta para o front-end mostrar ao usuário
     this.translation = translation
+    this.details = details
   }
 
   // é o que vira o body da resposta quando o erro é enviado com res.json()
@@ -36,6 +37,7 @@ export class ApiException extends Error {
       description: this.description,
       translation: this.translation,
       code: this.code,
+      ...(this.details !== undefined && { details: this.details }),
     }
   }
 }

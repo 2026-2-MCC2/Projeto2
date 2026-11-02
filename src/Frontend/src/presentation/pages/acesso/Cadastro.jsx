@@ -1,7 +1,10 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { AcessoLayout } from '../../components/acesso/AcessoLayout.jsx'
 import { CadastroMobile } from '../../components/acesso/CadastroMobile.jsx'
+import { CampoCategoriasDeAtuacao } from '../../components/acesso/CampoCategoriasDeAtuacao.jsx'
+import { RetornoDoEnvio } from '../../components/acesso/RetornoDoEnvio.jsx'
+import { useEnvioCadastro } from '../../hooks/useEnvioCadastro.js'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
 import { useValidacao } from '../../hooks/useValidacao.js'
 import fotoMusica from '../../assets/acesso/foto-musica.jpg'
@@ -11,19 +14,37 @@ const PERFIS = [
   { id: 'fornecedor', nome: 'Fornecedor', resumo: 'Consulta eventos e envia propostas.' },
 ]
 
+const DADOS_INICIAIS = {
+  nome: '',
+  categorias: [],
+  cnpj: '',
+  telefone: '',
+  email: '',
+  senha: '',
+}
+
 export function Cadastro() {
-  const navegar = useNavigate()
   const isMobile = useIsMobile()
   const [perfil, setPerfil] = useState('organizador')
+  const [dados, setDados] = useState(DADOS_INICIAIS)
   const validacao = useValidacao()
+  const { enviar, enviando, erro } = useEnvioCadastro()
+
+  function preencher(campo) {
+    return (evento) => setDados({ ...dados, [campo]: evento.target.value })
+  }
+
+  // categorias são só do fornecedor: recomeçam vazias ao trocar de perfil
+  function escolherPerfil(novoPerfil) {
+    setPerfil(novoPerfil)
+    setDados({ ...dados, categorias: [] })
+  }
 
   function aoEnviar(evento) {
     evento.preventDefault()
-    // Ainda não há backend: por enquanto o envio apenas simula o fluxo de aprovação.
-    navegar('/cadastro-pendente')
+    enviar({ ...dados, perfil })
   }
 
-  // No mobile o cadastro é dividido em três etapas, como no protótipo.
   if (isMobile) {
     return <CadastroMobile />
   }
@@ -54,7 +75,7 @@ export function Cadastro() {
             type="button"
             aria-pressed={perfil === opcao.id}
             className={`acesso__perfil${perfil === opcao.id ? ' acesso__perfil--ativo' : ''}`}
-            onClick={() => setPerfil(opcao.id)}
+            onClick={() => escolherPerfil(opcao.id)}
           >
             <strong>{opcao.nome}</strong>
             <span>{opcao.resumo}</span>
@@ -69,14 +90,30 @@ export function Cadastro() {
             type="text"
             autoComplete="organization"
             placeholder="TrocaTicket Produções Ltda."
+            value={dados.nome}
+            onChange={preencher('nome')}
             required
           />
         </label>
 
+        {perfil === 'fornecedor' && (
+          <CampoCategoriasDeAtuacao
+            selecionadas={dados.categorias}
+            aoMudar={(categorias) => setDados({ ...dados, categorias })}
+          />
+        )}
+
         <div className="acesso__linha">
           <label className="campo">
             <span>CNPJ</span>
-            <input type="text" data-validar="cnpj" placeholder="00.000.000/0001-00" required />
+            <input
+              type="text"
+              data-validar="cnpj"
+              placeholder="00.000.000/0001-00"
+              value={dados.cnpj}
+              onChange={preencher('cnpj')}
+              required
+            />
           </label>
 
           <label className="campo">
@@ -86,6 +123,8 @@ export function Cadastro() {
               autoComplete="tel"
               data-validar="telefone"
               placeholder="(11) 90000-0000"
+              value={dados.telefone}
+              onChange={preencher('telefone')}
               required
             />
           </label>
@@ -98,6 +137,8 @@ export function Cadastro() {
             autoComplete="email"
             data-validar="email"
             placeholder="voce@email.com"
+            value={dados.email}
+            onChange={preencher('email')}
             required
           />
         </label>
@@ -109,14 +150,18 @@ export function Cadastro() {
             autoComplete="new-password"
             data-validar="senha"
             placeholder="Mínimo de 8 caracteres"
+            value={dados.senha}
+            onChange={preencher('senha')}
             required
           />
         </label>
 
         <p className="acesso__aviso">O cadastro fica pendente até a aprovação do administrador.</p>
 
-        <button type="submit" className="acesso__botao">
-          Enviar cadastro
+        <RetornoDoEnvio erro={erro} />
+
+        <button type="submit" className="acesso__botao" disabled={enviando}>
+          {enviando ? 'Enviando...' : 'Enviar cadastro'}
         </button>
       </form>
 

@@ -294,6 +294,11 @@
 
 /* ---------- aprovações ---------- */
 
+.aprovacoes__barra {
+  display: flex;
+  justify-content: flex-end;
+}
+
 .solicitacoes {
   display: flex;
   flex-direction: column;
@@ -328,7 +333,8 @@
 
 .solicitacao__dados {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  /* uma coluna por dado: --colunas vem do cartão (pages/admin/Aprovacoes.jsx) */
+  grid-template-columns: repeat(var(--colunas, 4), minmax(0, 1fr));
   gap: 1.25rem;
   margin: 0;
   padding-top: 0.875rem;

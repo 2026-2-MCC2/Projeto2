@@ -1,23 +1,39 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import {
+  acompanhamentoDoCadastro,
+  entrar,
+  rotaInicialDoPerfil,
+} from '../../../application/sessao.js'
 import { AcessoLayout } from '../../components/acesso/AcessoLayout.jsx'
+import { RetornoDoEnvio } from '../../components/acesso/RetornoDoEnvio.jsx'
 import { useValidacao } from '../../hooks/useValidacao.js'
 
-// Atalhos do protótipo enquanto não há login de verdade.
-const ATALHOS = [
-  { nome: 'Organizador', rota: '/organizador/eventos' },
-  { nome: 'Fornecedor', rota: '/fornecedor/eventos' },
-  { nome: 'Admin', rota: '/admin/aprovacoes' },
-]
-
 export function Login() {
+  const navegar = useNavigate()
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
+  const [enviando, setEnviando] = useState(false)
+  const [erro, setErro] = useState('')
   const validacao = useValidacao()
 
-  function aoEnviar(evento) {
+  async function aoEnviar(evento) {
     evento.preventDefault()
-    // Ainda não há backend: este submit fica pronto para receber a chamada à API.
+    setErro('')
+    setEnviando(true)
+
+    try {
+      const usuario = await entrar({ email, senha })
+      navegar(rotaInicialDoPerfil(usuario.perfil), { replace: true })
+    } catch (falha) {
+      const acompanhamento = acompanhamentoDoCadastro(falha)
+      if (acompanhamento) {
+        navegar('/cadastro-pendente', { state: acompanhamento })
+        return
+      }
+      setErro(falha.message)
+      setEnviando(false)
+    }
   }
 
   return (
@@ -54,11 +70,13 @@ export function Login() {
         </label>
 
         <Link to="/recuperar-senha" className="acesso__link">
-          Esqueci minha senha
+          Esqueceu sua senha?
         </Link>
 
-        <button type="submit" className="acesso__botao">
-          Entrar
+        <RetornoDoEnvio erro={erro} />
+
+        <button type="submit" className="acesso__botao" disabled={enviando}>
+          {enviando ? 'Entrando...' : 'Entrar'}
         </button>
       </form>
 
@@ -68,17 +86,6 @@ export function Login() {
         </Link>
         <p className="acesso__nota">O acesso é liberado após aprovação do administrador.</p>
       </footer>
-
-      <nav className="acesso__atalhos" aria-label="Entrar no protótipo">
-        <p>Entrar no protótipo como</p>
-        <div className="acesso__atalhos-perfis">
-          {ATALHOS.map((atalho) => (
-            <Link key={atalho.rota} to={atalho.rota} className="acesso__atalho">
-              {atalho.nome}
-            </Link>
-          ))}
-        </div>
-      </nav>
     </AcessoLayout>
   )
 }

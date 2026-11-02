@@ -1,7 +1,7 @@
 import logotipo from '../../assets/acesso/logotipo-trocaticket.png'
-import simbolo from '../../assets/organizador/simbolo.png'
+import logotipoNegativo from '../../assets/acesso/logotipo-trocaticket-negativo.png'
 
-// no escuro usa a versão negativa do Figma (nó 518:8)
+// as duas imagens têm o mesmo tamanho; no escuro só o "Troca" fica claro
 export function Logotipo({ className = '' }) {
   return (
     <span
@@ -10,12 +10,7 @@ export function Logotipo({ className = '' }) {
       aria-label="TrocaTicket"
     >
       <img src={logotipo} alt="" className="logotipo__claro" />
-      <span className="logotipo__negativo" aria-hidden="true">
-        <img src={simbolo} alt="" />
-        <span className="logotipo__nome">
-          Troca<span>Ticket</span>
-        </span>
-      </span>
+      <img src={logotipoNegativo} alt="" className="logotipo__negativo" />
     </span>
   )
 }

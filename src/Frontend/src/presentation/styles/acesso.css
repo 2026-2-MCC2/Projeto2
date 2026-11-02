@@ -89,7 +89,8 @@
   font-weight: 500;
 }
 
-.campo input {
+.campo input,
+.campo select {
   padding: 0.8125rem 0.875rem;
   border: 1px solid var(--borda-campo);
   border-radius: var(--acesso-raio);
@@ -102,7 +103,8 @@
   color: var(--texto-terciario);
 }
 
-.campo input:focus {
+.campo input:focus,
+.campo select:focus {
   outline: 2px solid var(--texto-marca);
   outline-offset: 1px;
 }
@@ -122,6 +124,21 @@
   text-align: center;
   text-decoration: none;
   cursor: pointer;
+}
+
+/* enquanto o cadastro está sendo enviado (texto "Enviando...") */
+.acesso__botao:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+/* retorno do envio acima do botão (components/acesso/RetornoDoEnvio.jsx) */
+.acesso__campos > p.mensagem-erro {
+  margin: 0;
+}
+
+.etapas__acoes > p.mensagem-erro {
+  margin: 0 0 0.75rem;
 }
 
 .acesso__link {
@@ -261,6 +278,12 @@
   font-weight: 600;
 }
 
+.acesso__situacao--rejeitado {
+  --icone-cor: var(--status-perigo-texto);
+  background: var(--status-perigo-fundo);
+  color: var(--status-perigo-texto);
+}
+
 .acesso__situacao .icone {
   width: 8px;
   height: 8px;
@@ -300,6 +323,19 @@
 .acesso__etapa--pendente span {
   color: var(--texto-secundario);
   font-weight: 500;
+}
+
+.acesso__etapa--rejeitada strong {
+  color: var(--status-perigo-texto);
+}
+
+.acesso__etapa-motivo {
+  margin: 0.25rem 0 0;
+  padding: 0.5rem 0.625rem;
+  border-radius: 8px;
+  background: var(--status-perigo-fundo);
+  color: var(--texto-primario);
+  font-size: 0.75rem;
 }
 
 .acesso__etapa-marcador {
@@ -670,4 +706,93 @@
 
 .etapas__topo .acessibilidade-area + .botao-tema {
   margin-left: calc(4px - 0.75rem);
+}
+
+/* ---------- categorias de atuação do fornecedor ---------- */
+
+.campo-categorias {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.campo-categorias__titulo {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  margin-bottom: 0.375rem;
+  padding: 0;
+}
+
+.campo-categorias__resumo {
+  color: var(--texto-secundario);
+  font-weight: 400;
+}
+
+.campo-categorias__opcoes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.375rem;
+}
+
+.campo-categorias__opcao {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5625rem 0.75rem;
+  border: 1px solid var(--borda-campo);
+  border-radius: 10px;
+  background: var(--fundo-superficie);
+  color: var(--texto-primario);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.campo-categorias__opcao--marcada {
+  border-color: var(--acao-primaria);
+  background: var(--fundo-marca-suave);
+}
+
+.campo-categorias__opcao:has(:focus-visible) {
+  outline: 2px solid var(--texto-marca);
+  outline-offset: 2px;
+}
+
+.campo-categorias__marcador {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 1rem;
+  height: 1rem;
+  border: 1.5px solid var(--borda-campo);
+  border-radius: 4px;
+  background: var(--fundo-superficie);
+}
+
+.campo-categorias__opcao--marcada .campo-categorias__marcador {
+  border-color: var(--acao-primaria);
+  background: var(--acao-primaria);
+}
+
+.campo-categorias__opcao--marcada .campo-categorias__marcador::after {
+  content: '';
+  width: 0.3rem;
+  height: 0.55rem;
+  margin-top: -0.1rem;
+  border: solid var(--acao-sobre-primaria);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.campo-categorias__caixa,
+.campo-categorias__exigencia {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  opacity: 0;
 }

@@ -1,25 +1,28 @@
-// Roda uma vez antes de todos os testes:
-//   1. cria no emulador do Secret Manager os secrets que a API precisa
-//   2. espera a API responder, porque os containers podem ainda estar subindo
-//
-// Os testes são de integração: fazem requisições HTTP de verdade para a API rodando no Docker,
-// que por sua vez usa o MySQL de verdade. Por isso, antes de "npm test" rode "docker compose up -d --build".
-
 import { setTimeout as sleep } from 'node:timers/promises'
 
 import { createLocalSecrets } from './utils/local_secrets.js'
+import { DbUtils } from './utils/db_utils.js'
 import { API_URL } from './utils/requisition.js'
+
+export const TEST_ORGANIZER_KEY = '00000000-0000-4000-8000-000000000010'
+export const TEST_SUPPLIER_KEY = '00000000-0000-4000-8000-000000000011'
 
 export async function globalSetup() {
   await retryFor60Seconds('Secret Manager emulator', createLocalSecrets)
   await retryFor60Seconds('API', checkApiIsUp)
+
+  await DbUtils.ensureApprovedTestUser({ userKey: TEST_ORGANIZER_KEY, profile: 'organizador' })
+  await DbUtils.ensureApprovedTestUser({ userKey: TEST_SUPPLIER_KEY, profile: 'fornecedor' })
 }
 
-// erro para quando a porta responde, mas quem responde é outra aplicação
+export async function globalTeardown() {
+  await DbUtils.deleteUserFixtures([TEST_ORGANIZER_KEY, TEST_SUPPLIER_KEY])
+}
+
+// a porta responde, mas quem responde é outra aplicação
 class PortUsedByAnotherApplication extends Error {}
 
 async function checkApiIsUp() {
-  // se nada estiver ouvindo na porta, o fetch dá erro e o retry tenta de novo
   const response = await fetch(`${API_URL}/event_planning/health_check`)
 
   if (response.status !== 204) {
@@ -31,7 +34,6 @@ async function checkApiIsUp() {
   }
 }
 
-// tenta de novo a cada 1 segundo, por até 60 segundos
 async function retryFor60Seconds(description, action) {
   const deadline = Date.now() + 60_000
 
@@ -40,7 +42,6 @@ async function retryFor60Seconds(description, action) {
       await action()
       return
     } catch (error) {
-      // não adianta esperar: a porta está com outra aplicação
       if (error instanceof PortUsedByAnotherApplication) {
         throw error
       }

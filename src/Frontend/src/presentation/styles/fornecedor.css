@@ -128,7 +128,10 @@
 
 .fornecedor-evento__numeros {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  /* público e itens ocupam só o que precisam; o orçamento, que é o número maior, fica com o resto */
+  grid-template-columns: auto auto minmax(0, 1fr);
+  /* números e botão encostam no fim do card: ficam alinhados entre cards da mesma linha */
+  margin-top: auto;
   gap: 16px;
   padding-top: 18px;
   border-top: 1px solid var(--borda-padrao);
@@ -138,6 +141,7 @@
   display: flex;
   min-width: 0;
   flex-direction: column;
+  justify-content: space-between;
   gap: 4px;
 }
 
@@ -147,12 +151,12 @@
   font-weight: 600;
   letter-spacing: 0.5px;
   text-transform: uppercase;
-  white-space: nowrap;
 }
 
 .fornecedor-evento__numeros strong {
   font-size: 1rem;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .fornecedor-evento__numeros .fornecedor-evento__orcamento {
@@ -1184,7 +1188,6 @@
   .fornecedor-evento__numeros span {
     font-size: 0.5625rem;
     letter-spacing: 0.2px;
-    white-space: normal;
   }
 
   .fornecedor-evento__numeros strong {
