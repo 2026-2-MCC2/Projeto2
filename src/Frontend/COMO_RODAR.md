@@ -97,8 +97,8 @@ No Windows, pelo PowerShell:
 Copy-Item .env.example .env
 ```
 
-Esse arquivo guarda o endereço da API. Enquanto o backend não existir, ele não
-faz diferença, mas é bom já deixar criado.
+Esse arquivo guarda o endereço da API (`http://localhost:3300/event_planning`,
+o backend rodando no Docker). Se mudar o `.env`, reinicie o `npm run dev`.
 
 ## Comandos do dia a dia
 
