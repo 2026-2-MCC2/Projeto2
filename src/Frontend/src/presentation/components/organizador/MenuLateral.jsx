@@ -7,6 +7,7 @@ import simbolo from '../../assets/organizador/simbolo.png'
 import iconeOrganizador from '../../assets/organizador/icone-organizador.svg'
 import iconeSair from '../../assets/organizador/icone-sair.svg'
 import iconeDuvidas from '../../assets/comum/icone-duvidas.svg'
+import iconeAjustes from '../../assets/organizador/icone-ajustes.svg'
 import iconeFornecedor from '../../assets/fornecedor/icone-fornecedor.svg'
 import iconeAdministracao from '../../assets/admin/icone-administracao.svg'
 
@@ -36,14 +37,12 @@ const ITENS = {
   fornecedor: [
     { rota: '/fornecedor/eventos', nome: 'Eventos disponíveis' },
     { rota: '/fornecedor/propostas', nome: 'Minhas propostas' },
-    { rota: '/fornecedor/configuracoes', nome: 'Configurações' },
   ],
   admin: [
     { rota: '/admin/aprovacoes', nome: 'Aprovações' },
     { rota: '/admin/usuarios', nome: 'Usuários' },
     { rota: '/admin/historico', nome: 'Histórico' },
     { rota: '/admin/visao-geral', nome: 'Visão geral' },
-    { rota: '/admin/configuracoes', nome: 'Configurações' },
   ],
 }
 
@@ -130,14 +129,17 @@ export function MenuLateral({ aoSair, perfil = 'organizador' }) {
               </NavLink>
             ))}
           </div>
-
-          <ItemMenu to="/organizador/configuracoes">Configurações</ItemMenu>
         </>
       )}
 
       <ItemMenu to={`/${perfil}/duvidas`} classe="menu__item--ajuda">
         <Icone src={iconeDuvidas} />
         Dúvidas
+      </ItemMenu>
+
+      <ItemMenu to={`/${perfil}/configuracoes`} classe="menu__item--ajuda">
+        <Icone src={iconeAjustes} />
+        Configurações
       </ItemMenu>
 
       <div className="menu__usuario">
