@@ -21,6 +21,9 @@ export class AdminUserDTO {
       created_at: user.created_at,
       cnpj: profileData?.cnpj ?? null,
       phone: profileData?.phone ?? null,
+      responsible_name: profileData?.responsible_name ?? null,
+      city: profileData?.city ?? null,
+      state: profileData?.state ?? null,
       categories: user.supplier?.categories?.map((category) => category.name).sort() ?? null,
     }
   }

@@ -55,12 +55,15 @@ describe('GET /admin/users', () => {
     const organizerItem = items.find((item) => item.user_key === organizer.userKey)
     assert.deepEqual(Object.keys(organizerItem).sort(), [
       'categories',
+      'city',
       'cnpj',
       'created_at',
       'email',
       'name',
       'phone',
       'profile',
+      'responsible_name',
+      'state',
       'status',
       'user_key',
     ])
