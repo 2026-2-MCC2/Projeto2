@@ -80,6 +80,7 @@
   width: 18px;
   height: 18px;
   flex-shrink: 0;
+  transform: translateY(-1px);
 }
 
 .menu__item--ativo {
@@ -1312,7 +1313,9 @@
 
 .indicadores {
   display: flex;
+  flex-wrap: wrap;
   gap: 1.25rem;
+  container-type: inline-size;
 }
 
 .indicador {
@@ -1329,6 +1332,17 @@
   font-weight: 600;
   letter-spacing: 0.05em;
   white-space: nowrap;
+}
+
+/* em cartão estreito os três valores não cabem lado a lado: cada um vira uma linha */
+@container (max-width: 34rem) {
+  .indicadores > .indicador {
+    flex-basis: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+  }
 }
 
 .indicador strong {
@@ -1388,6 +1402,13 @@
   flex-direction: column;
   gap: 0.125rem;
   min-width: 0;
+}
+
+.lista__texto strong,
+.lista__texto small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .lista__texto strong {

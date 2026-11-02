@@ -15,6 +15,12 @@ import iconeConcluida from '../../assets/organizador/icone-concluido-verde.svg'
 import iconeAtual from '../../assets/organizador/icone-etapa-atual.svg'
 import iconeFutura from '../../assets/organizador/icone-etapa-futura.svg'
 
+// custo próprio do evento não passa por cotação, então não leva etiqueta
+const ETIQUETA_DA_SITUACAO = {
+  aceita: { longa: 'Proposta aceita', curta: 'Aceita', estilo: 'aprovado' },
+  cotacao: { longa: 'Em cotação', curta: 'Em cotação', estilo: 'cotacao' },
+}
+
 const ICONE_DA_ETAPA = {
   concluida: iconeConcluida,
   atual: iconeAtual,
@@ -140,18 +146,20 @@ export function EventoVisaoGeral() {
       titulo="Itens de custo"
       link={{
         para: `/organizador/eventos/${id}/itens`,
-        nome: isMobile ? 'Ver todos' : `Ver todos os ${detalhe.totalDeItens} itens`,
+        nome: nomeDoLinkDosItens(detalhe.totalDeItens, isMobile),
       }}
     >
+      {detalhe.itens.length === 0 && (
+        <p className="cartao__vazio">Nenhum item de custo cadastrado ainda.</p>
+      )}
       <ListaDeLinhas
         compacta={isMobile}
         linhas={detalhe.itens.map((item) => ({
           chave: item.nome,
           titulo: item.nome,
           apoio: isMobile ? undefined : item.categoria,
-          etiqueta:
-            item.situacao === 'aceita' ? (isMobile ? 'Aceita' : 'Proposta aceita') : 'Em cotação',
-          estiloDaEtiqueta: item.situacao === 'aceita' ? 'aprovado' : 'cotacao',
+          etiqueta: ETIQUETA_DA_SITUACAO[item.situacao]?.[isMobile ? 'curta' : 'longa'],
+          estiloDaEtiqueta: ETIQUETA_DA_SITUACAO[item.situacao]?.estilo,
           valor: item.valor,
         }))}
       />
@@ -272,6 +280,11 @@ export function EventoVisaoGeral() {
       {modalDePublicacao}
     </EventoLayout>
   )
+}
+
+function nomeDoLinkDosItens(totalDeItens, isMobile) {
+  if (totalDeItens === 0) return 'Cadastrar itens'
+  return isMobile ? 'Ver todos' : `Ver todos os ${totalDeItens} itens`
 }
 
 function Indicador({ rotulo, valor, positivo = false }) {

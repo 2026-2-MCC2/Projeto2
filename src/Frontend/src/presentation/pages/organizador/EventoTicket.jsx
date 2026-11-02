@@ -122,7 +122,7 @@ export function EventoTicket() {
                 </>
               ) : (
                 <>
-                  faltam <strong>{cenarioPessimista.resultado.replace(/^[+-]/, '')}</strong>.
+                  faltam <strong>{cenarioPessimista.resultadoSemSinal}</strong>.
                 </>
               )}
             </>
