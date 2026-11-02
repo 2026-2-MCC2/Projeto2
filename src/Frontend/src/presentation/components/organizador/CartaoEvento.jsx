@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom'
-import { STATUS } from '../../data/eventos.js'
+import { STATUS_FRONTEND } from '../../../application/eventos.js'
 
 export function CartaoEvento({ evento }) {
-  const rotuloStatus = STATUS[evento.status]?.nome ?? evento.status
+  const rotuloStatus = STATUS_FRONTEND[evento.status]?.nome ?? evento.status
   return (
     <Link to={`/organizador/eventos/${evento.id}`} className="evento" viewTransition>
       <span className={`etiqueta etiqueta--${evento.status}`}>{rotuloStatus}</span>

@@ -1,15 +1,15 @@
 import { useEffect, useState, useSyncExternalStore } from 'react'
-import { buscarEvento, observarEventos } from '../data/eventos.js'
 import { carregarEvento } from '../../application/eventos.js'
+import { buscarEventoEmMemoria, observarEventos } from '../../application/eventosEmMemoria.js'
 
 // o layout e a página do evento usam o mesmo carregamento e veem a mesma versão do evento
 export function useEvento(id) {
-  const evento = useSyncExternalStore(observarEventos, () => buscarEvento(id))
+  const evento = useSyncExternalStore(observarEventos, () => buscarEventoEmMemoria(id))
   const [erro, setErro] = useState(null)
   const [tentativa, setTentativa] = useState(0)
 
   useEffect(() => {
-    if (!id || buscarEvento(id)) return
+    if (!id || buscarEventoEmMemoria(id)) return
     let telaAberta = true
 
     carregarEvento(id).catch((falha) => {

@@ -1,7 +1,6 @@
 import { Link, NavLink, useParams } from 'react-router-dom'
 import { OrganizadorLayout } from './OrganizadorLayout.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
-import { STATUS } from '../../data/eventos.js'
 import { STATUS_FRONTEND } from '../../../application/eventos.js'
 import { useEvento } from '../../hooks/useEvento.js'
 import { Icone } from '../comum/Icone.jsx'
@@ -49,8 +48,7 @@ export function EventoLayout({ acoes, comResumo = false, voltar, children }) {
     )
   }
 
-  const mapaStatus = STATUS_FRONTEND[evento.status] ||
-    STATUS[evento.status] || { nome: evento.status }
+  const mapaStatus = STATUS_FRONTEND[evento.status] ?? { nome: evento.status }
   const detalhe = evento.detalhe
   const etiqueta = <span className={`etiqueta etiqueta--${evento.status}`}>{mapaStatus.nome}</span>
 
