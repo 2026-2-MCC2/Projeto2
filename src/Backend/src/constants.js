@@ -62,6 +62,13 @@ export const USER_PROFILES = Object.freeze({
   SUPPLIER: 'fornecedor',
 })
 
+// Status do cadastro de um usuário (mesmos valores do ENUM status da tabela user).
+export const USER_STATUSES = Object.freeze({
+  PENDING: 'pending',
+  APPROVED: 'approved',
+  REJECTED: 'rejected',
+})
+
 // Rotas "de infraestrutura": não passam pelos middlewares de log, login e banco.
 export const BYPASS_ENDPOINTS = [API_PREFIX, `${API_PREFIX}/`, `${API_PREFIX}/health_check`]
 

@@ -211,3 +211,46 @@ describe('UserRepository', () => {
     assert.notEqual(userKeys[0], userKeys[1])
   })
 })
+
+describe('UserRepository.getRegistrationList', () => {
+  const originalFindAll = User.findAll
+
+  afterEach(() => {
+    User.findAll = originalFindAll
+  })
+
+  test('lista só organizadores e fornecedores, do mais antigo, com um item a mais', async () => {
+    const context = createContext()
+    let queryOptions
+    User.findAll = async (options) => {
+      queryOptions = options
+      return []
+    }
+
+    const repository = new UserRepository(context)
+    await repository.getRegistrationList(10, 20, 'pending')
+
+    assert.deepEqual(queryOptions.where, { profile: ['organizador', 'fornecedor'], status: 'pending' })
+    assert.deepEqual(queryOptions.include, ['organizer', 'supplier'])
+    assert.deepEqual(queryOptions.order, [
+      ['created_at', 'ASC'],
+      ['id', 'ASC'],
+    ])
+    assert.equal(queryOptions.limit, 11)
+    assert.equal(queryOptions.offset, 20)
+    assert.equal(queryOptions.transaction, context.dbSession)
+  })
+
+  test('sem status não filtra pelo status', async () => {
+    let queryOptions
+    User.findAll = async (options) => {
+      queryOptions = options
+      return []
+    }
+
+    const repository = new UserRepository(createContext())
+    await repository.getRegistrationList(10, 0, undefined)
+
+    assert.deepEqual(queryOptions.where, { profile: ['organizador', 'fornecedor'] })
+  })
+})

@@ -95,6 +95,7 @@ export function create() {
   addRoute(app, `${API_PREFIX}/auth/cadastro`, authResource, 'Cadastro')
 
   const adminUserResource = new AdminUserResource()
+  addRoute(app, `${API_PREFIX}/admin/users`, adminUserResource, 'List')
   addRoute(app, `${API_PREFIX}/admin/users/:user_key/status`, adminUserResource, 'ByKey')
 
   // Entidade de EXEMPLO: mostra o caminho completo de um endpoint (resource, controller, repository).

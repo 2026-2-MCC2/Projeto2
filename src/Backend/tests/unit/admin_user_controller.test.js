@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict'
 import { afterEach, describe, test } from 'node:test'
 
-import { ForbiddenProfile, NotFoundUser, UserStatusConflict } from '../../src/errors/index.js'
+import { ForbiddenProfile, InvalidParameter, NotFoundUser, UserStatusConflict } from '../../src/errors/index.js'
 import { UserRepository } from '../../src/repositories/user_repository.js'
 import { AdminUserController } from '../../src/controllers/admin_user_controller.js'
 
@@ -144,5 +144,90 @@ describe('AdminUserController', () => {
     await assert.rejects(() => controller.decideStatus(target.user_key, 'approved'), /database write failed/)
 
     assert.equal(getCommitCount(), 0)
+  })
+})
+
+describe('AdminUserController.getRegistrationList', () => {
+  const originalGetRegistrationList = UserRepository.prototype.getRegistrationList
+
+  afterEach(() => {
+    UserRepository.prototype.getRegistrationList = originalGetRegistrationList
+  })
+
+  function createUser(index) {
+    return {
+      id: index,
+      user_key: `user-key-${index}`,
+      name: `Empresa ${index}`,
+      profile: 'organizador',
+      email: `empresa${index}@example.test`,
+      password_hash: 'hash que não deve vazar',
+      status: 'pending',
+      created_at: new Date('2026-11-02T12:00:00.000Z'),
+      organizer: { cnpj: '11222333000181', phone: '11999998888' },
+      supplier: null,
+    }
+  }
+
+  test('repassa limite, offset e status ao repository e devolve os DTOs', async () => {
+    const { context } = createControllerContext()
+    let repositoryArguments
+    UserRepository.prototype.getRegistrationList = async (...args) => {
+      repositoryArguments = args
+      return [createUser(1)]
+    }
+
+    const controller = new AdminUserController(context)
+    const result = await controller.getRegistrationList(10, 20, 'pending')
+
+    assert.deepEqual(repositoryArguments, [10, 20, 'pending'])
+    assert.equal(result.isLastPage, true)
+    assert.equal(result.usersListDto.length, 1)
+    assert.equal(result.usersListDto[0].user_key, 'user-key-1')
+    assert.equal(Object.hasOwn(result.usersListDto[0], 'id'), false)
+    assert.equal(Object.hasOwn(result.usersListDto[0], 'password_hash'), false)
+  })
+
+  test('aceita a listagem sem filtro de status', async () => {
+    const { context } = createControllerContext()
+    let requestedStatus = 'não chamado'
+    UserRepository.prototype.getRegistrationList = async (limit, offset, status) => {
+      requestedStatus = status
+      return []
+    }
+
+    const controller = new AdminUserController(context)
+    const result = await controller.getRegistrationList(10, 0, undefined)
+
+    assert.equal(requestedStatus, undefined)
+    assert.deepEqual(result, { usersListDto: [], isLastPage: true })
+  })
+
+  test('item a mais do repository indica próxima página e não vai na resposta', async () => {
+    const { context } = createControllerContext()
+    UserRepository.prototype.getRegistrationList = async () => [createUser(1), createUser(2), createUser(3)]
+
+    const controller = new AdminUserController(context)
+    const result = await controller.getRegistrationList(2, 0, undefined)
+
+    assert.equal(result.isLastPage, false)
+    assert.deepEqual(
+      result.usersListDto.map((user) => user.user_key),
+      ['user-key-1', 'user-key-2'],
+    )
+  })
+
+  test('status inválido gera 400 sem consultar o banco', async () => {
+    const { context } = createControllerContext()
+    let repositoryCalled = false
+    UserRepository.prototype.getRegistrationList = async () => {
+      repositoryCalled = true
+      return []
+    }
+
+    const controller = new AdminUserController(context)
+    await assert.rejects(() => controller.getRegistrationList(10, 0, 'aprovado'), InvalidParameter)
+
+    assert.equal(repositoryCalled, false)
   })
 })

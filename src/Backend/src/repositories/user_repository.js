@@ -2,6 +2,7 @@
 
 import { randomUUID } from 'node:crypto'
 
+import { USER_PROFILES } from '../constants.js'
 import { User, UserStatusEvent } from '../models/index.js'
 
 export class UserRepository {
@@ -46,6 +47,28 @@ export class UserRepository {
       },
       { transaction: this.session },
     )
+  }
+
+  // Lista paginada de organizadores e fornecedores (nunca admins), do cadastro mais antigo para o
+  // mais novo, já com os dados de organizer/supplier. Se status vier, filtra por ele.
+  // Busca um item a mais que o limite só para saber se existe próxima página.
+  async getRegistrationList(limit, offset, status) {
+    const where = { profile: [USER_PROFILES.ORGANIZER, USER_PROFILES.SUPPLIER] }
+    if (status !== undefined) {
+      where.status = status
+    }
+
+    return User.findAll({
+      where: where,
+      include: ['organizer', 'supplier'],
+      order: [
+        ['created_at', 'ASC'],
+        ['id', 'ASC'],
+      ],
+      limit: limit + 1,
+      offset: offset,
+      transaction: this.session,
+    })
   }
 
   async updateStatus(user, newStatus) {

@@ -25,3 +25,70 @@ describe('AdminUserDTO', () => {
     })
   })
 })
+
+describe('AdminUserDTO.registration', () => {
+  const baseUser = {
+    id: 31,
+    user_key: 'user-public-key',
+    name: 'Empresa de teste',
+    email: 'empresa@example.test',
+    password_hash: 'hash que não deve vazar',
+    status: 'pending',
+    approved_at: null,
+    created_at: new Date('2026-11-02T12:00:00.000Z'),
+  }
+
+  test('organizador traz cnpj e telefone do organizer e nunca id ou hash', () => {
+    const user = {
+      ...baseUser,
+      profile: 'organizador',
+      organizer: { id: 4, cnpj: '11222333000181', phone: '11999998888' },
+      supplier: null,
+    }
+
+    assert.deepEqual(AdminUserDTO.registration(user), {
+      user_key: 'user-public-key',
+      name: 'Empresa de teste',
+      profile: 'organizador',
+      email: 'empresa@example.test',
+      status: 'pending',
+      created_at: baseUser.created_at,
+      cnpj: '11222333000181',
+      phone: '11999998888',
+    })
+  })
+
+  test('fornecedor traz cnpj e telefone do supplier', () => {
+    const user = {
+      ...baseUser,
+      profile: 'fornecedor',
+      organizer: null,
+      supplier: { id: 5, cnpj: '11444777000161', phone: '1133334444', service_area: 'Som e luz' },
+    }
+
+    const dto = AdminUserDTO.registration(user)
+
+    assert.equal(dto.cnpj, '11444777000161')
+    assert.equal(dto.phone, '1133334444')
+    assert.equal(Object.hasOwn(dto, 'service_area'), false)
+  })
+
+  test('cadastro sem dados de perfil devolve cnpj e telefone nulos', () => {
+    const dto = AdminUserDTO.registration({ ...baseUser, profile: 'organizador', organizer: null, supplier: null })
+
+    assert.equal(dto.cnpj, null)
+    assert.equal(dto.phone, null)
+  })
+
+  test('registrationList converte cada usuário', () => {
+    const users = [
+      { ...baseUser, user_key: 'a', profile: 'organizador', organizer: null, supplier: null },
+      { ...baseUser, user_key: 'b', profile: 'fornecedor', organizer: null, supplier: null },
+    ]
+
+    assert.deepEqual(
+      AdminUserDTO.registrationList(users).map((dto) => dto.user_key),
+      ['a', 'b'],
+    )
+  })
+})
