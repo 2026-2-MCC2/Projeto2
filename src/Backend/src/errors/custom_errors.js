@@ -290,3 +290,15 @@ export class EventStatusConflict extends ApiException {
     super(title, EventStatusConflict.code, httpStatus, description, translation)
   }
 }
+
+export class EventInvalidDate extends ApiException {
+  static code = 'EVP000027'
+
+  constructor() {
+    const title = 'Invalid event date'
+    const httpStatus = 400
+    const description = 'start_date or end_date is not a date that exists in the calendar.'
+    const translation = 'Confira as datas do evento: uma delas não existe no calendário.'
+    super(title, EventInvalidDate.code, httpStatus, description, translation)
+  }
+}

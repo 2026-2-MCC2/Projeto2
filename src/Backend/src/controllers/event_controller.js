@@ -6,6 +6,7 @@ import {
   EventCannotBePublished,
   EventCapacityLessThanMaxAudience,
   EventEndDateBeforeStartDate,
+  EventInvalidDate,
   EventExpectedAudienceLessThanMin,
   EventMaxAudienceLessThanExpected,
   EventMinAudienceInvalid,
@@ -36,6 +37,13 @@ const STATUS_CONFLICT_MESSAGES = {
   [EVENT_STATUSES.OPEN_FOR_QUOTES]: 'Um evento em cotação só pode ser encerrado ou cancelado.',
   [EVENT_STATUSES.CLOSED]: 'Eventos encerrados não podem mudar de status.',
   [EVENT_STATUSES.CANCELED]: 'Eventos cancelados não podem mudar de status.',
+}
+
+// o schema garante o formato; aqui confere se o dia existe (o Date aceita 31/02 e vira 03/03)
+function isExistingCalendarDate(isoText) {
+  const [year, month, day] = isoText.slice(0, 10).split('-').map(Number)
+  const calendarDate = new Date(Date.UTC(year, month - 1, day))
+  return calendarDate.getUTCMonth() === month - 1 && calendarDate.getUTCDate() === day
 }
 
 /**
@@ -75,10 +83,11 @@ export class EventController extends BaseController {
    * Valida coerência temporal entre início e término do evento.
    */
   #validateDates(startDate, endDate) {
-    const start = new Date(startDate)
-    const end = new Date(endDate)
+    if (!isExistingCalendarDate(startDate) || !isExistingCalendarDate(endDate)) {
+      throw new EventInvalidDate()
+    }
 
-    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end < start) {
+    if (new Date(endDate) < new Date(startDate)) {
       throw new EventEndDateBeforeStartDate()
     }
   }
@@ -264,12 +273,15 @@ export class EventController extends BaseController {
       throw new NotFoundEvent(eventKey)
     }
 
-    const isAllowedTransition = ALLOWED_STATUS_TRANSITIONS[event.status].includes(newStatus)
+    const isAllowedTransition = ALLOWED_STATUS_TRANSITIONS[event.status]?.includes(newStatus) ?? false
     if (!isAllowedTransition && newStatus === EVENT_STATUSES.OPEN_FOR_QUOTES) {
       throw new EventCannotBePublished(event.status)
     }
+    if (newStatus === event.status) {
+      throw new EventStatusConflict('O evento já está com esse status.')
+    }
     if (!isAllowedTransition) {
-      throw new EventStatusConflict(STATUS_CONFLICT_MESSAGES[event.status])
+      throw new EventStatusConflict(STATUS_CONFLICT_MESSAGES[event.status] ?? 'O status do evento não pode ser alterado.')
     }
 
     const updatedEvent = await this.eventRepository.updateStatus(event, newStatus)

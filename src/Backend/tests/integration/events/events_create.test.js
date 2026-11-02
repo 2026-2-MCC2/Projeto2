@@ -217,4 +217,28 @@ describe('POST /events (RF05, RF07)', () => {
     assert.equal(status, 400)
     assert.equal(response.code, 'APP000001')
   })
+
+  test('dia que não existe no calendário responde 400 com EVP000027', async () => {
+    const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
+    fixtureUserKeys.push(organizer.userKey)
+    const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
+
+    for (const startDate of ['2026-02-31T10:00:00.000Z', '2026-04-31T10:00:00.000Z']) {
+      const [status, response] = await RequestGenerator.POST_events(PayloadGenerator.createEventPayload({ start_date: startDate }), headers)
+      assert.equal(status, 400, startDate)
+      assert.equal(response.code, 'EVP000027')
+    }
+  })
+
+  test('hora ou mês fora do intervalo responde 400 de validação', async () => {
+    const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
+    fixtureUserKeys.push(organizer.userKey)
+    const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
+
+    for (const startDate of ['2026-12-10T25:00:00.000Z', '2026-13-10T10:00:00.000Z']) {
+      const [status, response] = await RequestGenerator.POST_events(PayloadGenerator.createEventPayload({ start_date: startDate }), headers)
+      assert.equal(status, 400, startDate)
+      assert.equal(response.code, 'APP000001')
+    }
+  })
 })

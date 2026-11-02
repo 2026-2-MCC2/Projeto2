@@ -148,7 +148,6 @@ describe('PATCH /events/:event_key/status (RF08 - Publicação para cotação)',
 
     const invalidChanges = [
       [draft, 'closed'],
-      [draft, 'draft'],
       [open, 'draft'],
     ]
     for (const [event, nextStatus] of invalidChanges) {
@@ -156,5 +155,18 @@ describe('PATCH /events/:event_key/status (RF08 - Publicação para cotação)',
       assert.equal(status, 409, nextStatus)
       assert.equal(response.code, 'EVP000026')
     }
+  })
+
+  test('pedir o mesmo status que o evento já tem responde 409 explicando isso', async () => {
+    const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
+    fixtureUserKeys.push(organizer.userKey)
+    const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
+    const [, draft] = await RequestGenerator.POST_events(PayloadGenerator.createEventPayload(), headers)
+
+    const [status, response] = await RequestGenerator.PATCH_event_status(draft.event_key, { status: 'draft' }, headers)
+
+    assert.equal(status, 409)
+    assert.equal(response.code, 'EVP000026')
+    assert.equal(response.translation, 'O evento já está com esse status.')
   })
 })
