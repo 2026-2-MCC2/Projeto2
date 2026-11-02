@@ -57,15 +57,28 @@ describe('GET /admin/users', () => {
     assert.ok(items.every((item) => item.profile !== 'admin'))
 
     const organizerItem = items.find((item) => item.user_key === organizer.userKey)
-    assert.deepEqual(Object.keys(organizerItem).sort(), ['cnpj', 'created_at', 'email', 'name', 'phone', 'profile', 'status', 'user_key'])
+    assert.deepEqual(Object.keys(organizerItem).sort(), [
+      'cnpj',
+      'created_at',
+      'email',
+      'name',
+      'phone',
+      'profile',
+      'service_area',
+      'status',
+      'user_key',
+    ])
     assert.equal(organizerItem.profile, 'organizador')
     assert.match(organizerItem.cnpj, /^\d{14}$/)
     assert.equal(organizerItem.phone, '11999999999')
+    assert.equal(organizerItem.service_area, null)
 
     const supplierItem = items.find((item) => item.user_key === supplier.userKey)
     assert.equal(supplierItem.profile, 'fornecedor')
     assert.match(supplierItem.cnpj, /^\d{14}$/)
     assert.equal(supplierItem.phone, '11999999999')
+    // área gravada pelo DbUtils.createUserFixture
+    assert.equal(supplierItem.service_area, 'RF03 teste')
   })
 
   test('lista do cadastro mais antigo para o mais novo', async () => {

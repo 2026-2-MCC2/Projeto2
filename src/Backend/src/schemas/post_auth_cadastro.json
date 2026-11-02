@@ -4,7 +4,7 @@
   "properties": {
     "profile": {
       "type": "string",
-      "enum": ["organizador"]
+      "enum": ["organizador", "fornecedor"]
     },
     "name": {
       "type": "string",
@@ -30,8 +30,22 @@
       "type": "string",
       "minLength": 10,
       "maxLength": 20
+    },
+    "service_area": {
+      "description": "Área de atuação do fornecedor: as mesmas categorias da tabela item_category.",
+      "type": "string",
+      "enum": ["Estrutura", "Alimentação", "Segurança", "Outros"]
     }
   },
   "required": ["profile", "name", "email", "password", "cnpj", "phone"],
-  "additionalProperties": false
+  "additionalProperties": false,
+  "if": {
+    "properties": { "profile": { "const": "fornecedor" } }
+  },
+  "then": {
+    "required": ["service_area"]
+  },
+  "else": {
+    "properties": { "service_area": { "not": {} } }
+  }
 }

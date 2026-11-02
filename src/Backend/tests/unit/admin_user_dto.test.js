@@ -55,22 +55,24 @@ describe('AdminUserDTO.registration', () => {
       created_at: baseUser.created_at,
       cnpj: '11222333000181',
       phone: '11999998888',
+      service_area: null,
     })
   })
 
-  test('fornecedor traz cnpj e telefone do supplier', () => {
+  test('fornecedor traz cnpj, telefone e área de atuação do supplier', () => {
     const user = {
       ...baseUser,
       profile: 'fornecedor',
       organizer: null,
-      supplier: { id: 5, cnpj: '11444777000161', phone: '1133334444', service_area: 'Som e luz' },
+      supplier: { id: 5, cnpj: '11444777000161', phone: '1133334444', service_area: 'Segurança' },
     }
 
     const dto = AdminUserDTO.registration(user)
 
     assert.equal(dto.cnpj, '11444777000161')
     assert.equal(dto.phone, '1133334444')
-    assert.equal(Object.hasOwn(dto, 'service_area'), false)
+    assert.equal(dto.service_area, 'Segurança')
+    assert.equal(Object.hasOwn(dto, 'id'), false)
   })
 
   test('cadastro sem dados de perfil devolve cnpj e telefone nulos', () => {

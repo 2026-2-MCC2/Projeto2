@@ -3,6 +3,7 @@
 //   PayloadGenerator.createSampleEntityPayload('oi')     { hello: 'oi' }
 //   PayloadGenerator.createNewStatusPayload('success')   { status: 'success' }
 //   PayloadGenerator.createOrganizerRegistrationPayload()   cadastro de organizador com e-mail e CNPJ únicos
+//   PayloadGenerator.createSupplierRegistrationPayload()    o mesmo para fornecedor, com área de atuação
 
 import { randomUUID } from 'node:crypto'
 
@@ -20,6 +21,15 @@ export class PayloadGenerator {
       ...overrides,
     }
     return payload
+  }
+
+  static createSupplierRegistrationPayload(overrides = {}) {
+    return PayloadGenerator.createOrganizerRegistrationPayload({
+      profile: 'fornecedor',
+      name: 'RF02 Fornecedor Teste',
+      service_area: 'Estrutura',
+      ...overrides,
+    })
   }
 
   static createSampleEntityPayload(hello = 'world') {

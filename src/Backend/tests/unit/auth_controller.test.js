@@ -1,4 +1,4 @@
-// Testes unitários das regras do autocadastro de organizador.
+// Testes unitários das regras do autocadastro (organizador e fornecedor) e do login.
 
 import assert from 'node:assert/strict'
 import { afterEach, describe, test } from 'node:test'
@@ -16,6 +16,7 @@ import {
   RegistrationRejected,
 } from '../../src/errors/index.js'
 import { OrganizerRepository } from '../../src/repositories/organizer_repository.js'
+import { SupplierRepository } from '../../src/repositories/supplier_repository.js'
 import { UserRepository } from '../../src/repositories/user_repository.js'
 import { SecurityTools } from '../../src/utils/security_tools.js'
 
@@ -23,6 +24,8 @@ const originalGetByEmail = UserRepository.prototype.getByEmail
 const originalCreateUser = UserRepository.prototype.create
 const originalGetByCnpj = OrganizerRepository.prototype.getByCnpj
 const originalCreateOrganizer = OrganizerRepository.prototype.create
+const originalGetSupplierByCnpj = SupplierRepository.prototype.getByCnpj
+const originalCreateSupplier = SupplierRepository.prototype.create
 const originalHashPassword = SecurityTools.hashPassword
 
 afterEach(() => {
@@ -30,6 +33,8 @@ afterEach(() => {
   UserRepository.prototype.create = originalCreateUser
   OrganizerRepository.prototype.getByCnpj = originalGetByCnpj
   OrganizerRepository.prototype.create = originalCreateOrganizer
+  SupplierRepository.prototype.getByCnpj = originalGetSupplierByCnpj
+  SupplierRepository.prototype.create = originalCreateSupplier
   SecurityTools.hashPassword = originalHashPassword
 })
 
@@ -50,6 +55,7 @@ function createControllerContext() {
 
 function createPayload(overrides = {}) {
   return {
+    profile: 'organizador',
     name: 'Maria Organizadora',
     email: '  Maria@Exemplo.COM ',
     password: 'senhaForte123',
@@ -70,6 +76,10 @@ function mockEmptyRepositories(operations) {
     calls.cnpjSearched = cnpj
     return null
   }
+  SupplierRepository.prototype.getByCnpj = async (cnpj) => {
+    calls.supplierCnpjSearched = cnpj
+    return null
+  }
   SecurityTools.hashPassword = async (password) => `hash-de-${password}`
   UserRepository.prototype.create = async (values) => {
     calls.userValues = values
@@ -81,16 +91,21 @@ function mockEmptyRepositories(operations) {
     operations.push('createOrganizer')
     return { id: 7, ...values }
   }
+  SupplierRepository.prototype.create = async (values) => {
+    calls.supplierValues = values
+    operations.push('createSupplier')
+    return { id: 8, ...values }
+  }
   return calls
 }
 
-describe('AuthController.registerOrganizer', () => {
+describe('AuthController.register (organizador)', () => {
   test('cadastra usuário e organizador normalizados e confirma só no final', async () => {
     const { context, getCommitCount, operations } = createControllerContext()
     const calls = mockEmptyRepositories(operations)
 
     const controller = new AuthController(context)
-    const result = await controller.registerOrganizer(createPayload())
+    const result = await controller.register(createPayload())
 
     assert.deepEqual(result, { user_key: 'new-user-key', profile: 'organizador', status: 'pending' })
     assert.equal(Object.hasOwn(result, 'id'), false)
@@ -113,7 +128,7 @@ describe('AuthController.registerOrganizer', () => {
     const calls = mockEmptyRepositories(operations)
 
     const controller = new AuthController(context)
-    await controller.registerOrganizer(createPayload({ phone: '(11) 3333-4444' }))
+    await controller.register(createPayload({ phone: '(11) 3333-4444' }))
 
     assert.equal(calls.organizerValues.phone, '1133334444')
     assert.equal(getCommitCount(), 1)
@@ -125,7 +140,7 @@ describe('AuthController.registerOrganizer', () => {
     UserRepository.prototype.getByEmail = async () => ({ id: 3 })
 
     const controller = new AuthController(context)
-    await assert.rejects(() => controller.registerOrganizer(createPayload()), EmailAlreadyRegistered)
+    await assert.rejects(() => controller.register(createPayload()), EmailAlreadyRegistered)
 
     assert.deepEqual(operations, [])
     assert.equal(getCommitCount(), 0)
@@ -137,7 +152,7 @@ describe('AuthController.registerOrganizer', () => {
     OrganizerRepository.prototype.getByCnpj = async () => ({ id: 4 })
 
     const controller = new AuthController(context)
-    await assert.rejects(() => controller.registerOrganizer(createPayload()), CnpjAlreadyRegistered)
+    await assert.rejects(() => controller.register(createPayload()), CnpjAlreadyRegistered)
 
     assert.deepEqual(operations, [])
     assert.equal(getCommitCount(), 0)
@@ -148,8 +163,8 @@ describe('AuthController.registerOrganizer', () => {
     const calls = mockEmptyRepositories(operations)
 
     const controller = new AuthController(context)
-    await assert.rejects(() => controller.registerOrganizer(createPayload({ cnpj: '11.222.333/0001-82' })), InvalidCnpj)
-    await assert.rejects(() => controller.registerOrganizer(createPayload({ cnpj: '00.000.000/0000-00' })), InvalidCnpj)
+    await assert.rejects(() => controller.register(createPayload({ cnpj: '11.222.333/0001-82' })), InvalidCnpj)
+    await assert.rejects(() => controller.register(createPayload({ cnpj: '00.000.000/0000-00' })), InvalidCnpj)
 
     assert.equal(calls.emailSearched, undefined)
     assert.deepEqual(operations, [])
@@ -161,8 +176,8 @@ describe('AuthController.registerOrganizer', () => {
     const calls = mockEmptyRepositories(operations)
 
     const controller = new AuthController(context)
-    await assert.rejects(() => controller.registerOrganizer(createPayload({ phone: '9999-8888' })), InvalidParameter)
-    await assert.rejects(() => controller.registerOrganizer(createPayload({ phone: '(11) 99999-88887' })), InvalidParameter)
+    await assert.rejects(() => controller.register(createPayload({ phone: '9999-8888' })), InvalidParameter)
+    await assert.rejects(() => controller.register(createPayload({ phone: '(11) 99999-88887' })), InvalidParameter)
 
     assert.equal(calls.emailSearched, undefined)
     assert.deepEqual(operations, [])
@@ -177,7 +192,7 @@ describe('AuthController.registerOrganizer', () => {
     }
 
     const controller = new AuthController(context)
-    await assert.rejects(() => controller.registerOrganizer(createPayload()), EmailAlreadyRegistered)
+    await assert.rejects(() => controller.register(createPayload()), EmailAlreadyRegistered)
 
     assert.equal(getCommitCount(), 0)
   })
@@ -190,7 +205,7 @@ describe('AuthController.registerOrganizer', () => {
     }
 
     const controller = new AuthController(context)
-    await assert.rejects(() => controller.registerOrganizer(createPayload()), CnpjAlreadyRegistered)
+    await assert.rejects(() => controller.register(createPayload()), CnpjAlreadyRegistered)
 
     assert.deepEqual(operations, ['createUser'])
     assert.equal(getCommitCount(), 0)
@@ -204,8 +219,101 @@ describe('AuthController.registerOrganizer', () => {
     }
 
     const controller = new AuthController(context)
-    await assert.rejects(() => controller.registerOrganizer(createPayload()), /database write failed/)
+    await assert.rejects(() => controller.register(createPayload()), /database write failed/)
 
+    assert.equal(getCommitCount(), 0)
+  })
+})
+
+describe('AuthController.register (fornecedor)', () => {
+  function createSupplierPayload(overrides = {}) {
+    return createPayload({ profile: 'fornecedor', name: 'Som e Luz Ltda.', service_area: 'Estrutura', ...overrides })
+  }
+
+  test('cadastra usuário fornecedor pendente e supplier com a área de atuação, confirmando só no final', async () => {
+    const { context, getCommitCount, operations } = createControllerContext()
+    const calls = mockEmptyRepositories(operations)
+
+    const controller = new AuthController(context)
+    const result = await controller.register(createSupplierPayload())
+
+    assert.deepEqual(result, { user_key: 'new-user-key', profile: 'fornecedor', status: 'pending' })
+    assert.equal(calls.userValues.profile, 'fornecedor')
+    assert.equal(calls.userValues.email, 'maria@exemplo.com')
+    assert.deepEqual(calls.supplierValues, { userId: 15, cnpj: '11222333000181', phone: '11999998888', serviceArea: 'Estrutura' })
+    assert.equal(calls.organizerValues, undefined)
+    assert.deepEqual(operations, ['createUser', 'createSupplier', 'commit'])
+    assert.equal(getCommitCount(), 1)
+  })
+
+  test('organizador não grava supplier nem área de atuação', async () => {
+    const { context, operations } = createControllerContext()
+    const calls = mockEmptyRepositories(operations)
+
+    const controller = new AuthController(context)
+    await controller.register(createPayload())
+
+    assert.deepEqual(calls.organizerValues, { userId: 15, cnpj: '11222333000181', phone: '11999998888' })
+    assert.equal(calls.supplierValues, undefined)
+  })
+
+  test('CNPJ já usado por um organizador barra o fornecedor com 409', async () => {
+    const { context, getCommitCount, operations } = createControllerContext()
+    mockEmptyRepositories(operations)
+    OrganizerRepository.prototype.getByCnpj = async () => ({ id: 4 })
+
+    const controller = new AuthController(context)
+    await assert.rejects(() => controller.register(createSupplierPayload()), CnpjAlreadyRegistered)
+
+    assert.deepEqual(operations, [])
+    assert.equal(getCommitCount(), 0)
+  })
+
+  test('CNPJ já usado por um fornecedor barra o organizador com 409', async () => {
+    const { context, getCommitCount, operations } = createControllerContext()
+    const calls = mockEmptyRepositories(operations)
+    SupplierRepository.prototype.getByCnpj = async () => ({ id: 5 })
+
+    const controller = new AuthController(context)
+    await assert.rejects(() => controller.register(createPayload()), CnpjAlreadyRegistered)
+
+    assert.equal(calls.cnpjSearched, '11222333000181')
+    assert.deepEqual(operations, [])
+    assert.equal(getCommitCount(), 0)
+  })
+
+  test('e-mail já cadastrado barra o fornecedor com 409', async () => {
+    const { context, getCommitCount, operations } = createControllerContext()
+    mockEmptyRepositories(operations)
+    UserRepository.prototype.getByEmail = async () => ({ id: 3 })
+
+    const controller = new AuthController(context)
+    await assert.rejects(() => controller.register(createSupplierPayload()), EmailAlreadyRegistered)
+
+    assert.equal(getCommitCount(), 0)
+  })
+
+  test('UNIQUE de CNPJ no supplier (corrida) vira 409 de CNPJ sem confirmar', async () => {
+    const { context, getCommitCount, operations } = createControllerContext()
+    mockEmptyRepositories(operations)
+    SupplierRepository.prototype.create = async () => {
+      throw new UniqueConstraintError({ fields: { cnpj: '11222333000181' } })
+    }
+
+    const controller = new AuthController(context)
+    await assert.rejects(() => controller.register(createSupplierPayload()), CnpjAlreadyRegistered)
+
+    assert.equal(getCommitCount(), 0)
+  })
+
+  test('perfil admin não faz autocadastro', async () => {
+    const { context, getCommitCount, operations } = createControllerContext()
+    mockEmptyRepositories(operations)
+
+    const controller = new AuthController(context)
+    await assert.rejects(() => controller.register(createPayload({ profile: 'admin' })), InvalidParameter)
+
+    assert.deepEqual(operations, [])
     assert.equal(getCommitCount(), 0)
   })
 })

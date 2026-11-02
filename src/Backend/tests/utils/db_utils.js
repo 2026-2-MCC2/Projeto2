@@ -101,16 +101,25 @@ export class DbUtils {
   }
 
   static async getOrganizerByUserKey(userKey) {
+    return DbUtils.getProfileDataByUserKey('organizer', ['cnpj', 'phone'], userKey)
+  }
+
+  static async getSupplierByUserKey(userKey) {
+    return DbUtils.getProfileDataByUserKey('supplier', ['cnpj', 'phone', 'service_area'], userKey)
+  }
+
+  // dados da tabela do perfil (organizer ou supplier) de um usuário; table e columns vêm só do próprio teste
+  static async getProfileDataByUserKey(table, columns, userKey) {
     const connection = await mysql.createConnection(TEST_DATABASE_URL)
     try {
-      const [[organizer]] = await connection.execute(
-        `SELECT organizer.cnpj, organizer.phone
-         FROM organizer
-         INNER JOIN user ON user.id = organizer.user_id
+      const [[profileData]] = await connection.execute(
+        `SELECT ${columns.map((column) => `profile_data.${column}`).join(', ')}
+         FROM ${table} AS profile_data
+         INNER JOIN user ON user.id = profile_data.user_id
          WHERE user.user_key = ?`,
         [userKey],
       )
-      return organizer ?? null
+      return profileData ?? null
     } finally {
       await connection.end()
     }

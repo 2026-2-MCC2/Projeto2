@@ -19,7 +19,7 @@ export class AuthResource {
     SchemaHandler.validate(req, 'post_auth_cadastro.json')
 
     const authController = new AuthController(req.context)
-    const userDto = await authController.registerOrganizer(req.context.media)
+    const userDto = await authController.register(req.context.media)
 
     res.status(201).json(userDto)
   }

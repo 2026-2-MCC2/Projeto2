@@ -1,4 +1,4 @@
-// Testes de integração do autocadastro de organizador (RF01).
+// Testes de integração do autocadastro de organizador (RF01) e fornecedor (RF02).
 
 import assert from 'node:assert/strict'
 import { afterEach, describe, test } from 'node:test'
@@ -16,7 +16,7 @@ afterEach(async () => {
 })
 
 // cadastra pela API e guarda a chave para apagar o usuário no fim do teste
-async function registerOrganizer(payload) {
+async function register(payload) {
   const [status, response] = await RequestGenerator.POST_auth_cadastro(payload)
   if (status === 201) {
     fixtureUserKeys.push(response.user_key)
@@ -28,7 +28,7 @@ describe('POST /auth/cadastro', () => {
   test('cadastra organizador pendente sem header Authorization e sem expor dados sensíveis', async () => {
     const payload = PayloadGenerator.createOrganizerRegistrationPayload({ email: '  RF01-Maiusculo@Example.TEST ' })
 
-    const [status, response] = await registerOrganizer(payload)
+    const [status, response] = await register(payload)
 
     assert.equal(status, 201)
     assert.deepEqual(Object.keys(response).sort(), ['profile', 'status', 'user_key'])
@@ -48,11 +48,11 @@ describe('POST /auth/cadastro', () => {
 
   test('e-mail já cadastrado responde 409', async () => {
     const firstPayload = PayloadGenerator.createOrganizerRegistrationPayload()
-    const [firstStatus] = await registerOrganizer(firstPayload)
+    const [firstStatus] = await register(firstPayload)
     assert.equal(firstStatus, 201)
 
     const repeatedPayload = PayloadGenerator.createOrganizerRegistrationPayload({ email: firstPayload.email.toUpperCase() })
-    const [status, response] = await registerOrganizer(repeatedPayload)
+    const [status, response] = await register(repeatedPayload)
 
     assert.equal(status, 409)
     assert.equal(response.code, 'EVP000005')
@@ -60,11 +60,11 @@ describe('POST /auth/cadastro', () => {
 
   test('CNPJ já cadastrado responde 409', async () => {
     const firstPayload = PayloadGenerator.createOrganizerRegistrationPayload()
-    const [firstStatus] = await registerOrganizer(firstPayload)
+    const [firstStatus] = await register(firstPayload)
     assert.equal(firstStatus, 201)
 
     const repeatedPayload = PayloadGenerator.createOrganizerRegistrationPayload({ cnpj: firstPayload.cnpj.replace(/\D/g, '') })
-    const [status, response] = await registerOrganizer(repeatedPayload)
+    const [status, response] = await register(repeatedPayload)
 
     assert.equal(status, 409)
     assert.equal(response.code, 'EVP000006')
@@ -73,7 +73,7 @@ describe('POST /auth/cadastro', () => {
   test('CNPJ inválido responde 400', async () => {
     const payload = PayloadGenerator.createOrganizerRegistrationPayload({ cnpj: '11.222.333/0001-82' })
 
-    const [status, response] = await registerOrganizer(payload)
+    const [status, response] = await register(payload)
 
     assert.equal(status, 400)
     assert.equal(response.code, 'EVP000007')
@@ -83,7 +83,7 @@ describe('POST /auth/cadastro', () => {
     const payload = PayloadGenerator.createOrganizerRegistrationPayload()
     delete payload.password
 
-    const [status, response] = await registerOrganizer(payload)
+    const [status, response] = await register(payload)
 
     assert.equal(status, 400)
     assert.equal(response.code, 'APP000001')
@@ -92,7 +92,7 @@ describe('POST /auth/cadastro', () => {
   test('campo extra responde 400', async () => {
     const payload = PayloadGenerator.createOrganizerRegistrationPayload({ status: 'approved' })
 
-    const [status, response] = await registerOrganizer(payload)
+    const [status, response] = await register(payload)
 
     assert.equal(status, 400)
     assert.equal(response.code, 'APP000001')
@@ -101,7 +101,7 @@ describe('POST /auth/cadastro', () => {
 
 describe('Autocadastro até a aprovação (ponta a ponta)', () => {
   test('organizador cadastrado pela API pode ser aprovado pelo admin', async () => {
-    const [registrationStatus, registration] = await registerOrganizer(PayloadGenerator.createOrganizerRegistrationPayload())
+    const [registrationStatus, registration] = await register(PayloadGenerator.createOrganizerRegistrationPayload())
     assert.equal(registrationStatus, 201)
 
     const admin = await ObjectGenerator.createUserFixture({ profile: 'admin', status: 'approved' })
@@ -116,5 +116,141 @@ describe('Autocadastro até a aprovação (ponta a ponta)', () => {
     const storedUser = await DbUtils.getUserFixture(registration.user_key)
     assert.equal(storedUser.status, 'approved')
     assert.ok(storedUser.approved_at)
+  })
+})
+
+describe('POST /auth/cadastro (fornecedor)', () => {
+  test('cadastra fornecedor pendente com a área de atuação, sem header Authorization', async () => {
+    const payload = PayloadGenerator.createSupplierRegistrationPayload({ service_area: 'Alimentação' })
+
+    const [status, response] = await register(payload)
+
+    assert.equal(status, 201)
+    assert.deepEqual(Object.keys(response).sort(), ['profile', 'status', 'user_key'])
+    assert.equal(response.profile, 'fornecedor')
+    assert.equal(response.status, 'pending')
+
+    const storedUser = await DbUtils.getUserFixture(response.user_key)
+    assert.equal(storedUser.profile, 'fornecedor')
+    assert.equal(storedUser.status, 'pending')
+
+    const storedSupplier = await DbUtils.getSupplierByUserKey(response.user_key)
+    assert.deepEqual(storedSupplier, {
+      cnpj: payload.cnpj.replace(/\D/g, ''),
+      phone: '11999998888',
+      service_area: 'Alimentação',
+    })
+    assert.equal(await DbUtils.getOrganizerByUserKey(response.user_key), null)
+  })
+
+  test('fornecedor sem área de atuação responde 400', async () => {
+    const payload = PayloadGenerator.createSupplierRegistrationPayload()
+    delete payload.service_area
+
+    const [status, response] = await register(payload)
+
+    assert.equal(status, 400)
+    assert.equal(response.code, 'APP000001')
+  })
+
+  test('organizador com área de atuação responde 400', async () => {
+    const payload = PayloadGenerator.createOrganizerRegistrationPayload({ service_area: 'Estrutura' })
+
+    const [status, response] = await register(payload)
+
+    assert.equal(status, 400)
+    assert.equal(response.code, 'APP000001')
+  })
+
+  test('área de atuação fora das categorias responde 400', async () => {
+    const payload = PayloadGenerator.createSupplierRegistrationPayload({ service_area: 'Som e luz' })
+
+    const [status, response] = await register(payload)
+
+    assert.equal(status, 400)
+    assert.equal(response.code, 'APP000001')
+  })
+
+  test('CNPJ já usado por um organizador barra o fornecedor com 409', async () => {
+    const organizerPayload = PayloadGenerator.createOrganizerRegistrationPayload()
+    const [organizerStatus] = await register(organizerPayload)
+    assert.equal(organizerStatus, 201)
+
+    const [status, response] = await register(PayloadGenerator.createSupplierRegistrationPayload({ cnpj: organizerPayload.cnpj }))
+
+    assert.equal(status, 409)
+    assert.equal(response.code, 'EVP000006')
+  })
+
+  test('CNPJ já usado por um fornecedor barra o organizador com 409', async () => {
+    const supplierPayload = PayloadGenerator.createSupplierRegistrationPayload()
+    const [supplierStatus] = await register(supplierPayload)
+    assert.equal(supplierStatus, 201)
+
+    const [status, response] = await register(
+      PayloadGenerator.createOrganizerRegistrationPayload({ cnpj: supplierPayload.cnpj.replace(/\D/g, '') }),
+    )
+
+    assert.equal(status, 409)
+    assert.equal(response.code, 'EVP000006')
+  })
+
+  test('CNPJ repetido entre dois fornecedores responde 409', async () => {
+    const firstPayload = PayloadGenerator.createSupplierRegistrationPayload()
+    const [firstStatus] = await register(firstPayload)
+    assert.equal(firstStatus, 201)
+
+    const [status, response] = await register(PayloadGenerator.createSupplierRegistrationPayload({ cnpj: firstPayload.cnpj }))
+
+    assert.equal(status, 409)
+    assert.equal(response.code, 'EVP000006')
+  })
+
+  test('e-mail já cadastrado (mesmo de outro perfil) responde 409', async () => {
+    const organizerPayload = PayloadGenerator.createOrganizerRegistrationPayload()
+    const [organizerStatus] = await register(organizerPayload)
+    assert.equal(organizerStatus, 201)
+
+    const [status, response] = await register(PayloadGenerator.createSupplierRegistrationPayload({ email: organizerPayload.email }))
+
+    assert.equal(status, 409)
+    assert.equal(response.code, 'EVP000005')
+  })
+})
+
+describe('Autocadastro de fornecedor até o login (ponta a ponta)', () => {
+  test('admin vê a área de atuação, aprova o fornecedor, e o fornecedor faz login', async () => {
+    const payload = PayloadGenerator.createSupplierRegistrationPayload({ service_area: 'Segurança' })
+    const [registrationStatus, registration] = await register(payload)
+    assert.equal(registrationStatus, 201)
+
+    // antes da aprovação, o login é barrado
+    const [pendingStatus, pending] = await RequestGenerator.POST_auth_login({ email: payload.email, password: payload.password })
+    assert.equal(pendingStatus, 403)
+    assert.equal(pending.code, 'EVP000009')
+
+    const admin = await ObjectGenerator.createUserFixture({ profile: 'admin', status: 'approved' })
+    fixtureUserKeys.push(admin.userKey)
+    const adminHeaders = TokenGenerator.authorizationHeader('admin', { userKey: admin.userKey })
+
+    // o painel do admin mostra o fornecedor pendente com a área de atuação
+    let item
+    for (let page = 0; item === undefined; page++) {
+      const [listStatus, list] = await RequestGenerator.GET_admin_users({ status: 'pending', limit: 100, page }, adminHeaders)
+      assert.equal(listStatus, 200)
+      item = list.data.find((user) => user.user_key === registration.user_key)
+      if (list.is_last_page) break
+    }
+    assert.ok(item, 'fornecedor aparece na lista de pendentes')
+    assert.equal(item.profile, 'fornecedor')
+    assert.equal(item.service_area, 'Segurança')
+    assert.equal(item.cnpj, payload.cnpj.replace(/\D/g, ''))
+
+    const [approveStatus] = await RequestGenerator.PUT_admin_user_status(registration.user_key, { status: 'approved' }, adminHeaders)
+    assert.equal(approveStatus, 202)
+
+    const [loginStatus, login] = await RequestGenerator.POST_auth_login({ email: payload.email, password: payload.password })
+    assert.equal(loginStatus, 200)
+    assert.deepEqual(login.user, { user_key: registration.user_key, name: 'RF02 Fornecedor Teste', profile: 'fornecedor' })
   })
 })

@@ -31,9 +31,29 @@ describe('POST auth cadastro schema', () => {
     assert.equal(validate(createPayload({ cnpj: '11222333000181' })), true)
   })
 
-  test('recusa perfil diferente de organizador', () => {
-    assert.equal(validate(createPayload({ profile: 'fornecedor' })), false)
+  test('recusa perfil admin (ninguém vira admin pelo autocadastro)', () => {
     assert.equal(validate(createPayload({ profile: 'admin' })), false)
+  })
+
+  test('aceita fornecedor com cada uma das áreas de atuação', () => {
+    for (const area of ['Estrutura', 'Alimentação', 'Segurança', 'Outros']) {
+      assert.equal(validate(createPayload({ profile: 'fornecedor', service_area: area })), true, area)
+    }
+  })
+
+  test('recusa fornecedor sem área de atuação', () => {
+    assert.equal(validate(createPayload({ profile: 'fornecedor' })), false)
+    assert.equal(validate.errors[0].params.missingProperty, 'service_area')
+  })
+
+  test('recusa área de atuação fora das categorias', () => {
+    assert.equal(validate(createPayload({ profile: 'fornecedor', service_area: 'Som' })), false)
+    assert.equal(validate(createPayload({ profile: 'fornecedor', service_area: 'estrutura' })), false)
+  })
+
+  test('recusa organizador com área de atuação', () => {
+    assert.equal(validate(createPayload({ service_area: 'Estrutura' })), false)
+    assert.equal(validate.errors[0].instancePath, '/service_area')
   })
 
   test('recusa cada campo obrigatório faltando', () => {

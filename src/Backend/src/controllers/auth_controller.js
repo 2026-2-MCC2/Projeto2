@@ -1,4 +1,4 @@
-// Controller: autocadastro de organizador (RF01) e login.
+// Controller: autocadastro de organizador (RF01) e fornecedor (RF02), e login.
 
 import { UniqueConstraintError } from 'sequelize'
 
@@ -14,6 +14,7 @@ import {
   RegistrationRejected,
 } from '../errors/index.js'
 import { OrganizerRepository } from '../repositories/organizer_repository.js'
+import { SupplierRepository } from '../repositories/supplier_repository.js'
 import { UserRepository } from '../repositories/user_repository.js'
 import { DocumentTools } from '../utils/documents_tools.js'
 import { SecurityTools } from '../utils/security_tools.js'
@@ -32,9 +33,14 @@ export class AuthController extends BaseController {
     super(context, 'AuthController')
     this.userRepository = new UserRepository(context)
     this.organizerRepository = new OrganizerRepository(context)
+    this.supplierRepository = new SupplierRepository(context)
   }
 
-  async registerOrganizer(payload) {
+  // Autocadastro de organizador (RF01) ou fornecedor (RF02). As validações são as mesmas; muda só
+  // a tabela dos dados do perfil (organizer ou supplier) e, no fornecedor, a área de atuação.
+  async register(payload) {
+    const profileRegistration = this.getProfileRegistration(payload)
+
     const email = TextTools.normalizeEmail(payload.email)
     const cnpj = TextTools.onlyDigits(payload.cnpj)
     const phone = TextTools.onlyDigits(payload.phone)
@@ -49,7 +55,8 @@ export class AuthController extends BaseController {
     if ((await this.userRepository.getByEmail(email)) !== null) {
       throw new EmailAlreadyRegistered()
     }
-    if ((await this.organizerRepository.getByCnpj(cnpj)) !== null) {
+    // um CNPJ = um cadastro, seja de organizador ou de fornecedor
+    if ((await this.organizerRepository.getByCnpj(cnpj)) !== null || (await this.supplierRepository.getByCnpj(cnpj)) !== null) {
       throw new CnpjAlreadyRegistered()
     }
 
@@ -60,9 +67,9 @@ export class AuthController extends BaseController {
         name: payload.name,
         email: email,
         passwordHash: passwordHash,
-        profile: USER_PROFILES.ORGANIZER,
+        profile: profileRegistration.profile,
       })
-      await this.organizerRepository.create({ userId: user.id, cnpj: cnpj, phone: phone })
+      await profileRegistration.repository.create({ userId: user.id, cnpj: cnpj, phone: phone, ...profileRegistration.extraData })
 
       const userDto = AuthDTO.registration(user)
       await this.session.commit()
@@ -70,6 +77,21 @@ export class AuthController extends BaseController {
     } catch (error) {
       throw toDuplicatedRegistrationError(error)
     }
+  }
+
+  // O que muda no cadastro de cada perfil. O schema já garante que profile é um destes dois.
+  getProfileRegistration(payload) {
+    if (payload.profile === USER_PROFILES.SUPPLIER) {
+      return {
+        profile: USER_PROFILES.SUPPLIER,
+        repository: this.supplierRepository,
+        extraData: { serviceArea: payload.service_area },
+      }
+    }
+    if (payload.profile === USER_PROFILES.ORGANIZER) {
+      return { profile: USER_PROFILES.ORGANIZER, repository: this.organizerRepository, extraData: {} }
+    }
+    throw new InvalidParameter(`The profile ${payload.profile} cannot self-register.`)
   }
 
   // Só consulta o banco: não grava nada, então não há commit.
