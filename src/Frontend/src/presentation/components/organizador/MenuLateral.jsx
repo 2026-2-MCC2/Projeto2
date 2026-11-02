@@ -76,6 +76,8 @@ export function MenuLateral({ aoSair, perfil = 'organizador' }) {
     let ativo = true
 
     function atualizarRecentes() {
+      // ao sair, a limpeza dos eventos também avisa o menu: sem sessão não há o que buscar
+      if (!usuarioAtual()) return
       listarEventosRecentes(4)
         .then((eventos) => {
           if (ativo)

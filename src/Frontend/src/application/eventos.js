@@ -289,6 +289,9 @@ export function formatarEventoParaExibicao(evento) {
   ]
 
   const linhasCustos = (evento.internal_costs || []).map((custo) => ({
+    chave: custo.internal_cost_key,
+    tipo: custo.type,
+    valorNumero: custo.amount,
     nome: custo.description,
     categoria:
       custo.type === 'tax' ? 'Fiscal' : custo.type === 'operational' ? 'Operacional' : 'Outros',
@@ -634,6 +637,36 @@ export async function cancelarEvento(eventKey, motivo) {
     reason: motivo,
   })
   esquecerRecentes()
+  return formatarEGuardar([resposta], pedido)[0]
+}
+
+const caminhoDosCustos = (eventKey) => `/events/${eventKey}/internal-costs`
+
+const custoParaApi = ({ descricao, tipo, valor }) => ({
+  type: tipo,
+  description: descricao.trim(),
+  amount: paraNumero(valor),
+})
+
+// as três respostas trazem o evento inteiro, com o total e o ticket já recalculados
+export async function incluirCustoProprio(eventKey, custo) {
+  const pedido = iniciarPedido()
+  const resposta = await api.post(caminhoDosCustos(eventKey), custoParaApi(custo))
+  return formatarEGuardar([resposta], pedido)[0]
+}
+
+export async function alterarCustoProprio(eventKey, chaveDoCusto, custo) {
+  const pedido = iniciarPedido()
+  const resposta = await api.put(
+    `${caminhoDosCustos(eventKey)}/${chaveDoCusto}`,
+    custoParaApi(custo),
+  )
+  return formatarEGuardar([resposta], pedido)[0]
+}
+
+export async function apagarCustoProprio(eventKey, chaveDoCusto) {
+  const pedido = iniciarPedido()
+  const resposta = await api.delete(`${caminhoDosCustos(eventKey)}/${chaveDoCusto}`)
   return formatarEGuardar([resposta], pedido)[0]
 }
 

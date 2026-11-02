@@ -105,4 +105,8 @@ export const api = {
       body: JSON.stringify(dados),
     })
   },
+
+  delete(caminho) {
+    return requisitar(caminho, { method: 'DELETE' })
+  },
 }

@@ -1962,8 +1962,19 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  width: 100%;
   padding: 1.125rem 1.125rem;
+  border: 0;
   border-bottom: 1px solid var(--borda-padrao);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.grupo__item:disabled {
+  cursor: default;
 }
 
 .grupo__item:last-child {
