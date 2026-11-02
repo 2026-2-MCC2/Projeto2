@@ -3,8 +3,9 @@ export function RetornoDoEnvio({ erro }) {
   if (!erro) return null
 
   return (
-    <p className="mensagem-erro" role="alert">
-      {erro}
-    </p>
+    <div className="alerta-erro" role="alert">
+      <span className="alerta-erro__icone" aria-hidden="true" />
+      <p>{erro}</p>
+    </div>
   )
 }
