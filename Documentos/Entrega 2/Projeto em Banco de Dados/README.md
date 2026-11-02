@@ -1,22 +1,23 @@
 # Banco de dados
 
-Banco **MySQL 8** da Gestão Troca Ticket, com 11 tabelas. O script de criação está em [`database.sql`](database.sql) e segue o [modelo da Entrega 1](../../Entrega%201/Projeto%20em%20Banco%20de%20Dados).
+Banco **MySQL 8** da Gestão Troca Ticket, com 12 tabelas. O script de criação está em [`database.sql`](database.sql) e segue o [modelo da Entrega 1](../../Entrega%201/Projeto%20em%20Banco%20de%20Dados).
 
 ## Como as tabelas se ligam
 
-| Tabela          | Relação       | Tabela              | Cardinalidade |
-| --------------- | ------------- | ------------------- | ------------- |
-| `user`          | é             | `organizer`         | 1 : 0..1      |
-| `user`          | é             | `supplier`          | 1 : 0..1      |
-| `user`          | tem histórico | `user_status_event` | 1 : N         |
-| `supplier`      | atua em       | `item_category`     | N : N         |
-| `organizer`     | cria          | `event`             | 1 : N         |
-| `event`         | possui        | `internal_cost`     | 1 : N         |
-| `event`         | possui        | `budget_item`       | 1 : N         |
-| `item_category` | classifica    | `budget_item`       | 1 : N         |
-| `budget_item`   | recebe        | `proposal`          | 1 : N         |
-| `supplier`      | envia         | `proposal`          | 1 : N         |
-| `proposal`      | tem           | `proposal_photo`    | 1 : N         |
+| Tabela          | Relação       | Tabela                 | Cardinalidade |
+| --------------- | ------------- | ---------------------- | ------------- |
+| `user`          | é             | `organizer`            | 1 : 0..1      |
+| `user`          | é             | `supplier`             | 1 : 0..1      |
+| `user`          | tem histórico | `user_status_event`    | 1 : N         |
+| `user`          | pede          | `password_reset_token` | 1 : N         |
+| `supplier`      | atua em       | `item_category`        | N : N         |
+| `organizer`     | cria          | `event`                | 1 : N         |
+| `event`         | possui        | `internal_cost`        | 1 : N         |
+| `event`         | possui        | `budget_item`          | 1 : N         |
+| `item_category` | classifica    | `budget_item`          | 1 : N         |
+| `budget_item`   | recebe        | `proposal`             | 1 : N         |
+| `supplier`      | envia         | `proposal`             | 1 : N         |
+| `proposal`      | tem           | `proposal_photo`       | 1 : N         |
 
 ## Do modelo da Entrega 1 para o banco
 
@@ -33,11 +34,12 @@ As entidades do modelo foram mantidas, com nomes em inglês (padrão do código)
 | `Item_orcamento` | `budget_item`   |
 | `Proposta`       | `proposal`      |
 
-Três tabelas novas surgiram na implementação:
+Quatro tabelas novas surgiram na implementação:
 
 - `user_status_event`: histórico de quem aprovou, rejeitou ou bloqueou cada cadastro, e por quê.
 - `supplier_category`: o fornecedor pode atuar em várias categorias (antes era uma só).
 - `proposal_photo`: fotos de trabalhos anteriores anexadas à proposta.
+- `password_reset_token`: links de "Esqueceu sua senha?" enviados por e-mail.
 
 ## Tabelas
 
@@ -49,27 +51,39 @@ Toda tabela tem `id` (chave primária, gerada automaticamente) e `created_at` (d
 
 Todos que acessam o sistema. O cadastro começa pendente até o administrador aprovar.
 
-| Campo           | Tipo                                       | Regra                    |
-| --------------- | ------------------------------------------ | ------------------------ |
-| `name`          | VARCHAR(150)                               | obrigatório              |
-| `email`         | VARCHAR(150)                               | único                    |
-| `password_hash` | VARCHAR(100)                               | só o hash, nunca a senha |
-| `profile`       | ENUM(admin, organizador, fornecedor)       | obrigatório              |
-| `status`        | ENUM(pending, approved, rejected, blocked) | começa em `pending`      |
-| `approved_at`   | DATETIME                                   | opcional                 |
+| Campo                 | Tipo                                       | Regra                    |
+| --------------------- | ------------------------------------------ | ------------------------ |
+| `name`                | VARCHAR(150)                               | obrigatório              |
+| `email`               | VARCHAR(150)                               | único                    |
+| `password_hash`       | VARCHAR(100)                               | só o hash, nunca a senha |
+| `profile`             | ENUM(admin, organizador, fornecedor)       | obrigatório              |
+| `status`              | ENUM(pending, approved, rejected, blocked) | começa em `pending`      |
+| `approved_at`         | DATETIME                                   | opcional                 |
+| `password_changed_at` | DATETIME                                   | última troca de senha    |
 
 ### user_status_event
 
 Cada decisão do administrador sobre um cadastro.
 
-| Campo            | Tipo                    | Regra                           |
-| ---------------- | ----------------------- | ------------------------------- |
-| `user_id`        | INT                     | FK → `user` (quem foi decidido) |
-| `admin_user_id`  | INT                     | FK → `user` (quem decidiu)      |
-| `old_status`     | ENUM (mesmos do `user`) | obrigatório                     |
-| `new_status`     | ENUM (mesmos do `user`) | obrigatório                     |
-| `reason`         | VARCHAR(500)            | motivo, obrigatório ao rejeitar |
-| `event_datetime` | DATETIME                | quando foi decidido             |
+| Campo            | Tipo                    | Regra                                       |
+| ---------------- | ----------------------- | ------------------------------------------- |
+| `user_id`        | INT                     | FK → `user` (quem foi decidido)             |
+| `admin_user_id`  | INT                     | FK → `user` (quem decidiu)                  |
+| `old_status`     | ENUM (mesmos do `user`) | obrigatório                                 |
+| `new_status`     | ENUM (mesmos do `user`) | obrigatório                                 |
+| `reason`         | VARCHAR(500)            | motivo, obrigatório ao rejeitar ou bloquear |
+| `event_datetime` | DATETIME                | quando foi decidido                         |
+
+### password_reset_token
+
+Link de redefinição de senha. Guarda só o hash do token enviado por e-mail; o link vence em 1 hora e só pode ser usado uma vez.
+
+| Campo        | Tipo     | Regra                     |
+| ------------ | -------- | ------------------------- |
+| `user_id`    | INT      | FK → `user`               |
+| `token_hash` | CHAR(64) | único, SHA-256 do token   |
+| `expires_at` | DATETIME | quando o link vence       |
+| `used_at`    | DATETIME | quando foi usado, ou nulo |
 
 ### organizer e supplier
 

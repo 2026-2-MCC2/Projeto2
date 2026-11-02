@@ -14,6 +14,7 @@ User.init(
     profile: { type: DataTypes.ENUM('admin', 'organizador', 'fornecedor') },
     status: { type: DataTypes.ENUM('pending', 'approved', 'rejected', 'blocked') },
     approved_at: { type: DataTypes.DATE },
+    password_changed_at: { type: DataTypes.DATE },
     created_at: { type: DataTypes.DATE },
   },
   { sequelize, tableName: 'user', timestamps: false },

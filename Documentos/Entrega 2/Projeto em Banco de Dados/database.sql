@@ -13,9 +13,22 @@ CREATE TABLE user(
     profile                         ENUM('admin', 'organizador', 'fornecedor') NOT NULL,
     status                          ENUM('pending', 'approved', 'rejected', 'blocked') NOT NULL DEFAULT 'pending',
     approved_at                     DATETIME NULL,
+    password_changed_at             DATETIME NULL,
     created_at                      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(user_key),
     UNIQUE(email)
+);
+
+-- Pedidos de redefinição de senha. Guarda só o hash do token: quem lê o banco não consegue usar o link.
+CREATE TABLE password_reset_token(
+    id                              INT AUTO_INCREMENT PRIMARY KEY,
+    user_id                         INT NOT NULL,
+    token_hash                      CHAR(64) NOT NULL,
+    expires_at                      DATETIME NOT NULL,
+    used_at                         DATETIME NULL,
+    created_at                      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(token_hash),
+    FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
 );
 
 -- Histórico das decisões do admin. Sem cascade: um usuário com histórico não pode ser apagado.
