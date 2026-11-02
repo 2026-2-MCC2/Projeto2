@@ -1,13 +1,13 @@
 // Peças de formulário da área do organizador.
 import { Icone } from '../comum/Icone.jsx'
 
-export function Campo({ rotulo, ajuda, children, ...props }) {
+export function Campo({ rotulo, ajuda, as: Componente = 'label', children, ...props }) {
   return (
-    <label className="campo">
+    <Componente className="campo">
       <span>{rotulo}</span>
       {children ?? <input type="text" {...props} />}
       {ajuda && <small>{ajuda}</small>}
-    </label>
+    </Componente>
   )
 }
 

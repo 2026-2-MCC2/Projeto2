@@ -27,7 +27,10 @@ export class EmailTemplates {
     const body = fill(readTemplate(`${name}.html`), variables, escapeHtml)
     return {
       subject: fill(readTemplate(`${name}.subject.txt`), variables, String).trim(),
-      html: readTemplate('base.html').replace('{{conteudo}}', body).replaceAll('{{ano}}', String(new Date().getFullYear())),
+      // função no replace: um $ no nome ou no motivo não vira padrão especial de substituição
+      html: readTemplate('base.html')
+        .replace('{{conteudo}}', () => body)
+        .replaceAll('{{ano}}', String(new Date().getFullYear())),
       text: fill(readTemplate(`${name}.txt`), variables, String),
       attachments: [
         {

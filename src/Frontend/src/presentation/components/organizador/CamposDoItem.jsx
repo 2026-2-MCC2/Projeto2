@@ -1,7 +1,8 @@
-import { useState } from 'react'
 import { Campo, Linha, SeDesktop } from './Formulario.jsx'
 import { Icone } from '../comum/Icone.jsx'
 import iconeSelecionado from '../../assets/organizador/icone-selecionado.svg'
+import { TIPOS_DE_CUSTO } from '../../hooks/useNovoItemDeCusto.js'
+import { Selecao } from './Selecao.jsx'
 
 const ORIGENS = [
   {
@@ -13,20 +14,36 @@ const ORIGENS = [
 ]
 
 // Os mesmos campos servem ao modal do desktop e à página do mobile.
-export function CamposDoItem({ isMobile = false, linhas = 2 }) {
-  const [origem, setOrigem] = useState('cotacao')
-  const porCotacao = origem === 'cotacao'
+export function CamposDoItem({ dados, definir, isMobile = false, linhas = 2 }) {
+  const porCotacao = dados.origem === 'cotacao'
+  const campo = (nome) => ({
+    value: dados[nome],
+    onChange: (evento) => definir(nome, evento.target.value),
+  })
 
   return (
     <>
       <Campo
         rotulo="Descrição do item"
         placeholder="Iluminação cênica do palco principal"
+        maxLength={255}
         required
+        {...campo('descricao')}
       />
 
       <SeDesktop isMobile={isMobile} envolver={Linha}>
-        <Campo rotulo="Categoria" placeholder="Estrutura" required />
+        {porCotacao ? (
+          <Campo rotulo="Categoria" placeholder="Estrutura" required {...campo('categoria')} />
+        ) : (
+          <Campo as="div" rotulo="Tipo de custo">
+            <Selecao
+              valor={dados.tipoDeCusto}
+              opcoes={TIPOS_DE_CUSTO}
+              aoEscolher={(valor) => definir('tipoDeCusto', valor)}
+              rotuloAcessivel="Tipo de custo"
+            />
+          </Campo>
+        )}
         {/* o valor previsto é opcional; o custo próprio precisa de valor */}
         <Campo
           rotulo={porCotacao ? 'Valor previsto' : 'Valor do custo'}
@@ -34,6 +51,7 @@ export function CamposDoItem({ isMobile = false, linhas = 2 }) {
           inputMode="decimal"
           data-validar={porCotacao ? 'valor' : 'valorPositivo'}
           required={!porCotacao}
+          {...campo('valor')}
         />
       </SeDesktop>
 
@@ -45,13 +63,13 @@ export function CamposDoItem({ isMobile = false, linhas = 2 }) {
             <button
               key={opcao.valor}
               type="button"
-              aria-pressed={origem === opcao.valor}
-              className={`origem__opcao${origem === opcao.valor ? ' origem__opcao--ativa' : ''}`}
-              onClick={() => setOrigem(opcao.valor)}
+              aria-pressed={dados.origem === opcao.valor}
+              className={`origem__opcao${dados.origem === opcao.valor ? ' origem__opcao--ativa' : ''}`}
+              onClick={() => definir('origem', opcao.valor)}
             >
               <span className="origem__titulo">
                 {opcao.nome}
-                {origem === opcao.valor && <Icone src={iconeSelecionado} />}
+                {dados.origem === opcao.valor && <Icone src={iconeSelecionado} />}
               </span>
               <small>{opcao.apoio}</small>
             </button>
@@ -59,12 +77,15 @@ export function CamposDoItem({ isMobile = false, linhas = 2 }) {
         </div>
       </div>
 
-      <Campo rotulo={porCotacao ? 'Observações para os fornecedores' : 'Observações internas'}>
-        <textarea
-          rows={linhas}
-          placeholder="Opcional — requisitos técnicos, prazos, restrições do espaço."
-        />
-      </Campo>
+      {porCotacao && (
+        <Campo rotulo="Observações para os fornecedores">
+          <textarea
+            rows={linhas}
+            placeholder="Opcional — requisitos técnicos, prazos, restrições do espaço."
+            {...campo('observacoes')}
+          />
+        </Campo>
+      )}
     </>
   )
 }

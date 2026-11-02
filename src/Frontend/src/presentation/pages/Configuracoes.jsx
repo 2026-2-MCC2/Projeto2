@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { OrganizadorLayout } from '../components/organizador/OrganizadorLayout.jsx'
 import {
   Acoes,
@@ -11,6 +11,9 @@ import {
 import { useIsMobile } from '../hooks/useIsMobile.js'
 import { useValidacao } from '../hooks/useValidacao.js'
 import { CATEGORIAS_DE_ATUACAO } from '../../domain/categoriasDeAtuacao.js'
+import { formatarCnpj, formatarTelefone } from '../../domain/formatacao.js'
+import { carregarPerfilAtual } from '../../application/sessao.js'
+import { Carregando, ErroNaTela } from '../components/comum/EstadoDaTela.jsx'
 import { validarConfirmacaoSenha } from '../../domain/validacao.js'
 import { Icone } from '../components/comum/Icone.jsx'
 import iconeBloqueado from '../assets/organizador/icone-bloqueado.svg'
@@ -89,7 +92,32 @@ const CONFIGURACOES = {
 export function Configuracoes({ perfil = 'organizador' }) {
   const isMobile = useIsMobile()
   const [aba, setAba] = useState('dados')
+  // os campos só aparecem com os dados do /me: valor inicial de input não muda depois de montado
+  const [perfilCarregado, setPerfilCarregado] = useState({ situacao: 'carregando', usuario: null })
+  const [tentativa, setTentativa] = useState(0)
   const config = CONFIGURACOES[perfil]
+  const usuario = perfilCarregado.usuario
+
+  useEffect(() => {
+    let telaAberta = true
+    carregarPerfilAtual()
+      .then((dados) => {
+        if (telaAberta) setPerfilCarregado({ situacao: 'pronto', usuario: dados })
+      })
+      .catch((erro) => {
+        if (telaAberta) setPerfilCarregado({ situacao: 'erro', usuario: null, erro })
+      })
+    return () => {
+      telaAberta = false
+    }
+  }, [tentativa])
+
+  function tentarDeNovo() {
+    setPerfilCarregado({ situacao: 'carregando', usuario: null })
+    setTentativa((atual) => atual + 1)
+  }
+
+  const dadosProntos = aba === 'dados' && perfilCarregado.situacao === 'pronto'
 
   return (
     <OrganizadorLayout
@@ -113,10 +141,16 @@ export function Configuracoes({ perfil = 'organizador' }) {
         ))}
       </div>
 
-      {aba === 'dados' && config.empresa && (
-        <DadosCadastrais empresa={config.empresa} isMobile={isMobile} />
+      {aba === 'dados' && perfilCarregado.situacao === 'carregando' && (
+        <Carregando mensagem="Carregando seus dados…" />
       )}
-      {aba === 'dados' && perfil === 'admin' && <DadosAdmin isMobile={isMobile} />}
+      {aba === 'dados' && perfilCarregado.situacao === 'erro' && (
+        <ErroNaTela erro={perfilCarregado.erro} aoTentarDeNovo={tentarDeNovo} />
+      )}
+      {dadosProntos && config.empresa && (
+        <DadosCadastrais empresa={config.empresa} usuario={usuario} isMobile={isMobile} />
+      )}
+      {dadosProntos && perfil === 'admin' && <DadosAdmin usuario={usuario} isMobile={isMobile} />}
       {aba === 'categorias' && <PainelCategorias isMobile={isMobile} />}
       {aba === 'perfil' && <PainelPerfil {...config.perfil} isMobile={isMobile} />}
       {aba === 'senha' && <PainelSenha />}
@@ -145,30 +179,51 @@ function PainelDados({ titulo = 'Dados cadastrais', apoio, children }) {
 }
 
 // no mobile o figma mostra só nome, cnpj, telefone e e-mail
-function DadosCadastrais({ empresa, isMobile }) {
+function DadosCadastrais({ empresa, usuario, isMobile }) {
+  const cnpjFormatado = usuario?.cnpj ? formatarCnpj(usuario.cnpj) : '—'
+  const telefoneFormatado = usuario?.phone ? formatarTelefone(usuario.phone) : ''
+  // os campos mostram só o que a empresa informou; os dados de exemplo ficam como dica
+  const nome = usuario?.name ?? ''
+  const responsavel = usuario?.responsible_name ?? ''
+  const emailCadastrado = usuario?.email ?? ''
+
   const cnpj = (
     <CampoFixo
       rotulo="CNPJ"
-      valor="12.345.678/0001-90"
+      valor={cnpjFormatado}
       icone={iconeBloqueado}
       ajuda="O CNPJ não pode ser alterado depois da aprovação do cadastro."
     />
   )
   const telefone = (
     <Campo rotulo="Telefone">
-      <input type="tel" autoComplete="tel" data-validar="telefone" placeholder="(11) 98765-4321" />
+      <input
+        type="tel"
+        autoComplete="tel"
+        data-validar="telefone"
+        defaultValue={telefoneFormatado}
+        placeholder="(11) 90000-0000"
+      />
     </Campo>
   )
   const email = (
     <Campo rotulo="E-mail">
-      <input type="email" autoComplete="email" data-validar="email" placeholder={empresa.email} />
+      <input
+        type="email"
+        autoComplete="email"
+        data-validar="email"
+        defaultValue={emailCadastrado}
+        placeholder={empresa.email}
+      />
     </Campo>
   )
 
   if (isMobile) {
     return (
       <PainelDados apoio="Aprovados pelo administrador.">
-        <Campo rotulo={empresa.rotuloNome} placeholder={empresa.nomeMobile ?? empresa.nome} />
+        <Campo rotulo={empresa.rotuloNome}>
+          <input type="text" defaultValue={nome} placeholder={empresa.nome} />
+        </Campo>
         {cnpj}
         {telefone}
         {email}
@@ -178,7 +233,9 @@ function DadosCadastrais({ empresa, isMobile }) {
 
   return (
     <PainelDados apoio="Informações enviadas no cadastro e aprovadas pelo administrador.">
-      <Campo rotulo={empresa.rotuloNome} placeholder={empresa.nome} />
+      <Campo rotulo={empresa.rotuloNome}>
+        <input type="text" defaultValue={nome} placeholder={empresa.nome} />
+      </Campo>
 
       <Linha>
         {cnpj}
@@ -186,21 +243,23 @@ function DadosCadastrais({ empresa, isMobile }) {
       </Linha>
 
       <Linha>
-        <Campo rotulo="Responsável" placeholder={empresa.responsavel} />
+        <Campo rotulo="Responsável">
+          <input type="text" defaultValue={responsavel} placeholder={empresa.responsavel} />
+        </Campo>
         {email}
       </Linha>
 
       {empresa.comEndereco && (
         <Linha>
-          <Campo rotulo="Cidade" placeholder="São Paulo" />
-          <Campo rotulo="Estado" placeholder="SP" />
+          <Campo rotulo="Cidade" defaultValue={usuario?.city ?? ''} placeholder="São Paulo" />
+          <Campo rotulo="Estado" defaultValue={usuario?.state ?? ''} placeholder="SP" />
         </Linha>
       )}
     </PainelDados>
   )
 }
 
-function DadosAdmin({ isMobile }) {
+function DadosAdmin({ usuario, isMobile }) {
   return (
     <PainelDados
       titulo="Dados da conta"
@@ -211,13 +270,20 @@ function DadosAdmin({ isMobile }) {
       }
     >
       <Linha>
-        <Campo rotulo="Nome" placeholder="Admin TrocaTicket" />
+        <Campo rotulo="Nome">
+          <input
+            type="text"
+            defaultValue={usuario?.name || 'Admin TrocaTicket'}
+            placeholder={usuario?.name || 'Admin TrocaTicket'}
+          />
+        </Campo>
         <Campo rotulo="E-mail">
           <input
             type="email"
             autoComplete="email"
             data-validar="email"
-            placeholder="admin@trocaticket.com.br"
+            defaultValue={usuario?.email || 'admin@trocaticket.com.br'}
+            placeholder={usuario?.email || 'admin@trocaticket.com.br'}
           />
         </Campo>
       </Linha>

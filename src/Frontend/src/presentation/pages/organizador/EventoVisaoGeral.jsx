@@ -1,17 +1,30 @@
 import { useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { EventoLayout } from '../../components/organizador/EventoLayout.jsx'
 import { Vazio } from '../../components/comum/EstadoDaTela.jsx'
 import { Cartao, ListaDeLinhas } from '../../components/organizador/Cartao.jsx'
-import { Botao } from '../../components/organizador/Formulario.jsx'
+import { Botao, Campo } from '../../components/organizador/Formulario.jsx'
 import { Modal } from '../../components/comum/Modal.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
-import { buscarEvento } from '../../data/eventos.js'
+import { useEvento } from '../../hooks/useEvento.js'
+import { toast } from '../../toasts.js'
+import {
+  cancelarEvento,
+  eventoPodeSerEditado,
+  publicarEventoParaCotacao,
+} from '../../../application/eventos.js'
 import { Icone } from '../../components/comum/Icone.jsx'
 import iconePublicar from '../../assets/comum/icone-enviar.svg'
+import iconeCancelar from '../../assets/admin/icone-modal-rejeitar.svg'
 import iconeConcluida from '../../assets/organizador/icone-concluido-verde.svg'
 import iconeAtual from '../../assets/organizador/icone-etapa-atual.svg'
 import iconeFutura from '../../assets/organizador/icone-etapa-futura.svg'
+
+// custo próprio do evento não passa por cotação, então não leva etiqueta
+const ETIQUETA_DA_SITUACAO = {
+  aceita: { longa: 'Proposta aceita', curta: 'Aceita', estilo: 'aprovado' },
+  cotacao: { longa: 'Em cotação', curta: 'Em cotação', estilo: 'cotacao' },
+}
 
 const ICONE_DA_ETAPA = {
   concluida: iconeConcluida,
@@ -22,8 +35,14 @@ const ICONE_DA_ETAPA = {
 export function EventoVisaoGeral() {
   const { id } = useParams()
   const isMobile = useIsMobile()
+  const [confirmandoPublicacao, setConfirmandoPublicacao] = useState(false)
   const [publicando, setPublicando] = useState(false)
-  const detalhe = buscarEvento(id)?.detalhe
+  const [confirmandoCancelamento, setConfirmandoCancelamento] = useState(false)
+  const [cancelando, setCancelando] = useState(false)
+  const [motivoDoCancelamento, setMotivoDoCancelamento] = useState('')
+  const navigate = useNavigate()
+  const { evento } = useEvento(id)
+  const detalhe = evento?.detalhe
 
   if (!detalhe) {
     return (
@@ -36,30 +55,120 @@ export function EventoVisaoGeral() {
     )
   }
 
+  // a resposta da publicação atualiza o evento em memória, e a tela acompanha sem recarregar
+  async function confirmarPublicacao() {
+    setPublicando(true)
+    try {
+      await publicarEventoParaCotacao(id)
+      toast.sucesso('Evento publicado para cotação', { descricao: evento.nome })
+    } catch (falha) {
+      toast.erro('Não foi possível publicar o evento', { descricao: falha.message })
+    } finally {
+      setPublicando(false)
+      setConfirmandoPublicacao(false)
+    }
+  }
+
+  async function confirmarCancelamento() {
+    setCancelando(true)
+    try {
+      await cancelarEvento(id, motivoDoCancelamento.trim())
+      toast.sucesso('Evento cancelado', { descricao: evento.nome })
+      setConfirmandoCancelamento(false)
+      setMotivoDoCancelamento('')
+    } catch (falha) {
+      toast.erro('Não foi possível cancelar o evento', { descricao: falha.message })
+    } finally {
+      setCancelando(false)
+    }
+  }
+
+  const podeEditar = eventoPodeSerEditado(evento)
+
   const acoes = (
     <>
-      <Botao type="button" secundario>
-        Editar evento
-      </Botao>
-      <Botao type="button" onClick={() => setPublicando(true)}>
-        Publicar para cotação
-      </Botao>
+      {podeEditar && (
+        <Botao
+          type="button"
+          secundario
+          onClick={() => navigate(`/organizador/eventos/${id}/editar`, { viewTransition: true })}
+        >
+          Editar evento
+        </Botao>
+      )}
+      {podeEditar && (
+        <Botao
+          type="button"
+          secundario
+          className="botao--texto-perigo"
+          onClick={() => setConfirmandoCancelamento(true)}
+        >
+          Cancelar evento
+        </Botao>
+      )}
+      {evento.status === 'planejamento' && (
+        <Botao type="button" onClick={() => setConfirmandoPublicacao(true)}>
+          Publicar para cotação
+        </Botao>
+      )}
     </>
   )
 
-  const modalDePublicacao = publicando && (
+  const modalDePublicacao = confirmandoPublicacao && (
     <Modal
       icone={iconePublicar}
       titulo="Publicar evento para cotação?"
       mensagem="O evento e seus itens abertos ficarão visíveis para os fornecedores aprovados nas categorias escolhidas. Você ainda pode editar o evento depois."
       dados={[
-        { rotulo: 'Evento', valor: 'Festival Primavera Som & Luz' },
-        { rotulo: 'Itens abertos', valor: '4 itens' },
-        { rotulo: 'Prazo para propostas', valor: '25 Set 2026' },
+        { rotulo: 'Evento', valor: evento.nome },
+        { rotulo: 'Período', valor: evento.periodo },
+        { rotulo: 'Local', valor: evento.local },
       ]}
-      acao={{ cancelar: 'Cancelar', confirmar: 'Publicar evento' }}
-      aoFechar={() => setPublicando(false)}
+      acao={{
+        cancelar: 'Cancelar',
+        confirmar: publicando ? 'Publicando...' : 'Publicar evento',
+        aoConfirmar: confirmarPublicacao,
+        ocupado: publicando,
+      }}
+      aoFechar={() => !publicando && setConfirmandoPublicacao(false)}
     />
+  )
+
+  const modalDeCancelamento = confirmandoCancelamento && (
+    <Modal
+      icone={iconeCancelar}
+      corDoIcone="vermelho"
+      titulo="Cancelar este evento?"
+      mensagem="O evento sai da cotação e não pode mais ser editado nem publicado. Não dá para desfazer."
+      dados={[
+        { rotulo: 'Evento', valor: evento.nome },
+        { rotulo: 'Período', valor: evento.periodo },
+      ]}
+      acao={{
+        cancelar: 'Voltar',
+        confirmar: cancelando ? 'Cancelando...' : 'Cancelar evento',
+        aoConfirmar: confirmarCancelamento,
+        ocupado: cancelando,
+      }}
+      aoFechar={() => !cancelando && setConfirmandoCancelamento(false)}
+    >
+      <Campo rotulo="Motivo do cancelamento">
+        <textarea
+          rows={2}
+          maxLength={500}
+          placeholder="Ex.: local indisponível na data."
+          value={motivoDoCancelamento}
+          onChange={(evento) => setMotivoDoCancelamento(evento.target.value.trimStart())}
+          required
+        />
+      </Campo>
+    </Modal>
+  )
+
+  const avisoDeCancelamento = evento.motivoDoCancelamento && (
+    <p className="aviso" role="status">
+      Evento cancelado. Motivo: {evento.motivoDoCancelamento}
+    </p>
   )
 
   const dadosDoEvento = (
@@ -115,18 +224,20 @@ export function EventoVisaoGeral() {
       titulo="Itens de custo"
       link={{
         para: `/organizador/eventos/${id}/itens`,
-        nome: isMobile ? 'Ver todos' : `Ver todos os ${detalhe.totalDeItens} itens`,
+        nome: nomeDoLinkDosItens(detalhe.totalDeItens, isMobile),
       }}
     >
+      {detalhe.itens.length === 0 && (
+        <p className="cartao__vazio">Nenhum item de custo cadastrado ainda.</p>
+      )}
       <ListaDeLinhas
         compacta={isMobile}
         linhas={detalhe.itens.map((item) => ({
           chave: item.nome,
           titulo: item.nome,
           apoio: isMobile ? undefined : item.categoria,
-          etiqueta:
-            item.situacao === 'aceita' ? (isMobile ? 'Aceita' : 'Proposta aceita') : 'Em cotação',
-          estiloDaEtiqueta: item.situacao === 'aceita' ? 'aprovado' : 'cotacao',
+          etiqueta: ETIQUETA_DA_SITUACAO[item.situacao]?.[isMobile ? 'curta' : 'longa'],
+          estiloDaEtiqueta: ETIQUETA_DA_SITUACAO[item.situacao]?.estilo,
           valor: item.valor,
         }))}
       />
@@ -136,45 +247,64 @@ export function EventoVisaoGeral() {
   const propostas = (
     <Cartao
       titulo="Propostas recebidas"
-      link={{
-        para: `/organizador/eventos/${id}/propostas`,
-        nome: isMobile ? 'Comparar' : 'Comparar propostas',
-      }}
+      link={
+        detalhe.propostas.length > 0
+          ? {
+              para: `/organizador/eventos/${id}/propostas`,
+              nome: isMobile ? 'Comparar' : 'Comparar propostas',
+            }
+          : undefined
+      }
     >
-      <ListaDeLinhas
-        linhas={(isMobile ? detalhe.propostas.slice(0, 2) : detalhe.propostas).map((proposta) => ({
-          chave: proposta.fornecedor,
-          titulo: proposta.fornecedor,
-          apoio: isMobile ? undefined : proposta.item,
-          etiqueta: isMobile ? undefined : proposta.etiqueta,
-          estiloDaEtiqueta: 'aprovado',
-          valor: proposta.valor,
-        }))}
-      />
+      {detalhe.propostas.length === 0 ? (
+        <p className="cartao__vazio">Não há propostas</p>
+      ) : (
+        <ListaDeLinhas
+          linhas={(isMobile ? detalhe.propostas.slice(0, 2) : detalhe.propostas).map(
+            (proposta) => ({
+              chave: proposta.fornecedor,
+              titulo: proposta.fornecedor,
+              apoio: isMobile ? undefined : proposta.item,
+              etiqueta: isMobile ? undefined : proposta.etiqueta,
+              estiloDaEtiqueta: 'aprovado',
+              valor: proposta.valor,
+            }),
+          )}
+        />
+      )}
     </Cartao>
   )
 
+  const ticketLongo = (detalhe.ticketEstimado.valor || '').length > 11
+
   const ticket = (
     <Cartao titulo="Ticket estimado" etiqueta={detalhe.ticketEstimado.cenario}>
-      <strong className="ticket__valor">{detalhe.ticketEstimado.valor}</strong>
+      <strong
+        className={`ticket__valor${ticketLongo ? ' ticket__valor--compacto' : ''}`}
+        title={detalhe.ticketEstimado.valor}
+      >
+        {detalhe.ticketEstimado.valor}
+      </strong>
       <p className="cartao__apoio">{detalhe.ticketEstimado.explicacao}</p>
 
       <div className="cartao__divisor" />
 
       <div className="cenarios">
-        {detalhe.ticketEstimado.cenarios.map((cenario) => (
-          <div key={cenario.nome} className="cenario">
-            <span className="cenario__nome">{cenario.nome}</span>
-            <strong
-              className={
-                cenario.destaque ? 'cenario__valor cenario__valor--destaque' : 'cenario__valor'
-              }
-            >
-              {cenario.valor}
-            </strong>
-            <small>{cenario.publico}</small>
-          </div>
-        ))}
+        {detalhe.ticketEstimado.cenarios.map((cenario) => {
+          const valorLongo = (cenario.valor || '').length > 10
+          return (
+            <div key={cenario.nome} className="cenario">
+              <span className="cenario__nome">{cenario.nome}</span>
+              <strong
+                title={cenario.valor}
+                className={`cenario__valor${cenario.destaque ? ' cenario__valor--destaque' : ''}${valorLongo ? ' cenario__valor--compacto' : ''}`}
+              >
+                {cenario.valor}
+              </strong>
+              <small>{cenario.publico}</small>
+            </div>
+          )
+        })}
       </div>
 
       <Link to={`/organizador/eventos/${id}/ticket`} className="cartao__link" viewTransition>
@@ -185,19 +315,22 @@ export function EventoVisaoGeral() {
 
   if (isMobile) {
     return (
-      <EventoLayout>
+      <EventoLayout acoes={acoes}>
+        {avisoDeCancelamento}
         {dadosDoEvento}
         {orcamento}
         {itensDeCusto}
         {propostas}
         {ticket}
         {modalDePublicacao}
+        {modalDeCancelamento}
       </EventoLayout>
     )
   }
 
   return (
     <EventoLayout acoes={acoes} comResumo>
+      {avisoDeCancelamento}
       <div className="colunas">
         <div className="colunas__principal">
           {dadosDoEvento}
@@ -226,15 +359,31 @@ export function EventoVisaoGeral() {
       </div>
 
       {modalDePublicacao}
+      {modalDeCancelamento}
     </EventoLayout>
   )
 }
 
+function nomeDoLinkDosItens(totalDeItens, isMobile) {
+  if (totalDeItens === 0) return 'Cadastrar itens'
+  return isMobile ? 'Ver todos' : `Ver todos os ${totalDeItens} itens`
+}
+
 function Indicador({ rotulo, valor, positivo = false }) {
+  const valorLongo = String(valor ?? '').length > 11
+  const classeValor = [
+    positivo && 'indicador__valor--positivo',
+    valorLongo && 'indicador__valor--compacto',
+  ]
+    .filter(Boolean)
+    .join(' ')
+
   return (
     <div className="indicador">
       <span>{rotulo}</span>
-      <strong className={positivo ? 'indicador__valor--positivo' : undefined}>{valor}</strong>
+      <strong title={valor} className={classeValor || undefined}>
+        {valor}
+      </strong>
     </div>
   )
 }

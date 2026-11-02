@@ -1,0 +1,44 @@
+{
+  "title": "PatchEventStatus",
+  "type": "object",
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "open_for_quotes",
+        "closed",
+        "canceled"
+      ]
+    },
+    "reason": {
+      "description": "Motivo do cancelamento. Obrigatório ao cancelar.",
+      "type": "string",
+      "maxLength": 500,
+      "pattern": "\\S"
+    }
+  },
+  "required": [
+    "status"
+  ],
+  "additionalProperties": false,
+  "if": {
+    "properties": {
+      "status": {
+        "const": "canceled"
+      }
+    }
+  },
+  "then": {
+    "required": [
+      "reason"
+    ]
+  },
+  "else": {
+    "not": {
+      "required": [
+        "reason"
+      ]
+    }
+  }
+}
