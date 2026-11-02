@@ -1,0 +1,256 @@
+import { BaseController } from './base_controller.js'
+import { EventDto } from '../dtos/event_dto.js'
+import {
+  EventCannotBeModified,
+  EventCannotBePublished,
+  EventCapacityLessThanMaxAudience,
+  EventEndDateBeforeStartDate,
+  EventExpectedAudienceLessThanMin,
+  EventMaxAudienceLessThanExpected,
+  EventMinAudienceInvalid,
+  InvalidProfitMargin,
+  NotFoundEvent,
+  NotFoundOrganizer,
+  NotFoundUser,
+} from '../errors/index.js'
+import { EventRepository } from '../repositories/event_repository.js'
+import { OrganizerRepository } from '../repositories/organizer_repository.js'
+import { UserRepository } from '../repositories/user_repository.js'
+
+/**
+ * Controller responsável pelas operações de eventos do Organizador (RF05, RF07, RF08).
+ * Gerencia validações de negócio, isolamento por organizador e persistência transacional.
+ */
+export class EventController extends BaseController {
+  constructor(context) {
+    super(context, 'event_controller')
+    this.userRepository = new UserRepository(context)
+    this.organizerRepository = new OrganizerRepository(context)
+    this.eventRepository = new EventRepository(context)
+  }
+
+  /**
+   * Obtém o registro de organizador vinculado ao usuário logado.
+   * Garante o isolamento de tenant para que o organizador só manipule seus próprios eventos.
+   *
+   * @param {string} userKey Chave pública do usuário autenticado.
+   * @returns {Promise<import('../models/organizer.js').Organizer>}
+   */
+  async #getOrganizerByUserKey(userKey) {
+    const user = await this.userRepository.getByKey(userKey)
+    if (!user) {
+      throw new NotFoundUser(userKey)
+    }
+
+    const organizer = await this.organizerRepository.getByUserId(user.id)
+    if (!organizer) {
+      throw new NotFoundOrganizer(userKey)
+    }
+
+    return organizer
+  }
+
+  /**
+   * Valida coerência temporal entre início e término do evento.
+   */
+  #validateDates(startDate, endDate) {
+    const start = new Date(startDate)
+    const end = new Date(endDate)
+
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end < start) {
+      throw new EventEndDateBeforeStartDate()
+    }
+  }
+
+  /**
+   * Valida faixas de público mínimo, esperado e máximo, além da capacidade do espaço.
+   */
+  #validateAudience(minAudience, expectedAudience, maxAudience, venueCapacity) {
+    if (minAudience <= 0) {
+      throw new EventMinAudienceInvalid()
+    }
+
+    if (expectedAudience < minAudience) {
+      throw new EventExpectedAudienceLessThanMin()
+    }
+
+    if (maxAudience < expectedAudience) {
+      throw new EventMaxAudienceLessThanExpected()
+    }
+
+    if (venueCapacity !== null && venueCapacity !== undefined && maxAudience > venueCapacity) {
+      throw new EventCapacityLessThanMaxAudience()
+    }
+  }
+
+  /**
+   * Valida margem de lucro como fração válida (0 <= margem < 1).
+   */
+  #validateProfitMargin(profitMargin) {
+    if (profitMargin < 0 || profitMargin >= 1) {
+      throw new InvalidProfitMargin()
+    }
+  }
+
+  /**
+   * Cria um novo evento e seus custos próprios iniciais (se informados).
+   *
+   * @param {string} userKey Chave do organizador.
+   * @param {object} payload Dados validados do evento.
+   * @returns {Promise<object>} DTO do evento criado.
+   */
+  async createEvent(userKey, payload) {
+    const organizer = await this.#getOrganizerByUserKey(userKey)
+
+    this.#validateDates(payload.start_date, payload.end_date)
+    this.#validateAudience(payload.min_audience, payload.expected_audience, payload.max_audience, payload.venue_capacity)
+    this.#validateProfitMargin(payload.profit_margin)
+
+    const eventData = {
+      organizer_id: organizer.id,
+      name: payload.name.trim(),
+      category: payload.category.trim(),
+      description: payload.description ? payload.description.trim() : null,
+      start_date: new Date(payload.start_date),
+      end_date: new Date(payload.end_date),
+      venue_name: payload.venue_name.trim(),
+      address: payload.address.trim(),
+      city: payload.city.trim(),
+      state: payload.state.toUpperCase().trim(),
+      zip_code: payload.zip_code ? payload.zip_code.replace(/\D/g, '') : null,
+      venue_capacity: payload.venue_capacity ?? null,
+      min_audience: payload.min_audience,
+      expected_audience: payload.expected_audience,
+      max_audience: payload.max_audience,
+      profit_margin: payload.profit_margin,
+      reference_scenario: payload.reference_scenario ?? 'expected',
+      status: payload.status ?? 'draft',
+    }
+
+    const internalCosts = payload.internal_costs ?? []
+    const createdEvent = await this.eventRepository.create(eventData, internalCosts)
+
+    await this.session.commit()
+    return EventDto.fromModel(createdEvent)
+  }
+
+  /**
+   * Lista os eventos pertencentes ao organizador logado com filtros e paginação.
+   *
+   * @param {string} userKey Chave do organizador.
+   * @param {object} options Opções de busca e paginação.
+   * @returns {Promise<object>} Lista paginada de eventos.
+   */
+  async getEventsList(userKey, { status, search, limit = 20, page = 0 } = {}) {
+    const organizer = await this.#getOrganizerByUserKey(userKey)
+    const offset = page * limit
+
+    const { events, count } = await this.eventRepository.getByOrganizer(organizer.id, {
+      status,
+      search,
+      limit,
+      offset,
+    })
+
+    return {
+      data: EventDto.fromList(events),
+      limit,
+      page,
+      total: count,
+      is_last_page: (page + 1) * limit >= count,
+    }
+  }
+
+  /**
+   * Consulta os dados detalhados de um evento pelo seu UUID público.
+   *
+   * @param {string} userKey Chave do organizador autenticado.
+   * @param {string} eventKey UUID do evento.
+   * @returns {Promise<object>} DTO detalhado do evento.
+   */
+  async getEventByKey(userKey, eventKey) {
+    const organizer = await this.#getOrganizerByUserKey(userKey)
+    const event = await this.eventRepository.getByKey(eventKey)
+
+    if (!event || event.organizer_id !== organizer.id) {
+      throw new NotFoundEvent(eventKey)
+    }
+
+    return EventDto.fromModel(event)
+  }
+
+  /**
+   * Atualiza as informações cadastrais e financeiras do evento.
+   *
+   * @param {string} userKey Chave do organizador autenticado.
+   * @param {string} eventKey UUID do evento.
+   * @param {object} payload Dados atualizados.
+   * @returns {Promise<object>} DTO do evento atualizado.
+   */
+  async updateEvent(userKey, eventKey, payload) {
+    const organizer = await this.#getOrganizerByUserKey(userKey)
+    const event = await this.eventRepository.getByKey(eventKey)
+
+    if (!event || event.organizer_id !== organizer.id) {
+      throw new NotFoundEvent(eventKey)
+    }
+
+    if (event.status === 'closed' || event.status === 'canceled') {
+      throw new EventCannotBeModified(event.status)
+    }
+
+    this.#validateDates(payload.start_date, payload.end_date)
+    this.#validateAudience(payload.min_audience, payload.expected_audience, payload.max_audience, payload.venue_capacity)
+    this.#validateProfitMargin(payload.profit_margin)
+
+    const updatedFields = {
+      name: payload.name.trim(),
+      category: payload.category.trim(),
+      description: payload.description ? payload.description.trim() : null,
+      start_date: new Date(payload.start_date),
+      end_date: new Date(payload.end_date),
+      venue_name: payload.venue_name.trim(),
+      address: payload.address.trim(),
+      city: payload.city.trim(),
+      state: payload.state.toUpperCase().trim(),
+      zip_code: payload.zip_code ? payload.zip_code.replace(/\D/g, '') : null,
+      venue_capacity: payload.venue_capacity ?? null,
+      min_audience: payload.min_audience,
+      expected_audience: payload.expected_audience,
+      max_audience: payload.max_audience,
+      profit_margin: payload.profit_margin,
+      reference_scenario: payload.reference_scenario ?? event.reference_scenario,
+    }
+
+    const updatedEvent = await this.eventRepository.update(event, updatedFields)
+    await this.session.commit()
+
+    return EventDto.fromModel(updatedEvent)
+  }
+
+  /**
+   * Altera o status do evento (ex: de 'draft' para 'open_for_quotes' - RF08).
+   *
+   * @param {string} userKey Chave do organizador autenticado.
+   * @param {string} eventKey UUID do evento.
+   * @param {string} newStatus Novo status do evento.
+   * @returns {Promise<object>} DTO atualizado.
+   */
+  async updateEventStatus(userKey, eventKey, newStatus) {
+    const organizer = await this.#getOrganizerByUserKey(userKey)
+    const event = await this.eventRepository.getByKey(eventKey)
+
+    if (!event || event.organizer_id !== organizer.id) {
+      throw new NotFoundEvent(eventKey)
+    }
+
+    if (newStatus === 'open_for_quotes' && event.status !== 'draft') {
+      throw new EventCannotBePublished(event.status)
+    }
+
+    const updatedEvent = await this.eventRepository.updateStatus(event, newStatus)
+    await this.session.commit()
+
+    return EventDto.fromModel(updatedEvent)
+  }
+}
