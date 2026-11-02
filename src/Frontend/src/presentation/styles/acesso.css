@@ -3,10 +3,12 @@
 
   display: flex;
   min-height: 100vh;
+  min-height: 100dvh;
   background: var(--fundo-superficie);
   color: var(--texto-primario);
   font-family: var(--fonte-texto);
   line-height: 1.35;
+  overflow-x: hidden;
 }
 
 .acesso__formulario {
@@ -14,7 +16,8 @@
   flex: 1 1 58%;
   align-items: center;
   justify-content: center;
-  padding: 3rem 1.5rem;
+  padding: 2.25rem 1.5rem;
+  overflow-x: hidden;
 }
 
 .acesso__conteudo {
@@ -132,6 +135,33 @@
   opacity: 0.7;
 }
 
+.acesso__acoes {
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.acesso__acoes .acesso__botao {
+  flex: 1;
+}
+
+.acesso__botao--secundario {
+  border: 1px solid var(--borda-campo);
+  background: transparent;
+  color: var(--texto-primario);
+}
+
+@media (hover: hover) {
+  .acesso__botao--secundario:hover {
+    border-color: var(--borda-forte);
+    background: var(--fundo-sutil);
+  }
+}
+
+.acesso__botao--secundario:active {
+  transform: scale(0.98);
+}
+
 /* retorno do envio acima do botão (components/acesso/RetornoDoEnvio.jsx) */
 .acesso__campos > p.mensagem-erro {
   margin: 0;
@@ -218,6 +248,7 @@
 
 .acesso__perfis {
   display: flex;
+  flex-direction: column;
   gap: 0.75rem;
 }
 
@@ -545,6 +576,13 @@
 .etapas__perfil--ativo {
   border: 2px solid var(--texto-marca);
   background: var(--fundo-marca-suave);
+}
+
+@media (hover: hover) {
+  .etapas__perfil:not(.etapas__perfil--ativo):hover {
+    border-color: var(--borda-forte);
+    background: var(--fundo-sutil);
+  }
 }
 
 .etapas__perfil-nome {
