@@ -18,18 +18,22 @@ function preencher(campo, valor) {
 // semPassado: o calendário não deixa escolher datas antes de hoje
 export function EntradaData({ onChange, semPassado = false, ...props }) {
   const texto = useRef(null)
-  const [aberto, setAberto] = useState(false)
+  // a data digitada é lida ao abrir o calendário, fora da renderização (null = fechado)
+  const [dataAoAbrir, setDataAoAbrir] = useState(null)
+  const aberto = dataAoAbrir !== null
+
+  function alternarCalendario() {
+    setDataAoAbrir(aberto ? null : (texto.current?.value ?? ''))
+  }
 
   function aoDigitar(evento) {
     evento.target.value = comBarras(evento.target.value)
     onChange?.(evento)
   }
 
+  // o evento disparado por preencher já chega ao onChange pelo aoDigitar
   function aoSelecionarData(dataStr) {
-    if (texto.current) {
-      preencher(texto.current, dataStr)
-      onChange?.({ target: texto.current })
-    }
+    if (texto.current) preencher(texto.current, dataStr)
   }
 
   return (
@@ -49,17 +53,17 @@ export function EntradaData({ onChange, semPassado = false, ...props }) {
         type="button"
         className="entrada-data__calendario"
         aria-label="Abrir calendário"
-        onClick={() => setAberto((estaAberto) => !estaAberto)}
+        onClick={alternarCalendario}
       >
         <Icone src={iconeCalendario} />
       </button>
 
       {aberto && (
         <Calendario
-          valor={texto.current?.value || props.value}
+          valor={props.value ?? dataAoAbrir}
           semPassado={semPassado}
           aoSelecionar={aoSelecionarData}
-          aoFechar={() => setAberto(false)}
+          aoFechar={() => setDataAoAbrir(null)}
         />
       )}
     </span>
