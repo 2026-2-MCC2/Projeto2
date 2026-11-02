@@ -1,5 +1,7 @@
 // Repository: consultas e gravações da conta de usuário e de seu histórico de decisões.
 
+import { randomUUID } from 'node:crypto'
+
 import { User, UserStatusEvent } from '../models/index.js'
 
 export class UserRepository {
@@ -21,6 +23,29 @@ export class UserRepository {
       where: { user_key: userKey },
       transaction: this.session,
     })
+  }
+
+  // devolve o usuário com esse e-mail, ou null se não existir
+  async getByEmail(email) {
+    return User.findOne({
+      where: { email: email },
+      transaction: this.session,
+    })
+  }
+
+  // cria a conta sempre como 'pending': só passa a acessar depois da aprovação do administrador
+  async create({ name, email, passwordHash, profile }) {
+    return User.create(
+      {
+        user_key: randomUUID(),
+        name: name,
+        email: email,
+        password_hash: passwordHash,
+        profile: profile,
+        status: 'pending',
+      },
+      { transaction: this.session },
+    )
   }
 
   async updateStatus(user, newStatus) {

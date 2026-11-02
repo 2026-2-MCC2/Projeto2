@@ -7,10 +7,12 @@ import { User, UserStatusEvent } from '../../src/models/index.js'
 import { UserRepository } from '../../src/repositories/user_repository.js'
 
 const originalFindOne = User.findOne
+const originalCreate = User.create
 const originalCreateStatusEvent = UserStatusEvent.create
 
 afterEach(() => {
   User.findOne = originalFindOne
+  User.create = originalCreate
   UserStatusEvent.create = originalCreateStatusEvent
 })
 
@@ -134,5 +136,78 @@ describe('UserRepository', () => {
     assert.equal(result, null)
     assert.equal(targetUser.status, 'pending')
     assert.equal(targetUser.approved_at, null)
+  })
+
+  test('busca o usuário pelo e-mail dentro da transação', async () => {
+    const context = createContext()
+    const user = { id: 15, email: 'organizador@exemplo.com' }
+    let queryOptions
+    User.findOne = async (options) => {
+      queryOptions = options
+      return user
+    }
+
+    const repository = new UserRepository(context)
+    const result = await repository.getByEmail('organizador@exemplo.com')
+
+    assert.equal(result, user)
+    assert.deepEqual(queryOptions.where, { email: 'organizador@exemplo.com' })
+    assert.equal(queryOptions.transaction, context.dbSession)
+  })
+
+  test('devolve null quando o e-mail não existe', async () => {
+    User.findOne = async () => null
+
+    const repository = new UserRepository(createContext())
+    const result = await repository.getByEmail('ninguem@exemplo.com')
+
+    assert.equal(result, null)
+  })
+
+  test('cria o usuário pendente com user_key gerada dentro da transação', async () => {
+    const context = createContext()
+    const createdUser = { id: 15 }
+    let createValues
+    let createOptions
+    User.create = async (values, options) => {
+      createValues = values
+      createOptions = options
+      return createdUser
+    }
+
+    const repository = new UserRepository(context)
+    const result = await repository.create({
+      name: 'Maria Organizadora',
+      email: 'organizador@exemplo.com',
+      passwordHash: 'hash-da-senha',
+      profile: 'organizador',
+    })
+
+    assert.equal(result, createdUser)
+    assert.match(createValues.user_key, /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/)
+    assert.deepEqual(createValues, {
+      user_key: createValues.user_key,
+      name: 'Maria Organizadora',
+      email: 'organizador@exemplo.com',
+      password_hash: 'hash-da-senha',
+      profile: 'organizador',
+      status: 'pending',
+    })
+    assert.equal(createOptions.transaction, context.dbSession)
+  })
+
+  test('gera uma user_key diferente a cada usuário criado', async () => {
+    const userKeys = []
+    User.create = async (values) => {
+      userKeys.push(values.user_key)
+      return values
+    }
+
+    const repository = new UserRepository(createContext())
+    const userData = { name: 'Ana', email: 'ana@exemplo.com', passwordHash: 'hash', profile: 'fornecedor' }
+    await repository.create(userData)
+    await repository.create(userData)
+
+    assert.notEqual(userKeys[0], userKeys[1])
   })
 })
