@@ -1657,7 +1657,7 @@
 
 .cenarios-grade {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 0.875rem;
 }
 
@@ -1701,6 +1701,11 @@
   color: var(--status-sucesso-texto);
   font-size: 1.25rem;
   font-weight: 700;
+  white-space: nowrap;
+}
+
+.cenario-cartao__resultado.cenario-cartao__resultado--compacto {
+  font-size: 0.9375rem;
 }
 
 .cenario-cartao__resultado--negativo {
@@ -1720,6 +1725,11 @@
 
 .cenario-cartao__receita strong {
   font-weight: 500;
+  white-space: nowrap;
+}
+
+.cenario-cartao__receita strong.cenario-cartao__receita--compacto {
+  font-size: 0.625rem;
 }
 
 .equilibrio {
@@ -1815,6 +1825,11 @@
 .dado-linha strong {
   font-weight: 500;
   text-align: right;
+  white-space: nowrap;
+}
+
+.dado-linha strong.dado-linha__valor--compacto {
+  font-size: 0.6875rem;
 }
 
 .dado-linha__positivo {
@@ -2380,6 +2395,10 @@
     font-size: 2.25rem;
   }
 
+  .ticket__valor--grande.ticket__valor--compacto {
+    font-size: 1.5rem;
+  }
+
   .cenario-cartao {
     gap: 0.5rem;
     padding: 0.875rem 1rem;
@@ -2390,10 +2409,8 @@
   }
 
   .cenario-cartao__numeros {
-    flex-direction: row;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 0.75rem;
+    flex-direction: column;
+    gap: 0.375rem;
   }
 
   .cenario-cartao__receita {
