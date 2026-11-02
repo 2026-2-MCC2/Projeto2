@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AcessoLayout } from '../../components/acesso/AcessoLayout.jsx'
 import { CadastroMobile } from '../../components/acesso/CadastroMobile.jsx'
+import { CampoAreaDeAtuacao } from '../../components/acesso/CampoAreaDeAtuacao.jsx'
 import { RetornoDoEnvio } from '../../components/acesso/RetornoDoEnvio.jsx'
 import { useEnvioCadastro } from '../../hooks/useEnvioCadastro.js'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
@@ -15,6 +16,7 @@ const PERFIS = [
 
 const DADOS_INICIAIS = {
   nome: '',
+  areaDeAtuacao: '',
   cnpj: '',
   telefone: '',
   email: '',
@@ -26,10 +28,16 @@ export function Cadastro() {
   const [perfil, setPerfil] = useState('organizador')
   const [dados, setDados] = useState(DADOS_INICIAIS)
   const validacao = useValidacao()
-  const { enviar, enviando, erro, aviso } = useEnvioCadastro()
+  const { enviar, enviando, erro } = useEnvioCadastro()
 
   function preencher(campo) {
     return (evento) => setDados({ ...dados, [campo]: evento.target.value })
+  }
+
+  // a área de atuação é só do fornecedor: ao trocar de perfil, ela recomeça vazia
+  function escolherPerfil(novoPerfil) {
+    setPerfil(novoPerfil)
+    setDados({ ...dados, areaDeAtuacao: '' })
   }
 
   function aoEnviar(evento) {
@@ -68,7 +76,7 @@ export function Cadastro() {
             type="button"
             aria-pressed={perfil === opcao.id}
             className={`acesso__perfil${perfil === opcao.id ? ' acesso__perfil--ativo' : ''}`}
-            onClick={() => setPerfil(opcao.id)}
+            onClick={() => escolherPerfil(opcao.id)}
           >
             <strong>{opcao.nome}</strong>
             <span>{opcao.resumo}</span>
@@ -88,6 +96,10 @@ export function Cadastro() {
             required
           />
         </label>
+
+        {perfil === 'fornecedor' && (
+          <CampoAreaDeAtuacao valor={dados.areaDeAtuacao} aoMudar={preencher('areaDeAtuacao')} />
+        )}
 
         <div className="acesso__linha">
           <label className="campo">
@@ -144,7 +156,7 @@ export function Cadastro() {
 
         <p className="acesso__aviso">O cadastro fica pendente até a aprovação do administrador.</p>
 
-        <RetornoDoEnvio erro={erro} aviso={aviso} />
+        <RetornoDoEnvio erro={erro} />
 
         <button type="submit" className="acesso__botao" disabled={enviando}>
           {enviando ? 'Enviando...' : 'Enviar cadastro'}

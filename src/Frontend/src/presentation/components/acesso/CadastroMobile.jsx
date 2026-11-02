@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { Icone } from '../comum/Icone.jsx'
 import { ProgressoEtapas } from '../comum/ProgressoEtapas.jsx'
 import { TituloDaPagina } from '../comum/TituloDaPagina.jsx'
+import { CampoAreaDeAtuacao } from './CampoAreaDeAtuacao.jsx'
 import { RetornoDoEnvio } from './RetornoDoEnvio.jsx'
 import { useEnvioCadastro } from '../../hooks/useEnvioCadastro.js'
 import { useValidacao } from '../../hooks/useValidacao.js'
@@ -33,6 +34,7 @@ const DADOS_INICIAIS = {
   razaoSocial: '',
   cnpj: '',
   telefone: '',
+  areaDeAtuacao: '',
   email: '',
   senha: '',
   confirmacaoSenha: '',
@@ -45,10 +47,15 @@ export function CadastroMobile() {
   const validacao = useValidacao({
     confirmacaoSenha: (valor, valores) => validarConfirmacaoSenha(valor, valores.senha),
   })
-  const { enviar, enviando, erro, aviso } = useEnvioCadastro()
+  const { enviar, enviando, erro } = useEnvioCadastro()
 
   function preencher(campo) {
     return (evento) => setDados({ ...dados, [campo]: evento.target.value })
+  }
+
+  // a área de atuação é só do fornecedor: ao trocar de perfil, ela recomeça vazia
+  function escolherPerfil(perfil) {
+    setDados({ ...dados, perfil: perfil, areaDeAtuacao: '' })
   }
 
   function voltar() {
@@ -100,7 +107,7 @@ export function CadastroMobile() {
                   type="button"
                   aria-pressed={dados.perfil === opcao.id}
                   className={`etapas__perfil${dados.perfil === opcao.id ? ' etapas__perfil--ativo' : ''}`}
-                  onClick={() => setDados({ ...dados, perfil: opcao.id })}
+                  onClick={() => escolherPerfil(opcao.id)}
                 >
                   <span className="etapas__perfil-nome">
                     <strong>{opcao.nome}</strong>
@@ -159,6 +166,13 @@ export function CadastroMobile() {
                   required
                 />
               </label>
+
+              {dados.perfil === 'fornecedor' && (
+                <CampoAreaDeAtuacao
+                  valor={dados.areaDeAtuacao}
+                  aoMudar={preencher('areaDeAtuacao')}
+                />
+              )}
             </>
           )}
 
@@ -218,7 +232,7 @@ export function CadastroMobile() {
         </div>
 
         <div className="etapas__acoes">
-          {etapa === ETAPAS.length && <RetornoDoEnvio erro={erro} aviso={aviso} />}
+          {etapa === ETAPAS.length && <RetornoDoEnvio erro={erro} />}
 
           <button type="submit" className="acesso__botao" disabled={enviando}>
             {etapa < ETAPAS.length ? 'Continuar' : enviando ? 'Enviando...' : 'Enviar cadastro'}

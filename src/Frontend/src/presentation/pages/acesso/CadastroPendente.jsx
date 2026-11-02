@@ -38,7 +38,7 @@ const NAO_INFORMADO = 'Não informado'
 
 export function CadastroPendente() {
   // dados enviados pelo cadastro (ver hooks/useEnvioCadastro.js)
-  const { perfil, nome, cnpj } = useLocation().state ?? {}
+  const { perfil, nome, cnpj, areaDeAtuacao } = useLocation().state ?? {}
 
   return (
     <AcessoLayout
@@ -95,6 +95,12 @@ export function CadastroPendente() {
           <dt>CNPJ</dt>
           <dd>{cnpj || NAO_INFORMADO}</dd>
         </div>
+        {perfil === 'fornecedor' && (
+          <div>
+            <dt>Área de atuação</dt>
+            <dd>{areaDeAtuacao || NAO_INFORMADO}</dd>
+          </div>
+        )}
       </dl>
 
       <Link to="/" className="acesso__botao">

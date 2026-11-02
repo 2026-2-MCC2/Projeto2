@@ -1,18 +1,11 @@
-// Aviso e erro do envio do cadastro, mostrados acima do botão de enviar.
-// role="status" e role="alert" fazem o leitor de tela anunciar a mensagem assim que ela aparece.
-export function RetornoDoEnvio({ erro, aviso }) {
+// Erro do envio de um formulário de acesso (cadastro, login), mostrado acima do botão de enviar.
+// role="alert" faz o leitor de tela anunciar a mensagem assim que ela aparece.
+export function RetornoDoEnvio({ erro }) {
+  if (!erro) return null
+
   return (
-    <>
-      {aviso && (
-        <p className="acesso__aviso" role="status">
-          {aviso}
-        </p>
-      )}
-      {erro && (
-        <p className="mensagem-erro" role="alert">
-          {erro}
-        </p>
-      )}
-    </>
+    <p className="mensagem-erro" role="alert">
+      {erro}
+    </p>
   )
 }

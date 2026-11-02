@@ -89,7 +89,8 @@
   font-weight: 500;
 }
 
-.campo input {
+.campo input,
+.campo select {
   padding: 0.8125rem 0.875rem;
   border: 1px solid var(--borda-campo);
   border-radius: var(--acesso-raio);
@@ -102,7 +103,8 @@
   color: var(--texto-terciario);
 }
 
-.campo input:focus {
+.campo input:focus,
+.campo select:focus {
   outline: 2px solid var(--texto-marca);
   outline-offset: 1px;
 }
@@ -135,7 +137,6 @@
   margin: 0;
 }
 
-.etapas__acoes > .acesso__aviso,
 .etapas__acoes > p.mensagem-erro {
   margin: 0 0 0.75rem;
 }

@@ -146,7 +146,8 @@ select {
 /* Campo inválido, só depois que a pessoa mexeu nele ou tentou enviar (ver hooks/useValidacao.js).
    O !important vence as bordas dos campos definidas em cada tela. */
 input:user-invalid,
-textarea:user-invalid {
+textarea:user-invalid,
+select:user-invalid {
   border-color: var(--acao-perigo) !important;
 }
 
