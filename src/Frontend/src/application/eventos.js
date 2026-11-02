@@ -78,6 +78,163 @@ export function formatarPeriodoCurto(dataInicioIso, dataTerminoIso) {
     : `${diaInicio} ${mesInicio}–${diaTermino} ${mesTermino}`
 }
 
+function calcularDadosTicket(evento, totalCustos) {
+  const publicoMin = Number(evento.min_audience) || 1
+  const publicoExp = Number(evento.expected_audience) || publicoMin
+  const publicoMax = Number(evento.max_audience) || publicoExp
+  const margem = Number(evento.profit_margin) || 0
+
+  const cenarioRef = evento.reference_scenario || 'expected'
+  const publicoRef =
+    cenarioRef === 'minimum' ? publicoMin : cenarioRef === 'maximum' ? publicoMax : publicoExp
+
+  const precoSugeridoNum =
+    margem < 1 && totalCustos > 0 ? totalCustos / (publicoRef * (1 - margem)) : 0
+  const precoSugerido = precoSugeridoNum > 0 ? formatarMoeda(precoSugeridoNum) : 'A calcular'
+
+  const ticketMinNum = margem < 1 && totalCustos > 0 ? totalCustos / (publicoMin * (1 - margem)) : 0
+  const ticketExpNum = margem < 1 && totalCustos > 0 ? totalCustos / (publicoExp * (1 - margem)) : 0
+  const ticketMaxNum = margem < 1 && totalCustos > 0 ? totalCustos / (publicoMax * (1 - margem)) : 0
+
+  const ticketEstimado = {
+    cenario:
+      cenarioRef === 'minimum'
+        ? 'Cenário mínimo'
+        : cenarioRef === 'maximum'
+          ? 'Cenário máximo'
+          : 'Cenário esperado',
+    valor: precoSugerido,
+    explicacao:
+      totalCustos > 0
+        ? `Custo de ${formatarMoeda(totalCustos)} dividido por ${publicoRef.toLocaleString('pt-BR')} pessoas, com margem de ${Math.round(margem * 100)}%.`
+        : 'Cadastre os custos para calcular o ticket sugerido.',
+    cenarios: [
+      {
+        nome: 'Pessimista',
+        valor: ticketMinNum > 0 ? formatarMoeda(ticketMinNum) : '—',
+        publico: `${publicoMin.toLocaleString('pt-BR')} pessoas`,
+      },
+      {
+        nome: 'Esperado',
+        valor: ticketExpNum > 0 ? formatarMoeda(ticketExpNum) : '—',
+        publico: `${publicoExp.toLocaleString('pt-BR')} pessoas`,
+        destaque: cenarioRef === 'expected',
+      },
+      {
+        nome: 'Otimista',
+        valor: ticketMaxNum > 0 ? formatarMoeda(ticketMaxNum) : '—',
+        publico: `${publicoMax.toLocaleString('pt-BR')} pessoas`,
+      },
+    ],
+  }
+
+  if (totalCustos <= 0 || precoSugeridoNum <= 0) {
+    return { precoSugerido, ticketEstimado, calculo: null }
+  }
+
+  const ingressosEquilibrio = Math.ceil(totalCustos / precoSugeridoNum)
+  const receitaMin = publicoMin * precoSugeridoNum
+  const resultadoMin = receitaMin - totalCustos
+
+  const receitaExp = publicoExp * precoSugeridoNum
+  const resultadoExp = receitaExp - totalCustos
+
+  const receitaMax = publicoMax * precoSugeridoNum
+  const resultadoMax = receitaMax - totalCustos
+
+  const formatarResultado = (val) => {
+    const prefixo = val >= 0 ? '+ ' : '− '
+    return `${prefixo}${formatarMoeda(Math.abs(val))}`
+  }
+
+  const calculo = {
+    precoSugerido,
+    apoioDosCenarios: `Mantendo o preço simulado de ${precoSugerido}.`,
+    cenarios: [
+      {
+        nome: 'Pessimista',
+        publico: `${publicoMin.toLocaleString('pt-BR')} pessoas`,
+        resultado: formatarResultado(resultadoMin),
+        positivo: resultadoMin >= 0,
+        receita: formatarMoeda(receitaMin),
+        base: cenarioRef === 'minimum',
+      },
+      {
+        nome: 'Realista',
+        etiqueta: 'cenário base',
+        publico: `${publicoExp.toLocaleString('pt-BR')} pessoas`,
+        resultado: formatarResultado(resultadoExp),
+        positivo: resultadoExp >= 0,
+        receita: formatarMoeda(receitaExp),
+        base: cenarioRef === 'expected',
+      },
+      {
+        nome: 'Otimista',
+        publico: `${publicoMax.toLocaleString('pt-BR')} pessoas`,
+        resultado: formatarResultado(resultadoMax),
+        positivo: resultadoMax >= 0,
+        receita: formatarMoeda(receitaMax),
+        base: cenarioRef === 'maximum',
+      },
+    ],
+    equilibrio: {
+      ingressos: `${ingressosEquilibrio.toLocaleString('pt-BR')} ingressos`,
+      explicacao: `Ao preço de ${precoSugerido}, a receita cobre o custo total na venda de ${ingressosEquilibrio.toLocaleString('pt-BR')} ingressos. Acima disso, o evento gera lucro.`,
+      custoTotal: formatarMoeda(totalCustos),
+      ingressosNoEquilibrio: ingressosEquilibrio,
+      publicoMaximo: publicoMax,
+    },
+    resultado: [
+      { rotulo: 'Custo total', valor: formatarMoeda(totalCustos) },
+      {
+        rotulo: 'Ponto de equilíbrio',
+        valor: `${ingressosEquilibrio.toLocaleString('pt-BR')} ingressos`,
+      },
+      {
+        rotulo: 'Margem no cenário base',
+        valor: `${formatarMoeda(resultadoExp)} · ${Math.round(margem * 100)}%`,
+        positivo: resultadoExp >= 0,
+      },
+    ],
+    formula: 'Ticket = Custo total ÷ [Público × (1 − Margem)]',
+    premissas: [
+      { rotulo: 'Custo consolidado', valor: formatarMoeda(totalCustos) },
+      { rotulo: 'Margem de lucro', valor: `${Math.round(margem * 100)}%` },
+      { rotulo: 'Público mínimo', valor: publicoMin.toLocaleString('pt-BR') },
+      { rotulo: 'Público esperado', valor: publicoExp.toLocaleString('pt-BR') },
+      { rotulo: 'Público máximo', valor: publicoMax.toLocaleString('pt-BR') },
+      { rotulo: 'Arredondamento', valor: '2 casas decimais' },
+    ],
+  }
+
+  return { precoSugerido, ticketEstimado, calculo }
+}
+
+function calcularAndamento(statusBackend, internalCostsCount) {
+  const isQuotes = statusBackend === 'open_for_quotes'
+  const isClosed = statusBackend === 'closed'
+
+  return [
+    { nome: 'Evento cadastrado', situacao: 'concluida' },
+    {
+      nome: 'Itens de custo definidos',
+      situacao: isClosed || isQuotes || internalCostsCount > 0 ? 'concluida' : 'atual',
+    },
+    {
+      nome: 'Cotação com fornecedores',
+      situacao: isClosed ? 'concluida' : isQuotes ? 'atual' : 'futura',
+    },
+    {
+      nome: 'Orçamento consolidado',
+      situacao: isClosed ? 'concluida' : 'futura',
+    },
+    {
+      nome: 'Ticket aprovado',
+      situacao: isClosed ? 'concluida' : 'futura',
+    },
+  ]
+}
+
 /**
  * Converte um objeto Event do Backend para o formato esperado pelos componentes visuais do Frontend.
  */
@@ -90,12 +247,8 @@ export function formatarEventoParaExibicao(evento) {
   const local = `${evento.venue_name}, ${evento.state}`
   const publico = `${Number(evento.expected_audience || 0).toLocaleString('pt-BR')} pessoas`
 
-  // Cálculo simplificado do ticket estimado sobre os custos próprios atuais
-  const publicoRef = Number(evento.expected_audience) || 1
-  const margem = Number(evento.profit_margin) || 0
   const totalCustos = Number(evento.total_internal_cost) || 0
-  const valorTicket = margem < 1 && totalCustos > 0 ? totalCustos / (publicoRef * (1 - margem)) : 0
-  const ticket = valorTicket > 0 ? formatarMoeda(valorTicket) : 'A calcular'
+  const { precoSugerido, ticketEstimado, calculo } = calcularDadosTicket(evento, totalCustos)
 
   const dadosExibicao = [
     { rotulo: 'PERÍODO', valor: periodo },
@@ -110,10 +263,21 @@ export function formatarEventoParaExibicao(evento) {
 
   const linhasCustos = (evento.internal_costs || []).map((custo) => ({
     nome: custo.description,
-    categoria: custo.type === 'tax' ? 'Fiscal' : custo.type === 'operational' ? 'Operacional' : 'Outros',
+    categoria:
+      custo.type === 'tax' ? 'Fiscal' : custo.type === 'operational' ? 'Operacional' : 'Outros',
     origem: 'Custo próprio',
     valor: formatarMoeda(custo.amount),
   }))
+
+  const itens = (evento.internal_costs || []).map((custo) => ({
+    nome: custo.description,
+    categoria:
+      custo.type === 'tax' ? 'Fiscal' : custo.type === 'operational' ? 'Operacional' : 'Outros',
+    situacao: 'aceita',
+    valor: formatarMoeda(custo.amount),
+  }))
+
+  const andamento = calcularAndamento(evento.status, (evento.internal_costs || []).length)
 
   const formatado = {
     id: evento.event_key,
@@ -126,7 +290,7 @@ export function formatarEventoParaExibicao(evento) {
     periodoCurto,
     local,
     publico,
-    ticket,
+    ticket: precoSugerido,
     raw: evento,
     detalhe: {
       nomeCompleto: evento.name,
@@ -140,8 +304,13 @@ export function formatarEventoParaExibicao(evento) {
         economia: 'R$ 0,00',
         comprometido: 100,
       },
-      itens: [],
-      totalDeItens: 0,
+      itens,
+      totalDeItens: itens.length,
+      propostas: [],
+      ticketEstimado,
+      calculo,
+      andamento,
+      comparacao: { itens: [] },
       custos: {
         total: formatarMoeda(totalCustos),
         resumoMobile: `${linhasCustos.length} custos cadastrados`,
@@ -191,9 +360,13 @@ export function montarPayloadEvento(dados) {
   const maxAudience = Math.round(paraNumero(dados.publicoMaximo)) || expectedAudience
 
   const margemNumero = paraNumero(dados.margemLucro)
-  const profitMargin = Number.isNaN(margemNumero) ? 0.2 : Math.min(Math.max(margemNumero / 100, 0), 0.99)
+  const profitMargin = Number.isNaN(margemNumero)
+    ? 0.2
+    : Math.min(Math.max(margemNumero / 100, 0), 0.99)
 
-  const venueCapacity = dados.capacidadeEspaco ? Math.round(paraNumero(dados.capacidadeEspaco)) : null
+  const venueCapacity = dados.capacidadeEspaco
+    ? Math.round(paraNumero(dados.capacidadeEspaco))
+    : null
 
   const internalCosts = []
   const valorFiscais = paraNumero(dados.custosFiscais)
