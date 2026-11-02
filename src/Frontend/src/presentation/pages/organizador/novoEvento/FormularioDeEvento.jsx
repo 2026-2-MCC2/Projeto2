@@ -56,6 +56,7 @@ export function FormularioDeEvento({
   titulo,
   valorInicial,
   comCustosProprios,
+  permiteDataPassada = false,
   avisoDaRevisao,
   textoDoBotaoFinal,
   textoAoSalvar,
@@ -120,7 +121,14 @@ export function FormularioDeEvento({
   )
 
   const etapasDoFormulario = {
-    1: <EtapaIdentificacao campo={campo} dados={dados} isMobile={isMobile} />,
+    1: (
+      <EtapaIdentificacao
+        campo={campo}
+        dados={dados}
+        permiteDataPassada={permiteDataPassada}
+        isMobile={isMobile}
+      />
+    ),
     2: (
       <EtapaLocal
         campo={campo}
@@ -171,18 +179,7 @@ export function FormularioDeEvento({
         {isMobile && <p className="secao__apoio">{etapaAtual.apoioMobile}</p>}
 
         {erroApi && (
-          <p
-            className="formulario__erro"
-            role="alert"
-            style={{
-              color: 'var(--status-alerta-texto, #c92a2a)',
-              background: 'var(--status-alerta-fundo, #ffe3e3)',
-              padding: '0.75rem 1rem',
-              borderRadius: '6px',
-              margin: '0.5rem 0 1rem 0',
-              fontWeight: 500,
-            }}
-          >
+          <p className="formulario__erro" role="alert">
             {erroApi}
           </p>
         )}

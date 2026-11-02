@@ -32,9 +32,8 @@ const STATUS_DO_BACKEND_POR_STATUS_DO_FRONT = Object.fromEntries(
   Object.entries(STATUS_DO_FRONT_POR_STATUS_DO_BACKEND).map(([backend, front]) => [front, backend]),
 )
 
-// aprovado (encerrado) e cancelado são finais: o backend recusa editar
-export const eventoPodeSerEditado = (statusDoFront) =>
-  !['aprovado', 'cancelado'].includes(statusDoFront)
+// a API diz se o evento ainda aceita edição, para a regra dos status finais ficar só no backend
+export const eventoPodeSerEditado = (evento) => evento?.raw?.is_editable ?? false
 
 export function mapearStatusBackend(statusBackend) {
   return STATUS_DO_FRONT_POR_STATUS_DO_BACKEND[statusBackend] ?? 'planejamento'
@@ -302,6 +301,7 @@ export function formatarEventoParaExibicao(evento) {
     category: evento.category,
     status: statusFront,
     statusReal: evento.status,
+    motivoDoCancelamento: evento.cancellation_reason,
     periodo,
     periodoCurto,
     local,
@@ -488,7 +488,8 @@ export function listarEventosRecentes(quantidade) {
       .get(montarBuscaDeEventos({ limit: quantidade, page: 0 }))
       .then((resposta) => formatarEGuardar(resposta.data, pedido))
       .catch((falha) => {
-        esquecerRecentes()
+        // só esquece se este ainda for o pedido guardado; um mais novo pode ter tomado o lugar
+        if (recentesEmCache?.carregamento === carregamento) esquecerRecentes()
         throw falha
       })
     recentesEmCache = { quantidade, carregamento }
@@ -606,6 +607,16 @@ export function eventoParaFormulario(eventoDaApi) {
     outrosCustos: '',
     cenarioReferencia: CENARIO_DO_FORMULARIO[eventoDaApi.reference_scenario] ?? 'esperado',
   }
+}
+
+export async function cancelarEvento(eventKey, motivo) {
+  const pedido = iniciarPedido()
+  const resposta = await api.patch(`/events/${eventKey}/status`, {
+    status: 'canceled',
+    reason: motivo,
+  })
+  esquecerRecentes()
+  return formatarEGuardar([resposta], pedido)[0]
 }
 
 /**

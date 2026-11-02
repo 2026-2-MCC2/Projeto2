@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   atualizarEvento,
@@ -15,6 +16,8 @@ export function EditarEvento() {
   const navigate = useNavigate()
   const { evento, carregando, erro, tentarDeNovo } = useEvento(id)
   const paginaDoEvento = `/organizador/eventos/${id}`
+  // o formulário só lê o valor inicial uma vez, então ele é montado uma vez por versão do evento
+  const valorInicial = useMemo(() => evento && eventoParaFormulario(evento.raw), [evento])
 
   async function salvar(dados) {
     const eventoSalvo = await atualizarEvento(id, dados)
@@ -22,7 +25,7 @@ export function EditarEvento() {
     navigate(paginaDoEvento, { viewTransition: true })
   }
 
-  if (carregando || erro || !evento || !eventoPodeSerEditado(evento.status)) {
+  if (carregando || erro || !evento || !eventoPodeSerEditado(evento)) {
     return (
       <OrganizadorLayout titulo="Editar evento" voltarPara={paginaDoEvento}>
         {carregando && <Carregando mensagem="Carregando o evento…" />}
@@ -44,7 +47,8 @@ export function EditarEvento() {
   return (
     <FormularioDeEvento
       titulo="Editar evento"
-      valorInicial={eventoParaFormulario(evento.raw)}
+      valorInicial={valorInicial}
+      permiteDataPassada
       comCustosProprios={false}
       avisoDaRevisao="Os custos próprios continuam na aba Itens de custo e não mudam por aqui."
       textoDoBotaoFinal="Salvar alterações"

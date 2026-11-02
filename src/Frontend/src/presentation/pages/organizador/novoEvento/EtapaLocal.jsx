@@ -53,9 +53,9 @@ export function EtapaLocal({ campo, definir, atualizarCampos, isMobile }) {
       campo('cep').onChange({ target: { value: valorMascarado } })
     }
 
-    const digitos = valorMascarado.replace(/\D/g, '')
-    if (digitos.length === 8) {
-      preencherEndereco(digitos)
+    const cepDigitos = digitos(valorMascarado)
+    if (cepDigitos.length === 8) {
+      preencherEndereco(cepDigitos)
     } else {
       ultimoCepBuscado.current = null
       setBuscandoCep(false)

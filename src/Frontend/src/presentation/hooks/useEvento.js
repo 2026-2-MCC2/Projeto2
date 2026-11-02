@@ -2,7 +2,8 @@ import { useEffect, useState, useSyncExternalStore } from 'react'
 import { carregarEvento } from '../../application/eventos.js'
 import { buscarEventoEmMemoria, observarEventos } from '../../application/eventosEmMemoria.js'
 
-// o layout e a página do evento usam o mesmo carregamento e veem a mesma versão do evento
+// o layout e a página do evento usam o mesmo carregamento e veem a mesma versão do evento;
+// a cópia em memória aparece na hora e é atualizada pela API sempre que a tela abre
 export function useEvento(id) {
   const evento = useSyncExternalStore(observarEventos, () => buscarEventoEmMemoria(id))
   // a falha fica presa ao evento que falhou, para não aparecer quando outro evento é aberto
@@ -11,7 +12,7 @@ export function useEvento(id) {
   const erro = falha.id === id ? falha.erro : null
 
   useEffect(() => {
-    if (!id || buscarEventoEmMemoria(id)) return
+    if (!id) return
     let telaAberta = true
 
     carregarEvento(id).catch((erroAoCarregar) => {
@@ -28,5 +29,11 @@ export function useEvento(id) {
     setTentativa((atual) => atual + 1)
   }
 
-  return { evento, carregando: Boolean(id) && !evento && !erro, erro, tentarDeNovo }
+  // com a cópia em memória na tela, uma falha ao atualizar não esconde o evento
+  return {
+    evento,
+    carregando: Boolean(id) && !evento && !erro,
+    erro: evento ? null : erro,
+    tentarDeNovo,
+  }
 }

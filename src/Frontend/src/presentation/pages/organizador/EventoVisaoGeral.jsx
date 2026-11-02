@@ -3,14 +3,19 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { EventoLayout } from '../../components/organizador/EventoLayout.jsx'
 import { Vazio } from '../../components/comum/EstadoDaTela.jsx'
 import { Cartao, ListaDeLinhas } from '../../components/organizador/Cartao.jsx'
-import { Botao } from '../../components/organizador/Formulario.jsx'
+import { Botao, Campo } from '../../components/organizador/Formulario.jsx'
 import { Modal } from '../../components/comum/Modal.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
 import { useEvento } from '../../hooks/useEvento.js'
 import { toast } from '../../toasts.js'
-import { eventoPodeSerEditado, publicarEventoParaCotacao } from '../../../application/eventos.js'
+import {
+  cancelarEvento,
+  eventoPodeSerEditado,
+  publicarEventoParaCotacao,
+} from '../../../application/eventos.js'
 import { Icone } from '../../components/comum/Icone.jsx'
 import iconePublicar from '../../assets/comum/icone-enviar.svg'
+import iconeCancelar from '../../assets/admin/icone-modal-rejeitar.svg'
 import iconeConcluida from '../../assets/organizador/icone-concluido-verde.svg'
 import iconeAtual from '../../assets/organizador/icone-etapa-atual.svg'
 import iconeFutura from '../../assets/organizador/icone-etapa-futura.svg'
@@ -32,6 +37,9 @@ export function EventoVisaoGeral() {
   const isMobile = useIsMobile()
   const [confirmandoPublicacao, setConfirmandoPublicacao] = useState(false)
   const [publicando, setPublicando] = useState(false)
+  const [confirmandoCancelamento, setConfirmandoCancelamento] = useState(false)
+  const [cancelando, setCancelando] = useState(false)
+  const [motivoDoCancelamento, setMotivoDoCancelamento] = useState('')
   const navigate = useNavigate()
   const { evento } = useEvento(id)
   const detalhe = evento?.detalhe
@@ -61,7 +69,21 @@ export function EventoVisaoGeral() {
     }
   }
 
-  const podeEditar = eventoPodeSerEditado(evento.status)
+  async function confirmarCancelamento() {
+    setCancelando(true)
+    try {
+      await cancelarEvento(id, motivoDoCancelamento)
+      toast.sucesso('Evento cancelado', { descricao: evento.nome })
+      setConfirmandoCancelamento(false)
+      setMotivoDoCancelamento('')
+    } catch (falha) {
+      toast.erro('Não foi possível cancelar o evento', { descricao: falha.message })
+    } finally {
+      setCancelando(false)
+    }
+  }
+
+  const podeEditar = eventoPodeSerEditado(evento)
 
   const acoes = (
     <>
@@ -72,6 +94,16 @@ export function EventoVisaoGeral() {
           onClick={() => navigate(`/organizador/eventos/${id}/editar`, { viewTransition: true })}
         >
           Editar evento
+        </Botao>
+      )}
+      {podeEditar && (
+        <Botao
+          type="button"
+          secundario
+          className="botao--texto-perigo"
+          onClick={() => setConfirmandoCancelamento(true)}
+        >
+          Cancelar evento
         </Botao>
       )}
       {evento.status === 'planejamento' && (
@@ -100,6 +132,43 @@ export function EventoVisaoGeral() {
       }}
       aoFechar={() => !publicando && setConfirmandoPublicacao(false)}
     />
+  )
+
+  const modalDeCancelamento = confirmandoCancelamento && (
+    <Modal
+      icone={iconeCancelar}
+      corDoIcone="vermelho"
+      titulo="Cancelar este evento?"
+      mensagem="O evento sai da cotação e não pode mais ser editado nem publicado. Não dá para desfazer."
+      dados={[
+        { rotulo: 'Evento', valor: evento.nome },
+        { rotulo: 'Período', valor: evento.periodo },
+      ]}
+      acao={{
+        cancelar: 'Voltar',
+        confirmar: cancelando ? 'Cancelando...' : 'Cancelar evento',
+        aoConfirmar: confirmarCancelamento,
+        ocupado: cancelando,
+      }}
+      aoFechar={() => !cancelando && setConfirmandoCancelamento(false)}
+    >
+      <Campo rotulo="Motivo do cancelamento">
+        <textarea
+          rows={2}
+          maxLength={500}
+          placeholder="Ex.: local indisponível na data."
+          value={motivoDoCancelamento}
+          onChange={(evento) => setMotivoDoCancelamento(evento.target.value)}
+          required
+        />
+      </Campo>
+    </Modal>
+  )
+
+  const avisoDeCancelamento = evento.motivoDoCancelamento && (
+    <p className="aviso" role="status">
+      Evento cancelado. Motivo: {evento.motivoDoCancelamento}
+    </p>
   )
 
   const dadosDoEvento = (
@@ -247,18 +316,22 @@ export function EventoVisaoGeral() {
   if (isMobile) {
     return (
       <EventoLayout>
+        {avisoDeCancelamento}
         {dadosDoEvento}
         {orcamento}
         {itensDeCusto}
         {propostas}
         {ticket}
         {modalDePublicacao}
+        {modalDeCancelamento}
+        {modalDeCancelamento}
       </EventoLayout>
     )
   }
 
   return (
     <EventoLayout acoes={acoes} comResumo>
+      {avisoDeCancelamento}
       <div className="colunas">
         <div className="colunas__principal">
           {dadosDoEvento}
@@ -287,6 +360,7 @@ export function EventoVisaoGeral() {
       </div>
 
       {modalDePublicacao}
+      {modalDeCancelamento}
     </EventoLayout>
   )
 }

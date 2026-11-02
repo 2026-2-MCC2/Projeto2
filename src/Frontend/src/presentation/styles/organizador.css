@@ -2774,3 +2774,16 @@
     transform: translateY(8px);
   }
 }
+
+.formulario__erro {
+  margin: 0.5rem 0 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  background: var(--status-perigo-fundo);
+  color: var(--status-perigo-texto);
+  font-weight: 500;
+}
+
+.botao.botao--texto-perigo {
+  color: var(--status-perigo-texto);
+}
