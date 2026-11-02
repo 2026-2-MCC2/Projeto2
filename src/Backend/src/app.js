@@ -93,6 +93,7 @@ export function create() {
 
   const authResource = new AuthResource()
   addRoute(app, `${API_PREFIX}/auth/cadastro`, authResource, 'Cadastro')
+  addRoute(app, `${API_PREFIX}/auth/login`, authResource, 'Login')
 
   const adminUserResource = new AdminUserResource()
   addRoute(app, `${API_PREFIX}/admin/users`, adminUserResource, 'List')

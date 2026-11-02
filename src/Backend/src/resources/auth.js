@@ -1,4 +1,4 @@
-// Resource das rotas públicas de autenticação (autocadastro).
+// Resource das rotas públicas de autenticação (autocadastro e login).
 // Estas URLs estão em PUBLIC_ENDPOINTS (constants.js): não exigem o header Authorization, porque
 // quem chama ainda não tem login. Por isso não há SecurityTools.requireProfile aqui.
 
@@ -22,5 +22,22 @@ export class AuthResource {
     const userDto = await authController.registerOrganizer(req.context.media)
 
     res.status(201).json(userDto)
+  }
+
+  // POST /event_planning/auth/login
+  //   curl -X POST localhost:3300/event_planning/auth/login -H 'Content-Type: application/json' \
+  //     -d '{"email": "maria@exemplo.com", "password": "senhaForte123"}'
+  //   200 { "token": "eyJ...", "user": { "user_key": "6f1c2a9e-...", "name": "Maria", "profile": "organizador" } }
+  //   400 { "code": "APP000001", ... } se o body não seguir o schema
+  //   401 { "code": "EVP000008", ... } se o e-mail não existir ou a senha estiver errada (mesmo erro nos dois casos)
+  //   403 { "code": "EVP000009", ... } se o cadastro ainda estiver pendente
+  //   403 { "code": "EVP000010", ... } se o cadastro tiver sido rejeitado
+  async onPostLogin(req, res) {
+    SchemaHandler.validate(req, 'post_auth_login.json')
+
+    const authController = new AuthController(req.context)
+    const loginDto = await authController.login(req.context.media)
+
+    res.status(200).json(loginDto)
   }
 }

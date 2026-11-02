@@ -13,7 +13,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "setup:local": "node --env-file-if-exists=local.env scripts/setup_local.js",
-    "token": "node --env-file-if-exists=local.env scripts/generate_token.js"
+    "token": "node --env-file-if-exists=local.env scripts/generate_token.js",
+    "create:admin": "node --env-file-if-exists=local.env scripts/create_admin.js"
   },
   "dependencies": {
     "@google-cloud/secret-manager": "^7.1.1",

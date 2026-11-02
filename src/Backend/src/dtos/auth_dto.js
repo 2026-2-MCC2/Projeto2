@@ -9,4 +9,16 @@ export class AuthDTO {
       status: user.status,
     }
   }
+
+  // { "token": "eyJ...", "user": { "user_key": "6f1c...", "name": "Maria", "profile": "organizador" } }
+  static login(user, token) {
+    return {
+      token: token,
+      user: {
+        user_key: user.user_key,
+        name: user.name,
+        profile: user.profile,
+      },
+    }
+  }
 }

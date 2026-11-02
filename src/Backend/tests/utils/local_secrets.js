@@ -11,6 +11,10 @@ import { SecretManagerEmulator } from './secret_manager_emulator.js'
 // credenciais do MySQL do docker-compose; "db" é o nome do container do banco
 export const LOCAL_DB_CREDENTIALS = { username: 'my_user', password: 'my_pwd', host: 'db', port: 3306 }
 
+// endereço do MySQL do Docker visto da sua máquina (fora do Docker), usado pelos testes e pelos scripts.
+// A porta segue a DB_PORT do docker-compose (padrão 3306).
+export const LOCAL_DATABASE_URL = `mysql://${LOCAL_DB_CREDENTIALS.username}:${LOCAL_DB_CREDENTIALS.password}@localhost:${process.env.DB_PORT ?? 3306}/${process.env.DB_NAME ?? 'event_planning'}`
+
 // chave que assina os tokens de login no ambiente local
 export const LOCAL_JWT_SECRET = 'chave_local_apenas_para_desenvolvimento'
 

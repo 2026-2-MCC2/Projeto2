@@ -20,3 +20,22 @@ describe('AuthDTO', () => {
     assert.deepEqual(AuthDTO.registration(user), { user_key: 'new-user-key', profile: 'organizador', status: 'pending' })
   })
 })
+
+describe('AuthDTO.login', () => {
+  test('devolve o token e só user_key, nome e perfil do usuário', () => {
+    const user = {
+      id: 15,
+      user_key: 'user-key',
+      name: 'Maria Organizadora',
+      email: 'maria@exemplo.com',
+      password_hash: 'hash-secreto',
+      profile: 'organizador',
+      status: 'approved',
+    }
+
+    assert.deepEqual(AuthDTO.login(user, 'token-gerado'), {
+      token: 'token-gerado',
+      user: { user_key: 'user-key', name: 'Maria Organizadora', profile: 'organizador' },
+    })
+  })
+})

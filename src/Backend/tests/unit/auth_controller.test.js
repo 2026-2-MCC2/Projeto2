@@ -6,7 +6,15 @@ import { afterEach, describe, test } from 'node:test'
 import { UniqueConstraintError } from 'sequelize'
 
 import { AuthController } from '../../src/controllers/auth_controller.js'
-import { CnpjAlreadyRegistered, EmailAlreadyRegistered, InvalidCnpj, InvalidParameter } from '../../src/errors/index.js'
+import {
+  CnpjAlreadyRegistered,
+  EmailAlreadyRegistered,
+  InvalidCnpj,
+  InvalidCredentials,
+  InvalidParameter,
+  RegistrationPending,
+  RegistrationRejected,
+} from '../../src/errors/index.js'
 import { OrganizerRepository } from '../../src/repositories/organizer_repository.js'
 import { UserRepository } from '../../src/repositories/user_repository.js'
 import { SecurityTools } from '../../src/utils/security_tools.js'
@@ -199,5 +207,117 @@ describe('AuthController.registerOrganizer', () => {
     await assert.rejects(() => controller.registerOrganizer(createPayload()), /database write failed/)
 
     assert.equal(getCommitCount(), 0)
+  })
+})
+
+describe('AuthController.login', () => {
+  const originalCheckPassword = SecurityTools.checkPassword
+  const originalGenerateUserToken = SecurityTools.generateUserToken
+
+  afterEach(() => {
+    SecurityTools.checkPassword = originalCheckPassword
+    SecurityTools.generateUserToken = originalGenerateUserToken
+  })
+
+  function createUser(status) {
+    return {
+      id: 15,
+      user_key: 'user-key',
+      name: 'Maria Organizadora',
+      email: 'maria@exemplo.com',
+      password_hash: 'hash-da-senha',
+      profile: 'organizador',
+      status: status,
+    }
+  }
+
+  // senha certa é 'senhaForte123'; registra contra qual hash a senha foi conferida
+  function mockPasswordAndToken() {
+    const calls = {}
+    SecurityTools.checkPassword = async (password, passwordHash) => {
+      calls.checkedHash = passwordHash
+      return password === 'senhaForte123'
+    }
+    SecurityTools.generateUserToken = async (tokenData) => {
+      calls.tokenData = tokenData
+      return 'token-gerado'
+    }
+    return calls
+  }
+
+  test('usuário aprovado recebe token e dados públicos, sem confirmar transação', async () => {
+    const { context, getCommitCount } = createControllerContext()
+    const calls = mockPasswordAndToken()
+    let searchedEmail
+    UserRepository.prototype.getByEmail = async (email) => {
+      searchedEmail = email
+      return createUser('approved')
+    }
+
+    const controller = new AuthController(context)
+    const result = await controller.login({ email: '  Maria@Exemplo.COM ', password: 'senhaForte123' })
+
+    assert.equal(searchedEmail, 'maria@exemplo.com')
+    assert.equal(calls.checkedHash, 'hash-da-senha')
+    assert.deepEqual(calls.tokenData, { userKey: 'user-key', profile: 'organizador' })
+    assert.deepEqual(result, {
+      token: 'token-gerado',
+      user: { user_key: 'user-key', name: 'Maria Organizadora', profile: 'organizador' },
+    })
+    assert.equal(getCommitCount(), 0)
+  })
+
+  test('senha errada gera 401 sem gerar token', async () => {
+    const { context } = createControllerContext()
+    const calls = mockPasswordAndToken()
+    UserRepository.prototype.getByEmail = async () => createUser('approved')
+
+    const controller = new AuthController(context)
+    await assert.rejects(() => controller.login({ email: 'maria@exemplo.com', password: 'errada123' }), InvalidCredentials)
+
+    assert.equal(calls.tokenData, undefined)
+  })
+
+  test('e-mail inexistente gera o mesmo 401 e ainda confere a senha (tempo igual)', async () => {
+    const { context } = createControllerContext()
+    const calls = mockPasswordAndToken()
+    UserRepository.prototype.getByEmail = async () => null
+
+    const controller = new AuthController(context)
+    await assert.rejects(() => controller.login({ email: 'ninguem@exemplo.com', password: 'senhaForte123' }), InvalidCredentials)
+
+    assert.match(calls.checkedHash, /^\$2b\$10\$/)
+    assert.equal(calls.tokenData, undefined)
+  })
+
+  test('cadastro pendente gera 403 de análise', async () => {
+    const { context } = createControllerContext()
+    const calls = mockPasswordAndToken()
+    UserRepository.prototype.getByEmail = async () => createUser('pending')
+
+    const controller = new AuthController(context)
+    await assert.rejects(() => controller.login({ email: 'maria@exemplo.com', password: 'senhaForte123' }), RegistrationPending)
+
+    assert.equal(calls.tokenData, undefined)
+  })
+
+  test('cadastro rejeitado gera 403 de não aprovado', async () => {
+    const { context } = createControllerContext()
+    const calls = mockPasswordAndToken()
+    UserRepository.prototype.getByEmail = async () => createUser('rejected')
+
+    const controller = new AuthController(context)
+    await assert.rejects(() => controller.login({ email: 'maria@exemplo.com', password: 'senhaForte123' }), RegistrationRejected)
+
+    assert.equal(calls.tokenData, undefined)
+  })
+
+  test('cadastro pendente com senha errada gera 401, sem revelar o status', async () => {
+    const { context } = createControllerContext()
+    mockPasswordAndToken()
+    UserRepository.prototype.getByEmail = async () => createUser('pending')
+
+    const controller = new AuthController(context)
+    await assert.rejects(() => controller.login({ email: 'maria@exemplo.com', password: 'errada123' }), InvalidCredentials)
   })
 })

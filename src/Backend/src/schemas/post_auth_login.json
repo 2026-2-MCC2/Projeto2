@@ -1,0 +1,18 @@
+{
+  "title": "PostAuthLogin",
+  "type": "object",
+  "properties": {
+    "email": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 150
+    },
+    "password": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 72
+    }
+  },
+  "required": ["email", "password"],
+  "additionalProperties": false
+}

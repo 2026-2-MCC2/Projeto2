@@ -101,3 +101,40 @@ export class InvalidCnpj extends ApiException {
     super(title, InvalidCnpj.code, httpStatus, description, translation)
   }
 }
+
+// Mesmo erro para e-mail inexistente e senha errada: assim a resposta não revela quais e-mails têm cadastro.
+export class InvalidCredentials extends ApiException {
+  static code = 'EVP000008'
+
+  constructor() {
+    const title = 'Invalid credentials'
+    const httpStatus = 401
+    const description = 'Email or password is incorrect.'
+    const translation = 'E-mail ou senha incorretos.'
+    super(title, InvalidCredentials.code, httpStatus, description, translation)
+  }
+}
+
+export class RegistrationPending extends ApiException {
+  static code = 'EVP000009'
+
+  constructor() {
+    const title = 'Registration pending'
+    const httpStatus = 403
+    const description = 'The registration is still waiting for the administrator approval.'
+    const translation = 'Seu cadastro ainda está em análise.'
+    super(title, RegistrationPending.code, httpStatus, description, translation)
+  }
+}
+
+export class RegistrationRejected extends ApiException {
+  static code = 'EVP000010'
+
+  constructor() {
+    const title = 'Registration rejected'
+    const httpStatus = 403
+    const description = 'The registration was rejected by the administrator.'
+    const translation = 'Seu cadastro não foi aprovado.'
+    super(title, RegistrationRejected.code, httpStatus, description, translation)
+  }
+}

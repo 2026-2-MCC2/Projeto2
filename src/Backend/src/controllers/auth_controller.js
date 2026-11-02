@@ -1,18 +1,31 @@
-// Controller: autocadastro de organizador (RF01).
+// Controller: autocadastro de organizador (RF01) e login.
 
 import { UniqueConstraintError } from 'sequelize'
 
-import { USER_PROFILES } from '../constants.js'
+import { USER_PROFILES, USER_STATUSES } from '../constants.js'
 import { AuthDTO } from '../dtos/auth_dto.js'
-import { CnpjAlreadyRegistered, EmailAlreadyRegistered, InvalidCnpj, InvalidParameter } from '../errors/index.js'
+import {
+  CnpjAlreadyRegistered,
+  EmailAlreadyRegistered,
+  InvalidCnpj,
+  InvalidCredentials,
+  InvalidParameter,
+  RegistrationPending,
+  RegistrationRejected,
+} from '../errors/index.js'
 import { OrganizerRepository } from '../repositories/organizer_repository.js'
 import { UserRepository } from '../repositories/user_repository.js'
 import { DocumentTools } from '../utils/documents_tools.js'
 import { SecurityTools } from '../utils/security_tools.js'
+import { TextTools } from '../utils/text_tools.js'
 import { BaseController } from './base_controller.js'
 
 // telefone com DDD: 10 dígitos (fixo) ou 11 dígitos (celular)
 const PHONE_PATTERN = /^\d{10,11}$/
+
+// Hash bcrypt de uma senha aleatória que ninguém conhece. Quando o e-mail não existe, o login confere a
+// senha contra ele mesmo assim: a resposta demora o mesmo tempo e não revela quais e-mails têm cadastro.
+const UNKNOWN_USER_PASSWORD_HASH = '$2b$10$LP/6onjOcbzv40dtTisgWuseA3VsnTAxO8jEmCCbBrYvxV33wjSXu'
 
 export class AuthController extends BaseController {
   constructor(context) {
@@ -22,9 +35,9 @@ export class AuthController extends BaseController {
   }
 
   async registerOrganizer(payload) {
-    const email = payload.email.trim().toLowerCase()
-    const cnpj = onlyDigits(payload.cnpj)
-    const phone = onlyDigits(payload.phone)
+    const email = TextTools.normalizeEmail(payload.email)
+    const cnpj = TextTools.onlyDigits(payload.cnpj)
+    const phone = TextTools.onlyDigits(payload.phone)
 
     if (!DocumentTools.isValidCnpj(cnpj)) {
       throw new InvalidCnpj()
@@ -58,10 +71,28 @@ export class AuthController extends BaseController {
       throw toDuplicatedRegistrationError(error)
     }
   }
-}
 
-function onlyDigits(value) {
-  return String(value).replace(/\D/g, '')
+  // Só consulta o banco: não grava nada, então não há commit.
+  async login(payload) {
+    const user = await this.userRepository.getByEmail(TextTools.normalizeEmail(payload.email))
+
+    const passwordHash = user?.password_hash ?? UNKNOWN_USER_PASSWORD_HASH
+    const isPasswordCorrect = await SecurityTools.checkPassword(payload.password, passwordHash)
+    if (user === null || !isPasswordCorrect) {
+      throw new InvalidCredentials()
+    }
+
+    // o status só é revelado para quem acertou a senha
+    if (user.status === USER_STATUSES.PENDING) {
+      throw new RegistrationPending()
+    }
+    if (user.status === USER_STATUSES.REJECTED) {
+      throw new RegistrationRejected()
+    }
+
+    const token = await SecurityTools.generateUserToken({ userKey: user.user_key, profile: user.profile })
+    return AuthDTO.login(user, token)
+  }
 }
 
 // Duas requisições com o mesmo e-mail ou CNPJ podem passar juntas pelas buscas acima. Nesse caso o

@@ -6,10 +6,18 @@
 import mysql from 'mysql2/promise'
 import { randomInt, randomUUID } from 'node:crypto'
 
-const TEST_DATABASE_URL = process.env.TEST_DATABASE_URL ?? `mysql://my_user:my_pwd@localhost:${process.env.DB_PORT ?? 3306}/event_planning`
+import { LOCAL_DATABASE_URL } from './local_secrets.js'
+
+const TEST_DATABASE_URL = process.env.TEST_DATABASE_URL ?? LOCAL_DATABASE_URL
 
 export class DbUtils {
-  static async createUserFixture({ profile = 'organizador', status = 'pending', userKey = randomUUID() } = {}) {
+  // passwordHash: use SecurityTools.hashPassword('senha') quando o teste precisar fazer login com o usuário
+  static async createUserFixture({
+    profile = 'organizador',
+    status = 'pending',
+    userKey = randomUUID(),
+    passwordHash = 'test-password-hash',
+  } = {}) {
     const email = `rf03-${userKey}@example.test`
     const connection = await mysql.createConnection(TEST_DATABASE_URL)
 
@@ -18,7 +26,7 @@ export class DbUtils {
       await connection.execute(
         `INSERT INTO user (user_key, name, email, password_hash, profile, status, approved_at)
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [userKey, 'RF03 Test User', email, 'test-password-hash', profile, status, status === 'approved' ? new Date() : null],
+        [userKey, 'RF03 Test User', email, passwordHash, profile, status, status === 'approved' ? new Date() : null],
       )
 
       const [[user]] = await connection.execute('SELECT id FROM user WHERE user_key = ?', [userKey])
@@ -36,7 +44,7 @@ export class DbUtils {
       }
 
       await connection.commit()
-      return { userKey: userKey, profile: profile, status: status }
+      return { userKey: userKey, email: email, profile: profile, status: status }
     } catch (error) {
       await connection.rollback()
       throw error
