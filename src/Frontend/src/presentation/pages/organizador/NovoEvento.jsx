@@ -9,7 +9,7 @@ import { EtapaIdentificacao } from './novoEvento/EtapaIdentificacao.jsx'
 import { EtapaLocal } from './novoEvento/EtapaLocal.jsx'
 import { EtapaCustos } from './novoEvento/EtapaCustos.jsx'
 import { EtapaRevisao } from './novoEvento/EtapaRevisao.jsx'
-import { criarEvento, publicarEventoParaCotacao } from '../../../application/eventos.js'
+import { criarEvento } from '../../../application/eventos.js'
 import { toast } from '../../toasts.js'
 import {
   validarPublicoEsperado,
@@ -41,8 +41,8 @@ const ETAPAS = [
   {
     numero: 4,
     nome: 'Revisão',
-    apoio: 'Revise antes de publicar o evento para cotação.',
-    apoioMobile: 'Revise antes de publicar para cotação.',
+    apoio: 'Revise antes de criar o evento.',
+    apoioMobile: 'Revise antes de criar o evento.',
   },
 ]
 
@@ -109,23 +109,17 @@ export function NovoEvento() {
   const [salvando, setSalvando] = useState(false)
   const [erroApi, setErroApi] = useState('')
 
-  async function publicar(evento) {
+  // o evento nasce em planejamento: a publicação para cotação vem depois dos itens de custo
+  async function criar(evento) {
     evento.preventDefault()
     setSalvando(true)
     setErroApi('')
     try {
       const novoEvento = await criarEvento(dados)
-      try {
-        await publicarEventoParaCotacao(novoEvento.id)
-        toast.sucesso('Evento publicado para cotação', { descricao: novoEvento.nome })
-        navigate('/organizador/eventos', { viewTransition: true })
-      } catch (falhaAoPublicar) {
-        // o evento já existe como rascunho: leva até ele para tentar publicar de novo
-        toast.erro('Evento salvo como rascunho, mas não foi publicado', {
-          descricao: falhaAoPublicar.message,
-        })
-        navigate(`/organizador/eventos/${novoEvento.id}`, { viewTransition: true })
-      }
+      toast.sucesso('Evento criado', {
+        descricao: 'Cadastre os itens de custo e publique para cotação quando estiver pronto.',
+      })
+      navigate(`/organizador/eventos/${novoEvento.id}`, { viewTransition: true })
     } catch (err) {
       setErroApi(err.message || 'Erro ao cadastrar evento.')
       setSalvando(false)
@@ -143,7 +137,7 @@ export function NovoEvento() {
         </Botao>
       )}
       <Botao type="submit" form="form-novo-evento" disabled={salvando}>
-        {salvando ? 'Publicando...' : ultimaEtapa ? 'Publicar para cotação' : 'Continuar'}
+        {salvando ? 'Criando...' : ultimaEtapa ? 'Criar evento' : 'Continuar'}
       </Botao>
     </Acoes>
   )
@@ -179,7 +173,7 @@ export function NovoEvento() {
       <form
         id="form-novo-evento"
         className={isMobile ? 'novo-evento-form' : 'painel'}
-        onSubmit={ultimaEtapa ? publicar : avancar}
+        onSubmit={ultimaEtapa ? criar : avancar}
         {...validacao}
       >
         {isMobile && <p className="secao__apoio">{etapaAtual.apoioMobile}</p>}

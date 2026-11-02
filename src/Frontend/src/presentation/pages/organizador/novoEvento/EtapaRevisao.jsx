@@ -68,8 +68,8 @@ export function EtapaRevisao({ dados, isMobile }) {
       </div>
 
       <p className="aviso">
-        Ao publicar, o evento e seus itens de custo ficam visíveis para os fornecedores aprovados
-        nas categorias escolhidas.
+        O evento fica em planejamento. Quando os itens de custo estiverem prontos, publique para
+        cotação pela visão geral do evento.
       </p>
     </>
   )
