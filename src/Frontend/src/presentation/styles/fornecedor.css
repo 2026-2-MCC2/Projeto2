@@ -130,6 +130,8 @@
   display: grid;
   /* público e itens ocupam só o que precisam; o orçamento, que é o número maior, fica com o resto */
   grid-template-columns: auto auto minmax(0, 1fr);
+  /* números e botão encostam no fim do card: ficam alinhados entre cards da mesma linha */
+  margin-top: auto;
   gap: 16px;
   padding-top: 18px;
   border-top: 1px solid var(--borda-padrao);
@@ -139,6 +141,7 @@
   display: flex;
   min-width: 0;
   flex-direction: column;
+  justify-content: space-between;
   gap: 4px;
 }
 
