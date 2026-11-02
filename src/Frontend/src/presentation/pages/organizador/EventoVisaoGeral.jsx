@@ -8,7 +8,7 @@ import { Modal } from '../../components/comum/Modal.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
 import { useEvento } from '../../hooks/useEvento.js'
 import { toast } from '../../toasts.js'
-import { publicarEventoParaCotacao } from '../../../application/eventos.js'
+import { eventoPodeSerEditado, publicarEventoParaCotacao } from '../../../application/eventos.js'
 import { Icone } from '../../components/comum/Icone.jsx'
 import iconePublicar from '../../assets/comum/icone-enviar.svg'
 import iconeConcluida from '../../assets/organizador/icone-concluido-verde.svg'
@@ -61,7 +61,7 @@ export function EventoVisaoGeral() {
     }
   }
 
-  const podeEditar = !['aprovado', 'cancelado'].includes(evento.status)
+  const podeEditar = eventoPodeSerEditado(evento.status)
 
   const acoes = (
     <>

@@ -1,13 +1,14 @@
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { atualizarEvento, eventoParaFormulario } from '../../../application/eventos.js'
+import {
+  atualizarEvento,
+  eventoParaFormulario,
+  eventoPodeSerEditado,
+} from '../../../application/eventos.js'
 import { Carregando, ErroNaTela, Vazio } from '../../components/comum/EstadoDaTela.jsx'
 import { OrganizadorLayout } from '../../components/organizador/OrganizadorLayout.jsx'
 import { useEvento } from '../../hooks/useEvento.js'
 import { toast } from '../../toasts.js'
 import { FormularioDeEvento } from './novoEvento/FormularioDeEvento.jsx'
-
-// o backend recusa editar evento aprovado (encerrado) ou cancelado
-const STATUS_QUE_NAO_EDITAM = ['aprovado', 'cancelado']
 
 export function EditarEvento() {
   const { id } = useParams()
@@ -21,7 +22,7 @@ export function EditarEvento() {
     navigate(paginaDoEvento, { viewTransition: true })
   }
 
-  if (carregando || erro || !evento || STATUS_QUE_NAO_EDITAM.includes(evento.status)) {
+  if (carregando || erro || !evento || !eventoPodeSerEditado(evento.status)) {
     return (
       <OrganizadorLayout titulo="Editar evento" voltarPara={paginaDoEvento}>
         {carregando && <Carregando mensagem="Carregando o evento…" />}

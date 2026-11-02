@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { Campo, Grupo, Linha, SeDesktop } from '../../../components/organizador/Formulario.jsx'
 import { consultarCep } from '../../../../application/localizacao.js'
-import { mascararCep } from '../../../../domain/formatacao.js'
+import { digitos, mascararCep } from '../../../../domain/formatacao.js'
 
 const CAMPO_PUBLICO = { inputMode: 'numeric', 'data-validar': 'inteiro', required: true }
 
@@ -9,7 +9,8 @@ export function EtapaLocal({ campo, definir, atualizarCampos, isMobile }) {
   const [buscandoCep, setBuscandoCep] = useState(false)
   // o endereço só é preenchido quando o CEP muda, para não apagar o número que a pessoa já digitou;
   // volta a null quando o CEP fica incompleto ou a busca falha, para a próxima tentativa buscar de novo
-  const ultimoCepBuscado = useRef(null)
+  // começa com o CEP que o formulário já tem (edição ou voltar de etapa), para não buscar de novo
+  const ultimoCepBuscado = useRef(digitos(campo('cep').value) || null)
 
   async function preencherEndereco(cepDigitos) {
     if (cepDigitos === ultimoCepBuscado.current) return

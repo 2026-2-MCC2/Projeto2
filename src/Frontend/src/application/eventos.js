@@ -1,7 +1,7 @@
 import { api } from '../infrastructure/api.js'
 import { paraData, paraNumero } from '../domain/validacao.js'
 import { digitos, mascararCep } from '../domain/formatacao.js'
-import { guardarEventos, limparEventosEmMemoria } from './eventosEmMemoria.js'
+import { guardarEventos, iniciarPedido, limparEventosEmMemoria } from './eventosEmMemoria.js'
 
 const CENARIOS_MAPA = {
   minimo: 'minimum',
@@ -31,6 +31,10 @@ const STATUS_DO_FRONT_POR_STATUS_DO_BACKEND = {
 const STATUS_DO_BACKEND_POR_STATUS_DO_FRONT = Object.fromEntries(
   Object.entries(STATUS_DO_FRONT_POR_STATUS_DO_BACKEND).map(([backend, front]) => [front, backend]),
 )
+
+// aprovado (encerrado) e cancelado são finais: o backend recusa editar
+export const eventoPodeSerEditado = (statusDoFront) =>
+  !['aprovado', 'cancelado'].includes(statusDoFront)
 
 export function mapearStatusBackend(statusBackend) {
   return STATUS_DO_FRONT_POR_STATUS_DO_BACKEND[statusBackend] ?? 'planejamento'
@@ -229,7 +233,8 @@ function calcularAndamento(statusBackend, internalCostsCount) {
     { nome: 'Evento cadastrado', situacao: 'concluida' },
     {
       nome: 'Itens de custo definidos',
-      situacao: internalCostsCount > 0 ? 'concluida' : 'atual',
+      // depois de publicado, a fase de itens ficou para trás mesmo sem custo próprio
+      situacao: internalCostsCount > 0 || isQuotes || isClosed ? 'concluida' : 'atual',
     },
     {
       nome: 'Cotação com fornecedores',
@@ -342,14 +347,14 @@ export function formatarEventoParaExibicao(evento) {
 const ABERTURA_SEM_HORARIO = '00:00'
 const ENCERRAMENTO_SEM_HORARIO = '23:59'
 
+const ehHorario = (texto) => /^([01]\d|2[0-3]):[0-5]\d$/.test(texto ?? '')
+
 // data inválida nunca vira "hoje": a tela mostra o erro e a pessoa corrige
 function juntarDataEHorario(dataTexto, horarioTexto, horarioSemPreencher) {
   const data = paraData(dataTexto ?? '')
   if (!data) throw new Error('Confira as datas do evento: uma delas não existe no calendário.')
 
-  const horario = /^([01]\d|2[0-3]):[0-5]\d$/.test(horarioTexto ?? '')
-    ? horarioTexto
-    : horarioSemPreencher
+  const horario = ehHorario(horarioTexto) ? horarioTexto : horarioSemPreencher
   const [horas, minutos] = horario.split(':').map(Number)
   data.setHours(horas, minutos, 0, 0)
   return data
@@ -362,8 +367,8 @@ export function passaDaMeiaNoite({
   horarioAbertura,
   horarioEncerramento,
 }) {
-  const horariosPreenchidos = Boolean(horarioAbertura && horarioEncerramento)
-  return horariosPreenchidos && dataInicio === dataTermino && horarioEncerramento < horarioAbertura
+  const horariosValidos = ehHorario(horarioAbertura) && ehHorario(horarioEncerramento)
+  return horariosValidos && dataInicio === dataTermino && horarioEncerramento < horarioAbertura
 }
 
 function periodoDoEvento(dados) {
@@ -457,9 +462,9 @@ function montarBuscaDeEventos({ status, search, limit, page }) {
   return `/events?${params}`
 }
 
-function formatarEGuardar(eventosDaApi) {
+function formatarEGuardar(eventosDaApi, pedido) {
   const eventos = eventosDaApi.map(formatarEventoParaExibicao)
-  guardarEventos(eventos)
+  guardarEventos(eventos, pedido)
   return eventos
 }
 
@@ -478,9 +483,10 @@ export function esquecerEventosDaSessao() {
 
 export function listarEventosRecentes(quantidade) {
   if (recentesEmCache?.quantidade !== quantidade) {
+    const pedido = iniciarPedido()
     const carregamento = api
       .get(montarBuscaDeEventos({ limit: quantidade, page: 0 }))
-      .then((resposta) => formatarEGuardar(resposta.data))
+      .then((resposta) => formatarEGuardar(resposta.data, pedido))
       .catch((falha) => {
         esquecerRecentes()
         throw falha
@@ -496,6 +502,7 @@ export async function listarTodosOsEventos({ status, search } = {}) {
   const buscarPagina = (page) =>
     api.get(montarBuscaDeEventos({ status, search, limit: EVENTOS_POR_PAGINA, page }))
 
+  const pedido = iniciarPedido()
   const primeira = await buscarPagina(0)
   const totalDePaginas = Math.ceil(primeira.total / EVENTOS_POR_PAGINA)
   const demais = await Promise.all(
@@ -504,15 +511,22 @@ export async function listarTodosOsEventos({ status, search } = {}) {
     ),
   )
 
-  return formatarEGuardar([primeira, ...demais].flatMap((pagina) => pagina.data))
+  // um evento criado entre as páginas desloca a lista e pode repetir o último da página anterior
+  const eventosSemRepetir = new Map(
+    [primeira, ...demais]
+      .flatMap((pagina) => pagina.data)
+      .map((evento) => [evento.event_key, evento]),
+  )
+  return formatarEGuardar([...eventosSemRepetir.values()], pedido)
 }
 
 /**
  * Busca um evento específico pela sua event_key.
  */
 export async function buscarEventoPorChave(eventKey) {
+  const pedido = iniciarPedido()
   const resposta = await api.get(`/events/${eventKey}`)
-  return formatarEGuardar([resposta])[0]
+  return formatarEGuardar([resposta], pedido)[0]
 }
 
 const carregamentosEmAndamento = new Map()
@@ -532,9 +546,10 @@ export function carregarEvento(eventKey) {
  */
 export async function criarEvento(dadosFormulario) {
   const payload = montarPayloadEvento(dadosFormulario)
+  const pedido = iniciarPedido()
   const resposta = await api.post('/events', payload)
   esquecerRecentes()
-  return formatarEGuardar([resposta])[0]
+  return formatarEGuardar([resposta], pedido)[0]
 }
 
 // a edição não mexe nos custos próprios: eles têm a aba Itens de custo
@@ -542,9 +557,10 @@ export async function atualizarEvento(eventKey, dadosFormulario) {
   const payload = montarPayloadEvento(dadosFormulario)
   delete payload.status
   delete payload.internal_costs
+  const pedido = iniciarPedido()
   const resposta = await api.put(`/events/${eventKey}`, payload)
   esquecerRecentes()
-  return formatarEGuardar([resposta])[0]
+  return formatarEGuardar([resposta], pedido)[0]
 }
 
 const CENARIO_DO_FORMULARIO = { minimum: 'minimo', expected: 'esperado', maximum: 'maximo' }
@@ -596,7 +612,8 @@ export function eventoParaFormulario(eventoDaApi) {
  * Publica um evento para cotação de fornecedores (RF08).
  */
 export async function publicarEventoParaCotacao(eventKey) {
+  const pedido = iniciarPedido()
   const resposta = await api.patch(`/events/${eventKey}/status`, { status: 'open_for_quotes' })
   esquecerRecentes()
-  return formatarEGuardar([resposta])[0]
+  return formatarEGuardar([resposta], pedido)[0]
 }

@@ -30,7 +30,10 @@ const ALLOWED_STATUS_TRANSITIONS = {
   [EVENT_STATUSES.CANCELED]: [],
 }
 
-const FINAL_STATUSES = [EVENT_STATUSES.CLOSED, EVENT_STATUSES.CANCELED]
+// final é o status de onde não se sai mais
+const FINAL_STATUSES = Object.keys(ALLOWED_STATUS_TRANSITIONS).filter(
+  (status) => ALLOWED_STATUS_TRANSITIONS[status].length === 0,
+)
 
 const STATUS_CONFLICT_MESSAGES = {
   [EVENT_STATUSES.DRAFT]: 'Publique o evento para cotação antes de encerrá-lo.',
