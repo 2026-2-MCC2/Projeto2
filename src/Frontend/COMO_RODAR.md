@@ -83,22 +83,16 @@ Para parar o servidor, aperte `Ctrl + C` no terminal.
 Enquanto ele estiver rodando, qualquer arquivo que você salvar aparece
 atualizado no navegador sozinho, sem precisar recarregar.
 
-## Passo 4: só na primeira vez
+## Endereço da API
 
-Copie o arquivo de exemplo das variáveis de ambiente:
+Sem configurar nada, o front chama a API do Docker em `http://localhost:3300/event_planning`.
+Para usar outro endereço, crie um arquivo `.env` nesta pasta com:
 
 ```sh
-cp .env.example .env
+VITE_API_URL=http://localhost:3400/event_planning
 ```
 
-No Windows, pelo PowerShell:
-
-```powershell
-Copy-Item .env.example .env
-```
-
-Esse arquivo guarda o endereço da API (`http://localhost:3300/event_planning`,
-o backend rodando no Docker). Se mudar o `.env`, reinicie o `npm run dev`.
+Se mudar o `.env`, reinicie o `npm run dev`.
 
 ## Comandos do dia a dia
 

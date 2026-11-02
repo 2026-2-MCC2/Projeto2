@@ -24,7 +24,7 @@ mais comuns.
 | `npm run lint`    | Procura erros no código (oxlint)     |
 | `npm run format`  | Formata o código (Prettier)          |
 
-Copie o `.env.example` para `.env` e ajuste a URL da API quando o backend existir.
+Por padrão o front chama a API em `http://localhost:3300/event_planning`. Para outro endereço, defina `VITE_API_URL` num arquivo `.env`.
 
 ## Estrutura
 

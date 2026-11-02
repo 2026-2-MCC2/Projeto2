@@ -92,7 +92,6 @@ Requer <a href="https://nodejs.org">Node.js</a> 22+, <a href="https://git-scm.co
 ```sh
 git clone https://github.com/2026-2-MCC2/Projeto2.git
 cd Projeto2/src/Frontend
-cp .env.example .env
 npm install
 npm run dev
 ```
