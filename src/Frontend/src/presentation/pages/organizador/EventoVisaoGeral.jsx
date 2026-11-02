@@ -182,9 +182,14 @@ export function EventoVisaoGeral() {
     </Cartao>
   )
 
+  const ticketLongo = (detalhe.ticketEstimado.valor || '').length > 11
+
   const ticket = (
     <Cartao titulo="Ticket estimado" etiqueta={detalhe.ticketEstimado.cenario}>
-      <strong className="ticket__valor" title={detalhe.ticketEstimado.valor}>
+      <strong
+        className={`ticket__valor${ticketLongo ? ' ticket__valor--compacto' : ''}`}
+        title={detalhe.ticketEstimado.valor}
+      >
         {detalhe.ticketEstimado.valor}
       </strong>
       <p className="cartao__apoio">{detalhe.ticketEstimado.explicacao}</p>
@@ -192,20 +197,21 @@ export function EventoVisaoGeral() {
       <div className="cartao__divisor" />
 
       <div className="cenarios">
-        {detalhe.ticketEstimado.cenarios.map((cenario) => (
-          <div key={cenario.nome} className="cenario">
-            <span className="cenario__nome">{cenario.nome}</span>
-            <strong
-              title={cenario.valor}
-              className={
-                cenario.destaque ? 'cenario__valor cenario__valor--destaque' : 'cenario__valor'
-              }
-            >
-              {cenario.valor}
-            </strong>
-            <small>{cenario.publico}</small>
-          </div>
-        ))}
+        {detalhe.ticketEstimado.cenarios.map((cenario) => {
+          const valorLongo = (cenario.valor || '').length > 10
+          return (
+            <div key={cenario.nome} className="cenario">
+              <span className="cenario__nome">{cenario.nome}</span>
+              <strong
+                title={cenario.valor}
+                className={`cenario__valor${cenario.destaque ? ' cenario__valor--destaque' : ''}${valorLongo ? ' cenario__valor--compacto' : ''}`}
+              >
+                {cenario.valor}
+              </strong>
+              <small>{cenario.publico}</small>
+            </div>
+          )
+        })}
       </div>
 
       <Link to={`/organizador/eventos/${id}/ticket`} className="cartao__link" viewTransition>
@@ -262,10 +268,18 @@ export function EventoVisaoGeral() {
 }
 
 function Indicador({ rotulo, valor, positivo = false }) {
+  const valorLongo = String(valor ?? '').length > 11
+  const classeValor = [
+    positivo && 'indicador__valor--positivo',
+    valorLongo && 'indicador__valor--compacto',
+  ]
+    .filter(Boolean)
+    .join(' ')
+
   return (
     <div className="indicador">
       <span>{rotulo}</span>
-      <strong title={valor} className={positivo ? 'indicador__valor--positivo' : undefined}>
+      <strong title={valor} className={classeValor || undefined}>
         {valor}
       </strong>
     </div>

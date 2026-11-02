@@ -1306,13 +1306,12 @@
 
 .indicadores {
   display: flex;
-  flex-wrap: wrap;
-  gap: 1rem 1.25rem;
+  gap: 1.25rem;
 }
 
 .indicador {
   display: flex;
-  flex: 1 1 130px;
+  flex: 1;
   flex-direction: column;
   gap: 0.25rem;
   min-width: 0;
@@ -1327,12 +1326,13 @@
 }
 
 .indicador strong {
-  font-size: clamp(0.9375rem, 1.8vw, 1.25rem);
+  font-size: 1.25rem;
   font-weight: 600;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
+}
+
+.indicador strong.indicador__valor--compacto {
+  font-size: 0.9375rem;
 }
 
 .cartao__vazio {
@@ -1402,26 +1402,26 @@
 
 .ticket__valor {
   color: var(--texto-marca);
-  font-size: clamp(1.5rem, 3.5vw, 2.375rem);
+  font-size: 2.375rem;
   font-weight: 700;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
+}
+
+.ticket__valor--compacto {
+  font-size: 1.625rem;
 }
 
 .cenarios {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.5rem;
+  display: flex;
+  gap: 0.75rem;
 }
 
 .cenario {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 0.1875rem;
   min-width: 0;
-  overflow: hidden;
 }
 
 .cenario__nome {
@@ -1430,17 +1430,16 @@
   font-weight: 600;
   letter-spacing: 0.04em;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .cenario__valor {
-  font-size: clamp(0.75rem, 1vw, 0.875rem);
+  font-size: 0.9375rem;
   font-weight: 600;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
+}
+
+.cenario__valor--compacto {
+  font-size: 0.6875rem;
 }
 
 .cenario__valor--destaque {
@@ -1451,8 +1450,6 @@
   color: var(--texto-terciario);
   font-size: 0.625rem;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .andamento {
