@@ -413,8 +413,12 @@
   --texto-secundario: #384252;
   --texto-terciario: #4b5563;
   --icone-padrao: #384252;
-  --borda-padrao: #94a3b8;
+  --borda-padrao: #7c8799;
   --borda-campo: #64748b;
+  --texto-marca: #083f8c;
+  --status-alerta-texto: #7c3804;
+  --status-sucesso-texto: #11592a;
+  --status-perigo-texto: #991b1b;
 }
 
 :root.alto-contraste[data-tema='escuro'] {
@@ -422,16 +426,24 @@
   --texto-secundario: #cfd6e1;
   --texto-terciario: #a3aebf;
   --icone-padrao: #cfd6e1;
-  --borda-padrao: #5b687d;
+  --borda-padrao: #65738a;
   --borda-campo: #8a96ab;
+  --texto-marca: #a9c6f5;
 }
 
 .alto-contraste .cartao,
 .alto-contraste .painel,
 .alto-contraste .evento,
 .alto-contraste .proposta,
-.alto-contraste .tabela {
+.alto-contraste .tabela,
+.alto-contraste .solicitacao,
+.alto-contraste .toast,
+.alto-contraste .estado-tela {
   border-width: 2px;
+}
+
+.alto-contraste :focus-visible {
+  outline-width: 3px !important;
 }
 
 /* a OpenDyslexic é bem maior que a Inter no mesmo tamanho: o size-adjust reduz só as letras */
