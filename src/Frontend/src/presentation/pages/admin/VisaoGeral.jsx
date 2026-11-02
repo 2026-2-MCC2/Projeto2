@@ -1,16 +1,14 @@
 import { useEffect, useState } from 'react'
 import { OrganizadorLayout } from '../../components/organizador/OrganizadorLayout.jsx'
 import { Carregando, ErroNaTela, Vazio } from '../../components/comum/EstadoDaTela.jsx'
-import { Icone } from '../../components/comum/Icone.jsx'
 import { buscarRelatorioAdmin } from '../../../infrastructure/relatoriosAdmin.js'
-import iconeBuscar from '../../assets/organizador/icone-buscar.svg'
 import '../../styles/admin.css'
 
 const COLUNAS = [
   { chave: 'nome', rotulo: 'Evento' },
   { chave: 'organizador', rotulo: 'Organizador' },
   { chave: 'situacao', rotulo: 'Situação' },
-  { chave: 'custos', rotulo: 'Custo consolidado' },
+  { chave: 'custos', rotulo: 'Custo planejado' },
   { chave: 'propostas', rotulo: 'Propostas' },
   { chave: 'ticket', rotulo: 'Ticket estimado' },
 ]
@@ -45,10 +43,12 @@ function mapearEventos(eventos) {
     organizador: evento.organizer.name,
     situacao: mapearStatus(evento.status),
     custos: formatarMoeda(
-      Number(evento.values.selected_proposals_total) + Number(evento.values.internal_cost_total),
+      Number(evento.values.planning_cost_total) + Number(evento.values.internal_cost_total),
     ),
     propostas: String(evento.proposal_count),
-    ticket: '—',
+    ticket: evento.estimated_ticket?.[evento.reference_scenario]
+      ? formatarMoeda(evento.estimated_ticket[evento.reference_scenario])
+      : '—',
   }))
 }
 
@@ -149,7 +149,14 @@ function TabelaEventos({ eventos }) {
 }
 
 export function VisaoGeral() {
-  const [busca, setBusca] = useState('')
+  const [filtrosRascunho, setFiltrosRascunho] = useState({
+    eventName: '',
+    organizerName: '',
+    from: '',
+    to: '',
+  })
+  const [filtros, setFiltros] = useState({})
+  const [page, setPage] = useState(0)
   const [situacao, setSituacao] = useState('carregando')
   const [relatorio, setRelatorio] = useState(null)
   const [erro, setErro] = useState(null)
@@ -158,7 +165,7 @@ export function VisaoGeral() {
   useEffect(() => {
     let telaAberta = true
 
-    buscarRelatorioAdmin()
+    buscarRelatorioAdmin({ ...filtros, page })
       .then((resultado) => {
         if (!telaAberta) return
         setRelatorio(resultado)
@@ -173,7 +180,7 @@ export function VisaoGeral() {
     return () => {
       telaAberta = false
     }
-  }, [tentativa])
+  }, [filtros, page, tentativa])
 
   function tentarDeNovo() {
     setErro(null)
@@ -181,11 +188,29 @@ export function VisaoGeral() {
     setTentativa((valor) => valor + 1)
   }
 
-  const termo = busca.trim().toLocaleLowerCase('pt-BR')
   const todosEventos = relatorio ? mapearEventos(relatorio.data) : []
-  const eventos = todosEventos.filter((evento) =>
-    `${evento.nome} ${evento.organizador}`.toLocaleLowerCase('pt-BR').includes(termo),
-  )
+
+  function aplicarFiltros(event) {
+    event.preventDefault()
+    setSituacao('carregando')
+    setFiltros({
+      eventName: filtrosRascunho.eventName.trim(),
+      organizerName: filtrosRascunho.organizerName.trim(),
+      from: filtrosRascunho.from,
+      to: filtrosRascunho.to,
+    })
+    setPage(0)
+    setTentativa((valor) => valor + 1)
+  }
+
+  function limparFiltros() {
+    const filtrosVazios = { eventName: '', organizerName: '', from: '', to: '' }
+    setFiltrosRascunho(filtrosVazios)
+    setFiltros({})
+    setPage(0)
+    setSituacao('carregando')
+    setTentativa((valor) => valor + 1)
+  }
 
   return (
     <OrganizadorLayout
@@ -195,18 +220,60 @@ export function VisaoGeral() {
     >
       {situacao === 'pronto' && <Indicadores summary={relatorio.summary} />}
 
-      {situacao === 'pronto' && (
-        <label className="visao-geral__busca">
-          <Icone src={iconeBuscar} />
+      <form className="visao-geral__filtros" onSubmit={aplicarFiltros}>
+        <label>
+          <span>Evento</span>
           <input
             type="search"
-            aria-label="Buscar evento ou organizador"
-            placeholder="Buscar evento ou organizador"
-            value={busca}
-            onChange={(evento) => setBusca(evento.target.value)}
+            maxLength={150}
+            placeholder="Nome do evento"
+            value={filtrosRascunho.eventName}
+            onChange={(event) =>
+              setFiltrosRascunho({ ...filtrosRascunho, eventName: event.target.value })
+            }
           />
         </label>
-      )}
+        <label>
+          <span>Organizador</span>
+          <input
+            type="search"
+            maxLength={150}
+            placeholder="Nome do organizador"
+            value={filtrosRascunho.organizerName}
+            onChange={(event) =>
+              setFiltrosRascunho({ ...filtrosRascunho, organizerName: event.target.value })
+            }
+          />
+        </label>
+        <label>
+          <span>De</span>
+          <input
+            type="date"
+            required={Boolean(filtrosRascunho.to)}
+            value={filtrosRascunho.from}
+            onChange={(event) =>
+              setFiltrosRascunho({ ...filtrosRascunho, from: event.target.value })
+            }
+          />
+        </label>
+        <label>
+          <span>Até</span>
+          <input
+            type="date"
+            required={Boolean(filtrosRascunho.from)}
+            value={filtrosRascunho.to}
+            onChange={(event) => setFiltrosRascunho({ ...filtrosRascunho, to: event.target.value })}
+          />
+        </label>
+        <div className="visao-geral__filtros-acoes">
+          <button type="submit" className="botao">
+            Aplicar filtros
+          </button>
+          <button type="button" className="botao botao--secundario" onClick={limparFiltros}>
+            Limpar
+          </button>
+        </div>
+      </form>
 
       {situacao === 'carregando' && <Carregando mensagem="Carregando relatórios…" />}
 
@@ -219,17 +286,45 @@ export function VisaoGeral() {
         />
       )}
 
-      {situacao === 'pronto' && todosEventos.length > 0 && eventos.length > 0 ? (
+      {situacao === 'pronto' && relatorio.data.length > 0 ? (
         <section className="visao-geral__painel" aria-label="Eventos da plataforma">
-          <TabelaEventos eventos={eventos} />
+          <TabelaEventos eventos={todosEventos} />
         </section>
       ) : (
         situacao === 'pronto' &&
-        todosEventos.length > 0 && (
+        relatorio.data.length === 0 && (
           <p className="visao-geral__vazio" role="status">
-            Nenhum evento encontrado para essa busca.
+            Nenhum evento encontrado com os filtros informados.
           </p>
         )
+      )}
+
+      {situacao === 'pronto' && (relatorio.data.length > 0 || page > 0) && (
+        <nav className="visao-geral__paginacao" aria-label="Paginação dos relatórios">
+          <button
+            type="button"
+            className="botao botao--secundario"
+            disabled={page === 0}
+            onClick={() => {
+              setSituacao('carregando')
+              setPage((atual) => atual - 1)
+            }}
+          >
+            Anterior
+          </button>
+          <span>Página {relatorio.page + 1}</span>
+          <button
+            type="button"
+            className="botao botao--secundario"
+            disabled={relatorio.is_last_page}
+            onClick={() => {
+              setSituacao('carregando')
+              setPage((atual) => atual + 1)
+            }}
+          >
+            Próxima
+          </button>
+        </nav>
       )}
     </OrganizadorLayout>
   )

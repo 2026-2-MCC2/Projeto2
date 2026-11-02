@@ -55,7 +55,30 @@ export class AdminReportDTO {
         estimated_items_total: String(event.estimated_items_total),
         internal_cost_total: String(event.internal_cost_total),
         selected_proposals_total: String(event.selected_proposals_total),
+        planning_cost_total: String(event.planning_cost_total),
       },
+      estimated_ticket: estimatedTicket(event),
     }
+  }
+}
+
+function estimatedTicket(event) {
+  if (Number(event.incomplete_budget_item_count) > 0) return null
+
+  const cost = Number(event.planning_cost_total) + Number(event.internal_cost_total)
+  const margin = Number(event.profit_margin)
+  if (!Number.isFinite(cost) || cost <= 0 || !Number.isFinite(margin) || margin < 0 || margin >= 1) {
+    return null
+  }
+
+  const ticketFor = (audience) => {
+    const denominator = Number(audience) * (1 - margin)
+    return denominator > 0 ? (cost / denominator).toFixed(2) : null
+  }
+
+  return {
+    minimum: ticketFor(event.min_audience),
+    expected: ticketFor(event.expected_audience),
+    maximum: ticketFor(event.max_audience),
   }
 }

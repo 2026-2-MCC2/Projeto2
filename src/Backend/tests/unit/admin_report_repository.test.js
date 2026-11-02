@@ -36,6 +36,8 @@ describe('AdminReportRepository', () => {
     const report = await repository.getReportPage({
       eventKey: undefined,
       organizerKey: '22222222-2222-4222-8222-222222222222',
+      eventName: 'Festival',
+      organizerName: 'Grupo Cultura',
       from: '2026-01-01',
       to: '2026-01-31',
       limit: 1,
@@ -59,9 +61,12 @@ describe('AdminReportRepository', () => {
 
     const eventQuery = queries.find(({ sql }) => sql.includes('SELECT e.event_key'))
     assert.match(eventQuery.sql, /ORDER BY e\.name ASC, e\.id ASC/)
-    assert.match(eventQuery.sql, /estimated_items_total[\s\S]*internal_cost_total[\s\S]*selected_total/)
+    assert.match(eventQuery.sql, /estimated_items_total[\s\S]*internal_cost_total[\s\S]*selected_total[\s\S]*planning_cost_total/)
     assert.equal(eventQuery.options.replacements.rowLimit, 2)
     assert.equal(eventQuery.options.replacements.organizerKey, '22222222-2222-4222-8222-222222222222')
+    assert.equal(eventQuery.options.replacements.eventName, 'Festival')
+    assert.equal(eventQuery.options.replacements.organizerName, 'Grupo Cultura')
+    assert.match(eventQuery.sql, /LOCATE\(LOWER\(:eventName\), LOWER\(e\.name\)\)/)
     assert.equal(eventQuery.options.replacements.fromDate, '2026-01-01 00:00:00')
     assert.equal(eventQuery.options.replacements.toExclusive, '2026-02-01 00:00:00')
   })

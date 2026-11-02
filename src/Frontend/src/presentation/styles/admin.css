@@ -141,47 +141,58 @@
   font-size: 0.6875rem;
 }
 
-.visao-geral__busca {
-  display: flex;
-  align-items: center;
-  gap: 0.625rem;
-  min-height: 2.75rem;
-  padding: 0.625rem 1rem;
+.visao-geral__filtros {
+  display: grid;
+  grid-template-columns:
+    minmax(12rem, 1.4fr) minmax(12rem, 1.4fr) repeat(2, minmax(9rem, 0.8fr))
+    auto;
+  align-items: end;
+  gap: 0.75rem;
+  padding: 1rem;
   border: 1px solid var(--borda-padrao);
-  border-radius: 12px;
+  border-radius: 14px;
   background: var(--fundo-superficie);
 }
 
-.visao-geral__busca .icone {
-  flex: 0 0 16px;
-  width: 16px;
-  height: 16px;
+.visao-geral__filtros label {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.375rem;
+  color: var(--texto-secundario);
+  font-size: 0.6875rem;
+  font-weight: 500;
 }
 
-.visao-geral__busca input {
-  flex: 1;
-  min-width: 0;
-  padding: 0;
-  border: 0;
-  outline: 0;
-  background: transparent;
+.visao-geral__filtros input {
+  width: 100%;
+  min-height: 2.5rem;
+  padding: 0.5rem 0.625rem;
+  border: 1px solid var(--borda-padrao);
+  border-radius: 8px;
+  background: var(--fundo-pagina);
   color: var(--texto-primario);
   font: inherit;
   font-size: 0.8125rem;
 }
 
-.visao-geral__busca input::placeholder {
-  color: var(--texto-terciario);
-}
-
-.visao-geral__busca input:focus {
-  outline: none;
-}
-
-/* o input não tem borda: o foco aparece na caixa da busca */
-.visao-geral__busca:focus-within {
+.visao-geral__filtros input:focus-visible {
   outline: 2px solid var(--texto-marca);
   outline-offset: 2px;
+}
+
+.visao-geral__filtros-acoes {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.visao-geral__paginacao {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  color: var(--texto-secundario);
+  font-size: 0.8125rem;
 }
 
 .visao-geral__painel {
@@ -280,6 +291,11 @@
 .visao-geral__etiqueta--encerrado {
   background: var(--status-sucesso-fundo);
   color: var(--status-sucesso-texto);
+}
+
+.visao-geral__etiqueta--cancelado {
+  background: var(--status-perigo-fundo);
+  color: var(--status-perigo-texto);
 }
 
 .visao-geral__vazio {
@@ -402,6 +418,18 @@
 
   .visao-geral__valor {
     font-size: 1.25rem;
+  }
+
+  .visao-geral__filtros {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .visao-geral__filtros-acoes {
+    grid-column: 1 / -1;
+  }
+
+  .visao-geral__filtros-acoes .botao {
+    flex: 1;
   }
 
   .visao-geral__tabela-scroll {

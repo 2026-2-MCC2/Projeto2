@@ -15,6 +15,8 @@ describe('parseAdminReportParams', () => {
     assert.deepEqual(parseAdminReportParams(request()), {
       eventKey: undefined,
       organizerKey: undefined,
+      eventName: undefined,
+      organizerName: undefined,
       from: undefined,
       to: undefined,
       limit: 20,
@@ -31,6 +33,8 @@ describe('parseAdminReportParams', () => {
         request({
           event_key: EVENT_KEY,
           organizer_key: ORGANIZER_KEY,
+          event_name: '  Festival  ',
+          organizer_name: ' Grupo Cultura ',
           from: '2026-01-01',
           to: '2026-12-31',
           limit: '50',
@@ -42,6 +46,8 @@ describe('parseAdminReportParams', () => {
       {
         eventKey: EVENT_KEY,
         organizerKey: ORGANIZER_KEY,
+        eventName: 'Festival',
+        organizerName: 'Grupo Cultura',
         from: '2026-01-01',
         to: '2026-12-31',
         limit: 50,
@@ -61,6 +67,12 @@ describe('parseAdminReportParams', () => {
     assert.throws(() => parseAdminReportParams(request({ organizer_key: 'organizador-1' })))
   })
 
+  test('normaliza buscas por nome e limita o tamanho', () => {
+    assert.throws(() => parseAdminReportParams(request({ event_name: 'x'.repeat(151) })))
+    assert.throws(() => parseAdminReportParams(request({ organizer_name: ['A', 'B'] })))
+    assert.equal(parseAdminReportParams(request({ event_name: '   ' })).eventName, undefined)
+  })
+
   test('rejeita datas inexistentes e formatos diferentes de YYYY-MM-DD', () => {
     assert.throws(() => parseAdminReportParams(request({ from: '2026-02-30', to: '2026-03-01' })))
     assert.throws(() => parseAdminReportParams(request({ from: '01/01/2026', to: '2026-01-02' })))
@@ -76,10 +88,7 @@ describe('parseAdminReportParams', () => {
   })
 
   test('aceita o limite de 366 dias inclusivos', () => {
-    assert.equal(
-      parseAdminReportParams(request({ from: '2025-01-01', to: '2026-01-01' })).to,
-      '2026-01-01',
-    )
+    assert.equal(parseAdminReportParams(request({ from: '2025-01-01', to: '2026-01-01' })).to, '2026-01-01')
   })
 
   test('valida limites da paginação', () => {

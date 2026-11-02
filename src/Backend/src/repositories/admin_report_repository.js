@@ -35,7 +35,9 @@ export class AdminReportRepository {
               COALESCE(proposals.review_count, 0) AS review_proposal_count,
               COALESCE(proposals.accepted_count, 0) AS accepted_proposal_count,
               COALESCE(proposals.rejected_count, 0) AS rejected_proposal_count,
-              COALESCE(proposals.selected_total, 0) AS selected_proposals_total
+              COALESCE(proposals.selected_total, 0) AS selected_proposals_total,
+              COALESCE(planning.planning_cost_total, 0) AS planning_cost_total,
+              COALESCE(planning.incomplete_budget_item_count, 0) AS incomplete_budget_item_count
        FROM event AS e
        INNER JOIN organizer ON organizer.id = e.organizer_id
        INNER JOIN user AS organizer_user ON organizer_user.id = organizer.user_id
@@ -64,6 +66,23 @@ export class AdminReportRepository {
          INNER JOIN proposal ON proposal.budget_item_id = budget_item.id
          GROUP BY budget_item.event_id
        ) AS proposals ON proposals.event_id = e.id
+       LEFT JOIN (
+         SELECT budget_item.event_id,
+                SUM(CASE WHEN selected_for_item.selected_amount IS NOT NULL
+                         THEN selected_for_item.selected_amount * budget_item.quantity
+                         ELSE COALESCE(budget_item.estimated_value, 0) * budget_item.quantity END) AS planning_cost_total,
+                SUM(CASE WHEN selected_for_item.selected_amount IS NULL
+                              AND budget_item.estimated_value IS NULL
+                         THEN 1 ELSE 0 END) AS incomplete_budget_item_count
+         FROM budget_item
+         LEFT JOIN (
+           SELECT proposal.budget_item_id, SUM(proposal.amount) AS selected_amount
+           FROM proposal
+           WHERE proposal.selected = TRUE
+           GROUP BY proposal.budget_item_id
+         ) AS selected_for_item ON selected_for_item.budget_item_id = budget_item.id
+         GROUP BY budget_item.event_id
+       ) AS planning ON planning.event_id = e.id
        ${where}
        ORDER BY ${orderBy} ${direction}, e.id ${direction}
        LIMIT :rowLimit OFFSET :offset`,
@@ -163,6 +182,14 @@ function eventFilter(params) {
   if (params.organizerKey !== undefined) {
     conditions.push('organizer_user.user_key = :organizerKey')
     replacements.organizerKey = params.organizerKey
+  }
+  if (params.eventName !== undefined) {
+    conditions.push('LOCATE(LOWER(:eventName), LOWER(e.name)) > 0')
+    replacements.eventName = params.eventName
+  }
+  if (params.organizerName !== undefined) {
+    conditions.push('LOCATE(LOWER(:organizerName), LOWER(organizer_user.name)) > 0')
+    replacements.organizerName = params.organizerName
   }
   if (params.from !== undefined) {
     conditions.push('e.start_date >= :fromDate')

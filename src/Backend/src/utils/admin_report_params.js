@@ -8,11 +8,15 @@ const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3
 export function parseAdminReportParams(req) {
   const eventKey = getParam(req, 'event_key')
   const organizerKey = getParam(req, 'organizer_key')
+  const eventName = getParam(req, 'event_name')
+  const organizerName = getParam(req, 'organizer_name')
   const from = getParam(req, 'from')
   const to = getParam(req, 'to')
 
   validateUuid('event_key', eventKey)
   validateUuid('organizer_key', organizerKey)
+  const normalizedEventName = normalizeSearchTerm('event_name', eventName)
+  const normalizedOrganizerName = normalizeSearchTerm('organizer_name', organizerName)
   validateDateRange(from, to)
 
   const limit = getParamAsInt(req, 'limit', { minValue: 1, maxValue: 100, default: 20 })
@@ -34,6 +38,8 @@ export function parseAdminReportParams(req) {
   return {
     eventKey: eventKey,
     organizerKey: organizerKey,
+    eventName: normalizedEventName,
+    organizerName: normalizedOrganizerName,
     from: from,
     to: to,
     limit: limit,
@@ -42,6 +48,18 @@ export function parseAdminReportParams(req) {
     sort: sort,
     order: order,
   }
+}
+
+function normalizeSearchTerm(name, value) {
+  if (value === undefined) return undefined
+
+  const normalized = value.trim()
+  if (normalized.length === 0) return undefined
+  if (normalized.length > 150) {
+    throw new InvalidParameter(`The "${name}" parameter must not exceed 150 characters.`)
+  }
+
+  return normalized
 }
 
 function validateUuid(name, value) {
