@@ -60,6 +60,25 @@ export const USER_STATUSES = Object.freeze({
   BLOCKED: 'blocked',
 })
 
+export const EVENT_STATUSES = Object.freeze({
+  DRAFT: 'draft',
+  OPEN_FOR_QUOTES: 'open_for_quotes',
+  CLOSED: 'closed',
+  CANCELED: 'canceled',
+})
+
+export const REFERENCE_SCENARIOS = Object.freeze({
+  MINIMUM: 'minimum',
+  EXPECTED: 'expected',
+  MAXIMUM: 'maximum',
+})
+
+export const INTERNAL_COST_TYPES = Object.freeze({
+  TAX: 'tax',
+  OPERATIONAL: 'operational',
+  OTHER: 'other',
+})
+
 // rotas de infraestrutura: não passam pelos middlewares de log, login e banco
 export const BYPASS_ENDPOINTS = [API_PREFIX, `${API_PREFIX}/`, `${API_PREFIX}/health_check`]
 
