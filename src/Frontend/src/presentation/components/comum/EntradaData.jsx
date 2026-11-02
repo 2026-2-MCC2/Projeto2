@@ -31,6 +31,11 @@ export function EntradaData({ onChange, semPassado = false, ...props }) {
     onChange?.(evento)
   }
 
+  // o calendário fecha no mousedown fora dele; sem isto o clique no ícone fecharia e reabriria
+  function ignorarCliqueForaDoCalendario(evento) {
+    evento.stopPropagation()
+  }
+
   // o evento disparado por preencher já chega ao onChange pelo aoDigitar
   function aoSelecionarData(dataStr) {
     if (texto.current) preencher(texto.current, dataStr)
@@ -54,6 +59,7 @@ export function EntradaData({ onChange, semPassado = false, ...props }) {
         className="entrada-data__calendario"
         aria-label="Abrir calendário"
         onClick={alternarCalendario}
+        onMouseDown={ignorarCliqueForaDoCalendario}
       >
         <Icone src={iconeCalendario} />
       </button>

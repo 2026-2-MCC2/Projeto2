@@ -7,36 +7,36 @@ const CAMPO_PUBLICO = { inputMode: 'numeric', 'data-validar': 'inteiro', require
 
 export function EtapaLocal({ campo, definir, atualizarCampos, isMobile }) {
   const [buscandoCep, setBuscandoCep] = useState(false)
-  // o endereço só é preenchido quando o CEP muda, para não apagar o número que a pessoa já digitou
+  // o endereço só é preenchido quando o CEP muda, para não apagar o número que a pessoa já digitou;
+  // volta a null quando o CEP fica incompleto ou a busca falha, para a próxima tentativa buscar de novo
   const ultimoCepBuscado = useRef(null)
 
   async function preencherEndereco(cepDigitos) {
     if (cepDigitos === ultimoCepBuscado.current) return
     ultimoCepBuscado.current = cepDigitos
     setBuscandoCep(true)
-    try {
-      const enderecoEncontrado = await consultarCep(cepDigitos)
-      // a pessoa trocou o CEP enquanto esta busca andava: a resposta antiga é descartada
-      if (cepDigitos !== ultimoCepBuscado.current) return
-      if (enderecoEncontrado) {
-        const novos = {
-          cidade: enderecoEncontrado.cidade || '',
-          estado: enderecoEncontrado.estado || '',
-        }
-        if (enderecoEncontrado.enderecoCompleto) {
-          novos.endereco = enderecoEncontrado.enderecoCompleto
-        } else if (enderecoEncontrado.logradouro) {
-          novos.endereco = enderecoEncontrado.logradouro
-        }
 
-        if (atualizarCampos) {
-          atualizarCampos(novos)
-        } else if (definir) {
-          Object.entries(novos).forEach(([k, v]) => definir(k, v))
-        }
-      }
-    } finally {
-      if (cepDigitos === ultimoCepBuscado.current) setBuscandoCep(false)
+    const enderecoEncontrado = await consultarCep(cepDigitos)
+    // a pessoa mudou o CEP enquanto esta busca andava: a resposta antiga é descartada
+    if (cepDigitos !== ultimoCepBuscado.current) return
+    setBuscandoCep(false)
+
+    if (!enderecoEncontrado) {
+      ultimoCepBuscado.current = null
+      return
+    }
+    preencherCampos({
+      cidade: enderecoEncontrado.cidade,
+      estado: enderecoEncontrado.estado,
+      endereco: enderecoEncontrado.enderecoCompleto || enderecoEncontrado.logradouro,
+    })
+  }
+
+  function preencherCampos(novos) {
+    if (atualizarCampos) {
+      atualizarCampos(novos)
+    } else if (definir) {
+      Object.entries(novos).forEach(([nome, valor]) => definir(nome, valor))
     }
   }
 
@@ -53,6 +53,9 @@ export function EtapaLocal({ campo, definir, atualizarCampos, isMobile }) {
     const digitos = valorMascarado.replace(/\D/g, '')
     if (digitos.length === 8) {
       preencherEndereco(digitos)
+    } else {
+      ultimoCepBuscado.current = null
+      setBuscandoCep(false)
     }
   }
 
