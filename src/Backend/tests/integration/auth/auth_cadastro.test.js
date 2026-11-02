@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict'
 import { afterEach, describe, test } from 'node:test'
 
-import { DbUtils } from '../utils/db_utils.js'
-import { ObjectGenerator } from '../utils/object_generator.js'
-import { PayloadGenerator } from '../utils/payload_generator.js'
-import { RequestGenerator } from '../utils/request_generator.js'
-import { TokenGenerator } from '../utils/token_generator.js'
+import { DbUtils } from '../../utils/db_utils.js'
+import { ObjectGenerator } from '../../utils/object_generator.js'
+import { PayloadGenerator } from '../../utils/payload_generator.js'
+import { RequestGenerator } from '../../utils/request_generator.js'
+import { TokenGenerator } from '../../utils/token_generator.js'
 
 const fixtureUserKeys = []
 
@@ -66,6 +66,38 @@ describe('POST /auth/cadastro', () => {
 
     assert.equal(status, 409)
     assert.equal(response.code, 'EVP000006')
+  })
+
+  test('CNPJ com letras ou fora do formato responde 400 sem gravar', async () => {
+    const validCnpj = PayloadGenerator.createOrganizerRegistrationPayload().cnpj.replace(/\D/g, '')
+    const invalidCnpjs = [
+      `${validCnpj.slice(0, 13)}A${validCnpj.slice(13)}`,
+      `AB${validCnpj}`,
+      `${validCnpj.slice(0, 8)} / ${validCnpj.slice(8)}`,
+    ]
+
+    for (const cnpj of invalidCnpjs) {
+      const [status, response] = await register(PayloadGenerator.createOrganizerRegistrationPayload({ cnpj }))
+      assert.equal(status, 400, cnpj)
+      assert.equal(response.code, 'APP000001')
+    }
+  })
+
+  test('nome só com espaços responde 400 e nome com espaços nas pontas é gravado sem eles', async () => {
+    const [blankStatus, blankResponse] = await register(PayloadGenerator.createOrganizerRegistrationPayload({ name: '    ' }))
+    assert.equal(blankStatus, 400)
+    assert.equal(blankResponse.code, 'APP000001')
+
+    const [status, response] = await register(PayloadGenerator.createOrganizerRegistrationPayload({ name: '  Eventos Aurora  ' }))
+    assert.equal(status, 201)
+    assert.equal((await DbUtils.getUserFixture(response.user_key)).name, 'Eventos Aurora')
+  })
+
+  test('telefone com letras responde 400', async () => {
+    const [status, response] = await register(PayloadGenerator.createOrganizerRegistrationPayload({ phone: '11 9999A-8888' }))
+
+    assert.equal(status, 400)
+    assert.equal(response.code, 'APP000001')
   })
 
   test('CNPJ inválido responde 400', async () => {

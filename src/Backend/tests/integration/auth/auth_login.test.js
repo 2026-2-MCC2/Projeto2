@@ -3,12 +3,12 @@ import { afterEach, before, describe, test } from 'node:test'
 
 import jwt from 'jsonwebtoken'
 
-import { SecurityTools } from '../../src/utils/security_tools.js'
-import { DbUtils } from '../utils/db_utils.js'
-import { LOCAL_JWT_SECRET } from '../utils/local_secrets.js'
-import { ObjectGenerator } from '../utils/object_generator.js'
-import { RequestGenerator } from '../utils/request_generator.js'
-import { TokenGenerator } from '../utils/token_generator.js'
+import { SecurityTools } from '../../../src/utils/security_tools.js'
+import { DbUtils } from '../../utils/db_utils.js'
+import { LOCAL_JWT_SECRET } from '../../utils/local_secrets.js'
+import { ObjectGenerator } from '../../utils/object_generator.js'
+import { RequestGenerator } from '../../utils/request_generator.js'
+import { TokenGenerator } from '../../utils/token_generator.js'
 
 const PASSWORD = 'senhaForte123'
 const fixtureUserKeys = []
