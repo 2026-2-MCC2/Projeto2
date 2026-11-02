@@ -73,7 +73,8 @@ const VALOR_INICIAL = {
 // regras que comparam campos da mesma etapa
 const REGRAS_ENTRE_CAMPOS = {
   dataTermino: (valor, valores) => validarTermino(valor, valores.dataInicio),
-  publicoMaximo: (valor, valores) => validarPublicoMaximo(valor, valores.publicoMinimo),
+  publicoMaximo: (valor, valores) =>
+    validarPublicoMaximo(valor, valores.publicoMinimo, valores.capacidadeEspaco),
   publicoEsperado: (valor, valores) =>
     validarPublicoEsperado(valor, valores.publicoMinimo, valores.publicoMaximo),
 }
