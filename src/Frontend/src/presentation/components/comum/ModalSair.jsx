@@ -3,7 +3,6 @@ import { sair } from '../../../application/sessao.js'
 import { Modal } from './Modal.jsx'
 import icone from '../../assets/comum/icone-enviar.svg'
 
-// Confirmação de saída, igual para organizador, fornecedor e administrador.
 export function ModalSair({ aoFechar }) {
   const navigate = useNavigate()
 

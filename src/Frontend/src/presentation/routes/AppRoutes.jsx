@@ -8,8 +8,8 @@ import { RecuperarSenha } from '../pages/acesso/RecuperarSenha.jsx'
 import { CadastroPendente } from '../pages/acesso/CadastroPendente.jsx'
 import { AreaDoPerfil } from './AreaDoPerfil.jsx'
 
-// A área logada fica fora do pacote inicial: cada perfil vira um arquivo, baixado só quando uma
-// das suas telas abre. O lazy() espera export default, por isso cada página é pega pelo nome.
+// a área logada fica fora do pacote inicial: cada perfil vira um arquivo baixado sob demanda;
+// o lazy() espera export default, por isso cada página é pega pelo nome
 const paginasDe = (carregar) => (nome) =>
   lazy(() => carregar().then((modulo) => ({ default: modulo[nome] })))
 

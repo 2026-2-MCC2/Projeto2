@@ -1,11 +1,9 @@
-// Guarda a sessão (token e usuário) no sessionStorage: some quando a aba do navegador é fechada.
-// O navegador pode bloquear o armazenamento (aba anônima, cookies desativados): por isso todo acesso
-// fica em try/catch, e uma cópia em memória mantém a pessoa logada até ela recarregar a página.
+// o navegador pode bloquear o sessionStorage (aba anônima, cookies desativados): por isso o try/catch
+// e a cópia em memória, que mantém a pessoa logada até recarregar a página
 const CHAVE = 'trocaticket.sessao'
 
 let sessaoEmMemoria = null
 
-// { token: 'eyJ...', usuario: { chave, nome, perfil } } ou null se ninguém entrou
 export function lerSessao() {
   if (sessaoEmMemoria) return sessaoEmMemoria
 

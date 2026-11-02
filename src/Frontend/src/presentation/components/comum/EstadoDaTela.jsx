@@ -1,6 +1,4 @@
-// O erro mostra a mensagem em português do erro lançado por infrastructure/api.js (a translation da API).
-
-// telaInteira: ocupa a página toda, para quando ainda não há layout (carregando uma rota)
+// telaInteira: para quando ainda não há layout (carregando uma rota)
 export function Carregando({ mensagem = 'Carregando…', telaInteira = false }) {
   return (
     <div
