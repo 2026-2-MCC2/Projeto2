@@ -1,5 +1,3 @@
-// Repository: consultas e gravações da conta de usuário e de seu histórico de decisões.
-
 import { randomUUID } from 'node:crypto'
 
 import { USER_PROFILES } from '../constants.js'
@@ -26,7 +24,6 @@ export class UserRepository {
     })
   }
 
-  // devolve o usuário com esse e-mail, ou null se não existir
   async getByEmail(email) {
     return User.findOne({
       where: { email: email },
@@ -34,7 +31,19 @@ export class UserRepository {
     })
   }
 
-  // cria a conta sempre como 'pending': só passa a acessar depois da aprovação do administrador
+  // dados do cadastro e a última decisão do admin, para a tela de acompanhamento
+  async getRegistrationSummary(userId) {
+    return User.findByPk(userId, {
+      include: [
+        'organizer',
+        { association: 'supplier', include: ['categories'] },
+        { association: 'status_events', separate: true, order: [['id', 'DESC']], limit: 1 },
+      ],
+      transaction: this.session,
+    })
+  }
+
+  // a conta nasce pending e só acessa depois da aprovação do admin
   async create({ name, email, passwordHash, profile }) {
     return User.create(
       {
@@ -49,9 +58,7 @@ export class UserRepository {
     )
   }
 
-  // Lista paginada de organizadores e fornecedores (nunca admins), do cadastro mais antigo para o
-  // mais novo, já com os dados de organizer/supplier. Se status vier, filtra por ele.
-  // Busca um item a mais que o limite só para saber se existe próxima página.
+  // busca um item a mais que o limite só para saber se existe próxima página
   async getRegistrationList(limit, offset, status) {
     const where = { profile: [USER_PROFILES.ORGANIZER, USER_PROFILES.SUPPLIER] }
     if (status !== undefined) {
@@ -60,7 +67,7 @@ export class UserRepository {
 
     return User.findAll({
       where: where,
-      include: ['organizer', 'supplier'],
+      include: ['organizer', { association: 'supplier', include: ['categories'] }],
       order: [
         ['created_at', 'ASC'],
         ['id', 'ASC'],
@@ -71,7 +78,7 @@ export class UserRepository {
     })
   }
 
-  async updateStatus(user, newStatus) {
+  async updateStatus(user, newStatus, reason = null) {
     const administrator = await User.findOne({
       where: {
         user_key: this.context.user.userKey,
@@ -81,7 +88,7 @@ export class UserRepository {
       transaction: this.session,
     })
 
-    // Só registra uma decisão quando o token corresponde a um administrador aprovado no banco.
+    // só registra a decisão se o token for de um admin aprovado no banco
     if (administrator === null) {
       return null
     }
@@ -97,6 +104,7 @@ export class UserRepository {
         admin_user_id: administrator.id,
         old_status: oldStatus,
         new_status: newStatus,
+        reason: reason,
         event_datetime: new Date(),
       },
       { transaction: this.session },

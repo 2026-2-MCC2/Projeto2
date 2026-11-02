@@ -1,13 +1,4 @@
-// Cria um usuário admin, já aprovado, no banco LOCAL (MySQL do Docker). Rode com o Docker no ar:
-//   npm run create:admin -- "Nome do Admin" admin@empresa.com senhaForte123
-//
-// Por que precisa? Ninguém consegue se cadastrar como admin pela API (o autocadastro só aceita
-// organizador), e é o admin quem aprova os outros cadastros. Este script cria o primeiro.
-//
-// - a senha é gravada só como hash (SecurityTools.hashPassword), nunca como foi digitada
-// - o e-mail é gravado em minúsculas, igual ao autocadastro e ao login
-// - se já existir um usuário com o e-mail, avisa e não cria outro
-// Se o docker-compose sobe o banco em outra porta (DB_PORT), use a mesma DB_PORT aqui.
+// cria o primeiro admin no banco local: o autocadastro não aceita o perfil admin
 
 import { randomUUID } from 'node:crypto'
 
@@ -59,7 +50,7 @@ async function main() {
 
     console.log(`Admin criado: ${name} <${email}> (user_key ${userKey}). Já pode fazer login.`)
   } catch (error) {
-    // outro processo criou o mesmo e-mail entre a busca e o INSERT: o UNIQUE do banco barrou
+    // corrida: outro processo gravou o mesmo e-mail entre a busca e o insert, e o unique barrou
     if (error.code === 'ER_DUP_ENTRY') {
       console.log(`Já existe um usuário com o e-mail ${email}. Nenhum admin foi criado.`)
       return

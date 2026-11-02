@@ -1,5 +1,3 @@
-// Repository: consultas e gravações dos dados de organizador.
-
 import { Organizer } from '../models/index.js'
 
 export class OrganizerRepository {
@@ -7,7 +5,6 @@ export class OrganizerRepository {
     this.session = context.dbSession
   }
 
-  // devolve o organizador com esse CNPJ, ou null se não existir
   async getByCnpj(cnpj) {
     return Organizer.findOne({
       where: { cnpj: cnpj },

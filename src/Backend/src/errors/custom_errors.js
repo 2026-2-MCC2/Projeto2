@@ -1,46 +1,4 @@
-// Erros de regra de negócio (prefixo EVP = Event Planning API).
-//
-// COMO CRIAR UM ERRO NOVO
-//   export class SampleEntityAlreadyExists extends ApiException {
-//     static code = 'EVP000003'   // código único: a aplicação nem sobe se dois erros usarem o mesmo
-//
-//     constructor(sampleEntityKey) {
-//       const title = 'Entity already exists'
-//       const httpStatus = 409
-//       const description = `Entity with key ${sampleEntityKey} already exists.`
-//       const translation = `A entidade com chave ${sampleEntityKey} já existe.`
-//       super(title, SampleEntityAlreadyExists.code, httpStatus, description, translation)
-//     }
-//   }
-//
-// E para usar, no controller:
-//   throw new SampleEntityAlreadyExists(sampleEntityKey)
-
 import { ApiException } from './base_error.js'
-
-export class NotFoundSampleEntity extends ApiException {
-  static code = 'EVP000001'
-
-  constructor(sampleEntityKey) {
-    const title = 'Entity not Found'
-    const httpStatus = 404
-    const description = `Entity with key ${sampleEntityKey} was not found.`
-    const translation = `A entidade com chave ${sampleEntityKey} não foi encontrada.`
-    super(title, NotFoundSampleEntity.code, httpStatus, description, translation)
-  }
-}
-
-export class SampleEntityFinalStatus extends ApiException {
-  static code = 'EVP000002'
-
-  constructor(oldStatus, newStatus) {
-    const title = 'Entity cannot change status'
-    const httpStatus = 409
-    const description = `Entity with status ${oldStatus} cannot update to ${newStatus}.`
-    const translation = 'Essa entidade não pode ser atualizada.'
-    super(title, SampleEntityFinalStatus.code, httpStatus, description, translation)
-  }
-}
 
 export class NotFoundUser extends ApiException {
   static code = 'EVP000003'
@@ -102,7 +60,7 @@ export class InvalidCnpj extends ApiException {
   }
 }
 
-// Mesmo erro para e-mail inexistente e senha errada: assim a resposta não revela quais e-mails têm cadastro.
+// mesmo erro para e-mail inexistente e senha errada, para não revelar quais e-mails têm cadastro
 export class InvalidCredentials extends ApiException {
   static code = 'EVP000008'
 
@@ -118,23 +76,37 @@ export class InvalidCredentials extends ApiException {
 export class RegistrationPending extends ApiException {
   static code = 'EVP000009'
 
-  constructor() {
+  // details: resumo do cadastro (AuthDTO.registrationStatus), mostrado só a quem acertou a senha
+  constructor(details) {
     const title = 'Registration pending'
     const httpStatus = 403
     const description = 'The registration is still waiting for the administrator approval.'
     const translation = 'Seu cadastro ainda está em análise.'
-    super(title, RegistrationPending.code, httpStatus, description, translation)
+    super(title, RegistrationPending.code, httpStatus, description, translation, details)
   }
 }
 
 export class RegistrationRejected extends ApiException {
   static code = 'EVP000010'
 
-  constructor() {
+  // details: resumo do cadastro (AuthDTO.registrationStatus), mostrado só a quem acertou a senha
+  constructor(details) {
     const title = 'Registration rejected'
     const httpStatus = 403
     const description = 'The registration was rejected by the administrator.'
     const translation = 'Seu cadastro não foi aprovado.'
-    super(title, RegistrationRejected.code, httpStatus, description, translation)
+    super(title, RegistrationRejected.code, httpStatus, description, translation, details)
+  }
+}
+
+export class AccountBlocked extends ApiException {
+  static code = 'EVP000011'
+
+  constructor() {
+    const title = 'Account blocked'
+    const httpStatus = 403
+    const description = 'The account was blocked by the administrator.'
+    const translation = 'Seu acesso foi bloqueado. Fale com o administrador da plataforma.'
+    super(title, AccountBlocked.code, httpStatus, description, translation)
   }
 }

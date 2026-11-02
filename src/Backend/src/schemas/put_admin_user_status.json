@@ -4,9 +4,32 @@
   "properties": {
     "status": {
       "type": "string",
-      "enum": ["approved", "rejected"]
+      "enum": [
+        "approved",
+        "rejected"
+      ]
+    },
+    "reason": {
+      "description": "Motivo da decisão. Obrigatório ao rejeitar, para o usuário saber o que corrigir.",
+      "type": "string",
+      "maxLength": 500,
+      "pattern": "\\S"
     }
   },
-  "required": ["status"],
-  "additionalProperties": false
+  "required": [
+    "status"
+  ],
+  "additionalProperties": false,
+  "if": {
+    "properties": {
+      "status": {
+        "const": "rejected"
+      }
+    }
+  },
+  "then": {
+    "required": [
+      "reason"
+    ]
+  }
 }

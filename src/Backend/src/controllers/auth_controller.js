@@ -1,10 +1,9 @@
-// Controller: autocadastro de organizador (RF01) e fornecedor (RF02), e login.
-
 import { UniqueConstraintError } from 'sequelize'
 
 import { USER_PROFILES, USER_STATUSES } from '../constants.js'
 import { AuthDTO } from '../dtos/auth_dto.js'
 import {
+  AccountBlocked,
   CnpjAlreadyRegistered,
   EmailAlreadyRegistered,
   InvalidCnpj,
@@ -24,8 +23,8 @@ import { BaseController } from './base_controller.js'
 // telefone com DDD: 10 dígitos (fixo) ou 11 dígitos (celular)
 const PHONE_PATTERN = /^\d{10,11}$/
 
-// Hash bcrypt de uma senha aleatória que ninguém conhece. Quando o e-mail não existe, o login confere a
-// senha contra ele mesmo assim: a resposta demora o mesmo tempo e não revela quais e-mails têm cadastro.
+// hash de uma senha que ninguém conhece: com e-mail inexistente o login confere a senha mesmo assim,
+// para o tempo de resposta não revelar quais e-mails têm cadastro
 const UNKNOWN_USER_PASSWORD_HASH = '$2b$10$LP/6onjOcbzv40dtTisgWuseA3VsnTAxO8jEmCCbBrYvxV33wjSXu'
 
 export class AuthController extends BaseController {
@@ -36,8 +35,7 @@ export class AuthController extends BaseController {
     this.supplierRepository = new SupplierRepository(context)
   }
 
-  // Autocadastro de organizador (RF01) ou fornecedor (RF02). As validações são as mesmas; muda só
-  // a tabela dos dados do perfil (organizer ou supplier) e, no fornecedor, a área de atuação.
+  // RF01 (organizador) e RF02 (fornecedor)
   async register(payload) {
     const profileRegistration = this.getProfileRegistration(payload)
 
@@ -79,13 +77,12 @@ export class AuthController extends BaseController {
     }
   }
 
-  // O que muda no cadastro de cada perfil. O schema já garante que profile é um destes dois.
   getProfileRegistration(payload) {
     if (payload.profile === USER_PROFILES.SUPPLIER) {
       return {
         profile: USER_PROFILES.SUPPLIER,
         repository: this.supplierRepository,
-        extraData: { serviceArea: payload.service_area },
+        extraData: { categories: payload.categories },
       }
     }
     if (payload.profile === USER_PROFILES.ORGANIZER) {
@@ -94,7 +91,11 @@ export class AuthController extends BaseController {
     throw new InvalidParameter(`The profile ${payload.profile} cannot self-register.`)
   }
 
-  // Só consulta o banco: não grava nada, então não há commit.
+  async getCurrentUser(userKey) {
+    const user = await this.userRepository.getByKey(userKey)
+    return AuthDTO.currentUser(user)
+  }
+
   async login(payload) {
     const user = await this.userRepository.getByEmail(TextTools.normalizeEmail(payload.email))
 
@@ -106,19 +107,26 @@ export class AuthController extends BaseController {
 
     // o status só é revelado para quem acertou a senha
     if (user.status === USER_STATUSES.PENDING) {
-      throw new RegistrationPending()
+      throw new RegistrationPending(await this.getRegistrationStatus(user))
     }
     if (user.status === USER_STATUSES.REJECTED) {
-      throw new RegistrationRejected()
+      throw new RegistrationRejected(await this.getRegistrationStatus(user))
+    }
+    if (user.status === USER_STATUSES.BLOCKED) {
+      throw new AccountBlocked()
     }
 
     const token = await SecurityTools.generateUserToken({ userKey: user.user_key, profile: user.profile })
     return AuthDTO.login(user, token)
   }
+
+  async getRegistrationStatus(user) {
+    const summary = await this.userRepository.getRegistrationSummary(user.id)
+    return AuthDTO.registrationStatus(summary)
+  }
 }
 
-// Duas requisições com o mesmo e-mail ou CNPJ podem passar juntas pelas buscas acima. Nesse caso o
-// UNIQUE do banco barra a segunda, e aqui o erro do banco vira o 409 correspondente.
+// duas requisições com o mesmo e-mail ou cnpj podem passar juntas pelas buscas; o unique do banco barra a segunda
 function toDuplicatedRegistrationError(error) {
   if (!(error instanceof UniqueConstraintError)) {
     return error

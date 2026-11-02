@@ -1,12 +1,11 @@
-// Confere no banco se a conta associada ao token continua aprovada e com o mesmo perfil.
-// Roda depois da autenticação e da abertura da transação, antes de qualquer rota protegida.
+// o token pode ter sido emitido antes de a conta ser bloqueada ou mudar de perfil, por isso confere no banco
 
 import { ForbiddenProfile } from '../errors/index.js'
 import { UserRepository } from '../repositories/user_repository.js'
 
 export class UserStatusMiddleware {
   async processRequest(req) {
-    // Rotas públicas e OPTIONS não têm usuário autenticado.
+    // rotas públicas e OPTIONS
     if (req.context.user === null) {
       return
     }

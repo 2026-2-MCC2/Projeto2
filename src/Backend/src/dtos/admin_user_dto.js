@@ -1,4 +1,4 @@
-// DTO das respostas administrativas: expõe apenas identificadores públicos, nunca id nem password_hash.
+// expõe só identificadores públicos, nunca id nem password_hash
 
 export class AdminUserDTO {
   static statusUpdate(user) {
@@ -8,11 +8,7 @@ export class AdminUserDTO {
     }
   }
 
-  // Um cadastro do painel de aprovações. cnpj e phone vêm do organizer ou do supplier, conforme o perfil;
-  // service_area só existe no fornecedor (null para organizador).
-  //   { "user_key": "6f1c...", "name": "...", "profile": "fornecedor", "email": "...", "status": "pending",
-  //     "created_at": "2026-11-02T14:31:30.000Z", "cnpj": "11222333000181", "phone": "11999998888",
-  //     "service_area": "Estrutura" }
+  // categories é null para organizador
   static registration(user) {
     const profileData = user.organizer ?? user.supplier ?? null
 
@@ -25,7 +21,7 @@ export class AdminUserDTO {
       created_at: user.created_at,
       cnpj: profileData?.cnpj ?? null,
       phone: profileData?.phone ?? null,
-      service_area: user.supplier?.service_area ?? null,
+      categories: user.supplier?.categories?.map((category) => category.name).sort() ?? null,
     }
   }
 

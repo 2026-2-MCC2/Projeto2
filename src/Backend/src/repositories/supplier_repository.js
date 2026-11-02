@@ -1,13 +1,10 @@
-// Repository: consultas e gravações dos dados de fornecedor.
-
-import { Supplier } from '../models/index.js'
+import { ItemCategory, Supplier, SupplierCategory } from '../models/index.js'
 
 export class SupplierRepository {
   constructor(context) {
     this.session = context.dbSession
   }
 
-  // devolve o fornecedor com esse CNPJ, ou null se não existir
   async getByCnpj(cnpj) {
     return Supplier.findOne({
       where: { cnpj: cnpj },
@@ -15,15 +12,26 @@ export class SupplierRepository {
     })
   }
 
-  async create({ userId, cnpj, phone, serviceArea }) {
-    return Supplier.create(
+  // categories são nomes da tabela item_category
+  async create({ userId, cnpj, phone, categories }) {
+    const supplier = await Supplier.create(
       {
         user_id: userId,
         cnpj: cnpj,
-        service_area: serviceArea,
         phone: phone,
       },
       { transaction: this.session },
     )
+
+    const itemCategories = await ItemCategory.findAll({
+      where: { name: categories },
+      transaction: this.session,
+    })
+    await SupplierCategory.bulkCreate(
+      itemCategories.map((category) => ({ supplier_id: supplier.id, category_id: category.id })),
+      { transaction: this.session },
+    )
+
+    return supplier
   }
 }

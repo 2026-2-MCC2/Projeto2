@@ -4,7 +4,10 @@
   "properties": {
     "profile": {
       "type": "string",
-      "enum": ["organizador", "fornecedor"]
+      "enum": [
+        "organizador",
+        "fornecedor"
+      ]
     },
     "name": {
       "type": "string",
@@ -31,21 +34,54 @@
       "minLength": 10,
       "maxLength": 20
     },
-    "service_area": {
-      "description": "Área de atuação do fornecedor: as mesmas categorias da tabela item_category.",
-      "type": "string",
-      "enum": ["Estrutura", "Alimentação", "Segurança", "Outros"]
+    "categories": {
+      "description": "Categorias em que o fornecedor atua: os nomes da tabela item_category.",
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "Alimentação",
+          "Bebidas",
+          "Comunicação",
+          "Decoração",
+          "Equipe",
+          "Estrutura",
+          "Logística",
+          "Segurança",
+          "Tecnologia",
+          "Outros"
+        ]
+      }
     }
   },
-  "required": ["profile", "name", "email", "password", "cnpj", "phone"],
+  "required": [
+    "profile",
+    "name",
+    "email",
+    "password",
+    "cnpj",
+    "phone"
+  ],
   "additionalProperties": false,
   "if": {
-    "properties": { "profile": { "const": "fornecedor" } }
+    "properties": {
+      "profile": {
+        "const": "fornecedor"
+      }
+    }
   },
   "then": {
-    "required": ["service_area"]
+    "required": [
+      "categories"
+    ]
   },
   "else": {
-    "properties": { "service_area": { "not": {} } }
+    "properties": {
+      "categories": {
+        "not": {}
+      }
+    }
   }
 }
