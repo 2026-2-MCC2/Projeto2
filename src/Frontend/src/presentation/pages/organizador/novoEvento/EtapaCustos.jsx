@@ -52,7 +52,7 @@ export function EtapaCustos({ campo, dados, definir, isMobile }) {
         <Linha>
           {!isMobile && <CampoFixo rotulo="Arredondamento do ticket" valor="Duas casas decimais" />}
 
-          <Campo rotulo="Cenário de referência">
+          <Campo as="div" rotulo="Cenário de referência">
             <Selecao
               valor={dados.cenarioReferencia}
               opcoes={CENARIOS}
