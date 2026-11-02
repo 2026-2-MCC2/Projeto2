@@ -12,6 +12,13 @@ export class OrganizerRepository {
     })
   }
 
+  async getByUserId(userId) {
+    return Organizer.findOne({
+      where: { user_id: userId },
+      transaction: this.session,
+    })
+  }
+
   async create({ userId, cnpj, phone }) {
     return Organizer.create(
       {
