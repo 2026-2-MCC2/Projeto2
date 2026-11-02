@@ -9,8 +9,9 @@
 import { ClientRequisition } from './requisition.js'
 import { TokenGenerator } from './token_generator.js'
 
+const TEST_ORGANIZER_KEY = '00000000-0000-4000-8000-000000000010'
 // header de um usuário logado (organizador), usado nas rotas de exemplo
-const USER_HEADERS = TokenGenerator.authorizationHeader('organizador')
+const USER_HEADERS = TokenGenerator.authorizationHeader('organizador', { userKey: TEST_ORGANIZER_KEY })
 
 export class RequestGenerator {
   static async POST_sample_entity(sampleEntityPayload) {
@@ -32,6 +33,14 @@ export class RequestGenerator {
     const response = await ClientRequisition.send('PUT', `/event_planning/sample_entity/${sampleEntityKey}`, {
       payload: updatePayload,
       headers: USER_HEADERS,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async PUT_admin_user_status(userKey, updatePayload, headers = {}) {
+    const response = await ClientRequisition.send('PUT', `/event_planning/admin/users/${userKey}/status`, {
+      payload: updatePayload,
+      headers: headers,
     })
     return [response.responseStatus, response.responseJson]
   }

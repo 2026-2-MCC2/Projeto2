@@ -8,11 +8,22 @@
 import { setTimeout as sleep } from 'node:timers/promises'
 
 import { createLocalSecrets } from './utils/local_secrets.js'
+import { DbUtils } from './utils/db_utils.js'
 import { API_URL } from './utils/requisition.js'
+
+export const TEST_ORGANIZER_KEY = '00000000-0000-4000-8000-000000000010'
+export const TEST_SUPPLIER_KEY = '00000000-0000-4000-8000-000000000011'
 
 export async function globalSetup() {
   await retryFor60Seconds('Secret Manager emulator', createLocalSecrets)
   await retryFor60Seconds('API', checkApiIsUp)
+
+  await DbUtils.ensureApprovedTestUser({ userKey: TEST_ORGANIZER_KEY, profile: 'organizador' })
+  await DbUtils.ensureApprovedTestUser({ userKey: TEST_SUPPLIER_KEY, profile: 'fornecedor' })
+}
+
+export async function globalTeardown() {
+  await DbUtils.deleteUserFixtures([TEST_ORGANIZER_KEY, TEST_SUPPLIER_KEY])
 }
 
 // erro para quando a porta responde, mas quem responde é outra aplicação

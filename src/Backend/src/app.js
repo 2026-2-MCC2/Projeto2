@@ -43,8 +43,9 @@ import {
   SecureHeaders,
   SessionManager,
   UserAuthenticationMiddleware,
+  UserStatusMiddleware,
 } from './middlewares/index.js'
-import { HealthCheckResource, HomeResource, SampleEntityResource, SinkResource } from './resources/index.js'
+import { AdminUserResource, HealthCheckResource, HomeResource, SampleEntityResource, SinkResource } from './resources/index.js'
 import { addRoute, addSink, useMiddlewares } from './utils/routing.js'
 
 export function create() {
@@ -65,6 +66,7 @@ export function create() {
   //   UserAuthenticationMiddleware confere o login (token JWT) e preenche req.context.user
   //   SessionManager               abre a transação do banco (só depois do login, para não gastar
   //                                conexão com requisição que vai ser recusada)
+  //   UserStatusMiddleware         confere status e perfil do usuário persistidos nessa sessão
   useMiddlewares(app, [
     new SecureHeaders(),
     new CorsMiddleware(),
@@ -72,6 +74,7 @@ export function create() {
     new InputOutputMiddleware(),
     new UserAuthenticationMiddleware(),
     new SessionManager(),
+    new UserStatusMiddleware(),
   ])
 
   // Rotas. Cada addRoute liga uma URL a um resource (ver utils/routing.js).
@@ -80,6 +83,9 @@ export function create() {
 
   const healthCheckResource = new HealthCheckResource()
   addRoute(app, `${API_PREFIX}/health_check`, healthCheckResource)
+
+  const adminUserResource = new AdminUserResource()
+  addRoute(app, `${API_PREFIX}/admin/users/:user_key/status`, adminUserResource, 'ByKey')
 
   // Entidade de EXEMPLO: mostra o caminho completo de um endpoint (resource, controller, repository).
   // Usem como modelo e apaguem quando o projeto tiver os próprios endpoints.

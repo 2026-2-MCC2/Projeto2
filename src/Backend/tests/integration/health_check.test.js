@@ -36,7 +36,7 @@ describe('HealthCheck', () => {
 
   test('rota que não existe responde 404', async () => {
     const response = await ClientRequisition.send('PUT', '/event_planning/sample', {
-      headers: TokenGenerator.authorizationHeader(),
+      headers: TokenGenerator.authorizationHeader('organizador', { userKey: '00000000-0000-4000-8000-000000000010' }),
     })
     assert.equal(response.responseStatus, 404)
     assert.equal(response.responseJson.code, 'APP000404')
@@ -51,7 +51,10 @@ describe('HealthCheck', () => {
   test('JSON mal formado responde 400', async () => {
     const response = await ClientRequisition.send('POST', '/event_planning/sample_entity', {
       data: '{"hello": ',
-      headers: { 'Content-Type': 'application/json', ...TokenGenerator.authorizationHeader() },
+      headers: {
+        'Content-Type': 'application/json',
+        ...TokenGenerator.authorizationHeader('organizador', { userKey: '00000000-0000-4000-8000-000000000010' }),
+      },
     })
     assert.equal(response.responseStatus, 400)
     assert.equal(response.responseJson.code, 'APP000001')

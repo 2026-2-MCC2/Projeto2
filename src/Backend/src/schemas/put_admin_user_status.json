@@ -1,0 +1,12 @@
+{
+  "title": "PutAdminUserStatus",
+  "type": "object",
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["approved", "rejected"]
+    }
+  },
+  "required": ["status"],
+  "additionalProperties": false
+}

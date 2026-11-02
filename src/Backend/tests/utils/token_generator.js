@@ -11,12 +11,12 @@ import jwt from 'jsonwebtoken'
 import { LOCAL_JWT_SECRET } from './local_secrets.js'
 
 export class TokenGenerator {
-  static create(profile = 'organizador', { expiresIn = '1h' } = {}) {
-    const tokenContent = { user_key: randomUUID(), profile: profile }
+  static create(profile = 'organizador', { expiresIn = '1h', userKey = randomUUID() } = {}) {
+    const tokenContent = { user_key: userKey, profile: profile }
     return jwt.sign(tokenContent, LOCAL_JWT_SECRET, { expiresIn: expiresIn })
   }
 
-  static authorizationHeader(profile) {
-    return { Authorization: `Bearer ${TokenGenerator.create(profile)}` }
+  static authorizationHeader(profile, options) {
+    return { Authorization: `Bearer ${TokenGenerator.create(profile, options)}` }
   }
 }

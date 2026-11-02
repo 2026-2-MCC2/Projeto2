@@ -1,8 +1,8 @@
 -- Cria as tabelas do banco (MySQL 8).
 --
--- Local: roda sozinho na primeira vez que o container "db" sobe. Se você mudar este arquivo,
--- recrie o banco para ele rodar de novo (isso apaga os dados locais):
---   docker compose down -v && docker compose up -d --build
+-- Local: roda sozinho na primeira vez que o container "db" sobe. Alterar este arquivo não atualiza
+-- um banco que já existe. Para isso, aplique uma instrução SQL incremental e não destrutiva; não
+-- remova o volume do Docker para reaplicar o arquivo, pois isso apagaria os dados locais.
 --
 -- Toda tabela daqui precisa de um model correspondente em src/models/ (é por ele que o código
 -- conhece as colunas).
@@ -66,6 +66,21 @@ CREATE TABLE user(
     created_at                      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(user_key),
     UNIQUE(email)
+);
+
+-- Auditoria: mantém cada decisão, o usuário afetado, quem decidiu e quando.
+-- As chaves estrangeiras preservam a referência aos usuários; sem cascade, a exclusão de um usuário
+-- com decisões registradas é bloqueada em vez de apagar o histórico.
+CREATE TABLE user_status_event(
+    id                              INT AUTO_INCREMENT PRIMARY KEY,
+    user_id                         INT NOT NULL,
+    admin_user_id                   INT NOT NULL,
+    old_status                      ENUM('pending', 'approved', 'rejected') NOT NULL,
+    new_status                      ENUM('pending', 'approved', 'rejected') NOT NULL,
+    event_datetime                  DATETIME NOT NULL,
+    created_at                      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES user(id),
+    FOREIGN KEY (admin_user_id) REFERENCES user(id)
 );
 
 -- Dados do usuário com perfil organizador (1 para 1 com user).

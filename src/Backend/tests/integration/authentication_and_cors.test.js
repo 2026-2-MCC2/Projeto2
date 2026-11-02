@@ -45,7 +45,7 @@ describe('Login (token JWT)', () => {
 
   test('token válido passa', async () => {
     const response = await ClientRequisition.send('GET', '/event_planning/sample_entities', {
-      headers: TokenGenerator.authorizationHeader('fornecedor'),
+      headers: TokenGenerator.authorizationHeader('fornecedor', { userKey: '00000000-0000-4000-8000-000000000011' }),
     })
     assert.equal(response.responseStatus, 200)
   })

@@ -41,3 +41,27 @@ export class SampleEntityFinalStatus extends ApiException {
     super(title, SampleEntityFinalStatus.code, httpStatus, description, translation)
   }
 }
+
+export class NotFoundUser extends ApiException {
+  static code = 'EVP000003'
+
+  constructor(userKey) {
+    const title = 'User not Found'
+    const httpStatus = 404
+    const description = `User with key ${userKey} was not found.`
+    const translation = `O usuário com chave ${userKey} não foi encontrado.`
+    super(title, NotFoundUser.code, httpStatus, description, translation)
+  }
+}
+
+export class UserStatusConflict extends ApiException {
+  static code = 'EVP000004'
+
+  constructor(oldStatus, newStatus) {
+    const title = 'User status cannot change'
+    const httpStatus = 409
+    const description = `User with status ${oldStatus} cannot update to ${newStatus}.`
+    const translation = 'Esse usuário não pode ter o status alterado.'
+    super(title, UserStatusConflict.code, httpStatus, description, translation)
+  }
+}

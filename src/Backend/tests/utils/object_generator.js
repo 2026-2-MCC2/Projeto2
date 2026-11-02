@@ -7,8 +7,13 @@ import assert from 'node:assert/strict'
 
 import { PayloadGenerator } from './payload_generator.js'
 import { RequestGenerator } from './request_generator.js'
+import { DbUtils } from './db_utils.js'
 
 export class ObjectGenerator {
+  static async createUserFixture(options) {
+    return DbUtils.createUserFixture(options)
+  }
+
   static async createSampleEntity(hello) {
     const sampleEntityPayload = PayloadGenerator.createSampleEntityPayload(hello)
 

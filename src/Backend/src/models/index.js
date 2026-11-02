@@ -4,3 +4,5 @@
 export { SampleEntityStatus } from './sample_entity_status.js'
 export { SampleEntity } from './sample_entity.js'
 export { SampleEntityStatusEvent } from './sample_entity_status_event.js'
+export { User } from './user.js'
+export { UserStatusEvent } from './user_status_event.js'
