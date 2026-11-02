@@ -2787,3 +2787,13 @@
 .botao.botao--texto-perigo {
   color: var(--status-perigo-texto);
 }
+
+.evento-acoes-mobile {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.evento-acoes-mobile .botao {
+  flex: 1 1 auto;
+}

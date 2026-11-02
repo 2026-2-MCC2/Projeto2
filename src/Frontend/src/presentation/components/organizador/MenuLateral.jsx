@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { listarEventosRecentes } from '../../../application/eventos.js'
-import { observarEventos } from '../../../application/eventosEmMemoria.js'
+import { buscarEventoEmMemoria, observarEventos } from '../../../application/eventosEmMemoria.js'
 import { usuarioAtual } from '../../../application/sessao.js'
 import { Icone } from '../comum/Icone.jsx'
 import simbolo from '../../assets/organizador/simbolo.png'
@@ -78,7 +78,8 @@ export function MenuLateral({ aoSair, perfil = 'organizador' }) {
     function atualizarRecentes() {
       listarEventosRecentes(4)
         .then((eventos) => {
-          if (ativo) setEventosRecentes(eventos)
+          if (ativo)
+            setEventosRecentes(eventos.map((evento) => buscarEventoEmMemoria(evento.id) ?? evento))
         })
         .catch(() => {})
     }

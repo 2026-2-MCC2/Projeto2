@@ -315,7 +315,7 @@ export function EventoVisaoGeral() {
 
   if (isMobile) {
     return (
-      <EventoLayout>
+      <EventoLayout acoes={acoes}>
         {avisoDeCancelamento}
         {dadosDoEvento}
         {orcamento}
@@ -323,7 +323,6 @@ export function EventoVisaoGeral() {
         {propostas}
         {ticket}
         {modalDePublicacao}
-        {modalDeCancelamento}
         {modalDeCancelamento}
       </EventoLayout>
     )

@@ -14,7 +14,7 @@ import { FormularioDeEvento } from './novoEvento/FormularioDeEvento.jsx'
 export function EditarEvento() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { evento, carregando, erro, buscaConcluida, tentarDeNovo } = useEvento(id)
+  const { evento, erroAoAtualizar, buscaConcluida, tentarDeNovo } = useEvento(id)
   const paginaDoEvento = `/organizador/eventos/${id}`
   // o formulário lê o valor inicial uma vez só: ele espera a versão da API para não salvar dados antigos
   const valorInicial = useMemo(() => evento && eventoParaFormulario(evento.raw), [evento])
@@ -25,11 +25,11 @@ export function EditarEvento() {
     navigate(paginaDoEvento, { viewTransition: true })
   }
 
-  if (carregando || !buscaConcluida || erro || !evento || !eventoPodeSerEditado(evento)) {
+  if (!buscaConcluida || !evento || !eventoPodeSerEditado(evento)) {
     return (
       <OrganizadorLayout titulo="Editar evento" voltarPara={paginaDoEvento}>
-        {(carregando || !buscaConcluida) && <Carregando mensagem="Carregando o evento…" />}
-        {erro && <ErroNaTela erro={erro} aoTentarDeNovo={tentarDeNovo} />}
+        {!buscaConcluida && !erroAoAtualizar && <Carregando mensagem="Carregando o evento…" />}
+        {erroAoAtualizar && <ErroNaTela erro={erroAoAtualizar} aoTentarDeNovo={tentarDeNovo} />}
         {evento && buscaConcluida && (
           <Vazio
             titulo="Este evento não pode mais ser editado"

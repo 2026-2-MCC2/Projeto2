@@ -79,6 +79,8 @@ export function EventoLayout({ acoes, comResumo = false, voltar, children }) {
         subCabecalho={abas}
         voltarPara={destinoDoVoltar}
       >
+        {/* no celular o rodapé é das abas do app, então as ações ficam no topo do conteúdo */}
+        {acoes && <div className="evento-acoes-mobile">{acoes}</div>}
         {children}
       </OrganizadorLayout>
     )

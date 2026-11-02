@@ -227,4 +227,20 @@ describe('PATCH /events/:event_key/status (RF08 - Publicação para cotação)',
     assert.equal(status, 409)
     assert.equal(response.translation, 'O evento já está com esse status.')
   })
+
+  test('motivo junto com outro status que não seja cancelar responde 400', async () => {
+    const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
+    fixtureUserKeys.push(organizer.userKey)
+    const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
+    const [, created] = await RequestGenerator.POST_events(PayloadGenerator.createEventPayload(), headers)
+
+    const [status, response] = await RequestGenerator.PATCH_event_status(
+      created.event_key,
+      { status: 'open_for_quotes', reason: 'Sem motivo para isso.' },
+      headers,
+    )
+
+    assert.equal(status, 400)
+    assert.equal(response.code, 'APP000001')
+  })
 })

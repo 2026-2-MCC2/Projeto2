@@ -154,9 +154,7 @@ export class EventController extends BaseController {
    * @param {object} options Opções de busca e paginação.
    * @returns {Promise<object>} Lista paginada de eventos.
    */
-  async getEventsList(userKey, { status: rawStatus, search, limit = 20, page = 0 } = {}) {
-    // ?status= vazio é o mesmo que não filtrar
-    const status = rawStatus || undefined
+  async getEventsList(userKey, { status, search, limit = 20, page = 0 } = {}) {
     if (status !== undefined && !Object.values(EVENT_STATUSES).includes(status)) {
       throw new InvalidParameter(`The "status" parameter is invalid. Status ${status} does not exist.`)
     }

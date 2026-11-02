@@ -1,7 +1,12 @@
 import { api } from '../infrastructure/api.js'
 import { paraData, paraNumero } from '../domain/validacao.js'
 import { digitos, mascararCep } from '../domain/formatacao.js'
-import { guardarEventos, iniciarPedido, limparEventosEmMemoria } from './eventosEmMemoria.js'
+import {
+  buscarEventoEmMemoria,
+  guardarEventos,
+  iniciarPedido,
+  limparEventosEmMemoria,
+} from './eventosEmMemoria.js'
 
 const CENARIOS_MAPA = {
   minimo: 'minimum',
@@ -27,10 +32,6 @@ const STATUS_DO_FRONT_POR_STATUS_DO_BACKEND = {
   closed: 'aprovado',
   canceled: 'cancelado',
 }
-
-const STATUS_DO_BACKEND_POR_STATUS_DO_FRONT = Object.fromEntries(
-  Object.entries(STATUS_DO_FRONT_POR_STATUS_DO_BACKEND).map(([backend, front]) => [front, backend]),
-)
 
 // a API diz se o evento ainda aceita edição, para a regra dos status finais ficar só no backend
 export const eventoPodeSerEditado = (evento) => evento?.raw?.is_editable ?? false
@@ -230,6 +231,14 @@ function calcularDadosTicket(evento, totalCustos) {
 function calcularAndamento(statusBackend, internalCostsCount) {
   const isQuotes = statusBackend === 'open_for_quotes'
   const isClosed = statusBackend === 'closed'
+
+  // cancelado encerra o planejamento onde ele estava
+  if (statusBackend === 'canceled') {
+    return [
+      { nome: 'Evento cadastrado', situacao: 'concluida' },
+      { nome: 'Evento cancelado', situacao: 'atual' },
+    ]
+  }
 
   return [
     { nome: 'Evento cadastrado', situacao: 'concluida' },
@@ -457,13 +466,7 @@ export function montarPayloadEvento(dados) {
 // máximo aceito pelo backend
 const EVENTOS_POR_PAGINA = 100
 
-function montarBuscaDeEventos({ status, search, limit, page }) {
-  const params = new URLSearchParams({ limit: String(limit), page: String(page) })
-  if (status && status !== 'todos')
-    params.append('status', STATUS_DO_BACKEND_POR_STATUS_DO_FRONT[status] ?? status)
-  if (search?.trim()) params.append('search', search.trim())
-  return `/events?${params}`
-}
+const montarBuscaDeEventos = ({ limit, page }) => `/events?limit=${limit}&page=${page}`
 
 function formatarEGuardar(eventosDaApi, pedido) {
   const eventos = eventosDaApi.map(formatarEventoParaExibicao)
@@ -481,6 +484,8 @@ function esquecerRecentes() {
 // ao sair, nada do organizador anterior pode aparecer para quem entrar na mesma aba
 export function esquecerEventosDaSessao() {
   esquecerRecentes()
+  carregamentosEmAndamento.clear()
+  ultimaBuscaPorChave.clear()
   limparEventosEmMemoria()
 }
 
@@ -502,9 +507,8 @@ export function listarEventosRecentes(quantidade) {
 
 // busca todas as páginas para a lista nunca esconder eventos
 // a primeira página informa o total; as demais são buscadas juntas, e as telas são avisadas uma vez
-export async function listarTodosOsEventos({ status, search } = {}) {
-  const buscarPagina = (page) =>
-    api.get(montarBuscaDeEventos({ status, search, limit: EVENTOS_POR_PAGINA, page }))
+export async function listarTodosOsEventos() {
+  const buscarPagina = (page) => api.get(montarBuscaDeEventos({ limit: EVENTOS_POR_PAGINA, page }))
 
   const pedido = iniciarPedido()
   const primeira = await buscarPagina(0)
@@ -534,12 +538,24 @@ export async function buscarEventoPorChave(eventKey) {
 }
 
 const carregamentosEmAndamento = new Map()
+const ultimaBuscaPorChave = new Map()
+// trocar de aba dentro do evento não precisa buscar de novo o que acabou de chegar
+const SEGUNDOS_SEM_BUSCAR_DE_NOVO = 15
 
 export function carregarEvento(eventKey) {
+  const buscadoHaPouco =
+    Date.now() - (ultimaBuscaPorChave.get(eventKey) ?? 0) < SEGUNDOS_SEM_BUSCAR_DE_NOVO * 1000
+  if (buscadoHaPouco && buscarEventoEmMemoria(eventKey)) {
+    return Promise.resolve(buscarEventoEmMemoria(eventKey))
+  }
+
   if (!carregamentosEmAndamento.has(eventKey)) {
-    const carregamento = buscarEventoPorChave(eventKey).finally(() =>
-      carregamentosEmAndamento.delete(eventKey),
-    )
+    const carregamento = buscarEventoPorChave(eventKey)
+      .then((evento) => {
+        ultimaBuscaPorChave.set(eventKey, Date.now())
+        return evento
+      })
+      .finally(() => carregamentosEmAndamento.delete(eventKey))
     carregamentosEmAndamento.set(eventKey, carregamento)
   }
   return carregamentosEmAndamento.get(eventKey)
