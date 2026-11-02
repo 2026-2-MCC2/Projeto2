@@ -2,17 +2,21 @@ import { lerSessao, limparSessao } from './armazenamentoDaSessao.js'
 
 const URL_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3300/event_planning'
 
-// no login, 401 é senha errada: a tela mostra o erro em vez de encerrar a sessão
+// no login, 401 é senha errada e 403 é cadastro em análise: a tela mostra o erro em vez de encerrar a sessão
 const CAMINHO_DO_LOGIN = '/auth/login'
+
+// 403 com este código: a conta foi bloqueada ou o perfil mudou depois do login
+const CODIGO_DE_ACESSO_NEGADO = 'APP000403'
 
 async function requisitar(caminho, opcoes = {}) {
   const resposta = await enviar(caminho, opcoes)
 
   if (!resposta.ok) {
-    if (resposta.status === 401 && caminho !== CAMINHO_DO_LOGIN) {
+    const erro = await criarErroDaApi(resposta)
+    if (caminho !== CAMINHO_DO_LOGIN && sessaoPerdeuValidade(erro)) {
       encerrarSessaoVencida()
     }
-    throw await criarErroDaApi(resposta)
+    throw erro
   }
 
   return lerCorpo(resposta)
@@ -42,6 +46,10 @@ async function enviar(caminho, opcoes) {
     erro.codigo = null
     throw erro
   }
+}
+
+function sessaoPerdeuValidade(erro) {
+  return erro.status === 401 || (erro.status === 403 && erro.codigo === CODIGO_DE_ACESSO_NEGADO)
 }
 
 // o recarregamento completo descarta qualquer dado da área logada que estivesse na tela
