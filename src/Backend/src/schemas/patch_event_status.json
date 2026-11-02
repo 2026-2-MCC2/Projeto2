@@ -1,0 +1,12 @@
+{
+  "title": "PatchEventStatus",
+  "type": "object",
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["draft", "open_for_quotes", "closed", "canceled"]
+    }
+  },
+  "required": ["status"],
+  "additionalProperties": false
+}
