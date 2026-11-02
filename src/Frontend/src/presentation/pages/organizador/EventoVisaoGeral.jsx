@@ -6,7 +6,8 @@ import { Cartao, ListaDeLinhas } from '../../components/organizador/Cartao.jsx'
 import { Botao } from '../../components/organizador/Formulario.jsx'
 import { Modal } from '../../components/comum/Modal.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
-import { buscarEvento } from '../../data/eventos.js'
+import { useEvento } from '../../hooks/useEvento.js'
+import { toast } from '../../toasts.js'
 import { publicarEventoParaCotacao } from '../../../application/eventos.js'
 import { Icone } from '../../components/comum/Icone.jsx'
 import iconePublicar from '../../assets/comum/icone-enviar.svg'
@@ -23,8 +24,10 @@ const ICONE_DA_ETAPA = {
 export function EventoVisaoGeral() {
   const { id } = useParams()
   const isMobile = useIsMobile()
+  const [confirmandoPublicacao, setConfirmandoPublicacao] = useState(false)
   const [publicando, setPublicando] = useState(false)
-  const detalhe = buscarEvento(id)?.detalhe
+  const { evento } = useEvento(id)
+  const detalhe = evento?.detalhe
 
   if (!detalhe) {
     return (
@@ -37,16 +40,17 @@ export function EventoVisaoGeral() {
     )
   }
 
-  const eventoAtual = buscarEvento(id)
-
+  // a resposta da publicação atualiza o evento em memória, e a tela acompanha sem recarregar
   async function confirmarPublicacao() {
+    setPublicando(true)
     try {
       await publicarEventoParaCotacao(id)
+      toast.sucesso('Evento publicado para cotação', { descricao: evento.nome })
+    } catch (falha) {
+      toast.erro('Não foi possível publicar o evento', { descricao: falha.message })
+    } finally {
       setPublicando(false)
-      window.location.reload()
-    } catch (err) {
-      alert(err.message || 'Erro ao publicar evento para cotação.')
-      setPublicando(false)
+      setConfirmandoPublicacao(false)
     }
   }
 
@@ -55,30 +59,31 @@ export function EventoVisaoGeral() {
       <Botao type="button" secundario>
         Editar evento
       </Botao>
-      {eventoAtual?.status !== 'cotacao' && (
-        <Botao type="button" onClick={() => setPublicando(true)}>
+      {evento.status === 'planejamento' && (
+        <Botao type="button" onClick={() => setConfirmandoPublicacao(true)}>
           Publicar para cotação
         </Botao>
       )}
     </>
   )
 
-  const modalDePublicacao = publicando && (
+  const modalDePublicacao = confirmandoPublicacao && (
     <Modal
       icone={iconePublicar}
       titulo="Publicar evento para cotação?"
       mensagem="O evento e seus itens abertos ficarão visíveis para os fornecedores aprovados nas categorias escolhidas. Você ainda pode editar o evento depois."
       dados={[
-        { rotulo: 'Evento', valor: eventoAtual?.nome || 'Evento' },
-        { rotulo: 'Período', valor: eventoAtual?.periodo || 'A definir' },
-        { rotulo: 'Local', valor: eventoAtual?.local || 'A definir' },
+        { rotulo: 'Evento', valor: evento.nome },
+        { rotulo: 'Período', valor: evento.periodo },
+        { rotulo: 'Local', valor: evento.local },
       ]}
       acao={{
         cancelar: 'Cancelar',
-        confirmar: 'Publicar evento',
+        confirmar: publicando ? 'Publicando...' : 'Publicar evento',
         aoConfirmar: confirmarPublicacao,
+        ocupado: publicando,
       }}
-      aoFechar={() => setPublicando(false)}
+      aoFechar={() => !publicando && setConfirmandoPublicacao(false)}
     />
   )
 
@@ -169,14 +174,16 @@ export function EventoVisaoGeral() {
         <p className="cartao__vazio">Não há propostas</p>
       ) : (
         <ListaDeLinhas
-          linhas={(isMobile ? detalhe.propostas.slice(0, 2) : detalhe.propostas).map((proposta) => ({
-            chave: proposta.fornecedor,
-            titulo: proposta.fornecedor,
-            apoio: isMobile ? undefined : proposta.item,
-            etiqueta: isMobile ? undefined : proposta.etiqueta,
-            estiloDaEtiqueta: 'aprovado',
-            valor: proposta.valor,
-          }))}
+          linhas={(isMobile ? detalhe.propostas.slice(0, 2) : detalhe.propostas).map(
+            (proposta) => ({
+              chave: proposta.fornecedor,
+              titulo: proposta.fornecedor,
+              apoio: isMobile ? undefined : proposta.item,
+              etiqueta: isMobile ? undefined : proposta.etiqueta,
+              estiloDaEtiqueta: 'aprovado',
+              valor: proposta.valor,
+            }),
+          )}
         />
       )}
     </Cartao>

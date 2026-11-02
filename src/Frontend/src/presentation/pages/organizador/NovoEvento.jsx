@@ -10,6 +10,7 @@ import { EtapaLocal } from './novoEvento/EtapaLocal.jsx'
 import { EtapaCustos } from './novoEvento/EtapaCustos.jsx'
 import { EtapaRevisao } from './novoEvento/EtapaRevisao.jsx'
 import { criarEvento, publicarEventoParaCotacao } from '../../../application/eventos.js'
+import { toast } from '../../toasts.js'
 import {
   validarPublicoEsperado,
   validarPublicoMaximo,
@@ -115,10 +116,15 @@ export function NovoEvento() {
       const novoEvento = await criarEvento(dados)
       try {
         await publicarEventoParaCotacao(novoEvento.id)
-      } catch (errStatus) {
-        console.warn('Evento criado como rascunho, mas status não foi alterado:', errStatus)
+        toast.sucesso('Evento publicado para cotação', { descricao: novoEvento.nome })
+        navigate('/organizador/eventos', { viewTransition: true })
+      } catch (falhaAoPublicar) {
+        // o evento já existe como rascunho: leva até ele para tentar publicar de novo
+        toast.erro('Evento salvo como rascunho, mas não foi publicado', {
+          descricao: falhaAoPublicar.message,
+        })
+        navigate(`/organizador/eventos/${novoEvento.id}`, { viewTransition: true })
       }
-      navigate('/organizador/eventos', { viewTransition: true })
     } catch (err) {
       setErroApi(err.message || 'Erro ao cadastrar evento.')
       setSalvando(false)

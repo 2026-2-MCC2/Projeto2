@@ -798,7 +798,8 @@
 
 .etiqueta--planejamento,
 .etiqueta--cotacao,
-.etiqueta--aprovado {
+.etiqueta--aprovado,
+.etiqueta--cancelado {
   padding: 0.25rem 0.625rem;
   font-size: 0.6875rem;
 }
@@ -811,6 +812,11 @@
 .etiqueta--aprovado {
   background: var(--status-sucesso-fundo);
   color: var(--status-sucesso-texto);
+}
+
+.etiqueta--cancelado {
+  background: var(--status-perigo-fundo);
+  color: var(--status-perigo-texto);
 }
 
 .etiqueta--sucesso {

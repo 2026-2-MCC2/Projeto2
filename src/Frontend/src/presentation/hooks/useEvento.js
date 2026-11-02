@@ -1,39 +1,30 @@
-import { useEffect, useState } from 'react'
-import { buscarEvento } from '../data/eventos.js'
-import { buscarEventoPorChave } from '../../application/eventos.js'
+import { useEffect, useState, useSyncExternalStore } from 'react'
+import { buscarEvento, observarEventos } from '../data/eventos.js'
+import { carregarEvento } from '../../application/eventos.js'
 
+// o layout e a página do evento usam o mesmo carregamento e veem a mesma versão do evento
 export function useEvento(id) {
-  const [evento, setEvento] = useState(() => (id ? buscarEvento(id) : null))
-  const [carregando, setCarregando] = useState(!evento && Boolean(id))
+  const evento = useSyncExternalStore(observarEventos, () => buscarEvento(id))
   const [erro, setErro] = useState(null)
+  const [tentativa, setTentativa] = useState(0)
 
   useEffect(() => {
-    if (!id) return
-    let ativo = true
-    const emCache = buscarEvento(id)
-    if (emCache) {
-      setEvento(emCache)
-      setCarregando(false)
-    } else {
-      setCarregando(true)
-      buscarEventoPorChave(id)
-        .then((dados) => {
-          if (ativo) {
-            setEvento(dados)
-            setErro(null)
-          }
-        })
-        .catch((err) => {
-          if (ativo) setErro(err)
-        })
-        .finally(() => {
-          if (ativo) setCarregando(false)
-        })
-    }
-    return () => {
-      ativo = false
-    }
-  }, [id])
+    if (!id || buscarEvento(id)) return
+    let telaAberta = true
 
-  return { evento, carregando, erro, setEvento }
+    carregarEvento(id).catch((falha) => {
+      if (telaAberta) setErro(falha)
+    })
+
+    return () => {
+      telaAberta = false
+    }
+  }, [id, tentativa])
+
+  function tentarDeNovo() {
+    setErro(null)
+    setTentativa((atual) => atual + 1)
+  }
+
+  return { evento, carregando: !evento && !erro, erro, tentarDeNovo }
 }

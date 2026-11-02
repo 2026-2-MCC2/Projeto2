@@ -11,18 +11,8 @@ import iconeAtencao from '../../assets/organizador/icone-atencao.svg'
 export function EventoTicket() {
   const { id } = useParams()
   const isMobile = useIsMobile()
-  const { evento, carregando } = useEvento(id)
+  const { evento } = useEvento(id)
   const calculo = evento?.detalhe?.calculo
-
-  if (carregando) {
-    return (
-      <EventoLayout>
-        <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--texto-apoio)' }}>
-          Carregando informações do evento...
-        </div>
-      </EventoLayout>
-    )
-  }
 
   if (!calculo) {
     return (
@@ -74,7 +64,9 @@ export function EventoTicket() {
 
                 <div className="cenario-cartao__receita">
                   <span>{isMobile ? 'receita' : 'Receita'}</span>
-                  <strong className={receitaLonga ? 'cenario-cartao__receita--compacto' : undefined}>
+                  <strong
+                    className={receitaLonga ? 'cenario-cartao__receita--compacto' : undefined}
+                  >
                     {cenario.receita}
                   </strong>
                 </div>
@@ -103,7 +95,10 @@ export function EventoTicket() {
           <div key={dado.rotulo} className="dado-linha">
             <span>{dado.rotulo}</span>
             <strong
-              className={`${dado.positivo ? 'dado-linha__positivo ' : ''}${valorLongo ? 'dado-linha__valor--compacto' : ''}`.trim() || undefined}
+              className={
+                `${dado.positivo ? 'dado-linha__positivo ' : ''}${valorLongo ? 'dado-linha__valor--compacto' : ''}`.trim() ||
+                undefined
+              }
             >
               {dado.valor}
             </strong>

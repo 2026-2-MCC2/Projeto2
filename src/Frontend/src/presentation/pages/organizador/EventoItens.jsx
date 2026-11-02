@@ -6,7 +6,7 @@ import { Tabela } from '../../components/organizador/Tabela.jsx'
 import { Botao } from '../../components/organizador/Formulario.jsx'
 import { ModalNovoItem } from '../../components/organizador/ModalNovoItem.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
-import { buscarEvento } from '../../data/eventos.js'
+import { useEvento } from '../../hooks/useEvento.js'
 import { Icone } from '../../components/comum/Icone.jsx'
 import iconeAdicionar from '../../assets/organizador/icone-adicionar-claro.svg'
 
@@ -15,7 +15,7 @@ export function EventoItens() {
   const isMobile = useIsMobile()
   const navigate = useNavigate()
   const [adicionando, setAdicionando] = useState(false)
-  const evento = buscarEvento(id)
+  const { evento } = useEvento(id)
   const custos = evento?.detalhe?.custos
 
   if (!custos) {

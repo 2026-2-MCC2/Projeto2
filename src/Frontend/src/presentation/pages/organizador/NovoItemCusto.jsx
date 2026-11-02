@@ -2,13 +2,13 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { OrganizadorLayout } from '../../components/organizador/OrganizadorLayout.jsx'
 import { CamposDoItem } from '../../components/organizador/CamposDoItem.jsx'
 import { Acoes, Botao } from '../../components/organizador/Formulario.jsx'
-import { buscarEvento } from '../../data/eventos.js'
+import { useEvento } from '../../hooks/useEvento.js'
 import { useValidacao } from '../../hooks/useValidacao.js'
 
 export function NovoItemCusto() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const evento = buscarEvento(id)
+  const { evento } = useEvento(id)
   const validacao = useValidacao()
 
   const voltar = () => navigate(`/organizador/eventos/${id}/itens`, { viewTransition: true })

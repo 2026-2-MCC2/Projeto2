@@ -437,6 +437,7 @@ export const EVENTOS = [
 ]
 
 const EVENTOS_CACHE = new Map()
+const ouvintesDoCache = new Set()
 
 export function registrarEventoCache(evento) {
   if (evento?.id) {
@@ -444,10 +445,18 @@ export function registrarEventoCache(evento) {
     if (evento.event_key) {
       EVENTOS_CACHE.set(evento.event_key, evento)
     }
+    ouvintesDoCache.forEach((ouvinte) => ouvinte())
   }
 }
 
-export const buscarEvento = (id) => EVENTOS_CACHE.get(id) || EVENTOS.find((evento) => evento.id === id)
+// as telas abertas do evento se atualizam quando ele muda (ex.: depois de publicar)
+export function observarEventos(ouvinte) {
+  ouvintesDoCache.add(ouvinte)
+  return () => ouvintesDoCache.delete(ouvinte)
+}
+
+export const buscarEvento = (id) =>
+  EVENTOS_CACHE.get(id) || EVENTOS.find((evento) => evento.id === id)
 
 const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
 

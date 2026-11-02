@@ -5,7 +5,8 @@ import { Vazio } from '../../components/comum/EstadoDaTela.jsx'
 import { Tabela } from '../../components/organizador/Tabela.jsx'
 import { Botao } from '../../components/organizador/Formulario.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
-import { buscarEvento, estaVencida } from '../../data/eventos.js'
+import { estaVencida } from '../../data/eventos.js'
+import { useEvento } from '../../hooks/useEvento.js'
 import { Icone } from '../../components/comum/Icone.jsx'
 import iconeAvancar from '../../assets/organizador/icone-avancar.svg'
 import iconeCards from '../../assets/organizador/icone-cards.svg'
@@ -36,7 +37,7 @@ export function EventoPropostas() {
   const navigate = useNavigate()
   const [visao, setVisao] = useState('cards')
   const [itemAberto, setItemAberto] = useState('todos')
-  const itens = buscarEvento(id)?.detalhe?.comparacao?.itens
+  const itens = useEvento(id).evento?.detalhe?.comparacao?.itens
   const total = itens ? itens.reduce((soma, item) => soma + item.propostas.length, 0) : 0
 
   if (!itens || itens.length === 0 || total === 0) {
