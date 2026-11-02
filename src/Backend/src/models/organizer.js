@@ -1,5 +1,3 @@
-// Model da tabela organizer: dados do usuário com perfil organizador (1 para 1 com user).
-
 import { DataTypes, Model } from 'sequelize'
 
 import { sequelize } from '../connectors/database_connector.js'
@@ -13,6 +11,9 @@ Organizer.init(
     user_id: { type: DataTypes.INTEGER },
     cnpj: { type: DataTypes.STRING(14) },
     phone: { type: DataTypes.STRING(20) },
+    responsible_name: { type: DataTypes.STRING(150) },
+    city: { type: DataTypes.STRING(100) },
+    state: { type: DataTypes.STRING(2) },
     created_at: { type: DataTypes.DATE },
   },
   { sequelize, tableName: 'organizer', timestamps: false },
@@ -20,5 +21,4 @@ Organizer.init(
 
 Organizer.belongsTo(User, { as: 'user', foreignKey: 'user_id' })
 
-// hasOne = "tem um": cada usuário tem no máximo um organizador.
 User.hasOne(Organizer, { as: 'organizer', foreignKey: 'user_id' })

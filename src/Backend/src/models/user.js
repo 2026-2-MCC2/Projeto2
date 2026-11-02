@@ -1,5 +1,3 @@
-// Model da tabela user: conta e perfil de quem acessa o TrocaTicket.
-
 import { DataTypes, Model } from 'sequelize'
 
 import { sequelize } from '../connectors/database_connector.js'
@@ -14,7 +12,7 @@ User.init(
     email: { type: DataTypes.STRING(150) },
     password_hash: { type: DataTypes.STRING(100) },
     profile: { type: DataTypes.ENUM('admin', 'organizador', 'fornecedor') },
-    status: { type: DataTypes.ENUM('pending', 'approved', 'rejected') },
+    status: { type: DataTypes.ENUM('pending', 'approved', 'rejected', 'blocked') },
     approved_at: { type: DataTypes.DATE },
     created_at: { type: DataTypes.DATE },
   },

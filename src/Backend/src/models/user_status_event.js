@@ -1,5 +1,3 @@
-// Model da tabela user_status_event: auditoria de decisões administrativas sobre usuários.
-
 import { DataTypes, Model } from 'sequelize'
 
 import { sequelize } from '../connectors/database_connector.js'
@@ -12,8 +10,9 @@ UserStatusEvent.init(
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     user_id: { type: DataTypes.INTEGER },
     admin_user_id: { type: DataTypes.INTEGER },
-    old_status: { type: DataTypes.ENUM('pending', 'approved', 'rejected') },
-    new_status: { type: DataTypes.ENUM('pending', 'approved', 'rejected') },
+    old_status: { type: DataTypes.ENUM('pending', 'approved', 'rejected', 'blocked') },
+    new_status: { type: DataTypes.ENUM('pending', 'approved', 'rejected', 'blocked') },
+    reason: { type: DataTypes.STRING(500) },
     event_datetime: { type: DataTypes.DATE },
     created_at: { type: DataTypes.DATE },
   },
