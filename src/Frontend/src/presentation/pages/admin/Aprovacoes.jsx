@@ -23,14 +23,23 @@ const ETIQUETAS = {
 // rótulo e formatação de cada dado do cartão
 const CAMPOS = {
   cnpj: { rotulo: 'CNPJ', formatar: formatarCnpj },
+  areaDeAtuacao: { rotulo: 'Área de atuação', formatar: (area) => area },
   email: { rotulo: 'E-mail', formatar: (email) => email },
   telefone: { rotulo: 'Telefone', formatar: formatarTelefone },
   enviadoEm: { rotulo: 'Enviado em', formatar: formatarData },
 }
 
 // No mobile os dados viram duas colunas, o e-mail ocupa a linha inteira e a data de envio sai.
-const ORDEM_DESKTOP = ['cnpj', 'email', 'telefone', 'enviadoEm']
-const ORDEM_MOBILE = ['cnpj', 'telefone', 'email']
+// A área de atuação só existe no fornecedor: no organizador ela sai da lista (ver camposDoCartao).
+const ORDEM_DESKTOP = ['cnpj', 'areaDeAtuacao', 'email', 'telefone', 'enviadoEm']
+const ORDEM_MOBILE = ['cnpj', 'areaDeAtuacao', 'telefone', 'email']
+
+function camposDoCartao(cadastro, isMobile) {
+  const ordem = isMobile ? ORDEM_MOBILE : ORDEM_DESKTOP
+  return cadastro.perfil === 'fornecedor'
+    ? ordem
+    : ordem.filter((campo) => campo !== 'areaDeAtuacao')
+}
 
 const RESULTADOS = { aprovar: 'aprovado', rejeitar: 'rejeitado' }
 
@@ -82,6 +91,7 @@ function ModalDecisao({ decisao, cadastro, enviando, aoConfirmar, aoFechar }) {
 function CartaoSolicitacao({ cadastro, bloqueado, aoDecidir }) {
   const isMobile = useIsMobile()
   const etiqueta = ETIQUETAS[cadastro.perfil]
+  const campos = camposDoCartao(cadastro, isMobile)
 
   return (
     <article className="solicitacao">
@@ -97,8 +107,9 @@ function CartaoSolicitacao({ cadastro, bloqueado, aoDecidir }) {
         </div>
       </div>
 
-      <dl className="solicitacao__dados">
-        {(isMobile ? ORDEM_MOBILE : ORDEM_DESKTOP).map((campo) => (
+      {/* uma coluna por dado no desktop: 4 no organizador, 5 no fornecedor */}
+      <dl className="solicitacao__dados" style={{ '--colunas': campos.length }}>
+        {campos.map((campo) => (
           <div key={campo} className={`solicitacao__dado solicitacao__dado--${campo}`}>
             <dt>{CAMPOS[campo].rotulo}</dt>
             <dd>{CAMPOS[campo].formatar(cadastro[campo])}</dd>

@@ -5,7 +5,8 @@ import { api } from './api.js'
 // O backend devolve no máximo 100 por página, do cadastro mais antigo para o mais novo.
 const LIMITE = 100
 
-// { cadastros: [{ chave, nome, perfil, email, enviadoEm, cnpj, telefone }], temMais }
+// { cadastros: [{ chave, nome, perfil, email, enviadoEm, cnpj, telefone, areaDeAtuacao }], temMais }
+// areaDeAtuacao só vem preenchida para fornecedor (null para organizador).
 export async function listarCadastrosPendentes() {
   const resposta = await api.get(`/admin/users?status=pending&limit=${LIMITE}&page=0`)
 
@@ -18,6 +19,7 @@ export async function listarCadastrosPendentes() {
       enviadoEm: usuario.created_at,
       cnpj: usuario.cnpj,
       telefone: usuario.phone,
+      areaDeAtuacao: usuario.service_area,
     })),
     temMais: !resposta.is_last_page,
   }
