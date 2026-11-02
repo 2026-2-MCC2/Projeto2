@@ -9,6 +9,14 @@ function readTemplate(fileName) {
   return cache.get(fileName)
 }
 
+function getLogoBase64() {
+  if (!cache.has('logo_base64')) {
+    const buffer = readFileSync(new URL('logo.png', TEMPLATES_PATH))
+    cache.set('logo_base64', buffer.toString('base64'))
+  }
+  return cache.get('logo_base64')
+}
+
 const HTML_ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }
 const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (character) => HTML_ESCAPES[character])
 
@@ -25,7 +33,10 @@ export class EmailTemplates {
     const body = fill(readTemplate(`${name}.html`), variables, escapeHtml)
     return {
       subject: fill(readTemplate(`${name}.subject.txt`), variables, String).trim(),
-      html: readTemplate('base.html').replace('{{conteudo}}', body),
+      html: readTemplate('base.html')
+        .replace('{{conteudo}}', body)
+        .replace('{{logo}}', getLogoBase64())
+        .replaceAll('{{ano}}', String(new Date().getFullYear())),
       text: fill(readTemplate(`${name}.txt`), variables, String),
     }
   }

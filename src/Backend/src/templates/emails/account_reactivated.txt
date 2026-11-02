@@ -1,5 +1,8 @@
 Olá, {{nome}}.
 
-Seu acesso à plataforma foi reativado. Você já pode entrar de novo com o seu e-mail e a sua senha:
+Seu acesso à plataforma foi reativado. Você já pode entrar de novo com o seu e-mail e a sua senha.
 
+Acesse:
 {{link}}
+
+Este é um e-mail automático, não é preciso responder.

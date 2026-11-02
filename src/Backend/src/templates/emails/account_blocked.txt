@@ -5,3 +5,4 @@ Seu acesso à plataforma foi bloqueado pelo administrador. Enquanto o bloqueio d
 Motivo: {{motivo}}
 
 Se tiver dúvidas, fale com a equipe do TrocaTicket.
+Este é um e-mail automático, não é preciso responder.
