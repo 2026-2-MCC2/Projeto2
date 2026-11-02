@@ -1,5 +1,3 @@
-// Testes unitários dos erros de domínio da decisão administrativa de usuário.
-
 import assert from 'node:assert/strict'
 import { describe, test } from 'node:test'
 

@@ -1,5 +1,3 @@
-// Testes unitários do model de organizador.
-
 import assert from 'node:assert/strict'
 import { describe, test } from 'node:test'
 
@@ -10,7 +8,7 @@ describe('Organizer model', () => {
     assert.equal(Organizer.tableName, 'organizer')
     assert.equal(Organizer.options.timestamps, false)
 
-    for (const attribute of ['id', 'user_id', 'cnpj', 'phone', 'created_at']) {
+    for (const attribute of ['id', 'user_id', 'cnpj', 'phone', 'responsible_name', 'city', 'state', 'created_at']) {
       assert.ok(Organizer.rawAttributes[attribute], `coluna ${attribute} existe no model Organizer`)
     }
   })

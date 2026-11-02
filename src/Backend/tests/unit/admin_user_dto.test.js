@@ -1,5 +1,3 @@
-// Testes unitários do DTO devolvido após uma decisão administrativa.
-
 import assert from 'node:assert/strict'
 import { describe, test } from 'node:test'
 
@@ -55,23 +53,28 @@ describe('AdminUserDTO.registration', () => {
       created_at: baseUser.created_at,
       cnpj: '11222333000181',
       phone: '11999998888',
-      service_area: null,
+      categories: null,
     })
   })
 
-  test('fornecedor traz cnpj, telefone e área de atuação do supplier', () => {
+  test('fornecedor traz cnpj, telefone e categorias do supplier, em ordem alfabética', () => {
     const user = {
       ...baseUser,
       profile: 'fornecedor',
       organizer: null,
-      supplier: { id: 5, cnpj: '11444777000161', phone: '1133334444', service_area: 'Segurança' },
+      supplier: {
+        id: 5,
+        cnpj: '11444777000161',
+        phone: '1133334444',
+        categories: [{ name: 'Segurança' }, { name: 'Bebidas' }],
+      },
     }
 
     const dto = AdminUserDTO.registration(user)
 
     assert.equal(dto.cnpj, '11444777000161')
     assert.equal(dto.phone, '1133334444')
-    assert.equal(dto.service_area, 'Segurança')
+    assert.deepEqual(dto.categories, ['Bebidas', 'Segurança'])
     assert.equal(Object.hasOwn(dto, 'id'), false)
   })
 

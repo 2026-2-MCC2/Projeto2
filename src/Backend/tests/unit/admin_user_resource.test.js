@@ -1,5 +1,3 @@
-// Testes unitários do resource responsável pela rota administrativa de status.
-
 import assert from 'node:assert/strict'
 import { afterEach, describe, test } from 'node:test'
 

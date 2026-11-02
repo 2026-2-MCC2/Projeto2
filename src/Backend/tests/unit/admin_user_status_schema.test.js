@@ -1,5 +1,3 @@
-// Testes unitários do contrato do body de decisão administrativa de usuário.
-
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { describe, test } from 'node:test'
@@ -15,8 +13,17 @@ describe('PUT admin user status schema', () => {
     assert.equal(validate({ status: 'approved' }), true)
   })
 
-  test('aceita rejeição', () => {
-    assert.equal(validate({ status: 'rejected' }), true)
+  test('aceita rejeição com motivo', () => {
+    assert.equal(validate({ status: 'rejected', reason: 'Documentação incompleta.' }), true)
+  })
+
+  test('recusa rejeição sem motivo ou com motivo em branco', () => {
+    assert.equal(validate({ status: 'rejected' }), false)
+    assert.equal(validate({ status: 'rejected', reason: '   ' }), false)
+  })
+
+  test('recusa motivo com mais de 500 caracteres', () => {
+    assert.equal(validate({ status: 'rejected', reason: 'a'.repeat(501) }), false)
   })
 
   test('recusa body vazio', () => {
@@ -32,6 +39,6 @@ describe('PUT admin user status schema', () => {
   })
 
   test('recusa propriedade extra', () => {
-    assert.equal(validate({ status: 'approved', reason: 'documentação incompleta' }), false)
+    assert.equal(validate({ status: 'approved', comment: 'documentação incompleta' }), false)
   })
 })

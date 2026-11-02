@@ -1,6 +1,5 @@
-// A API só deve aceitar tokens de usuários aprovados e com perfil correspondente ao banco.
-
 import assert from 'node:assert/strict'
+import { randomUUID } from 'node:crypto'
 import { afterEach, describe, test } from 'node:test'
 
 import { DbUtils } from '../utils/db_utils.js'
@@ -13,7 +12,7 @@ const fixtureKeys = []
 afterEach(async () => DbUtils.deleteUserFixtures(fixtureKeys.splice(0)))
 
 async function requestAs(user, tokenProfile = user.profile) {
-  return ClientRequisition.send('GET', '/event_planning/sample_entities', {
+  return ClientRequisition.send('GET', '/event_planning/me', {
     headers: TokenGenerator.authorizationHeader(tokenProfile, { userKey: user.userKey }),
   })
 }
@@ -46,6 +45,23 @@ describe('Status persistido do usuário', () => {
     const response = await requestAs(approved)
 
     assert.equal(response.responseStatus, 200)
+  })
+
+  test('bloqueia token válido de usuário que não existe no banco', async () => {
+    const response = await ClientRequisition.send('GET', '/event_planning/me', {
+      headers: TokenGenerator.authorizationHeader('organizador', { userKey: randomUUID() }),
+    })
+
+    assert.equal(response.responseStatus, 403)
+    assert.equal(response.responseJson.code, 'APP000403')
+  })
+
+  test('bloqueia token de usuário bloqueado', async () => {
+    const blocked = await createUser('fornecedor', 'blocked')
+    const response = await requestAs(blocked)
+
+    assert.equal(response.responseStatus, 403)
+    assert.equal(response.responseJson.code, 'APP000403')
   })
 
   test('bloqueia token cujo perfil diverge do perfil persistido', async () => {

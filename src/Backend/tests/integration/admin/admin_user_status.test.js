@@ -1,5 +1,3 @@
-// Testes de integração da decisão administrativa de status de usuários.
-
 import assert from 'node:assert/strict'
 import { randomUUID } from 'node:crypto'
 import { afterEach, describe, test } from 'node:test'
@@ -49,11 +47,15 @@ describe('Admin user status', () => {
     assert.ok(decision.event_datetime)
   })
 
-  test('admin rejeita um fornecedor pendente e registra a decisão', async () => {
+  test('admin rejeita um fornecedor pendente e registra a decisão com o motivo', async () => {
     const admin = await createFixture({ profile: 'admin', status: 'approved' })
     const target = await createFixture({ profile: 'fornecedor', status: 'pending' })
 
-    const [status, response] = await RequestGenerator.PUT_admin_user_status(target.userKey, { status: 'rejected' }, adminHeaders(admin))
+    const [status, response] = await RequestGenerator.PUT_admin_user_status(
+      target.userKey,
+      { status: 'rejected', reason: '  Documentação fiscal incompleta.  ' },
+      adminHeaders(admin),
+    )
 
     assert.equal(status, 202)
     assert.equal(response.status, 'rejected')
@@ -65,7 +67,23 @@ describe('Admin user status', () => {
     const [decision] = await DbUtils.getUserStatusHistory(target.userKey)
     assert.equal(decision.old_status, 'pending')
     assert.equal(decision.new_status, 'rejected')
+    assert.equal(decision.reason, 'Documentação fiscal incompleta.')
     assert.equal(decision.admin_user_key, admin.userKey)
+  })
+
+  test('rejeitar sem motivo responde 400 e não muda o status', async () => {
+    const admin = await createFixture({ profile: 'admin', status: 'approved' })
+    const target = await createFixture({ profile: 'fornecedor', status: 'pending' })
+
+    for (const payload of [{ status: 'rejected' }, { status: 'rejected', reason: '   ' }]) {
+      const [status, response] = await RequestGenerator.PUT_admin_user_status(target.userKey, payload, adminHeaders(admin))
+      assert.equal(status, 400)
+      assert.equal(response.code, 'APP000001')
+    }
+
+    const storedUser = await DbUtils.getUserFixture(target.userKey)
+    assert.equal(storedUser.status, 'pending')
+    assert.deepEqual(await DbUtils.getUserStatusHistory(target.userKey), [])
   })
 
   test('body inválido responde 400', async () => {
@@ -119,7 +137,11 @@ describe('Admin user status', () => {
     const admin = await createFixture({ profile: 'admin', status: 'approved' })
     const target = await createFixture({ profile: 'organizador', status: 'approved' })
 
-    const [status, response] = await RequestGenerator.PUT_admin_user_status(target.userKey, { status: 'rejected' }, adminHeaders(admin))
+    const [status, response] = await RequestGenerator.PUT_admin_user_status(
+      target.userKey,
+      { status: 'rejected', reason: 'Cadastro duplicado.' },
+      adminHeaders(admin),
+    )
 
     assert.equal(status, 409)
     assert.equal(response.code, 'EVP000004')
@@ -144,11 +166,18 @@ describe('Admin user status', () => {
     const target = await createFixture({ profile: 'fornecedor', status: 'pending' })
     const headers = adminHeaders(admin)
 
-    const results = await Promise.all([
-      RequestGenerator.PUT_admin_user_status(target.userKey, { status: 'approved' }, headers),
-      RequestGenerator.PUT_admin_user_status(target.userKey, { status: 'rejected' }, headers),
-    ])
+    const decisions = [{ status: 'approved' }, { status: 'rejected', reason: 'Dados divergentes.' }]
+    const results = await Promise.all(
+      decisions.map((decision) => RequestGenerator.PUT_admin_user_status(target.userKey, decision, headers)),
+    )
 
     assert.deepEqual(results.map(([status]) => status).sort(), [202, 409])
+
+    const acceptedDecision = decisions[results.findIndex(([status]) => status === 202)]
+    const storedUser = await DbUtils.getUserFixture(target.userKey)
+    const history = await DbUtils.getUserStatusHistory(target.userKey)
+    assert.equal(storedUser.status, acceptedDecision.status)
+    assert.equal(history.length, 1)
+    assert.equal(history[0].new_status, acceptedDecision.status)
   })
 })

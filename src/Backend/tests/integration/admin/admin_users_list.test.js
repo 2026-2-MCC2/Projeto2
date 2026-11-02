@@ -1,7 +1,4 @@
-// Testes de integração da listagem administrativa de cadastros (painel de Aprovações).
-//
-// O banco de teste pode ter outros cadastros (de outros testes ou feitos na mão), então os testes
-// conferem os cadastros que eles mesmos criam, em vez de contar o total da lista.
+// o banco pode ter outros cadastros, então os testes conferem só os que eles mesmos criam
 
 import assert from 'node:assert/strict'
 import { afterEach, describe, test } from 'node:test'
@@ -27,7 +24,6 @@ function adminHeaders(admin) {
   return TokenGenerator.authorizationHeader('admin', { userKey: admin.userKey })
 }
 
-// percorre todas as páginas e junta os itens
 async function listAllPages(params, headers) {
   const items = []
   for (let page = 0; ; page++) {
@@ -58,27 +54,26 @@ describe('GET /admin/users', () => {
 
     const organizerItem = items.find((item) => item.user_key === organizer.userKey)
     assert.deepEqual(Object.keys(organizerItem).sort(), [
+      'categories',
       'cnpj',
       'created_at',
       'email',
       'name',
       'phone',
       'profile',
-      'service_area',
       'status',
       'user_key',
     ])
     assert.equal(organizerItem.profile, 'organizador')
     assert.match(organizerItem.cnpj, /^\d{14}$/)
     assert.equal(organizerItem.phone, '11999999999')
-    assert.equal(organizerItem.service_area, null)
+    assert.equal(organizerItem.categories, null)
 
     const supplierItem = items.find((item) => item.user_key === supplier.userKey)
     assert.equal(supplierItem.profile, 'fornecedor')
     assert.match(supplierItem.cnpj, /^\d{14}$/)
     assert.equal(supplierItem.phone, '11999999999')
-    // área gravada pelo DbUtils.createUserFixture
-    assert.equal(supplierItem.service_area, 'RF03 teste')
+    assert.deepEqual(supplierItem.categories, ['Estrutura', 'Segurança'])
   })
 
   test('lista do cadastro mais antigo para o mais novo', async () => {

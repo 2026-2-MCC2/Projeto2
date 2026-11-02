@@ -1,5 +1,3 @@
-// Testes de integração do autocadastro de organizador (RF01) e fornecedor (RF02).
-
 import assert from 'node:assert/strict'
 import { afterEach, describe, test } from 'node:test'
 
@@ -15,7 +13,7 @@ afterEach(async () => {
   await DbUtils.deleteUserFixtures(fixtureUserKeys.splice(0))
 })
 
-// cadastra pela API e guarda a chave para apagar o usuário no fim do teste
+// guarda a chave para apagar o usuário no fim do teste
 async function register(payload) {
   const [status, response] = await RequestGenerator.POST_auth_cadastro(payload)
   if (status === 201) {
@@ -120,8 +118,8 @@ describe('Autocadastro até a aprovação (ponta a ponta)', () => {
 })
 
 describe('POST /auth/cadastro (fornecedor)', () => {
-  test('cadastra fornecedor pendente com a área de atuação, sem header Authorization', async () => {
-    const payload = PayloadGenerator.createSupplierRegistrationPayload({ service_area: 'Alimentação' })
+  test('cadastra fornecedor pendente com as categorias de atuação, sem header Authorization', async () => {
+    const payload = PayloadGenerator.createSupplierRegistrationPayload({ categories: ['Bebidas', 'Alimentação'] })
 
     const [status, response] = await register(payload)
 
@@ -138,14 +136,14 @@ describe('POST /auth/cadastro (fornecedor)', () => {
     assert.deepEqual(storedSupplier, {
       cnpj: payload.cnpj.replace(/\D/g, ''),
       phone: '11999998888',
-      service_area: 'Alimentação',
+      categories: ['Alimentação', 'Bebidas'],
     })
     assert.equal(await DbUtils.getOrganizerByUserKey(response.user_key), null)
   })
 
-  test('fornecedor sem área de atuação responde 400', async () => {
+  test('fornecedor sem categorias de atuação responde 400', async () => {
     const payload = PayloadGenerator.createSupplierRegistrationPayload()
-    delete payload.service_area
+    delete payload.categories
 
     const [status, response] = await register(payload)
 
@@ -153,8 +151,8 @@ describe('POST /auth/cadastro (fornecedor)', () => {
     assert.equal(response.code, 'APP000001')
   })
 
-  test('organizador com área de atuação responde 400', async () => {
-    const payload = PayloadGenerator.createOrganizerRegistrationPayload({ service_area: 'Estrutura' })
+  test('fornecedor com lista de categorias vazia responde 400', async () => {
+    const payload = PayloadGenerator.createSupplierRegistrationPayload({ categories: [] })
 
     const [status, response] = await register(payload)
 
@@ -162,8 +160,17 @@ describe('POST /auth/cadastro (fornecedor)', () => {
     assert.equal(response.code, 'APP000001')
   })
 
-  test('área de atuação fora das categorias responde 400', async () => {
-    const payload = PayloadGenerator.createSupplierRegistrationPayload({ service_area: 'Som e luz' })
+  test('organizador com categorias de atuação responde 400', async () => {
+    const payload = PayloadGenerator.createOrganizerRegistrationPayload({ categories: ['Estrutura'] })
+
+    const [status, response] = await register(payload)
+
+    assert.equal(status, 400)
+    assert.equal(response.code, 'APP000001')
+  })
+
+  test('categoria fora da lista responde 400', async () => {
+    const payload = PayloadGenerator.createSupplierRegistrationPayload({ categories: ['Estrutura', 'Som e luz'] })
 
     const [status, response] = await register(payload)
 
@@ -219,12 +226,11 @@ describe('POST /auth/cadastro (fornecedor)', () => {
 })
 
 describe('Autocadastro de fornecedor até o login (ponta a ponta)', () => {
-  test('admin vê a área de atuação, aprova o fornecedor, e o fornecedor faz login', async () => {
-    const payload = PayloadGenerator.createSupplierRegistrationPayload({ service_area: 'Segurança' })
+  test('admin vê as categorias, aprova o fornecedor, e o fornecedor faz login', async () => {
+    const payload = PayloadGenerator.createSupplierRegistrationPayload({ categories: ['Segurança'] })
     const [registrationStatus, registration] = await register(payload)
     assert.equal(registrationStatus, 201)
 
-    // antes da aprovação, o login é barrado
     const [pendingStatus, pending] = await RequestGenerator.POST_auth_login({ email: payload.email, password: payload.password })
     assert.equal(pendingStatus, 403)
     assert.equal(pending.code, 'EVP000009')
@@ -233,7 +239,6 @@ describe('Autocadastro de fornecedor até o login (ponta a ponta)', () => {
     fixtureUserKeys.push(admin.userKey)
     const adminHeaders = TokenGenerator.authorizationHeader('admin', { userKey: admin.userKey })
 
-    // o painel do admin mostra o fornecedor pendente com a área de atuação
     let item
     for (let page = 0; item === undefined; page++) {
       const [listStatus, list] = await RequestGenerator.GET_admin_users({ status: 'pending', limit: 100, page }, adminHeaders)
@@ -243,7 +248,7 @@ describe('Autocadastro de fornecedor até o login (ponta a ponta)', () => {
     }
     assert.ok(item, 'fornecedor aparece na lista de pendentes')
     assert.equal(item.profile, 'fornecedor')
-    assert.equal(item.service_area, 'Segurança')
+    assert.deepEqual(item.categories, ['Segurança'])
     assert.equal(item.cnpj, payload.cnpj.replace(/\D/g, ''))
 
     const [approveStatus] = await RequestGenerator.PUT_admin_user_status(registration.user_key, { status: 'approved' }, adminHeaders)

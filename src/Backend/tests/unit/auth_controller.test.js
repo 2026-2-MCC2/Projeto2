@@ -1,5 +1,3 @@
-// Testes unitários das regras do autocadastro (organizador e fornecedor) e do login.
-
 import assert from 'node:assert/strict'
 import { afterEach, describe, test } from 'node:test'
 
@@ -21,6 +19,7 @@ import { UserRepository } from '../../src/repositories/user_repository.js'
 import { SecurityTools } from '../../src/utils/security_tools.js'
 
 const originalGetByEmail = UserRepository.prototype.getByEmail
+const originalGetRegistrationSummary = UserRepository.prototype.getRegistrationSummary
 const originalCreateUser = UserRepository.prototype.create
 const originalGetByCnpj = OrganizerRepository.prototype.getByCnpj
 const originalCreateOrganizer = OrganizerRepository.prototype.create
@@ -30,6 +29,7 @@ const originalHashPassword = SecurityTools.hashPassword
 
 afterEach(() => {
   UserRepository.prototype.getByEmail = originalGetByEmail
+  UserRepository.prototype.getRegistrationSummary = originalGetRegistrationSummary
   UserRepository.prototype.create = originalCreateUser
   OrganizerRepository.prototype.getByCnpj = originalGetByCnpj
   OrganizerRepository.prototype.create = originalCreateOrganizer
@@ -65,7 +65,7 @@ function createPayload(overrides = {}) {
   }
 }
 
-// Repositórios sem cadastro existente, que registram o que foi buscado e gravado.
+// repositórios vazios que registram o que foi buscado e gravado
 function mockEmptyRepositories(operations) {
   const calls = {}
   UserRepository.prototype.getByEmail = async (email) => {
@@ -227,10 +227,10 @@ describe('AuthController.register (organizador)', () => {
 
 describe('AuthController.register (fornecedor)', () => {
   function createSupplierPayload(overrides = {}) {
-    return createPayload({ profile: 'fornecedor', name: 'Som e Luz Ltda.', service_area: 'Estrutura', ...overrides })
+    return createPayload({ profile: 'fornecedor', name: 'Som e Luz Ltda.', categories: ['Estrutura'], ...overrides })
   }
 
-  test('cadastra usuário fornecedor pendente e supplier com a área de atuação, confirmando só no final', async () => {
+  test('cadastra usuário fornecedor pendente e supplier com as categorias, confirmando só no final', async () => {
     const { context, getCommitCount, operations } = createControllerContext()
     const calls = mockEmptyRepositories(operations)
 
@@ -240,13 +240,13 @@ describe('AuthController.register (fornecedor)', () => {
     assert.deepEqual(result, { user_key: 'new-user-key', profile: 'fornecedor', status: 'pending' })
     assert.equal(calls.userValues.profile, 'fornecedor')
     assert.equal(calls.userValues.email, 'maria@exemplo.com')
-    assert.deepEqual(calls.supplierValues, { userId: 15, cnpj: '11222333000181', phone: '11999998888', serviceArea: 'Estrutura' })
+    assert.deepEqual(calls.supplierValues, { userId: 15, cnpj: '11222333000181', phone: '11999998888', categories: ['Estrutura'] })
     assert.equal(calls.organizerValues, undefined)
     assert.deepEqual(operations, ['createUser', 'createSupplier', 'commit'])
     assert.equal(getCommitCount(), 1)
   })
 
-  test('organizador não grava supplier nem área de atuação', async () => {
+  test('organizador não grava supplier nem categorias', async () => {
     const { context, operations } = createControllerContext()
     const calls = mockEmptyRepositories(operations)
 
@@ -398,24 +398,53 @@ describe('AuthController.login', () => {
     assert.equal(calls.tokenData, undefined)
   })
 
-  test('cadastro pendente gera 403 de análise', async () => {
+  test('cadastro pendente gera 403 de análise com o resumo do cadastro', async () => {
     const { context } = createControllerContext()
     const calls = mockPasswordAndToken()
     UserRepository.prototype.getByEmail = async () => createUser('pending')
+    UserRepository.prototype.getRegistrationSummary = async () => ({
+      ...createUser('pending'),
+      created_at: new Date('2026-11-01T10:00:00Z'),
+      organizer: { cnpj: '11222333000181' },
+      status_events: [],
+    })
 
     const controller = new AuthController(context)
-    await assert.rejects(() => controller.login({ email: 'maria@exemplo.com', password: 'senhaForte123' }), RegistrationPending)
+    await assert.rejects(
+      () => controller.login({ email: 'maria@exemplo.com', password: 'senhaForte123' }),
+      (error) => {
+        assert.ok(error instanceof RegistrationPending)
+        assert.equal(error.details.cnpj, '11222333000181')
+        assert.equal(error.details.reason, null)
+        return true
+      },
+    )
 
     assert.equal(calls.tokenData, undefined)
   })
 
-  test('cadastro rejeitado gera 403 de não aprovado', async () => {
+  test('cadastro rejeitado gera 403 com o motivo e a data da decisão', async () => {
     const { context } = createControllerContext()
     const calls = mockPasswordAndToken()
+    const decidedAt = new Date('2026-11-02T15:00:00Z')
     UserRepository.prototype.getByEmail = async () => createUser('rejected')
+    UserRepository.prototype.getRegistrationSummary = async () => ({
+      ...createUser('rejected'),
+      supplier: { cnpj: '11222333000181', categories: [{ name: 'Segurança' }, { name: 'Bebidas' }] },
+      status_events: [{ event_datetime: decidedAt, reason: 'CNPJ irregular.' }],
+    })
 
     const controller = new AuthController(context)
-    await assert.rejects(() => controller.login({ email: 'maria@exemplo.com', password: 'senhaForte123' }), RegistrationRejected)
+    await assert.rejects(
+      () => controller.login({ email: 'maria@exemplo.com', password: 'senhaForte123' }),
+      (error) => {
+        assert.ok(error instanceof RegistrationRejected)
+        assert.equal(error.details.reason, 'CNPJ irregular.')
+        assert.equal(error.details.decided_at, decidedAt)
+        assert.deepEqual(error.details.categories, ['Bebidas', 'Segurança'])
+        return true
+      },
+    )
 
     assert.equal(calls.tokenData, undefined)
   })

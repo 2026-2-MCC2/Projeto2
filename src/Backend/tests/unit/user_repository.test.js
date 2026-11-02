@@ -1,5 +1,3 @@
-// Testes unitários do repository administrativo sem abrir conexão com o banco.
-
 import assert from 'node:assert/strict'
 import { afterEach, describe, test } from 'node:test'
 
@@ -85,6 +83,7 @@ describe('UserRepository', () => {
       admin_user_id: administrator.id,
       old_status: 'pending',
       new_status: 'approved',
+      reason: null,
       event_datetime: eventValues.event_datetime,
     })
     assert.ok(eventValues.event_datetime instanceof Date)
@@ -108,12 +107,13 @@ describe('UserRepository', () => {
     }
 
     const repository = new UserRepository(context)
-    await repository.updateStatus(targetUser, 'rejected')
+    await repository.updateStatus(targetUser, 'rejected', 'CNPJ irregular.')
 
     assert.equal(targetUser.status, 'rejected')
     assert.equal(targetUser.approved_at, null)
     assert.equal(eventValues.old_status, 'pending')
     assert.equal(eventValues.new_status, 'rejected')
+    assert.equal(eventValues.reason, 'CNPJ irregular.')
     assert.equal(eventValues.user_id, targetUser.id)
     assert.equal(eventValues.admin_user_id, administrator.id)
   })
@@ -231,7 +231,7 @@ describe('UserRepository.getRegistrationList', () => {
     await repository.getRegistrationList(10, 20, 'pending')
 
     assert.deepEqual(queryOptions.where, { profile: ['organizador', 'fornecedor'], status: 'pending' })
-    assert.deepEqual(queryOptions.include, ['organizer', 'supplier'])
+    assert.deepEqual(queryOptions.include, ['organizer', { association: 'supplier', include: ['categories'] }])
     assert.deepEqual(queryOptions.order, [
       ['created_at', 'ASC'],
       ['id', 'ASC'],

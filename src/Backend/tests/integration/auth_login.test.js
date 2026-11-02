@@ -1,5 +1,3 @@
-// Testes de integração do login (POST /auth/login).
-
 import assert from 'node:assert/strict'
 import { afterEach, before, describe, test } from 'node:test'
 
@@ -10,6 +8,7 @@ import { DbUtils } from '../utils/db_utils.js'
 import { LOCAL_JWT_SECRET } from '../utils/local_secrets.js'
 import { ObjectGenerator } from '../utils/object_generator.js'
 import { RequestGenerator } from '../utils/request_generator.js'
+import { TokenGenerator } from '../utils/token_generator.js'
 
 const PASSWORD = 'senhaForte123'
 const fixtureUserKeys = []
@@ -97,6 +96,39 @@ describe('POST /auth/login', () => {
     assert.equal(status, 403)
     assert.equal(response.code, 'EVP000010')
     assert.equal(response.translation, 'Seu cadastro não foi aprovado.')
+  })
+
+  test('cadastro rejeitado recebe o resumo com o motivo informado pelo admin', async () => {
+    const admin = await createFixture({ profile: 'admin', status: 'approved' })
+    const supplier = await createFixture({ profile: 'fornecedor', status: 'pending' })
+    const adminHeaders = TokenGenerator.authorizationHeader('admin', { userKey: admin.userKey })
+    const [decisionStatus] = await RequestGenerator.PUT_admin_user_status(
+      supplier.userKey,
+      { status: 'rejected', reason: 'CNPJ com pendência na Receita.' },
+      adminHeaders,
+    )
+    assert.equal(decisionStatus, 202)
+
+    const [status, response] = await RequestGenerator.POST_auth_login({ email: supplier.email, password: PASSWORD })
+
+    assert.equal(status, 403)
+    assert.equal(response.code, 'EVP000010')
+    assert.equal(response.details.profile, 'fornecedor')
+    assert.equal(response.details.reason, 'CNPJ com pendência na Receita.')
+    assert.deepEqual(response.details.categories, ['Estrutura', 'Segurança'])
+    assert.match(response.details.cnpj, /^\d{14}$/)
+    assert.ok(response.details.submitted_at)
+    assert.ok(response.details.decided_at)
+  })
+
+  test('conta bloqueada recebe 403 de acesso bloqueado', async () => {
+    const user = await createFixture({ profile: 'organizador', status: 'blocked' })
+
+    const [status, response] = await RequestGenerator.POST_auth_login({ email: user.email, password: PASSWORD })
+
+    assert.equal(status, 403)
+    assert.equal(response.code, 'EVP000011')
+    assert.equal(response.translation, 'Seu acesso foi bloqueado. Fale com o administrador da plataforma.')
   })
 
   test('cadastro pendente com senha errada recebe 401, sem revelar o status', async () => {

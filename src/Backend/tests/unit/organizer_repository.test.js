@@ -1,5 +1,3 @@
-// Testes unitários do repository de organizador sem abrir conexão com o banco.
-
 import assert from 'node:assert/strict'
 import { afterEach, describe, test } from 'node:test'
 

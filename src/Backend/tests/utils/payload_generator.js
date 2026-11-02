@@ -1,10 +1,3 @@
-// Monta bodies de requisição válidos para os testes, com valores padrão.
-//   PayloadGenerator.createSampleEntityPayload()         { hello: 'world' }
-//   PayloadGenerator.createSampleEntityPayload('oi')     { hello: 'oi' }
-//   PayloadGenerator.createNewStatusPayload('success')   { status: 'success' }
-//   PayloadGenerator.createOrganizerRegistrationPayload()   cadastro de organizador com e-mail e CNPJ únicos
-//   PayloadGenerator.createSupplierRegistrationPayload()    o mesmo para fornecedor, com área de atuação
-
 import { randomUUID } from 'node:crypto'
 
 import { RandomGenerator } from './random_generator.js'
@@ -27,18 +20,8 @@ export class PayloadGenerator {
     return PayloadGenerator.createOrganizerRegistrationPayload({
       profile: 'fornecedor',
       name: 'RF02 Fornecedor Teste',
-      service_area: 'Estrutura',
+      categories: ['Estrutura'],
       ...overrides,
     })
-  }
-
-  static createSampleEntityPayload(hello = 'world') {
-    const payload = { hello: hello }
-    return payload
-  }
-
-  static createNewStatusPayload(newStatus) {
-    const payload = { status: newStatus }
-    return payload
   }
 }

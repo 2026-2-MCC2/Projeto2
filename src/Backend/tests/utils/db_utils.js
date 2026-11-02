@@ -1,8 +1,3 @@
-// Acesso direto ao banco nos testes.
-//
-// DbUtils.rollback() apaga todas as entidades (mantém a tabela de status). Use no começo de um teste
-// que precisa do banco vazio, ex.: um teste que conta quantos itens a listagem devolve.
-
 import mysql from 'mysql2/promise'
 import { randomInt, randomUUID } from 'node:crypto'
 
@@ -11,7 +6,7 @@ import { LOCAL_DATABASE_URL } from './local_secrets.js'
 const TEST_DATABASE_URL = process.env.TEST_DATABASE_URL ?? LOCAL_DATABASE_URL
 
 export class DbUtils {
-  // passwordHash: use SecurityTools.hashPassword('senha') quando o teste precisar fazer login com o usuário
+  // passwordHash só é necessário quando o teste faz login com o usuário
   static async createUserFixture({
     profile = 'organizador',
     status = 'pending',
@@ -35,12 +30,13 @@ export class DbUtils {
         await connection.execute('INSERT INTO organizer (user_id, cnpj, phone) VALUES (?, ?, ?)', [user.id, cnpj, '11999999999'])
       } else if (profile === 'fornecedor') {
         const cnpj = Array.from({ length: 14 }, () => randomInt(0, 10)).join('')
-        await connection.execute('INSERT INTO supplier (user_id, cnpj, service_area, phone) VALUES (?, ?, ?, ?)', [
-          user.id,
-          cnpj,
-          'RF03 teste',
-          '11999999999',
-        ])
+        await connection.execute('INSERT INTO supplier (user_id, cnpj, phone) VALUES (?, ?, ?)', [user.id, cnpj, '11999999999'])
+        await connection.execute(
+          `INSERT INTO supplier_category (supplier_id, category_id)
+           SELECT supplier.id, item_category.id FROM supplier, item_category
+           WHERE supplier.user_id = ? AND item_category.name IN ('Estrutura', 'Segurança')`,
+          [user.id],
+        )
       }
 
       await connection.commit()
@@ -104,11 +100,32 @@ export class DbUtils {
     return DbUtils.getProfileDataByUserKey('organizer', ['cnpj', 'phone'], userKey)
   }
 
+  // categorias em ordem alfabética
   static async getSupplierByUserKey(userKey) {
-    return DbUtils.getProfileDataByUserKey('supplier', ['cnpj', 'phone', 'service_area'], userKey)
+    const supplier = await DbUtils.getProfileDataByUserKey('supplier', ['cnpj', 'phone'], userKey)
+    if (supplier === null) {
+      return null
+    }
+
+    const connection = await mysql.createConnection(TEST_DATABASE_URL)
+    try {
+      const [categories] = await connection.execute(
+        `SELECT item_category.name
+         FROM supplier_category
+         INNER JOIN item_category ON item_category.id = supplier_category.category_id
+         INNER JOIN supplier ON supplier.id = supplier_category.supplier_id
+         INNER JOIN user ON user.id = supplier.user_id
+         WHERE user.user_key = ?
+         ORDER BY item_category.name`,
+        [userKey],
+      )
+      return { ...supplier, categories: categories.map((category) => category.name) }
+    } finally {
+      await connection.end()
+    }
   }
 
-  // dados da tabela do perfil (organizer ou supplier) de um usuário; table e columns vêm só do próprio teste
+  // table e columns vêm só do próprio teste, nunca de entrada externa
   static async getProfileDataByUserKey(table, columns, userKey) {
     const connection = await mysql.createConnection(TEST_DATABASE_URL)
     try {
@@ -146,7 +163,7 @@ export class DbUtils {
     const connection = await mysql.createConnection(TEST_DATABASE_URL)
     try {
       const [events] = await connection.execute(
-        `SELECT history.old_status, history.new_status, history.event_datetime, administrator.user_key AS admin_user_key
+        `SELECT history.old_status, history.new_status, history.reason, history.event_datetime, administrator.user_key AS admin_user_key
          FROM user_status_event AS history
          INNER JOIN user AS affected_user ON affected_user.id = history.user_id
          INNER JOIN user AS administrator ON administrator.id = history.admin_user_id
@@ -155,18 +172,6 @@ export class DbUtils {
         [userKey],
       )
       return events
-    } finally {
-      await connection.end()
-    }
-  }
-
-  static async rollback() {
-    const connection = await mysql.createConnection(TEST_DATABASE_URL)
-    try {
-      // O MySQL não deixa apagar tabelas que outras tabelas apontam (chave estrangeira).
-      // Por isso apagamos primeiro o histórico, que aponta para a entidade, e depois a entidade.
-      await connection.query('DELETE FROM sample_entity_status_event')
-      await connection.query('DELETE FROM sample_entity')
     } finally {
       await connection.end()
     }

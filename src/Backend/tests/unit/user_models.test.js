@@ -1,5 +1,3 @@
-// Testes unitários dos models de usuário e do histórico administrativo.
-
 import assert from 'node:assert/strict'
 import { describe, test } from 'node:test'
 
@@ -17,7 +15,7 @@ describe('User model', () => {
 
   test('define os valores válidos de perfil e status', () => {
     assert.deepEqual(User.rawAttributes.profile.type.values, ['admin', 'organizador', 'fornecedor'])
-    assert.deepEqual(User.rawAttributes.status.type.values, ['pending', 'approved', 'rejected'])
+    assert.deepEqual(User.rawAttributes.status.type.values, ['pending', 'approved', 'rejected', 'blocked'])
   })
 })
 

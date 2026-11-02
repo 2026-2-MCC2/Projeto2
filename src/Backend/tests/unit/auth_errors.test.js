@@ -1,16 +1,15 @@
-// Testes unitários dos erros de domínio do autocadastro.
-
 import assert from 'node:assert/strict'
 import { describe, test } from 'node:test'
 
 import {
+  AccountBlocked,
   CnpjAlreadyRegistered,
   EmailAlreadyRegistered,
-  errorVerification,
   InvalidCnpj,
   InvalidCredentials,
   RegistrationPending,
   RegistrationRejected,
+  errorVerification,
 } from '../../src/errors/index.js'
 
 describe('Auth domain errors', () => {
@@ -56,6 +55,14 @@ describe('Auth domain errors', () => {
     assert.equal(rejected.httpStatus, 403)
     assert.equal(rejected.code, 'EVP000010')
     assert.equal(rejected.translation, 'Seu cadastro não foi aprovado.')
+  })
+
+  test('AccountBlocked barra o login de conta bloqueada com 403', () => {
+    const blocked = new AccountBlocked()
+
+    assert.equal(blocked.httpStatus, 403)
+    assert.equal(blocked.code, 'EVP000011')
+    assert.equal(blocked.translation, 'Seu acesso foi bloqueado. Fale com o administrador da plataforma.')
   })
 
   test('os códigos de todos os erros da API continuam únicos', () => {

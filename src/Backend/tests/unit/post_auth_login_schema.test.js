@@ -1,5 +1,3 @@
-// Testes unitários do contrato do body de login.
-
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { describe, test } from 'node:test'

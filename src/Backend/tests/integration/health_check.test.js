@@ -1,22 +1,3 @@
-// Testes das rotas básicas e dos middlewares (404, 405, JSON mal formado, headers de segurança).
-// Os testes de login e CORS estão em authentication_and_cors.test.js.
-//
-// COMO OS TESTES FUNCIONAM
-// Usamos o test runner que já vem no Node (node:test), sem instalar nada:
-//   describe('nome do grupo', () => { ... })    agrupa testes relacionados
-//   test('o que está sendo testado', async () => { ... })
-//   assert.equal(valorRecebido, valorEsperado)   se for diferente, o teste falha e mostra os dois valores
-//
-// Rodar todos:       npm test
-// Rodar um arquivo:  npm test -- tests/integration/health_check.test.js
-//
-// MODELO PARA UM TESTE NOVO
-//   test('não encontra entidade inexistente', async () => {
-//     const [status, response] = await RequestGenerator.GET_sample_entity('chave-que-nao-existe')
-//     assert.equal(status, 404)
-//     assert.equal(response.code, 'EVP000001')
-//   })
-
 import assert from 'node:assert/strict'
 import { describe, test } from 'node:test'
 
@@ -24,18 +5,18 @@ import { ClientRequisition } from '../utils/requisition.js'
 import { TokenGenerator } from '../utils/token_generator.js'
 
 describe('HealthCheck', () => {
-  test('home responde 200', async () => {
+  test('home responde 200 sem login', async () => {
     const response = await ClientRequisition.send('GET', '/event_planning/')
     assert.equal(response.responseStatus, 200)
   })
 
-  test('health check responde 204', async () => {
+  test('health check responde 204 sem login', async () => {
     const response = await ClientRequisition.send('GET', '/event_planning/health_check')
     assert.equal(response.responseStatus, 204)
   })
 
   test('rota que não existe responde 404', async () => {
-    const response = await ClientRequisition.send('PUT', '/event_planning/sample', {
+    const response = await ClientRequisition.send('PUT', '/event_planning/rota-inexistente', {
       headers: TokenGenerator.authorizationHeader('organizador', { userKey: '00000000-0000-4000-8000-000000000010' }),
     })
     assert.equal(response.responseStatus, 404)
@@ -49,12 +30,9 @@ describe('HealthCheck', () => {
   })
 
   test('JSON mal formado responde 400', async () => {
-    const response = await ClientRequisition.send('POST', '/event_planning/sample_entity', {
-      data: '{"hello": ',
-      headers: {
-        'Content-Type': 'application/json',
-        ...TokenGenerator.authorizationHeader('organizador', { userKey: '00000000-0000-4000-8000-000000000010' }),
-      },
+    const response = await ClientRequisition.send('POST', '/event_planning/auth/login', {
+      data: '{"email": ',
+      headers: { 'Content-Type': 'application/json' },
     })
     assert.equal(response.responseStatus, 400)
     assert.equal(response.responseJson.code, 'APP000001')

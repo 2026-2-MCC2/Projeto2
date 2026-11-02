@@ -1,5 +1,3 @@
-// Testes unitários do contrato do body de autocadastro.
-
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { describe, test } from 'node:test'
@@ -35,25 +33,37 @@ describe('POST auth cadastro schema', () => {
     assert.equal(validate(createPayload({ profile: 'admin' })), false)
   })
 
-  test('aceita fornecedor com cada uma das áreas de atuação', () => {
-    for (const area of ['Estrutura', 'Alimentação', 'Segurança', 'Outros']) {
-      assert.equal(validate(createPayload({ profile: 'fornecedor', service_area: area })), true, area)
-    }
+  test('aceita fornecedor com todas as categorias de atuação', () => {
+    const categories = [
+      'Alimentação',
+      'Bebidas',
+      'Comunicação',
+      'Decoração',
+      'Equipe',
+      'Estrutura',
+      'Logística',
+      'Segurança',
+      'Tecnologia',
+      'Outros',
+    ]
+    assert.equal(validate(createPayload({ profile: 'fornecedor', categories })), true)
   })
 
-  test('recusa fornecedor sem área de atuação', () => {
+  test('recusa fornecedor sem categorias de atuação', () => {
     assert.equal(validate(createPayload({ profile: 'fornecedor' })), false)
-    assert.equal(validate.errors[0].params.missingProperty, 'service_area')
+    assert.equal(validate.errors[0].params.missingProperty, 'categories')
+    assert.equal(validate(createPayload({ profile: 'fornecedor', categories: [] })), false)
   })
 
-  test('recusa área de atuação fora das categorias', () => {
-    assert.equal(validate(createPayload({ profile: 'fornecedor', service_area: 'Som' })), false)
-    assert.equal(validate(createPayload({ profile: 'fornecedor', service_area: 'estrutura' })), false)
+  test('recusa categoria fora da lista ou repetida', () => {
+    assert.equal(validate(createPayload({ profile: 'fornecedor', categories: ['Som'] })), false)
+    assert.equal(validate(createPayload({ profile: 'fornecedor', categories: ['estrutura'] })), false)
+    assert.equal(validate(createPayload({ profile: 'fornecedor', categories: ['Estrutura', 'Estrutura'] })), false)
   })
 
-  test('recusa organizador com área de atuação', () => {
-    assert.equal(validate(createPayload({ service_area: 'Estrutura' })), false)
-    assert.equal(validate.errors[0].instancePath, '/service_area')
+  test('recusa organizador com categorias de atuação', () => {
+    assert.equal(validate(createPayload({ categories: ['Estrutura'] })), false)
+    assert.equal(validate.errors[0].instancePath, '/categories')
   })
 
   test('recusa cada campo obrigatório faltando', () => {

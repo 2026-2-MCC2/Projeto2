@@ -1,5 +1,3 @@
-// Testes unitários das regras da decisão administrativa de status de usuário.
-
 import assert from 'node:assert/strict'
 import { afterEach, describe, test } from 'node:test'
 
@@ -51,7 +49,7 @@ describe('AdminUserController', () => {
     assert.deepEqual(result, { user_key: target.user_key, status: 'approved' })
     assert.equal(Object.hasOwn(result, 'id'), false)
     assert.equal(Object.hasOwn(result, 'password_hash'), false)
-    assert.deepEqual(updateArguments, [target, 'approved'])
+    assert.deepEqual(updateArguments, [target, 'approved', null])
     assert.deepEqual(operations, ['update', 'commit'])
     assert.equal(getCommitCount(), 1)
   })
@@ -60,18 +58,21 @@ describe('AdminUserController', () => {
     const target = { id: 16, user_key: 'supplier-key', profile: 'fornecedor', status: 'pending' }
     const { context, getCommitCount } = createControllerContext()
     let requestedStatus
+    let requestedReason
 
     UserRepository.prototype.getByKeyForUpdate = async () => target
-    UserRepository.prototype.updateStatus = async (user, newStatus) => {
+    UserRepository.prototype.updateStatus = async (user, newStatus, reason) => {
       requestedStatus = newStatus
+      requestedReason = reason
       user.status = newStatus
       return user
     }
 
     const controller = new AdminUserController(context)
-    await controller.decideStatus(target.user_key, 'rejected')
+    await controller.decideStatus(target.user_key, 'rejected', '  CNPJ irregular.  ')
 
     assert.equal(requestedStatus, 'rejected')
+    assert.equal(requestedReason, 'CNPJ irregular.')
     assert.equal(target.status, 'rejected')
     assert.equal(getCommitCount(), 1)
   })

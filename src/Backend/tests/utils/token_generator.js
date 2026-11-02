@@ -1,8 +1,4 @@
-// Gera tokens de login para os testes, assinados com a mesma chave local que a API usa.
-// Assim os testes chamam rotas protegidas sem precisar de um endpoint de login.
-//   TokenGenerator.create()                  token de um organizador
-//   TokenGenerator.create('admin')           token de um admin
-//   TokenGenerator.authorizationHeader()     { Authorization: 'Bearer <token>' }, pronto para a requisição
+// assina com a mesma chave local da api, para chamar rotas protegidas sem passar pelo login
 
 import { randomUUID } from 'node:crypto'
 
