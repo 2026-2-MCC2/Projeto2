@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { NavLink } from 'react-router-dom'
-import { listarEventos } from '../../../application/eventos.js'
+import { listarEventosRecentes } from '../../../application/eventos.js'
 import { usuarioAtual } from '../../../application/sessao.js'
 import { Icone } from '../comum/Icone.jsx'
 import simbolo from '../../assets/organizador/simbolo.png'
@@ -72,9 +72,9 @@ export function MenuLateral({ aoSair, perfil = 'organizador' }) {
   useEffect(() => {
     let ativo = true
     if (perfil === 'organizador') {
-      listarEventos({ limit: 4 })
-        .then((res) => {
-          if (ativo && res?.data) setEventosRecentes(res.data)
+      listarEventosRecentes(4)
+        .then((eventos) => {
+          if (ativo) setEventosRecentes(eventos)
         })
         .catch(() => {})
     }

@@ -15,7 +15,9 @@ export function GraficoEquilibrio({ equilibrio }) {
   const eixoX = (ingressos) =>
     MARGEM.esquerda + (Math.min(Math.max(ingressos, 0), maximo) / maximo) * areaLargura
   const eixoY = (proporcao) =>
-    MARGEM.topo + areaAltura - (Math.min(Math.max(proporcao, 0), topoDaEscala) / topoDaEscala) * areaAltura
+    MARGEM.topo +
+    areaAltura -
+    (Math.min(Math.max(proporcao, 0), topoDaEscala) / topoDaEscala) * areaAltura
 
   const base = MARGEM.topo + areaAltura
   const xEquilibrio = eixoX(ingressosEq)

@@ -40,42 +40,38 @@ export function formatarMoeda(valor) {
   return Number(valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 }
 
+// as datas são criadas no horário de quem cadastra, então são mostradas no horário local também
+function partesDaData(dataIso) {
+  const data = new Date(dataIso)
+  return { dia: data.getDate(), mes: MESES[data.getMonth()], ano: data.getFullYear() }
+}
+
 export function formatarPeriodo(dataInicioIso, dataTerminoIso) {
   if (!dataInicioIso) return 'A definir'
-  const inicio = new Date(dataInicioIso)
-  const termino = dataTerminoIso ? new Date(dataTerminoIso) : inicio
+  const inicio = partesDaData(dataInicioIso)
+  const termino = partesDaData(dataTerminoIso ?? dataInicioIso)
 
-  const diaInicio = inicio.getUTCDate()
-  const mesInicio = MESES[inicio.getUTCMonth()]
-  const anoInicio = inicio.getUTCFullYear()
-
-  const diaTermino = termino.getUTCDate()
-  const mesTermino = MESES[termino.getUTCMonth()]
-  const anoTermino = termino.getUTCFullYear()
-
-  if (anoInicio === anoTermino && mesInicio === mesTermino) {
-    return diaInicio === diaTermino
-      ? `${diaInicio} ${mesInicio} ${anoInicio}`
-      : `${diaInicio}–${diaTermino} ${mesInicio} ${anoInicio}`
+  if (inicio.ano === termino.ano && inicio.mes === termino.mes) {
+    return inicio.dia === termino.dia
+      ? `${inicio.dia} ${inicio.mes} ${inicio.ano}`
+      : `${inicio.dia}–${termino.dia} ${inicio.mes} ${inicio.ano}`
   }
 
-  return `${diaInicio} ${mesInicio} a ${diaTermino} ${mesTermino} ${anoTermino}`
+  return `${inicio.dia} ${inicio.mes} a ${termino.dia} ${termino.mes} ${termino.ano}`
 }
 
 export function formatarPeriodoCurto(dataInicioIso, dataTerminoIso) {
   if (!dataInicioIso) return ''
-  const inicio = new Date(dataInicioIso)
-  const termino = dataTerminoIso ? new Date(dataTerminoIso) : inicio
+  const inicio = partesDaData(dataInicioIso)
+  const termino = partesDaData(dataTerminoIso ?? dataInicioIso)
 
-  const diaInicio = inicio.getUTCDate()
-  const mesInicio = MESES[inicio.getUTCMonth()]
-
-  const diaTermino = termino.getUTCDate()
-  const mesTermino = MESES[termino.getUTCMonth()]
-
-  return mesInicio === mesTermino
-    ? `${diaInicio}–${diaTermino} ${mesInicio}`
-    : `${diaInicio} ${mesInicio}–${diaTermino} ${mesTermino}`
+  if (inicio.ano !== termino.ano) {
+    return `${inicio.dia} ${inicio.mes} ${inicio.ano}–${termino.dia} ${termino.mes} ${termino.ano}`
+  }
+  if (inicio.mes !== termino.mes) return `${inicio.dia} ${inicio.mes}–${termino.dia} ${termino.mes}`
+  return inicio.dia === termino.dia
+    ? `${inicio.dia} ${inicio.mes}`
+    : `${inicio.dia}–${termino.dia} ${inicio.mes}`
 }
 
 function calcularDadosTicket(evento, totalCustos) {
@@ -113,6 +109,7 @@ function calcularDadosTicket(evento, totalCustos) {
         nome: 'Pessimista',
         valor: ticketMinNum > 0 ? formatarMoeda(ticketMinNum) : '—',
         publico: `${publicoMin.toLocaleString('pt-BR')} pessoas`,
+        destaque: cenarioRef === 'minimum',
       },
       {
         nome: 'Esperado',
@@ -124,6 +121,7 @@ function calcularDadosTicket(evento, totalCustos) {
         nome: 'Otimista',
         valor: ticketMaxNum > 0 ? formatarMoeda(ticketMaxNum) : '—',
         publico: `${publicoMax.toLocaleString('pt-BR')} pessoas`,
+        destaque: cenarioRef === 'maximum',
       },
     ],
   }
@@ -142,6 +140,10 @@ function calcularDadosTicket(evento, totalCustos) {
   const receitaMax = publicoMax * precoSugeridoNum
   const resultadoMax = receitaMax - totalCustos
 
+  const resultadoDoCenarioBase =
+    cenarioRef === 'minimum' ? resultadoMin : cenarioRef === 'maximum' ? resultadoMax : resultadoExp
+  const etiquetaDoCenario = (cenario) => (cenarioRef === cenario ? 'cenário base' : undefined)
+
   const formatarResultado = (val) => {
     const prefixo = val >= 0 ? '+ ' : '− '
     return `${prefixo}${formatarMoeda(Math.abs(val))}`
@@ -153,6 +155,7 @@ function calcularDadosTicket(evento, totalCustos) {
     cenarios: [
       {
         nome: 'Pessimista',
+        etiqueta: etiquetaDoCenario('minimum'),
         publico: `${publicoMin.toLocaleString('pt-BR')} pessoas`,
         resultado: formatarResultado(resultadoMin),
         positivo: resultadoMin >= 0,
@@ -161,7 +164,7 @@ function calcularDadosTicket(evento, totalCustos) {
       },
       {
         nome: 'Realista',
-        etiqueta: 'cenário base',
+        etiqueta: etiquetaDoCenario('expected'),
         publico: `${publicoExp.toLocaleString('pt-BR')} pessoas`,
         resultado: formatarResultado(resultadoExp),
         positivo: resultadoExp >= 0,
@@ -170,6 +173,7 @@ function calcularDadosTicket(evento, totalCustos) {
       },
       {
         nome: 'Otimista',
+        etiqueta: etiquetaDoCenario('maximum'),
         publico: `${publicoMax.toLocaleString('pt-BR')} pessoas`,
         resultado: formatarResultado(resultadoMax),
         positivo: resultadoMax >= 0,
@@ -192,8 +196,8 @@ function calcularDadosTicket(evento, totalCustos) {
       },
       {
         rotulo: 'Margem no cenário base',
-        valor: `${formatarMoeda(resultadoExp)} · ${Math.round(margem * 100)}%`,
-        positivo: resultadoExp >= 0,
+        valor: `${formatarMoeda(resultadoDoCenarioBase)} · ${Math.round(margem * 100)}%`,
+        positivo: resultadoDoCenarioBase >= 0,
       },
     ],
     formula: 'Ticket = Custo total ÷ [Público × (1 − Margem)]',
@@ -407,7 +411,7 @@ export function montarPayloadEvento(dados) {
     city: dados.cidade.trim(),
     state: (dados.estado || 'SP').toUpperCase().trim(),
     zip_code: dados.cep ? dados.cep.replace(/\D/g, '') : null,
-    venue_capacity: venueCapacity && venueCapacity >= maxAudience ? venueCapacity : null,
+    venue_capacity: venueCapacity || null,
     min_audience: minAudience,
     expected_audience: expectedAudience,
     max_audience: maxAudience,
@@ -418,28 +422,37 @@ export function montarPayloadEvento(dados) {
   }
 }
 
-/**
- * Busca a lista de eventos do organizador logado via API.
- */
-export async function listarEventos({ status, search, limit = 50, page = 0 } = {}) {
-  const params = new URLSearchParams()
-  if (status && status !== 'todos') {
-    // se o filtro vier como status do frontend, converte para o backend
-    const invertido = { planejamento: 'draft', cotacao: 'open_for_quotes', aprovado: 'closed' }
-    params.append('status', invertido[status] || status)
-  }
-  if (search && search.trim() !== '') {
-    params.append('search', search.trim())
-  }
-  params.append('limit', String(limit))
-  params.append('page', String(page))
+const STATUS_DO_BACKEND = {
+  planejamento: 'draft',
+  cotacao: 'open_for_quotes',
+  aprovado: 'closed',
+  cancelado: 'canceled',
+}
 
-  const qs = params.toString() ? `?${params.toString()}` : ''
-  const resposta = await api.get(`/events${qs}`)
+// máximo aceito pelo backend
+const EVENTOS_POR_PAGINA = 100
 
-  return {
-    ...resposta,
-    data: (resposta?.data || []).map(formatarEventoParaExibicao),
+function montarBuscaDeEventos({ status, search, limit, page }) {
+  const params = new URLSearchParams({ limit: String(limit), page: String(page) })
+  if (status && status !== 'todos') params.append('status', STATUS_DO_BACKEND[status] ?? status)
+  if (search?.trim()) params.append('search', search.trim())
+  return `/events?${params}`
+}
+
+export async function listarEventosRecentes(quantidade) {
+  const resposta = await api.get(montarBuscaDeEventos({ limit: quantidade, page: 0 }))
+  return resposta.data.map(formatarEventoParaExibicao)
+}
+
+// busca todas as páginas para a lista nunca esconder eventos
+export async function listarTodosOsEventos({ status, search } = {}) {
+  const eventos = []
+  for (let page = 0; ; page++) {
+    const resposta = await api.get(
+      montarBuscaDeEventos({ status, search, limit: EVENTOS_POR_PAGINA, page }),
+    )
+    eventos.push(...resposta.data.map(formatarEventoParaExibicao))
+    if (resposta.is_last_page) return eventos
   }
 }
 
@@ -449,6 +462,18 @@ export async function listarEventos({ status, search, limit = 50, page = 0 } = {
 export async function buscarEventoPorChave(eventKey) {
   const resposta = await api.get(`/events/${eventKey}`)
   return formatarEventoParaExibicao(resposta)
+}
+
+const carregamentosEmAndamento = new Map()
+
+export function carregarEvento(eventKey) {
+  if (!carregamentosEmAndamento.has(eventKey)) {
+    const carregamento = buscarEventoPorChave(eventKey).finally(() =>
+      carregamentosEmAndamento.delete(eventKey),
+    )
+    carregamentosEmAndamento.set(eventKey, carregamento)
+  }
+  return carregamentosEmAndamento.get(eventKey)
 }
 
 /**

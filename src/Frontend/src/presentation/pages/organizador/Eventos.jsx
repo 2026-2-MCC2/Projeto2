@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import { OrganizadorLayout } from '../../components/organizador/OrganizadorLayout.jsx'
 import { CartaoEvento } from '../../components/organizador/CartaoEvento.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
-import { listarEventos, STATUS_FRONTEND } from '../../../application/eventos.js'
+import { listarTodosOsEventos, STATUS_FRONTEND } from '../../../application/eventos.js'
 import { Icone } from '../../components/comum/Icone.jsx'
+import { toast } from '../../toasts.js'
 import iconeBuscar from '../../assets/organizador/icone-buscar.svg'
 import iconeAdicionar from '../../assets/organizador/icone-adicionar.svg'
 
@@ -26,12 +27,10 @@ export function Eventos() {
     async function carregar() {
       setCarregando(true)
       try {
-        const resposta = await listarEventos()
-        if (ativo && resposta?.data) {
-          setListaEventos(resposta.data)
-        }
-      } catch (err) {
-        console.error('Erro ao buscar eventos:', err)
+        const eventos = await listarTodosOsEventos()
+        if (ativo) setListaEventos(eventos)
+      } catch (falha) {
+        if (ativo) toast.erro('Não foi possível carregar os eventos', { descricao: falha.message })
       } finally {
         if (ativo) setCarregando(false)
       }
