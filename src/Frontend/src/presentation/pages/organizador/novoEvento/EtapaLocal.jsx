@@ -1,22 +1,87 @@
-import { Campo, Grupo, Linha } from '../../../components/organizador/Formulario.jsx'
+import { useState } from 'react'
+import { Campo, Grupo, Linha, SeDesktop } from '../../../components/organizador/Formulario.jsx'
+import { consultarCep } from '../../../../application/localizacao.js'
+import { mascararCep } from '../../../../domain/formatacao.js'
 
 const CAMPO_PUBLICO = { inputMode: 'numeric', 'data-validar': 'inteiro', required: true }
 
-export function EtapaLocal({ campo, isMobile }) {
+export function EtapaLocal({ campo, definir, atualizarCampos, isMobile }) {
+  const [buscandoCep, setBuscandoCep] = useState(false)
+
+  async function preencherEndereco(cepDigitos) {
+    if (cepDigitos.length !== 8 || buscandoCep) return
+    setBuscandoCep(true)
+    try {
+      const enderecoEncontrado = await consultarCep(cepDigitos)
+      if (enderecoEncontrado) {
+        const novos = {
+          cidade: enderecoEncontrado.cidade || '',
+          estado: enderecoEncontrado.estado || '',
+        }
+        if (enderecoEncontrado.enderecoCompleto) {
+          novos.endereco = enderecoEncontrado.enderecoCompleto
+        } else if (enderecoEncontrado.logradouro) {
+          novos.endereco = enderecoEncontrado.logradouro
+        }
+
+        if (atualizarCampos) {
+          atualizarCampos(novos)
+        } else if (definir) {
+          Object.entries(novos).forEach(([k, v]) => definir(k, v))
+        }
+      }
+    } finally {
+      setBuscandoCep(false)
+    }
+  }
+
+  function aoMudarCep(evento) {
+    const valorOriginal = evento.target.value
+    const valorMascarado = mascararCep(valorOriginal)
+
+    if (definir) {
+      definir('cep', valorMascarado)
+    } else {
+      campo('cep').onChange({ target: { value: valorMascarado } })
+    }
+
+    const digitos = valorMascarado.replace(/\D/g, '')
+    if (digitos.length === 8) {
+      preencherEndereco(digitos)
+    }
+  }
+
+  function aoSairCep(evento) {
+    const digitos = evento.target.value.replace(/\D/g, '')
+    if (digitos.length === 8) {
+      preencherEndereco(digitos)
+    }
+  }
+
+  const propsCep = campo('cep')
+
   return (
     <>
       <Grupo isMobile={isMobile} titulo="Local">
-        <Linha>
+        <SeDesktop isMobile={isMobile} envolver={Linha}>
           <Campo
             rotulo="Nome do espaço"
             placeholder="Allianz Parque"
             required
             {...campo('nomeEspaco')}
           />
-          {!isMobile && (
-            <Campo rotulo="CEP" placeholder="05001-100" data-validar="cep" {...campo('cep')} />
-          )}
-        </Linha>
+          <Campo
+            rotulo="CEP"
+            placeholder="05001-100"
+            data-validar="cep"
+            inputMode="numeric"
+            maxLength={9}
+            ajuda={buscandoCep ? 'Buscando endereço no ViaCEP...' : undefined}
+            {...propsCep}
+            onChange={aoMudarCep}
+            onBlur={aoSairCep}
+          />
+        </SeDesktop>
 
         <Campo
           rotulo="Endereço"

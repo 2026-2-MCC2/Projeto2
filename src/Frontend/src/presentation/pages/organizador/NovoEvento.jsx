@@ -143,7 +143,14 @@ export function NovoEvento() {
 
   const etapasDoFormulario = {
     1: <EtapaIdentificacao campo={campo} isMobile={isMobile} />,
-    2: <EtapaLocal campo={campo} isMobile={isMobile} />,
+    2: (
+      <EtapaLocal
+        campo={campo}
+        definir={definir}
+        atualizarCampos={(novos) => setDados((atual) => ({ ...atual, ...novos }))}
+        isMobile={isMobile}
+      />
+    ),
     3: <EtapaCustos campo={campo} dados={dados} definir={definir} isMobile={isMobile} />,
     4: <EtapaRevisao dados={dados} isMobile={isMobile} />,
   }
