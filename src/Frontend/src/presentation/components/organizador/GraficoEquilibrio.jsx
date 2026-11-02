@@ -7,18 +7,25 @@ export function GraficoEquilibrio({ equilibrio }) {
   const areaLargura = LARGURA - MARGEM.esquerda - MARGEM.direita
   const areaAltura = ALTURA - MARGEM.topo - MARGEM.base
 
-  const maximo = equilibrio.publicoMaximo
-  const receitaNoMaximo = maximo / equilibrio.ingressosNoEquilibrio
-  const topoDaEscala = receitaNoMaximo * 1.1
+  const maximo = Math.max(Number(equilibrio?.publicoMaximo) || 1, 1)
+  const ingressosEq = Math.max(Number(equilibrio?.ingressosNoEquilibrio) || 1, 1)
+  const receitaNoMaximo = Math.max(maximo / ingressosEq, 0.1)
+  const topoDaEscala = Math.max(receitaNoMaximo * 1.1, 1.2)
 
-  const eixoX = (ingressos) => MARGEM.esquerda + (ingressos / maximo) * areaLargura
-  const eixoY = (proporcao) => MARGEM.topo + areaAltura - (proporcao / topoDaEscala) * areaAltura
+  const eixoX = (ingressos) =>
+    MARGEM.esquerda + (Math.min(Math.max(ingressos, 0), maximo) / maximo) * areaLargura
+  const eixoY = (proporcao) =>
+    MARGEM.topo +
+    areaAltura -
+    (Math.min(Math.max(proporcao, 0), topoDaEscala) / topoDaEscala) * areaAltura
 
   const base = MARGEM.topo + areaAltura
-  const xEquilibrio = eixoX(equilibrio.ingressosNoEquilibrio)
+  const xEquilibrio = eixoX(ingressosEq)
   const yCusto = eixoY(1)
   const xFim = eixoX(maximo)
   const yFim = eixoY(receitaNoMaximo)
+
+  const terco = Math.max(Math.round(maximo / 3), 1)
 
   return (
     <svg
@@ -95,8 +102,8 @@ export function GraficoEquilibrio({ equilibrio }) {
       <text x={MARGEM.esquerda} y={ALTURA - 8} className="grafico__rotulo" textAnchor="middle">
         0
       </text>
-      <text x={eixoX(maximo / 3)} y={ALTURA - 8} className="grafico__rotulo" textAnchor="middle">
-        5.000
+      <text x={eixoX(terco)} y={ALTURA - 8} className="grafico__rotulo" textAnchor="middle">
+        {terco.toLocaleString('pt-BR')}
       </text>
       <text
         x={xEquilibrio}
@@ -104,10 +111,10 @@ export function GraficoEquilibrio({ equilibrio }) {
         className="grafico__rotulo grafico__rotulo--destaque"
         textAnchor="middle"
       >
-        9.600
+        {ingressosEq.toLocaleString('pt-BR')}
       </text>
       <text x={xFim} y={ALTURA - 8} className="grafico__rotulo" textAnchor="end">
-        15.000
+        {maximo.toLocaleString('pt-BR')}
       </text>
     </svg>
   )

@@ -11,7 +11,15 @@ import {
   UserAuthenticationMiddleware,
   UserStatusMiddleware,
 } from './middlewares/index.js'
-import { AdminUserResource, AuthResource, HealthCheckResource, HomeResource, MeResource, SinkResource } from './resources/index.js'
+import {
+  AdminUserResource,
+  AuthResource,
+  EventResource,
+  HealthCheckResource,
+  HomeResource,
+  MeResource,
+  SinkResource,
+} from './resources/index.js'
 import { addRoute, addSink, useMiddlewares } from './utils/routing.js'
 
 export function create() {
@@ -51,6 +59,13 @@ export function create() {
   addRoute(app, `${API_PREFIX}/admin/users`, adminUserResource, 'List')
   addRoute(app, `${API_PREFIX}/admin/users/:user_key/status`, adminUserResource, 'ByKey')
   addRoute(app, `${API_PREFIX}/admin/users/:user_key/redefinicao-de-senha`, adminUserResource, 'PasswordResetByKey')
+
+  const eventResource = new EventResource()
+  addRoute(app, `${API_PREFIX}/events`, eventResource, 'List')
+  addRoute(app, `${API_PREFIX}/events/:event_key`, eventResource, 'ByKey')
+  addRoute(app, `${API_PREFIX}/events/:event_key/status`, eventResource, 'StatusByKey')
+  addRoute(app, `${API_PREFIX}/events/:event_key/internal-costs`, eventResource, 'InternalCosts')
+  addRoute(app, `${API_PREFIX}/events/:event_key/internal-costs/:internal_cost_key`, eventResource, 'InternalCostByKey')
 
   const sinkResource = new SinkResource()
   addSink(app, sinkResource)

@@ -24,6 +24,15 @@ export class UserRepository {
     })
   }
 
+  // dados da empresa junto, para a tela de configurações
+  async getProfileByKey(userKey) {
+    return User.findOne({
+      where: { user_key: userKey },
+      include: ['organizer', { association: 'supplier', include: ['categories'] }],
+      transaction: this.session,
+    })
+  }
+
   async getByEmail(email) {
     return User.findOne({
       where: { email: email },

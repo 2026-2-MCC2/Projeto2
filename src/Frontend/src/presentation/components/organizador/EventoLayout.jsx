@@ -1,10 +1,11 @@
 import { Link, NavLink, useParams } from 'react-router-dom'
 import { OrganizadorLayout } from './OrganizadorLayout.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
-import { buscarEvento, STATUS } from '../../data/eventos.js'
+import { STATUS_FRONTEND } from '../../../application/eventos.js'
+import { useEvento } from '../../hooks/useEvento.js'
 import { Icone } from '../comum/Icone.jsx'
 import { TituloDaPagina } from '../comum/TituloDaPagina.jsx'
-import { Vazio } from '../comum/EstadoDaTela.jsx'
+import { Carregando, ErroNaTela, Vazio } from '../comum/EstadoDaTela.jsx'
 import iconeVoltar from '../../assets/organizador/icone-voltar.svg'
 
 const ABAS = [
@@ -17,7 +18,23 @@ const ABAS = [
 export function EventoLayout({ acoes, comResumo = false, voltar, children }) {
   const { id } = useParams()
   const isMobile = useIsMobile()
-  const evento = buscarEvento(id)
+  const { evento, carregando, erro, tentarDeNovo } = useEvento(id)
+
+  if (carregando) {
+    return (
+      <OrganizadorLayout titulo="Carregando evento..." voltarPara="/organizador/eventos">
+        <Carregando mensagem="Carregando informações do evento…" />
+      </OrganizadorLayout>
+    )
+  }
+
+  if (erro && erro.status !== 404) {
+    return (
+      <OrganizadorLayout titulo="Evento" voltarPara="/organizador/eventos">
+        <ErroNaTela erro={erro} aoTentarDeNovo={tentarDeNovo} />
+      </OrganizadorLayout>
+    )
+  }
 
   if (!evento) {
     return (
@@ -31,10 +48,9 @@ export function EventoLayout({ acoes, comResumo = false, voltar, children }) {
     )
   }
 
+  const mapaStatus = STATUS_FRONTEND[evento.status] ?? { nome: evento.status }
   const detalhe = evento.detalhe
-  const etiqueta = (
-    <span className={`etiqueta etiqueta--${evento.status}`}>{STATUS[evento.status].nome}</span>
-  )
+  const etiqueta = <span className={`etiqueta etiqueta--${evento.status}`}>{mapaStatus.nome}</span>
 
   const destinoDoVoltar = voltar?.para ?? '/organizador/eventos'
   const nomeDoVoltar = voltar?.nome ?? 'Meus eventos'
@@ -63,6 +79,8 @@ export function EventoLayout({ acoes, comResumo = false, voltar, children }) {
         subCabecalho={abas}
         voltarPara={destinoDoVoltar}
       >
+        {/* no celular o rodapé é das abas do app, então as ações ficam no topo do conteúdo */}
+        {acoes && <div className="evento-acoes-mobile">{acoes}</div>}
         {children}
       </OrganizadorLayout>
     )

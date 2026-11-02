@@ -1,6 +1,20 @@
 // valor fora do formato esperado volta como veio, para nunca esconder um dado
 
-const digitos = (texto) => String(texto ?? '').replace(/\D/g, '')
+export const digitos = (texto) => String(texto ?? '').replace(/\D/g, '')
+
+export function formatarCep(cep) {
+  const numeros = digitos(cep)
+  if (numeros.length !== 8) return cep ?? ''
+  return numeros.replace(/^(\d{5})(\d{3})$/, '$1-$2')
+}
+
+export function mascararCep(texto) {
+  const limpo = digitos(texto).slice(0, 8)
+  if (limpo.length > 5) {
+    return `${limpo.slice(0, 5)}-${limpo.slice(5)}`
+  }
+  return limpo
+}
 
 export function formatarCnpj(cnpj) {
   const numeros = digitos(cnpj)

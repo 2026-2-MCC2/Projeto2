@@ -5,8 +5,10 @@ import { Vazio } from '../../components/comum/EstadoDaTela.jsx'
 import { Tabela } from '../../components/organizador/Tabela.jsx'
 import { Botao } from '../../components/organizador/Formulario.jsx'
 import { ModalNovoItem } from '../../components/organizador/ModalNovoItem.jsx'
+import { ModalCustoProprio } from '../../components/organizador/ModalCustoProprio.jsx'
+import { eventoPodeSerEditado } from '../../../application/eventos.js'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
-import { buscarEvento } from '../../data/eventos.js'
+import { useEvento } from '../../hooks/useEvento.js'
 import { Icone } from '../../components/comum/Icone.jsx'
 import iconeAdicionar from '../../assets/organizador/icone-adicionar-claro.svg'
 
@@ -15,8 +17,21 @@ export function EventoItens() {
   const isMobile = useIsMobile()
   const navigate = useNavigate()
   const [adicionando, setAdicionando] = useState(false)
-  const evento = buscarEvento(id)
+  const [custoEmEdicao, setCustoEmEdicao] = useState(null)
+  const { evento } = useEvento(id)
   const custos = evento?.detalhe?.custos
+  const podeEditar = eventoPodeSerEditado(evento)
+  const abrirCusto = (chave) =>
+    podeEditar && setCustoEmEdicao(custos.linhas.find((linha) => linha.chave === chave))
+
+  const modalDoCusto = custoEmEdicao && (
+    <ModalCustoProprio
+      eventKey={id}
+      nomeDoEvento={evento.detalhe.nomeCompleto}
+      custo={custoEmEdicao}
+      aoFechar={() => setCustoEmEdicao(null)}
+    />
+  )
 
   if (!custos) {
     return (
@@ -53,7 +68,8 @@ export function EventoItens() {
         </button>
 
         <GrupoDeItens titulo="CONTRATADO DE FORNECEDORES" itens={deFornecedores} />
-        <GrupoDeItens titulo="CUSTOS PRÓPRIOS" itens={proprios} />
+        <GrupoDeItens titulo="CUSTOS PRÓPRIOS" itens={proprios} aoEscolher={abrirCusto} />
+        {modalDoCusto}
       </EventoLayout>
     )
   }
@@ -77,17 +93,19 @@ export function EventoItens() {
 
       <Tabela
         colunas={['ITEM', 'CATEGORIA', 'ORIGEM', 'VALOR']}
-        linhas={custos.linhas.map((linha) => [
-          linha.nome,
-          linha.categoria,
-          linha.origem,
-          linha.valor,
-        ])}
+        linhas={custos.linhas.map((linha) => ({
+          chave: linha.chave,
+          celulas: [linha.nome, linha.categoria, linha.origem, linha.valor],
+        }))}
         rodape={['Total', '', '', custos.total]}
+        aoClicarNaLinha={podeEditar ? abrirCusto : undefined}
       />
+
+      {modalDoCusto}
 
       {adicionando && (
         <ModalNovoItem
+          eventKey={id}
           evento={evento.detalhe.nomeCompleto}
           aoFechar={() => setAdicionando(false)}
         />
@@ -96,19 +114,25 @@ export function EventoItens() {
   )
 }
 
-function GrupoDeItens({ titulo, itens }) {
+function GrupoDeItens({ titulo, itens, aoEscolher }) {
   return (
     <section className="grupo">
       <h2 className="grupo__titulo">{titulo}</h2>
 
       {itens.map((item) => (
-        <div key={item.nome} className="grupo__item">
+        <button
+          key={item.chave ?? item.nome}
+          type="button"
+          className="grupo__item"
+          disabled={!aoEscolher}
+          onClick={() => aoEscolher?.(item.chave)}
+        >
           <div>
             <strong>{item.nome}</strong>
             <small>{item.categoria}</small>
           </div>
           <strong className="grupo__valor">{item.valor}</strong>
-        </div>
+        </button>
       ))}
     </section>
   )

@@ -6,6 +6,8 @@
 
 # Gestão Troca Ticket
 
+**Acesse a plataforma:** <a href="https://gestaotrocaticket.com.br">gestaotrocaticket.com.br</a>
+
 ## DKCA DEVS
 
 ## Integrantes: <a href="https://www.linkedin.com/in/andre-makoto-molitor/">Andre Makoto Molitor</a>, <a href="https://www.linkedin.com/in/caio-fabio-freitas/">Caio Fabio Freitas</a>, <a href="https://www.linkedin.com/in/davivarella/">Davi Varella</a>, <a href="https://www.linkedin.com/in/kaua-casella/">Kauã Casella da Silva</a>

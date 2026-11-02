@@ -21,6 +21,7 @@ const comuns = paginasDe(() => import('../pages/comuns.js'))
 
 const Eventos = doOrganizador('Eventos')
 const NovoEvento = doOrganizador('NovoEvento')
+const EditarEvento = doOrganizador('EditarEvento')
 const EventoVisaoGeral = doOrganizador('EventoVisaoGeral')
 const EventoItens = doOrganizador('EventoItens')
 const NovoItemCusto = doOrganizador('NovoItemCusto')
@@ -56,6 +57,7 @@ export function AppRoutes() {
             <Route path="/organizador/eventos" element={<Eventos />} />
             <Route path="/organizador/eventos/novo" element={<NovoEvento />} />
             <Route path="/organizador/eventos/:id" element={<EventoVisaoGeral />} />
+            <Route path="/organizador/eventos/:id/editar" element={<EditarEvento />} />
             <Route path="/organizador/eventos/:id/itens" element={<EventoItens />} />
             <Route path="/organizador/eventos/:id/itens/novo" element={<NovoItemCusto />} />
             <Route path="/organizador/eventos/:id/propostas" element={<EventoPropostas />} />

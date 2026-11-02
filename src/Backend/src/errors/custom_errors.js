@@ -122,3 +122,135 @@ export class InvalidPasswordResetToken extends ApiException {
     super(title, InvalidPasswordResetToken.code, httpStatus, description, translation)
   }
 }
+
+export class NotFoundEvent extends ApiException {
+  static code = 'EVP000013'
+
+  constructor(eventKey = '') {
+    const title = 'Event not Found'
+    const httpStatus = 404
+    const description = `Event ${eventKey} was not found.`
+    const translation = 'O evento não foi encontrado.'
+    super(title, NotFoundEvent.code, httpStatus, description, translation)
+  }
+}
+
+export class EventEndDateBeforeStartDate extends ApiException {
+  static code = 'EVP000014'
+
+  constructor() {
+    const title = 'Event end date before start date'
+    const httpStatus = 400
+    const description = 'Event end date cannot be earlier than start date.'
+    const translation = 'A data de término do evento não pode ser anterior à data de início.'
+    super(title, EventEndDateBeforeStartDate.code, httpStatus, description, translation)
+  }
+}
+
+export class EventExpectedAudienceLessThanMin extends ApiException {
+  static code = 'EVP000016'
+
+  constructor() {
+    const title = 'Expected audience less than minimum'
+    const httpStatus = 400
+    const description = 'Expected audience cannot be less than minimum audience.'
+    const translation = 'O público esperado não pode ser menor que o público mínimo informado.'
+    super(title, EventExpectedAudienceLessThanMin.code, httpStatus, description, translation)
+  }
+}
+
+export class EventMaxAudienceLessThanExpected extends ApiException {
+  static code = 'EVP000017'
+
+  constructor() {
+    const title = 'Maximum audience less than expected'
+    const httpStatus = 400
+    const description = 'Maximum audience cannot be less than expected audience.'
+    const translation = 'O público máximo não pode ser menor que o público esperado informado.'
+    super(title, EventMaxAudienceLessThanExpected.code, httpStatus, description, translation)
+  }
+}
+
+export class EventCapacityLessThanMaxAudience extends ApiException {
+  static code = 'EVP000018'
+
+  constructor() {
+    const title = 'Venue capacity less than maximum audience'
+    const httpStatus = 400
+    const description = 'Venue capacity cannot be less than maximum audience.'
+    const translation = 'A capacidade do espaço não pode ser menor que o público máximo do evento.'
+    super(title, EventCapacityLessThanMaxAudience.code, httpStatus, description, translation)
+  }
+}
+
+export class EventCannotBeModified extends ApiException {
+  static code = 'EVP000020'
+
+  constructor(status = '') {
+    const title = 'Event cannot be modified'
+    const httpStatus = 409
+    const description = `Events with status "${status}" cannot be modified.`
+    const translation = 'Eventos encerrados ou cancelados não podem ser alterados.'
+    super(title, EventCannotBeModified.code, httpStatus, description, translation)
+  }
+}
+
+export class EventCannotBePublished extends ApiException {
+  static code = 'EVP000021'
+
+  constructor(currentStatus = '') {
+    const title = 'Event cannot be published'
+    const httpStatus = 409
+    const description = `Events with status "${currentStatus}" cannot be published for quotes.`
+    const translation = 'Apenas eventos em rascunho podem ser publicados para cotação.'
+    super(title, EventCannotBePublished.code, httpStatus, description, translation)
+  }
+}
+
+export class NotFoundOrganizer extends ApiException {
+  static code = 'EVP000022'
+
+  constructor(userKey = '') {
+    const title = 'Organizer profile not found'
+    const httpStatus = 404
+    const description = `Organizer profile for user ${userKey} was not found.`
+    const translation = 'Cadastro de organizador não encontrado para este usuário.'
+    super(title, NotFoundOrganizer.code, httpStatus, description, translation)
+  }
+}
+
+export class NotFoundInternalCost extends ApiException {
+  static code = 'EVP000023'
+
+  constructor(costKey = '') {
+    const title = 'Internal cost not found'
+    const httpStatus = 404
+    const description = `Internal cost ${costKey} was not found.`
+    const translation = 'Este custo próprio não foi encontrado no evento.'
+    super(title, NotFoundInternalCost.code, httpStatus, description, translation)
+  }
+}
+
+export class EventStatusConflict extends ApiException {
+  static code = 'EVP000026'
+
+  constructor(message = 'O status do evento não pode ser alterado.') {
+    const title = 'Event status conflict'
+    const httpStatus = 409
+    const description = 'Cannot perform this action due to current event status.'
+    const translation = message
+    super(title, EventStatusConflict.code, httpStatus, description, translation)
+  }
+}
+
+export class EventInvalidDate extends ApiException {
+  static code = 'EVP000027'
+
+  constructor() {
+    const title = 'Invalid event date'
+    const httpStatus = 400
+    const description = 'start_date or end_date is not a date that exists in the calendar.'
+    const translation = 'Confira as datas do evento: uma delas não existe no calendário.'
+    super(title, EventInvalidDate.code, httpStatus, description, translation)
+  }
+}
