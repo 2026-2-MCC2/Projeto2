@@ -1,7 +1,9 @@
+import { useEffect, useState } from 'react'
 import { Link, NavLink, useParams } from 'react-router-dom'
 import { OrganizadorLayout } from './OrganizadorLayout.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
 import { buscarEvento, STATUS } from '../../data/eventos.js'
+import { buscarEventoPorChave, STATUS_FRONTEND } from '../../../application/eventos.js'
 import { Icone } from '../comum/Icone.jsx'
 import { TituloDaPagina } from '../comum/TituloDaPagina.jsx'
 import { Vazio } from '../comum/EstadoDaTela.jsx'
@@ -17,7 +19,40 @@ const ABAS = [
 export function EventoLayout({ acoes, comResumo = false, voltar, children }) {
   const { id } = useParams()
   const isMobile = useIsMobile()
-  const evento = buscarEvento(id)
+  const [evento, setEvento] = useState(() => buscarEvento(id))
+  const [carregando, setCarregando] = useState(!evento)
+
+  useEffect(() => {
+    let ativo = true
+    const emCache = buscarEvento(id)
+    if (emCache) {
+      setEvento(emCache)
+      setCarregando(false)
+    } else {
+      setCarregando(true)
+      buscarEventoPorChave(id)
+        .then((dados) => {
+          if (ativo && dados) setEvento(dados)
+        })
+        .catch(() => {})
+        .finally(() => {
+          if (ativo) setCarregando(false)
+        })
+    }
+    return () => {
+      ativo = false
+    }
+  }, [id])
+
+  if (carregando) {
+    return (
+      <OrganizadorLayout titulo="Carregando evento..." voltarPara="/organizador/eventos">
+        <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--texto-apoio)' }}>
+          Carregando informações do evento...
+        </div>
+      </OrganizadorLayout>
+    )
+  }
 
   if (!evento) {
     return (
@@ -31,10 +66,10 @@ export function EventoLayout({ acoes, comResumo = false, voltar, children }) {
     )
   }
 
+  const mapaStatus = STATUS_FRONTEND[evento.status] ||
+    STATUS[evento.status] || { nome: evento.status }
   const detalhe = evento.detalhe
-  const etiqueta = (
-    <span className={`etiqueta etiqueta--${evento.status}`}>{STATUS[evento.status].nome}</span>
-  )
+  const etiqueta = <span className={`etiqueta etiqueta--${evento.status}`}>{mapaStatus.nome}</span>
 
   const destinoDoVoltar = voltar?.para ?? '/organizador/eventos'
   const nomeDoVoltar = voltar?.nome ?? 'Meus eventos'

@@ -7,6 +7,7 @@ import { Botao } from '../../components/organizador/Formulario.jsx'
 import { Modal } from '../../components/comum/Modal.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
 import { buscarEvento } from '../../data/eventos.js'
+import { publicarEventoParaCotacao } from '../../../application/eventos.js'
 import { Icone } from '../../components/comum/Icone.jsx'
 import iconePublicar from '../../assets/comum/icone-enviar.svg'
 import iconeConcluida from '../../assets/organizador/icone-concluido-verde.svg'
@@ -36,14 +37,29 @@ export function EventoVisaoGeral() {
     )
   }
 
+  const eventoAtual = buscarEvento(id)
+
+  async function confirmarPublicacao() {
+    try {
+      await publicarEventoParaCotacao(id)
+      setPublicando(false)
+      window.location.reload()
+    } catch (err) {
+      alert(err.message || 'Erro ao publicar evento para cotação.')
+      setPublicando(false)
+    }
+  }
+
   const acoes = (
     <>
       <Botao type="button" secundario>
         Editar evento
       </Botao>
-      <Botao type="button" onClick={() => setPublicando(true)}>
-        Publicar para cotação
-      </Botao>
+      {eventoAtual?.status !== 'cotacao' && (
+        <Botao type="button" onClick={() => setPublicando(true)}>
+          Publicar para cotação
+        </Botao>
+      )}
     </>
   )
 
@@ -53,11 +69,15 @@ export function EventoVisaoGeral() {
       titulo="Publicar evento para cotação?"
       mensagem="O evento e seus itens abertos ficarão visíveis para os fornecedores aprovados nas categorias escolhidas. Você ainda pode editar o evento depois."
       dados={[
-        { rotulo: 'Evento', valor: 'Festival Primavera Som & Luz' },
-        { rotulo: 'Itens abertos', valor: '4 itens' },
-        { rotulo: 'Prazo para propostas', valor: '25 Set 2026' },
+        { rotulo: 'Evento', valor: eventoAtual?.nome || 'Evento' },
+        { rotulo: 'Período', valor: eventoAtual?.periodo || 'A definir' },
+        { rotulo: 'Local', valor: eventoAtual?.local || 'A definir' },
       ]}
-      acao={{ cancelar: 'Cancelar', confirmar: 'Publicar evento' }}
+      acao={{
+        cancelar: 'Cancelar',
+        confirmar: 'Publicar evento',
+        aoConfirmar: confirmarPublicacao,
+      }}
       aoFechar={() => setPublicando(false)}
     />
   )
