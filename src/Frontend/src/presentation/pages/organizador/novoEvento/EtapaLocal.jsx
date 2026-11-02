@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Campo, Grupo, Linha, SeDesktop } from '../../../components/organizador/Formulario.jsx'
 import { consultarCep } from '../../../../application/localizacao.js'
 import { mascararCep } from '../../../../domain/formatacao.js'
@@ -7,12 +7,17 @@ const CAMPO_PUBLICO = { inputMode: 'numeric', 'data-validar': 'inteiro', require
 
 export function EtapaLocal({ campo, definir, atualizarCampos, isMobile }) {
   const [buscandoCep, setBuscandoCep] = useState(false)
+  // o endereço só é preenchido quando o CEP muda, para não apagar o número que a pessoa já digitou
+  const ultimoCepBuscado = useRef(null)
 
   async function preencherEndereco(cepDigitos) {
-    if (cepDigitos.length !== 8 || buscandoCep) return
+    if (cepDigitos === ultimoCepBuscado.current) return
+    ultimoCepBuscado.current = cepDigitos
     setBuscandoCep(true)
     try {
       const enderecoEncontrado = await consultarCep(cepDigitos)
+      // a pessoa trocou o CEP enquanto esta busca andava: a resposta antiga é descartada
+      if (cepDigitos !== ultimoCepBuscado.current) return
       if (enderecoEncontrado) {
         const novos = {
           cidade: enderecoEncontrado.cidade || '',
@@ -31,7 +36,7 @@ export function EtapaLocal({ campo, definir, atualizarCampos, isMobile }) {
         }
       }
     } finally {
-      setBuscandoCep(false)
+      if (cepDigitos === ultimoCepBuscado.current) setBuscandoCep(false)
     }
   }
 
@@ -46,13 +51,6 @@ export function EtapaLocal({ campo, definir, atualizarCampos, isMobile }) {
     }
 
     const digitos = valorMascarado.replace(/\D/g, '')
-    if (digitos.length === 8) {
-      preencherEndereco(digitos)
-    }
-  }
-
-  function aoSairCep(evento) {
-    const digitos = evento.target.value.replace(/\D/g, '')
     if (digitos.length === 8) {
       preencherEndereco(digitos)
     }
@@ -79,7 +77,6 @@ export function EtapaLocal({ campo, definir, atualizarCampos, isMobile }) {
             ajuda={buscandoCep ? 'Buscando endereço no ViaCEP...' : undefined}
             {...propsCep}
             onChange={aoMudarCep}
-            onBlur={aoSairCep}
           />
         </SeDesktop>
 

@@ -12,7 +12,8 @@ import { useIsMobile } from '../hooks/useIsMobile.js'
 import { useValidacao } from '../hooks/useValidacao.js'
 import { CATEGORIAS_DE_ATUACAO } from '../../domain/categoriasDeAtuacao.js'
 import { formatarCnpj, formatarTelefone } from '../../domain/formatacao.js'
-import { carregarPerfilAtual, usuarioAtual } from '../../application/sessao.js'
+import { carregarPerfilAtual } from '../../application/sessao.js'
+import { Carregando, ErroNaTela } from '../components/comum/EstadoDaTela.jsx'
 import { validarConfirmacaoSenha } from '../../domain/validacao.js'
 import { Icone } from '../components/comum/Icone.jsx'
 import iconeBloqueado from '../assets/organizador/icone-bloqueado.svg'
@@ -91,20 +92,32 @@ const CONFIGURACOES = {
 export function Configuracoes({ perfil = 'organizador' }) {
   const isMobile = useIsMobile()
   const [aba, setAba] = useState('dados')
-  const [usuario, setUsuario] = useState(() => usuarioAtual())
+  // os campos só aparecem com os dados do /me: valor inicial de input não muda depois de montado
+  const [perfilCarregado, setPerfilCarregado] = useState({ situacao: 'carregando', usuario: null })
+  const [tentativa, setTentativa] = useState(0)
   const config = CONFIGURACOES[perfil]
+  const usuario = perfilCarregado.usuario
 
   useEffect(() => {
-    let ativo = true
+    let telaAberta = true
     carregarPerfilAtual()
       .then((dados) => {
-        if (ativo && dados) setUsuario(dados)
+        if (telaAberta) setPerfilCarregado({ situacao: 'pronto', usuario: dados })
       })
-      .catch(() => {})
+      .catch((erro) => {
+        if (telaAberta) setPerfilCarregado({ situacao: 'erro', usuario: null, erro })
+      })
     return () => {
-      ativo = false
+      telaAberta = false
     }
-  }, [])
+  }, [tentativa])
+
+  function tentarDeNovo() {
+    setPerfilCarregado({ situacao: 'carregando', usuario: null })
+    setTentativa((atual) => atual + 1)
+  }
+
+  const dadosProntos = aba === 'dados' && perfilCarregado.situacao === 'pronto'
 
   return (
     <OrganizadorLayout
@@ -128,12 +141,16 @@ export function Configuracoes({ perfil = 'organizador' }) {
         ))}
       </div>
 
-      {aba === 'dados' && config.empresa && (
+      {aba === 'dados' && perfilCarregado.situacao === 'carregando' && (
+        <Carregando mensagem="Carregando seus dados…" />
+      )}
+      {aba === 'dados' && perfilCarregado.situacao === 'erro' && (
+        <ErroNaTela erro={perfilCarregado.erro} aoTentarDeNovo={tentarDeNovo} />
+      )}
+      {dadosProntos && config.empresa && (
         <DadosCadastrais empresa={config.empresa} usuario={usuario} isMobile={isMobile} />
       )}
-      {aba === 'dados' && perfil === 'admin' && (
-        <DadosAdmin usuario={usuario} isMobile={isMobile} />
-      )}
+      {dadosProntos && perfil === 'admin' && <DadosAdmin usuario={usuario} isMobile={isMobile} />}
       {aba === 'categorias' && <PainelCategorias isMobile={isMobile} />}
       {aba === 'perfil' && <PainelPerfil {...config.perfil} isMobile={isMobile} />}
       {aba === 'senha' && <PainelSenha />}
@@ -165,9 +182,10 @@ function PainelDados({ titulo = 'Dados cadastrais', apoio, children }) {
 function DadosCadastrais({ empresa, usuario, isMobile }) {
   const cnpjFormatado = usuario?.cnpj ? formatarCnpj(usuario.cnpj) : '—'
   const telefoneFormatado = usuario?.phone ? formatarTelefone(usuario.phone) : ''
-  const nomeExibicao = usuario?.name || empresa.nome
-  const responsavelExibicao = usuario?.responsible_name || empresa.responsavel
-  const emailExibicao = usuario?.email || empresa.email
+  // os campos mostram só o que a empresa informou; os dados de exemplo ficam como dica
+  const nome = usuario?.name ?? ''
+  const responsavel = usuario?.responsible_name ?? ''
+  const emailCadastrado = usuario?.email ?? ''
 
   const cnpj = (
     <CampoFixo
@@ -184,7 +202,7 @@ function DadosCadastrais({ empresa, usuario, isMobile }) {
         autoComplete="tel"
         data-validar="telefone"
         defaultValue={telefoneFormatado}
-        placeholder={telefoneFormatado || '(11) 90000-0000'}
+        placeholder="(11) 90000-0000"
       />
     </Campo>
   )
@@ -194,8 +212,8 @@ function DadosCadastrais({ empresa, usuario, isMobile }) {
         type="email"
         autoComplete="email"
         data-validar="email"
-        defaultValue={emailExibicao}
-        placeholder={emailExibicao}
+        defaultValue={emailCadastrado}
+        placeholder={empresa.email}
       />
     </Campo>
   )
@@ -204,7 +222,7 @@ function DadosCadastrais({ empresa, usuario, isMobile }) {
     return (
       <PainelDados apoio="Aprovados pelo administrador.">
         <Campo rotulo={empresa.rotuloNome}>
-          <input type="text" defaultValue={nomeExibicao} placeholder={nomeExibicao} />
+          <input type="text" defaultValue={nome} placeholder={empresa.nome} />
         </Campo>
         {cnpj}
         {telefone}
@@ -216,7 +234,7 @@ function DadosCadastrais({ empresa, usuario, isMobile }) {
   return (
     <PainelDados apoio="Informações enviadas no cadastro e aprovadas pelo administrador.">
       <Campo rotulo={empresa.rotuloNome}>
-        <input type="text" defaultValue={nomeExibicao} placeholder={nomeExibicao} />
+        <input type="text" defaultValue={nome} placeholder={empresa.nome} />
       </Campo>
 
       <Linha>
@@ -226,15 +244,15 @@ function DadosCadastrais({ empresa, usuario, isMobile }) {
 
       <Linha>
         <Campo rotulo="Responsável">
-          <input type="text" defaultValue={responsavelExibicao} placeholder={responsavelExibicao} />
+          <input type="text" defaultValue={responsavel} placeholder={empresa.responsavel} />
         </Campo>
         {email}
       </Linha>
 
       {empresa.comEndereco && (
         <Linha>
-          <Campo rotulo="Cidade" placeholder={usuario?.city || 'São Paulo'} />
-          <Campo rotulo="Estado" placeholder={usuario?.state || 'SP'} />
+          <Campo rotulo="Cidade" defaultValue={usuario?.city ?? ''} placeholder="São Paulo" />
+          <Campo rotulo="Estado" defaultValue={usuario?.state ?? ''} placeholder="SP" />
         </Linha>
       )}
     </PainelDados>
