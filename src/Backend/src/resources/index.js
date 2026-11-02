@@ -1,5 +1,6 @@
 export { HealthCheckResource } from './health_check.js'
 export { AdminUserResource } from './admin_user.js'
+export { AdminReportResource } from './admin_report.js'
 export { AuthResource } from './auth.js'
 export { HomeResource } from './home.js'
 export { MeResource } from './me.js'

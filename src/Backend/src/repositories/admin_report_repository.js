@@ -29,7 +29,7 @@ export class AdminReportRepository {
               e.reference_scenario, organizer_user.user_key AS organizer_key,
               organizer_user.name AS organizer_name,
               COALESCE(estimated.estimated_items_total, 0) AS estimated_items_total,
-              COALESCE(internal.internal_cost_total, 0) AS internal_cost_total,
+              COALESCE(internal_costs.internal_cost_total, 0) AS internal_cost_total,
               COALESCE(proposals.proposal_count, 0) AS proposal_count,
               COALESCE(proposals.sent_count, 0) AS sent_proposal_count,
               COALESCE(proposals.review_count, 0) AS review_proposal_count,
@@ -50,7 +50,7 @@ export class AdminReportRepository {
          SELECT internal_cost.event_id, SUM(internal_cost.amount) AS internal_cost_total
          FROM internal_cost
          GROUP BY internal_cost.event_id
-       ) AS internal ON internal.event_id = e.id
+       ) AS internal_costs ON internal_costs.event_id = e.id
        LEFT JOIN (
          SELECT budget_item.event_id,
                 COUNT(proposal.id) AS proposal_count,

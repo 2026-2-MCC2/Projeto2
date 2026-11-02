@@ -11,7 +11,15 @@ import {
   UserAuthenticationMiddleware,
   UserStatusMiddleware,
 } from './middlewares/index.js'
-import { AdminUserResource, AuthResource, HealthCheckResource, HomeResource, MeResource, SinkResource } from './resources/index.js'
+import {
+  AdminReportResource,
+  AdminUserResource,
+  AuthResource,
+  HealthCheckResource,
+  HomeResource,
+  MeResource,
+  SinkResource,
+} from './resources/index.js'
 import { addRoute, addSink, useMiddlewares } from './utils/routing.js'
 
 export function create() {
@@ -51,6 +59,9 @@ export function create() {
   addRoute(app, `${API_PREFIX}/admin/users`, adminUserResource, 'List')
   addRoute(app, `${API_PREFIX}/admin/users/:user_key/status`, adminUserResource, 'ByKey')
   addRoute(app, `${API_PREFIX}/admin/users/:user_key/redefinicao-de-senha`, adminUserResource, 'PasswordResetByKey')
+
+  const adminReportResource = new AdminReportResource()
+  addRoute(app, `${API_PREFIX}/admin/reports`, adminReportResource)
 
   const sinkResource = new SinkResource()
   addSink(app, sinkResource)
