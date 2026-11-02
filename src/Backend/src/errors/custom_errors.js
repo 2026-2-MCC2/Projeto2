@@ -226,32 +226,8 @@ export class NotFoundInternalCost extends ApiException {
     const title = 'Internal cost not found'
     const httpStatus = 404
     const description = `Internal cost ${costKey} was not found.`
-    const translation = 'O custo interno do evento não foi encontrado.'
+    const translation = 'Este custo próprio não foi encontrado no evento.'
     super(title, NotFoundInternalCost.code, httpStatus, description, translation)
-  }
-}
-
-export class InvalidInternalCostAmount extends ApiException {
-  static code = 'EVP000024'
-
-  constructor() {
-    const title = 'Invalid internal cost amount'
-    const httpStatus = 400
-    const description = 'Internal cost amount must be greater than or equal to zero.'
-    const translation = 'O valor do custo interno deve ser maior ou igual a zero.'
-    super(title, InvalidInternalCostAmount.code, httpStatus, description, translation)
-  }
-}
-
-export class InvalidInternalCostType extends ApiException {
-  static code = 'EVP000025'
-
-  constructor() {
-    const title = 'Invalid internal cost type'
-    const httpStatus = 400
-    const description = 'Internal cost type must be tax, operational, or other.'
-    const translation = 'O tipo de custo interno deve ser fiscal (tax), operacional (operational) ou outro (other).'
-    super(title, InvalidInternalCostType.code, httpStatus, description, translation)
   }
 }
 

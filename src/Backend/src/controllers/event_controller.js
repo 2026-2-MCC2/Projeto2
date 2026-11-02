@@ -12,10 +12,12 @@ import {
   EventStatusConflict,
   InvalidParameter,
   NotFoundEvent,
+  NotFoundInternalCost,
   NotFoundOrganizer,
   NotFoundUser,
 } from '../errors/index.js'
 import { EventRepository } from '../repositories/event_repository.js'
+import { InternalCostRepository } from '../repositories/internal_cost_repository.js'
 import { OrganizerRepository } from '../repositories/organizer_repository.js'
 import { UserRepository } from '../repositories/user_repository.js'
 import { TextTools } from '../utils/text_tools.js'
@@ -44,6 +46,7 @@ export class EventController extends BaseController {
     this.userRepository = new UserRepository(context)
     this.organizerRepository = new OrganizerRepository(context)
     this.eventRepository = new EventRepository(context)
+    this.internalCostRepository = new InternalCostRepository(context)
   }
 
   /**
@@ -265,5 +268,56 @@ export class EventController extends BaseController {
     await this.session.commit()
 
     return EventDto.fromModel(updatedEvent)
+  }
+
+  /**
+   * Evento do organizador, travado e ainda editável, para mudar seus custos próprios.
+   */
+  async #getEditableEventForUpdate(userKey, eventKey) {
+    const organizer = await this.#getOrganizerByUserKey(userKey)
+    const event = await this.eventRepository.getByKeyForUpdate(eventKey)
+
+    if (!event || event.organizer_id !== organizer.id) {
+      throw new NotFoundEvent(eventKey)
+    }
+    if (isFinalEventStatus(event.status)) {
+      throw new EventCannotBeModified(event.status)
+    }
+    return event
+  }
+
+  async #getInternalCost(costKey, event) {
+    const cost = await this.internalCostRepository.getByKeyInEvent(costKey, event.id)
+    if (!cost) {
+      throw new NotFoundInternalCost(costKey)
+    }
+    return cost
+  }
+
+  // os três devolvem o evento inteiro, para o total e o ticket já virem recalculados
+  async addInternalCost(userKey, eventKey, payload) {
+    const event = await this.#getEditableEventForUpdate(userKey, eventKey)
+    await this.internalCostRepository.create(event.id, { ...payload, description: payload.description.trim() })
+    return this.#commitAndGetEvent(eventKey)
+  }
+
+  async updateInternalCost(userKey, eventKey, costKey, payload) {
+    const event = await this.#getEditableEventForUpdate(userKey, eventKey)
+    const cost = await this.#getInternalCost(costKey, event)
+    await this.internalCostRepository.update(cost, { ...payload, description: payload.description.trim() })
+    return this.#commitAndGetEvent(eventKey)
+  }
+
+  async removeInternalCost(userKey, eventKey, costKey) {
+    const event = await this.#getEditableEventForUpdate(userKey, eventKey)
+    const cost = await this.#getInternalCost(costKey, event)
+    await this.internalCostRepository.delete(cost)
+    return this.#commitAndGetEvent(eventKey)
+  }
+
+  async #commitAndGetEvent(eventKey) {
+    const event = await this.eventRepository.getByKey(eventKey)
+    await this.session.commit()
+    return EventDto.fromModel(event)
   }
 }

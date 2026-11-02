@@ -67,4 +67,33 @@ export class EventResource {
 
     res.status(200).json(event)
   }
+
+  async onPostInternalCosts(req, res, eventKey) {
+    SecurityTools.requireProfile(req.context, [USER_PROFILES.ORGANIZER])
+    SchemaHandler.validate(req, 'internal_cost.json')
+
+    const controller = new EventController(req.context)
+    const event = await controller.addInternalCost(req.context.user.userKey, eventKey, req.context.media)
+
+    res.status(201).json(event)
+  }
+
+  async onPutInternalCostByKey(req, res, eventKey, costKey) {
+    SecurityTools.requireProfile(req.context, [USER_PROFILES.ORGANIZER])
+    SchemaHandler.validate(req, 'internal_cost.json')
+
+    const controller = new EventController(req.context)
+    const event = await controller.updateInternalCost(req.context.user.userKey, eventKey, costKey, req.context.media)
+
+    res.status(200).json(event)
+  }
+
+  async onDeleteInternalCostByKey(req, res, eventKey, costKey) {
+    SecurityTools.requireProfile(req.context, [USER_PROFILES.ORGANIZER])
+
+    const controller = new EventController(req.context)
+    const event = await controller.removeInternalCost(req.context.user.userKey, eventKey, costKey)
+
+    res.status(200).json(event)
+  }
 }
