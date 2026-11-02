@@ -62,6 +62,9 @@
 }
 
 .menu__item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   transition:
     background 0.15s ease,
     color 0.15s ease;
@@ -71,6 +74,12 @@
   font-size: 0.8125rem;
   font-weight: 500;
   text-decoration: none;
+}
+
+.menu__item .icone {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
 }
 
 .menu__item--ativo {
@@ -150,14 +159,23 @@
   font-size: 0.625rem;
 }
 
+.menu__rodape {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
 .menu__item--ajuda {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.menu__item--ajuda:first-of-type {
-  margin-top: auto;
+.menu__item--ajuda .icone {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
 }
 
 .menu__usuario {

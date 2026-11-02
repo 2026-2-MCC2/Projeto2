@@ -5,6 +5,7 @@ import { usuarioAtual } from '../../../application/sessao.js'
 import { Icone } from '../comum/Icone.jsx'
 import simbolo from '../../assets/organizador/simbolo.png'
 import iconeOrganizador from '../../assets/organizador/icone-organizador.svg'
+import iconeEventos from '../../assets/organizador/icone-eventos.svg'
 import iconeSair from '../../assets/organizador/icone-sair.svg'
 import iconeDuvidas from '../../assets/comum/icone-duvidas.svg'
 import iconeAjustes from '../../assets/organizador/icone-ajustes.svg'
@@ -106,6 +107,7 @@ export function MenuLateral({ aoSair, perfil = 'organizador' }) {
       ) : (
         <>
           <ItemMenu to="/organizador/eventos" end>
+            <Icone src={iconeEventos} />
             Todos os eventos
           </ItemMenu>
 
@@ -136,24 +138,26 @@ export function MenuLateral({ aoSair, perfil = 'organizador' }) {
         </>
       )}
 
-      <ItemMenu to={`/${perfil}/duvidas`} classe="menu__item--ajuda">
-        <Icone src={iconeDuvidas} />
-        Dúvidas
-      </ItemMenu>
+      <div className="menu__rodape">
+        <ItemMenu to={`/${perfil}/duvidas`} classe="menu__item--ajuda">
+          <Icone src={iconeDuvidas} />
+          Dúvidas
+        </ItemMenu>
 
-      <ItemMenu to={`/${perfil}/configuracoes`} classe="menu__item--ajuda">
-        <Icone src={iconeAjustes} />
-        Configurações
-      </ItemMenu>
+        <ItemMenu to={`/${perfil}/configuracoes`} classe="menu__item--ajuda">
+          <Icone src={iconeAjustes} />
+          Configurações
+        </ItemMenu>
 
-      <div className="menu__usuario">
-        <div>
-          <p className="menu__usuario-nome">{nomeExibicao}</p>
-          <p className="menu__usuario-papel">{dadosPerfil.papel}</p>
+        <div className="menu__usuario">
+          <div>
+            <p className="menu__usuario-nome">{nomeExibicao}</p>
+            <p className="menu__usuario-papel">{dadosPerfil.papel}</p>
+          </div>
+          <button type="button" className="menu__sair" aria-label="Sair" onClick={aoSair}>
+            <Icone src={iconeSair} />
+          </button>
         </div>
-        <button type="button" className="menu__sair" aria-label="Sair" onClick={aoSair}>
-          <Icone src={iconeSair} />
-        </button>
       </div>
     </nav>
   )
