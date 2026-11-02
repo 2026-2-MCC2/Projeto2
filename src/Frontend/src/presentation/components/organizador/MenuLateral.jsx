@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { listarEventosRecentes } from '../../../application/eventos.js'
+import { observarEventos } from '../../../application/eventosEmMemoria.js'
 import { usuarioAtual } from '../../../application/sessao.js'
 import { Icone } from '../comum/Icone.jsx'
 import simbolo from '../../assets/organizador/simbolo.png'
@@ -69,17 +70,24 @@ export function MenuLateral({ aoSair, perfil = 'organizador' }) {
   const nomeExibicao = usuario?.nome || dadosPerfil.nome
   const [eventosRecentes, setEventosRecentes] = useState([])
 
+  // refaz a lista quando algum evento muda (criado, editado, publicado ou cancelado)
   useEffect(() => {
+    if (perfil !== 'organizador') return
     let ativo = true
-    if (perfil === 'organizador') {
+
+    function atualizarRecentes() {
       listarEventosRecentes(4)
         .then((eventos) => {
           if (ativo) setEventosRecentes(eventos)
         })
         .catch(() => {})
     }
+
+    atualizarRecentes()
+    const pararDeObservar = observarEventos(atualizarRecentes)
     return () => {
       ativo = false
+      pararDeObservar()
     }
   }, [perfil])
 

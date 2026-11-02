@@ -1,3 +1,5 @@
+import { paraData } from './validacao.js'
+
 export const NOMES_DOS_MESES = [
   'Janeiro',
   'Fevereiro',
@@ -15,23 +17,8 @@ export const NOMES_DOS_MESES = [
 
 export const DIAS_DA_SEMANA = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
 
-/**
- * Converte string 'DD/MM/AAAA' para objeto Date local (à meia-noite).
- */
-export function paraDataLocal(texto) {
-  if (!texto || typeof texto !== 'string') return null
-  const partes = texto.trim().split('/')
-  if (partes.length !== 3) return null
-  const [diaStr, mesStr, anoStr] = partes
-  const dia = Number(diaStr)
-  const mes = Number(mesStr) - 1
-  const ano = Number(anoStr)
-  if (Number.isNaN(dia) || Number.isNaN(mes) || Number.isNaN(ano)) return null
-  const data = new Date(ano, mes, dia)
-  if (data.getFullYear() !== ano || data.getMonth() !== mes || data.getDate() !== dia) return null
-  data.setHours(0, 0, 0, 0)
-  return data
-}
+// o mesmo leitor da validação do formulário, para os dois aceitarem as mesmas datas
+export const paraDataLocal = (texto) => paraData(String(texto ?? '').trim())
 
 /**
  * Formata Date para 'DD/MM/AAAA'.

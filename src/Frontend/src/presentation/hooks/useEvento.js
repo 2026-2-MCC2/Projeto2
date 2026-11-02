@@ -9,15 +9,24 @@ export function useEvento(id) {
   // a falha fica presa ao evento que falhou, para não aparecer quando outro evento é aberto
   const [falha, setFalha] = useState({ id: null, erro: null })
   const [tentativa, setTentativa] = useState(0)
+  // id do evento cuja busca na API já terminou nesta tela; até lá a cópia em memória pode estar antiga
+  const [idAtualizado, setIdAtualizado] = useState(null)
   const erro = falha.id === id ? falha.erro : null
 
   useEffect(() => {
     if (!id) return
     let telaAberta = true
 
-    carregarEvento(id).catch((erroAoCarregar) => {
-      if (telaAberta) setFalha({ id, erro: erroAoCarregar })
-    })
+    carregarEvento(id)
+      .then(() => {
+        if (telaAberta) setIdAtualizado(id)
+      })
+      .catch((erroAoCarregar) => {
+        if (telaAberta) {
+          setFalha({ id, erro: erroAoCarregar })
+          setIdAtualizado(id)
+        }
+      })
 
     return () => {
       telaAberta = false
@@ -34,6 +43,7 @@ export function useEvento(id) {
     evento,
     carregando: Boolean(id) && !evento && !erro,
     erro: evento ? null : erro,
+    buscaConcluida: idAtualizado === id,
     tentarDeNovo,
   }
 }

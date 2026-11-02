@@ -91,13 +91,16 @@ function calcularDadosTicket(evento, totalCustos) {
   const publicoRef =
     cenarioRef === 'minimum' ? publicoMin : cenarioRef === 'maximum' ? publicoMax : publicoExp
 
-  const precoSugeridoNum =
-    margem < 1 && totalCustos > 0 ? totalCustos / (publicoRef * (1 - margem)) : 0
+  // ticket = custo total ÷ [público × (1 − margem)]
+  const ticketPara = (publico) =>
+    margem < 1 && totalCustos > 0 ? totalCustos / (publico * (1 - margem)) : 0
+
+  const precoSugeridoNum = ticketPara(publicoRef)
   const precoSugerido = precoSugeridoNum > 0 ? formatarMoeda(precoSugeridoNum) : 'A calcular'
 
-  const ticketMinNum = margem < 1 && totalCustos > 0 ? totalCustos / (publicoMin * (1 - margem)) : 0
-  const ticketExpNum = margem < 1 && totalCustos > 0 ? totalCustos / (publicoExp * (1 - margem)) : 0
-  const ticketMaxNum = margem < 1 && totalCustos > 0 ? totalCustos / (publicoMax * (1 - margem)) : 0
+  const ticketMinNum = ticketPara(publicoMin)
+  const ticketExpNum = ticketPara(publicoExp)
+  const ticketMaxNum = ticketPara(publicoMax)
 
   const ticketEstimado = {
     cenario:
@@ -305,6 +308,7 @@ export function formatarEventoParaExibicao(evento) {
     periodo,
     periodoCurto,
     local,
+    cidade: evento.city,
     publico,
     ticket: precoSugerido,
     raw: evento,
@@ -395,7 +399,7 @@ export function montarPayloadEvento(dados) {
   const margemNumero = paraNumero(dados.margemLucro)
   const profitMargin = Number.isNaN(margemNumero)
     ? 0.2
-    : Math.min(Math.max(margemNumero / 100, 0), 0.99)
+    : Math.min(Math.max(Number((margemNumero / 100).toFixed(4)), 0), 0.9999)
 
   const venueCapacity = dados.capacidadeEspaco
     ? Math.round(paraNumero(dados.capacidadeEspaco))
@@ -446,7 +450,6 @@ export function montarPayloadEvento(dados) {
     max_audience: maxAudience,
     profit_margin: profitMargin,
     reference_scenario: CENARIOS_MAPA[dados.cenarioReferencia] || 'expected',
-    status: 'draft',
     internal_costs: internalCosts,
   }
 }
@@ -556,7 +559,6 @@ export async function criarEvento(dadosFormulario) {
 // a edição não mexe nos custos próprios: eles têm a aba Itens de custo
 export async function atualizarEvento(eventKey, dadosFormulario) {
   const payload = montarPayloadEvento(dadosFormulario)
-  delete payload.status
   delete payload.internal_costs
   const pedido = iniciarPedido()
   const resposta = await api.put(`/events/${eventKey}`, payload)

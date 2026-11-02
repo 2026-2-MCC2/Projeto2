@@ -72,7 +72,7 @@ export function EventoVisaoGeral() {
   async function confirmarCancelamento() {
     setCancelando(true)
     try {
-      await cancelarEvento(id, motivoDoCancelamento)
+      await cancelarEvento(id, motivoDoCancelamento.trim())
       toast.sucesso('Evento cancelado', { descricao: evento.nome })
       setConfirmandoCancelamento(false)
       setMotivoDoCancelamento('')
@@ -158,7 +158,7 @@ export function EventoVisaoGeral() {
           maxLength={500}
           placeholder="Ex.: local indisponível na data."
           value={motivoDoCancelamento}
-          onChange={(evento) => setMotivoDoCancelamento(evento.target.value)}
+          onChange={(evento) => setMotivoDoCancelamento(evento.target.value.trimStart())}
           required
         />
       </Campo>
