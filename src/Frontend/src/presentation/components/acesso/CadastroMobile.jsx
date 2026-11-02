@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { Icone } from '../comum/Icone.jsx'
 import { ProgressoEtapas } from '../comum/ProgressoEtapas.jsx'
 import { TituloDaPagina } from '../comum/TituloDaPagina.jsx'
-import { CampoAreaDeAtuacao } from './CampoAreaDeAtuacao.jsx'
+import { CampoCategoriasDeAtuacao } from './CampoCategoriasDeAtuacao.jsx'
 import { RetornoDoEnvio } from './RetornoDoEnvio.jsx'
 import { useEnvioCadastro } from '../../hooks/useEnvioCadastro.js'
 import { useValidacao } from '../../hooks/useValidacao.js'
@@ -34,7 +34,7 @@ const DADOS_INICIAIS = {
   razaoSocial: '',
   cnpj: '',
   telefone: '',
-  areaDeAtuacao: '',
+  categorias: [],
   email: '',
   senha: '',
   confirmacaoSenha: '',
@@ -53,9 +53,9 @@ export function CadastroMobile() {
     return (evento) => setDados({ ...dados, [campo]: evento.target.value })
   }
 
-  // a área de atuação é só do fornecedor: ao trocar de perfil, ela recomeça vazia
+  // categorias são só do fornecedor: recomeçam vazias ao trocar de perfil
   function escolherPerfil(perfil) {
-    setDados({ ...dados, perfil: perfil, areaDeAtuacao: '' })
+    setDados({ ...dados, perfil: perfil, categorias: [] })
   }
 
   function voltar() {
@@ -168,9 +168,9 @@ export function CadastroMobile() {
               </label>
 
               {dados.perfil === 'fornecedor' && (
-                <CampoAreaDeAtuacao
-                  valor={dados.areaDeAtuacao}
-                  aoMudar={preencher('areaDeAtuacao')}
+                <CampoCategoriasDeAtuacao
+                  selecionadas={dados.categorias}
+                  aoMudar={(categorias) => setDados({ ...dados, categorias })}
                 />
               )}
             </>

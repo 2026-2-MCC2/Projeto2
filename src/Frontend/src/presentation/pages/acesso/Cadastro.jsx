@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AcessoLayout } from '../../components/acesso/AcessoLayout.jsx'
 import { CadastroMobile } from '../../components/acesso/CadastroMobile.jsx'
-import { CampoAreaDeAtuacao } from '../../components/acesso/CampoAreaDeAtuacao.jsx'
+import { CampoCategoriasDeAtuacao } from '../../components/acesso/CampoCategoriasDeAtuacao.jsx'
 import { RetornoDoEnvio } from '../../components/acesso/RetornoDoEnvio.jsx'
 import { useEnvioCadastro } from '../../hooks/useEnvioCadastro.js'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
@@ -16,7 +16,7 @@ const PERFIS = [
 
 const DADOS_INICIAIS = {
   nome: '',
-  areaDeAtuacao: '',
+  categorias: [],
   cnpj: '',
   telefone: '',
   email: '',
@@ -34,10 +34,10 @@ export function Cadastro() {
     return (evento) => setDados({ ...dados, [campo]: evento.target.value })
   }
 
-  // a área de atuação é só do fornecedor: ao trocar de perfil, ela recomeça vazia
+  // categorias são só do fornecedor: recomeçam vazias ao trocar de perfil
   function escolherPerfil(novoPerfil) {
     setPerfil(novoPerfil)
-    setDados({ ...dados, areaDeAtuacao: '' })
+    setDados({ ...dados, categorias: [] })
   }
 
   function aoEnviar(evento) {
@@ -45,7 +45,6 @@ export function Cadastro() {
     enviar({ ...dados, perfil })
   }
 
-  // No mobile o cadastro é dividido em três etapas, como no protótipo.
   if (isMobile) {
     return <CadastroMobile />
   }
@@ -98,7 +97,10 @@ export function Cadastro() {
         </label>
 
         {perfil === 'fornecedor' && (
-          <CampoAreaDeAtuacao valor={dados.areaDeAtuacao} aoMudar={preencher('areaDeAtuacao')} />
+          <CampoCategoriasDeAtuacao
+            selecionadas={dados.categorias}
+            aoMudar={(categorias) => setDados({ ...dados, categorias })}
+          />
         )}
 
         <div className="acesso__linha">

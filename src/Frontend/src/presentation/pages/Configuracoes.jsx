@@ -10,6 +10,7 @@ import {
 } from '../components/organizador/Formulario.jsx'
 import { useIsMobile } from '../hooks/useIsMobile.js'
 import { useValidacao } from '../hooks/useValidacao.js'
+import { CATEGORIAS_DE_ATUACAO } from '../../domain/categoriasDeAtuacao.js'
 import { validarConfirmacaoSenha } from '../../domain/validacao.js'
 import { Icone } from '../components/comum/Icone.jsx'
 import iconeBloqueado from '../assets/organizador/icone-bloqueado.svg'
@@ -85,18 +86,6 @@ const CONFIGURACOES = {
   },
 }
 
-const CATEGORIAS = [
-  'Alimentação',
-  'Bebidas',
-  'Estrutura',
-  'Decoração',
-  'Segurança',
-  'Logística',
-  'Tecnologia',
-  'Comunicação',
-  'Equipe',
-]
-
 export function Configuracoes({ perfil = 'organizador' }) {
   const isMobile = useIsMobile()
   const [aba, setAba] = useState('dados')
@@ -135,7 +124,7 @@ export function Configuracoes({ perfil = 'organizador' }) {
   )
 }
 
-// Os campos mostram os dados atuais no placeholder: vazio mantém o valor, preenchido é validado.
+// placeholder mostra o valor atual: campo vazio mantém o valor
 function PainelDados({ titulo = 'Dados cadastrais', apoio, children }) {
   const validacao = useValidacao()
 
@@ -155,7 +144,7 @@ function PainelDados({ titulo = 'Dados cadastrais', apoio, children }) {
   )
 }
 
-// no mobile o Figma mostra só nome, CNPJ, telefone e e-mail
+// no mobile o figma mostra só nome, cnpj, telefone e e-mail
 function DadosCadastrais({ empresa, isMobile }) {
   const cnpj = (
     <CampoFixo
@@ -238,7 +227,7 @@ function DadosAdmin({ isMobile }) {
 
 function PainelCategorias({ isMobile }) {
   const [selecionadas, setSelecionadas] = useState(['Alimentação', 'Bebidas'])
-  const categorias = isMobile ? CATEGORIAS.slice(0, 4) : CATEGORIAS
+  const categorias = isMobile ? CATEGORIAS_DE_ATUACAO.slice(0, 4) : CATEGORIAS_DE_ATUACAO
 
   function alternar(categoria) {
     setSelecionadas((atuais) =>
