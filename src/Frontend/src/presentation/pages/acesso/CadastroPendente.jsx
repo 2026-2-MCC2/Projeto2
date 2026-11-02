@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { AcessoLayout } from '../../components/acesso/AcessoLayout.jsx'
 import { Icone } from '../../components/comum/Icone.jsx'
 import fotoMicrofone from '../../assets/acesso/foto-microfone.jpg'
@@ -31,7 +31,15 @@ const ETAPAS = [
   },
 ]
 
+const NOMES_DOS_PERFIS = { organizador: 'Organizador', fornecedor: 'Fornecedor' }
+
+// Aparece quando a página é aberta direto, sem vir do envio do cadastro.
+const NAO_INFORMADO = 'Não informado'
+
 export function CadastroPendente() {
+  // dados enviados pelo cadastro (ver hooks/useEnvioCadastro.js)
+  const { perfil, nome, cnpj } = useLocation().state ?? {}
+
   return (
     <AcessoLayout
       tituloDaPagina="Cadastro em análise"
@@ -77,15 +85,15 @@ export function CadastroPendente() {
       <dl className="acesso__resumo">
         <div>
           <dt>Perfil solicitado</dt>
-          <dd>Organizador</dd>
+          <dd>{NOMES_DOS_PERFIS[perfil] ?? NAO_INFORMADO}</dd>
         </div>
         <div>
           <dt>Razão social</dt>
-          <dd>TrocaTicket Produções</dd>
+          <dd>{nome || NAO_INFORMADO}</dd>
         </div>
         <div>
           <dt>CNPJ</dt>
-          <dd>12.345.678/0001-90</dd>
+          <dd>{cnpj || NAO_INFORMADO}</dd>
         </div>
       </dl>
 

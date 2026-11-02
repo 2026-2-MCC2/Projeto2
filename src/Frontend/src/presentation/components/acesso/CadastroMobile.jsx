@@ -5,6 +5,8 @@ import { useNavigate } from 'react-router-dom'
 import { Icone } from '../comum/Icone.jsx'
 import { ProgressoEtapas } from '../comum/ProgressoEtapas.jsx'
 import { TituloDaPagina } from '../comum/TituloDaPagina.jsx'
+import { RetornoDoEnvio } from './RetornoDoEnvio.jsx'
+import { useEnvioCadastro } from '../../hooks/useEnvioCadastro.js'
 import { useValidacao } from '../../hooks/useValidacao.js'
 import { validarConfirmacaoSenha } from '../../../domain/validacao.js'
 import setaVoltar from '../../assets/acesso/seta-voltar.svg'
@@ -31,7 +33,6 @@ const DADOS_INICIAIS = {
   razaoSocial: '',
   cnpj: '',
   telefone: '',
-  cidade: '',
   email: '',
   senha: '',
   confirmacaoSenha: '',
@@ -44,6 +45,7 @@ export function CadastroMobile() {
   const validacao = useValidacao({
     confirmacaoSenha: (valor, valores) => validarConfirmacaoSenha(valor, valores.senha),
   })
+  const { enviar, enviando, erro, aviso } = useEnvioCadastro()
 
   function preencher(campo) {
     return (evento) => setDados({ ...dados, [campo]: evento.target.value })
@@ -65,8 +67,7 @@ export function CadastroMobile() {
       return
     }
 
-    // Ainda não há backend: por enquanto o envio apenas simula o fluxo de aprovação.
-    navegar('/cadastro-pendente')
+    enviar({ ...dados, nome: dados.razaoSocial })
   }
 
   return (
@@ -158,18 +159,6 @@ export function CadastroMobile() {
                   required
                 />
               </label>
-
-              <label className="campo">
-                <span>Cidade e estado</span>
-                <input
-                  type="text"
-                  autoComplete="address-level2"
-                  placeholder="São Paulo, SP"
-                  value={dados.cidade}
-                  onChange={preencher('cidade')}
-                  required
-                />
-              </label>
             </>
           )}
 
@@ -229,8 +218,10 @@ export function CadastroMobile() {
         </div>
 
         <div className="etapas__acoes">
-          <button type="submit" className="acesso__botao">
-            {etapa < ETAPAS.length ? 'Continuar' : 'Enviar cadastro'}
+          {etapa === ETAPAS.length && <RetornoDoEnvio erro={erro} aviso={aviso} />}
+
+          <button type="submit" className="acesso__botao" disabled={enviando}>
+            {etapa < ETAPAS.length ? 'Continuar' : enviando ? 'Enviando...' : 'Enviar cadastro'}
           </button>
         </div>
       </form>

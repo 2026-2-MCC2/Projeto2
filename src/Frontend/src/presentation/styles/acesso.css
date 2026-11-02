@@ -124,6 +124,22 @@
   cursor: pointer;
 }
 
+/* enquanto o cadastro está sendo enviado (texto "Enviando...") */
+.acesso__botao:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+/* retorno do envio acima do botão (components/acesso/RetornoDoEnvio.jsx) */
+.acesso__campos > p.mensagem-erro {
+  margin: 0;
+}
+
+.etapas__acoes > .acesso__aviso,
+.etapas__acoes > p.mensagem-erro {
+  margin: 0 0 0.75rem;
+}
+
 .acesso__link {
   color: var(--texto-marca);
   font-size: 0.8125rem;
