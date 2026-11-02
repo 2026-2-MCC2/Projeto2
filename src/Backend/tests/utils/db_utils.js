@@ -92,6 +92,22 @@ export class DbUtils {
     }
   }
 
+  static async getOrganizerByUserKey(userKey) {
+    const connection = await mysql.createConnection(TEST_DATABASE_URL)
+    try {
+      const [[organizer]] = await connection.execute(
+        `SELECT organizer.cnpj, organizer.phone
+         FROM organizer
+         INNER JOIN user ON user.id = organizer.user_id
+         WHERE user.user_key = ?`,
+        [userKey],
+      )
+      return organizer ?? null
+    } finally {
+      await connection.end()
+    }
+  }
+
   static async ensureApprovedTestUser({ userKey, profile }) {
     const existing = await DbUtils.getUserFixture(userKey)
     if (existing !== null) {

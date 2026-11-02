@@ -45,7 +45,14 @@ import {
   UserAuthenticationMiddleware,
   UserStatusMiddleware,
 } from './middlewares/index.js'
-import { AdminUserResource, HealthCheckResource, HomeResource, SampleEntityResource, SinkResource } from './resources/index.js'
+import {
+  AdminUserResource,
+  AuthResource,
+  HealthCheckResource,
+  HomeResource,
+  SampleEntityResource,
+  SinkResource,
+} from './resources/index.js'
 import { addRoute, addSink, useMiddlewares } from './utils/routing.js'
 
 export function create() {
@@ -83,6 +90,9 @@ export function create() {
 
   const healthCheckResource = new HealthCheckResource()
   addRoute(app, `${API_PREFIX}/health_check`, healthCheckResource)
+
+  const authResource = new AuthResource()
+  addRoute(app, `${API_PREFIX}/auth/cadastro`, authResource, 'Cadastro')
 
   const adminUserResource = new AdminUserResource()
   addRoute(app, `${API_PREFIX}/admin/users/:user_key/status`, adminUserResource, 'ByKey')

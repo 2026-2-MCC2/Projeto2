@@ -37,6 +37,15 @@ export class RequestGenerator {
     return [response.responseStatus, response.responseJson]
   }
 
+  // rota pública: por padrão vai sem o header Authorization
+  static async POST_auth_cadastro(registrationPayload, headers = {}) {
+    const response = await ClientRequisition.send('POST', '/event_planning/auth/cadastro', {
+      payload: registrationPayload,
+      headers: headers,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
   static async PUT_admin_user_status(userKey, updatePayload, headers = {}) {
     const response = await ClientRequisition.send('PUT', `/event_planning/admin/users/${userKey}/status`, {
       payload: updatePayload,
