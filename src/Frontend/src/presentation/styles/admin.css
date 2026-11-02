@@ -328,7 +328,8 @@
 
 .solicitacao__dados {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  /* CNPJ, e-mail, telefone e data de envio */
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1.25rem;
   margin: 0;
   padding-top: 0.875rem;
