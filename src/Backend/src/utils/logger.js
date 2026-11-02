@@ -1,27 +1,9 @@
-// Logger: escreve as mensagens de log da aplicação (o "diário" do que aconteceu em cada requisição).
-//
-// Uso (controllers já têm this.logger pronto):
-//   this.logger.debug('Fetching Entity with key 123')        detalhe para investigar problemas
-//   this.logger.info('Payment approved', { amount: 10 })    acontecimento normal (o 2º parâmetro é opcional)
-//   this.logger.warning('Retrying request')                   algo estranho, mas a aplicação seguiu
-//   this.logger.error('Could not send e-mail')                algo falhou
-//   this.logger.fatal(error.stack)                            falha grave (vira CRITICAL)
-//
-// Fora de um controller: const logger = new Logger(req.context, 'NomeDaClasse')
-//
-// Como aparece:
-//   local (texto):  1234 - 0 [trocaticket-event-planning-api.SampleEntityController][INFO] - Payment approved - {"amount":10}
-//   Cloud Run (JSON, uma linha por log):
-//     {"severity":"INFO","message":"Payment approved","global_trace_id":"6f1c...","message_json":{"amount":10},...}
-// No Cloud Run, tudo que é escrito no terminal vai para o Cloud Logging. Em JSON, o campo "severity"
-// vira o nível do log, e dá para filtrar todos os logs de uma requisição pelo global_trace_id.
-
 import { threadId } from 'node:worker_threads'
 
 import { GCP_PROJECT_ID, IS_LOCAL, SERVICE_NAME } from '../constants.js'
 
 export class Logger {
-  // context pode ser null quando o log não é de uma requisição (ex.: subida da aplicação)
+  // context é null fora de uma requisição (ex.: subida da aplicação)
   constructor(context, className) {
     this.context = context
     this.loggerName = `${SERVICE_NAME}.${className}`
@@ -78,7 +60,7 @@ export class Logger {
     if (this.context) {
       logJson.global_trace_id = this.context.globalTraceId
       logJson.operations = this.context.operations
-      // campo especial do Cloud Logging: agrupa os logs da mesma requisição
+      // campo do cloud logging que agrupa os logs da mesma requisição
       if (this.context.cloudTraceId) {
         logJson['logging.googleapis.com/trace'] = `projects/${GCP_PROJECT_ID}/traces/${this.context.cloudTraceId}`
       }

@@ -41,7 +41,7 @@ Ele já nasce aprovado e entra pelo `POST /event_planning/auth/login`. Se o e-ma
 requisição -> middlewares -> resource -> controller -> repository -> banco
 ```
 
-O [`src/app.js`](src/app.js) explica como criar um endpoint novo. A `sample_entity` é um exemplo para usar de modelo.
+O [`src/app.js`](src/app.js) explica como criar um endpoint novo.
 
 ## Deploy
 

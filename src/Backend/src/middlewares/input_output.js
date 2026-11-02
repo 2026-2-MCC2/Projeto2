@@ -1,11 +1,3 @@
-// Middleware: lê o body da requisição e loga a entrada e a saída de cada requisição.
-//
-// Exemplo dos logs gerados (ambiente local):
-//   INCOMING REQUEST POST /event_planning/sample_entity ::1 - {"media":{"hello":"world"}}
-//   OUTGOING RESPONSE 201 POST /event_planning/sample_entity ::1 12 ms - {"sample_entity_key":"6f1c..."}
-//
-// Se o body tiver o campo "document_b64" (arquivo em base64), ele aparece como "BASE64 HIDDEN" no log.
-
 import { buffer } from 'node:stream/consumers'
 
 import { BYPASS_ENDPOINTS } from '../constants.js'
@@ -49,8 +41,6 @@ export class InputOutputMiddleware {
     )
   }
 
-  // Lê o body inteiro da requisição. Guarda os bytes como chegaram em req.context.binaryBody e,
-  // se for JSON, o objeto convertido em req.context.media. JSON mal formado responde 400.
   async deserializeRequest(req) {
     const binaryBody = await buffer(req)
     req.context.binaryBody = binaryBody
@@ -70,8 +60,7 @@ export class InputOutputMiddleware {
     req.context.media = media
   }
 
-  // O Express não guarda o body que foi enviado na resposta. Trocamos o res.json por uma versão que
-  // guarda uma cópia em req.context.responseMedia antes de enviar, para o processResponse poder logar.
+  // o express não guarda o body enviado; a cópia permite logar a resposta no processResponse
   saveResponseMedia(req, res) {
     const originalJson = res.json.bind(res)
 
