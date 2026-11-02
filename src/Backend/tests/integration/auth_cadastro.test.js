@@ -95,6 +95,41 @@ describe('POST /auth/cadastro', () => {
     assert.equal(status, 400)
     assert.equal(response.code, 'APP000001')
   })
+
+  test('aceita telefone fixo com 10 dígitos e recusa telefone sem 10 ou 11 dígitos', async () => {
+    const [landlineStatus, landlineResponse] = await register(
+      PayloadGenerator.createOrganizerRegistrationPayload({ phone: '(11) 3333-4444' }),
+    )
+    assert.equal(landlineStatus, 201)
+    assert.equal((await DbUtils.getOrganizerByUserKey(landlineResponse.user_key)).phone, '1133334444')
+
+    for (const phone of ['1199999', '119999988887']) {
+      const [status] = await register(PayloadGenerator.createOrganizerRegistrationPayload({ phone }))
+      assert.equal(status, 400)
+    }
+  })
+
+  test('cadastros simultâneos com o mesmo e-mail aceitam só um', async () => {
+    const email = PayloadGenerator.createOrganizerRegistrationPayload().email
+    const payloads = Array.from({ length: 5 }, () => PayloadGenerator.createOrganizerRegistrationPayload({ email }))
+
+    const results = await Promise.all(payloads.map((payload) => register(payload)))
+
+    const statuses = results.map(([status]) => status).sort()
+    assert.deepEqual(statuses, [201, 409, 409, 409, 409])
+    assert.ok(results.filter(([status]) => status === 409).every(([, response]) => response.code === 'EVP000005'))
+  })
+
+  test('cadastros simultâneos com o mesmo CNPJ aceitam só um', async () => {
+    const cnpj = PayloadGenerator.createOrganizerRegistrationPayload().cnpj
+    const payloads = Array.from({ length: 5 }, () => PayloadGenerator.createOrganizerRegistrationPayload({ cnpj }))
+
+    const results = await Promise.all(payloads.map((payload) => register(payload)))
+
+    const statuses = results.map(([status]) => status).sort()
+    assert.deepEqual(statuses, [201, 409, 409, 409, 409])
+    assert.ok(results.filter(([status]) => status === 409).every(([, response]) => response.code === 'EVP000006'))
+  })
 })
 
 describe('Autocadastro até a aprovação (ponta a ponta)', () => {

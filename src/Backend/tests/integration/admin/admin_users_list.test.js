@@ -142,13 +142,14 @@ describe('GET /admin/users', () => {
     assert.equal(response.code, 'APP000010')
   })
 
-  test('limit acima de 100 responde 400', async () => {
+  test('limit 0 ou acima de 100 responde 400', async () => {
     const admin = await createFixture({ profile: 'admin', status: 'approved' })
 
-    const [status, response] = await RequestGenerator.GET_admin_users({ limit: 101 }, adminHeaders(admin))
-
-    assert.equal(status, 400)
-    assert.equal(response.code, 'APP000010')
+    for (const limit of [0, 101]) {
+      const [status, response] = await RequestGenerator.GET_admin_users({ limit }, adminHeaders(admin))
+      assert.equal(status, 400)
+      assert.equal(response.code, 'APP000010')
+    }
   })
 
   test('organizador e fornecedor aprovados recebem 403', async () => {

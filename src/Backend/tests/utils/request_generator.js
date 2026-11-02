@@ -34,4 +34,21 @@ export class RequestGenerator {
     })
     return [response.responseStatus, response.responseJson]
   }
+
+  static async POST_admin_user_password_reset(userKey, headers = {}) {
+    const response = await ClientRequisition.send('POST', `/event_planning/admin/users/${userKey}/redefinicao-de-senha`, {
+      headers: headers,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async POST_auth_esqueci_senha(payload) {
+    const response = await ClientRequisition.send('POST', '/event_planning/auth/esqueci-senha', { payload: payload })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async POST_auth_redefinir_senha(payload) {
+    const response = await ClientRequisition.send('POST', '/event_planning/auth/redefinir-senha', { payload: payload })
+    return [response.responseStatus, response.responseJson]
+  }
 }

@@ -1,5 +1,5 @@
 import mysql from 'mysql2/promise'
-import { randomInt, randomUUID } from 'node:crypto'
+import { createHash, randomBytes, randomInt, randomUUID } from 'node:crypto'
 
 import { LOCAL_DATABASE_URL } from './local_secrets.js'
 
@@ -87,9 +87,10 @@ export class DbUtils {
   static async getUserFixture(userKey) {
     const connection = await mysql.createConnection(TEST_DATABASE_URL)
     try {
-      const [[user]] = await connection.execute('SELECT user_key, name, email, profile, status, approved_at FROM user WHERE user_key = ?', [
-        userKey,
-      ])
+      const [[user]] = await connection.execute(
+        'SELECT user_key, name, email, profile, status, approved_at, password_changed_at FROM user WHERE user_key = ?',
+        [userKey],
+      )
       return user ?? null
     } finally {
       await connection.end()
@@ -172,6 +173,51 @@ export class DbUtils {
         [userKey],
       )
       return events
+    } finally {
+      await connection.end()
+    }
+  }
+
+  static async getPasswordResetTokens(userKey) {
+    const connection = await mysql.createConnection(TEST_DATABASE_URL)
+    try {
+      const [tokens] = await connection.execute(
+        `SELECT reset_token.token_hash, reset_token.expires_at, reset_token.used_at, reset_token.created_at
+         FROM password_reset_token AS reset_token
+         INNER JOIN user ON user.id = reset_token.user_id
+         WHERE user.user_key = ?
+         ORDER BY reset_token.id ASC`,
+        [userKey],
+      )
+      return tokens
+    } finally {
+      await connection.end()
+    }
+  }
+
+  // cria um link direto no banco, sem passar pela espera entre pedidos; devolve o token do link.
+  // as datas usam o relógio do banco em UTC, como a API grava
+  static async createPasswordResetToken(userKey, { expiresInSeconds = 3_600 } = {}) {
+    const token = randomBytes(32).toString('base64url')
+    const tokenHash = createHash('sha256').update(token).digest('hex')
+
+    const connection = await mysql.createConnection(TEST_DATABASE_URL)
+    try {
+      await connection.execute(
+        `INSERT INTO password_reset_token (user_id, token_hash, expires_at, created_at)
+         SELECT id, ?, UTC_TIMESTAMP() + INTERVAL ? SECOND, UTC_TIMESTAMP() FROM user WHERE user_key = ?`,
+        [tokenHash, expiresInSeconds, userKey],
+      )
+      return token
+    } finally {
+      await connection.end()
+    }
+  }
+
+  static async setUserStatus(userKey, status) {
+    const connection = await mysql.createConnection(TEST_DATABASE_URL)
+    try {
+      await connection.execute('UPDATE user SET status = ? WHERE user_key = ?', [status, userKey])
     } finally {
       await connection.end()
     }
