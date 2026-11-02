@@ -1,16 +1,30 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { pedirRedefinicaoDeSenha } from '../../../infrastructure/senha.js'
 import { AcessoLayout } from '../../components/acesso/AcessoLayout.jsx'
+import { RetornoDoEnvio } from '../../components/acesso/RetornoDoEnvio.jsx'
 import { useValidacao } from '../../hooks/useValidacao.js'
 
 export function RecuperarSenha() {
+  const [email, setEmail] = useState('')
+  const [enviando, setEnviando] = useState(false)
   const [enviado, setEnviado] = useState(false)
+  const [erro, setErro] = useState('')
   const validacao = useValidacao()
 
-  function aoEnviar(evento) {
+  async function aoEnviar(evento) {
     evento.preventDefault()
-    // Ainda não há backend: por enquanto o envio apenas simula o link de recuperação.
-    setEnviado(true)
+    setErro('')
+    setEnviando(true)
+
+    try {
+      await pedirRedefinicaoDeSenha(email)
+      setEnviado(true)
+    } catch (falha) {
+      setErro(falha.message)
+    } finally {
+      setEnviando(false)
+    }
   }
 
   return (
@@ -20,8 +34,8 @@ export function RecuperarSenha() {
           <header className="acesso__cabecalho">
             <h1>Verifique seu e-mail</h1>
             <p>
-              Enviamos um link de redefinição para o e-mail cadastrado. Se não encontrar, confira a
-              caixa de spam.
+              Se houver uma conta aprovada com esse e-mail, enviamos um link para criar uma senha
+              nova. O link vale por 1 hora. Se não encontrar, confira a caixa de spam.
             </p>
           </header>
 
@@ -44,12 +58,16 @@ export function RecuperarSenha() {
                 autoComplete="email"
                 data-validar="email"
                 placeholder="voce@email.com"
+                value={email}
+                onChange={(evento) => setEmail(evento.target.value)}
                 required
               />
             </label>
 
-            <button type="submit" className="acesso__botao">
-              Enviar link de recuperação
+            <RetornoDoEnvio erro={erro} />
+
+            <button type="submit" className="acesso__botao" disabled={enviando}>
+              {enviando ? 'Enviando...' : 'Enviar link de recuperação'}
             </button>
           </form>
 

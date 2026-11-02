@@ -15,7 +15,13 @@ async function requisitar(caminho, opcoes = {}) {
     throw await criarErroDaApi(resposta)
   }
 
-  return resposta.json()
+  return lerCorpo(resposta)
+}
+
+// 202 e 204 chegam sem corpo
+async function lerCorpo(resposta) {
+  const texto = await resposta.text()
+  return texto ? JSON.parse(texto) : null
 }
 
 // as rotas públicas ignoram o token

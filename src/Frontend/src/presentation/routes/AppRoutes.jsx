@@ -5,6 +5,7 @@ import { NaoEncontrada } from '../pages/NaoEncontrada.jsx'
 import { Login } from '../pages/acesso/Login.jsx'
 import { Cadastro } from '../pages/acesso/Cadastro.jsx'
 import { RecuperarSenha } from '../pages/acesso/RecuperarSenha.jsx'
+import { RedefinirSenha } from '../pages/acesso/RedefinirSenha.jsx'
 import { CadastroPendente } from '../pages/acesso/CadastroPendente.jsx'
 import { AreaDoPerfil } from './AreaDoPerfil.jsx'
 
@@ -46,6 +47,7 @@ export function AppRoutes() {
           <Route path="/" element={<Login />} />
           <Route path="/cadastro" element={<Cadastro />} />
           <Route path="/recuperar-senha" element={<RecuperarSenha />} />
+          <Route path="/redefinir-senha" element={<RedefinirSenha />} />
           <Route path="/cadastro-pendente" element={<CadastroPendente />} />
 
           {/* áreas logadas: só abrem com login e com o perfil certo (ver AreaDoPerfil.jsx) */}
