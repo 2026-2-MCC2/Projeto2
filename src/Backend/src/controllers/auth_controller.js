@@ -62,7 +62,7 @@ export class AuthController extends BaseController {
 
     try {
       const user = await this.userRepository.create({
-        name: payload.name,
+        name: payload.name.trim(),
         email: email,
         passwordHash: passwordHash,
         profile: profileRegistration.profile,

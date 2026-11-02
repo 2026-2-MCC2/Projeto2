@@ -12,7 +12,8 @@
     "name": {
       "type": "string",
       "minLength": 1,
-      "maxLength": 150
+      "maxLength": 150,
+      "pattern": "\\S"
     },
     "email": {
       "type": "string",
@@ -27,12 +28,15 @@
     "cnpj": {
       "type": "string",
       "minLength": 14,
-      "maxLength": 18
+      "maxLength": 18,
+      "description": "Com ou sem pontuação: 11.222.333/0001-81 ou 11222333000181.",
+      "pattern": "^\\s*\\d{2}\\.?\\d{3}\\.?\\d{3}/?\\d{4}-?\\d{2}\\s*$"
     },
     "phone": {
       "type": "string",
       "minLength": 10,
-      "maxLength": 20
+      "maxLength": 20,
+      "pattern": "^[\\d\\s()+-]+$"
     },
     "categories": {
       "description": "Categorias em que o fornecedor atua: os nomes da tabela item_category.",
