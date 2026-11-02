@@ -51,17 +51,15 @@ describe('PATCH /events/:event_key/status (RF08 - Publicação para cotação)',
     assert.equal(response.status, 'open_for_quotes')
   })
 
-  test('tentativa de publicar evento que já não está em rascunho responde 409 com EVP000021', async () => {
+  test('publicar evento cancelado responde 409 com EVP000021', async () => {
     const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
     fixtureUserKeys.push(organizer.userKey)
     const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
 
     const [, created] = await RequestGenerator.POST_events(PayloadGenerator.createEventPayload(), headers)
 
-    // Publica pela primeira vez (draft -> open_for_quotes)
-    await RequestGenerator.PATCH_event_status(created.event_key, { status: 'open_for_quotes' }, headers)
+    await RequestGenerator.PATCH_event_status(created.event_key, { status: 'canceled', reason: 'Local indisponível.' }, headers)
 
-    // Segunda publicação do mesmo evento: conflito
     const [status2, response2] = await RequestGenerator.PATCH_event_status(created.event_key, { status: 'open_for_quotes' }, headers)
     assert.equal(status2, 409)
     assert.equal(response2.code, 'EVP000021')
@@ -105,7 +103,11 @@ describe('PATCH /events/:event_key/status (RF08 - Publicação para cotação)',
     await RequestGenerator.PATCH_event_status(open.event_key, { status: 'open_for_quotes' }, headers)
 
     for (const event of [draft, open]) {
-      const [status, response] = await RequestGenerator.PATCH_event_status(event.event_key, { status: 'canceled' }, headers)
+      const [status, response] = await RequestGenerator.PATCH_event_status(
+        event.event_key,
+        { status: 'canceled', reason: 'Local indisponível.' },
+        headers,
+      )
       assert.equal(status, 200)
       assert.equal(response.status, 'canceled')
     }
@@ -119,11 +121,12 @@ describe('PATCH /events/:event_key/status (RF08 - Publicação para cotação)',
     await RequestGenerator.PATCH_event_status(closed.event_key, { status: 'open_for_quotes' }, headers)
     await RequestGenerator.PATCH_event_status(closed.event_key, { status: 'closed' }, headers)
     const [, canceled] = await RequestGenerator.POST_events(PayloadGenerator.createEventPayload(), headers)
-    await RequestGenerator.PATCH_event_status(canceled.event_key, { status: 'canceled' }, headers)
+    await RequestGenerator.PATCH_event_status(canceled.event_key, { status: 'canceled', reason: 'Local indisponível.' }, headers)
 
     for (const event of [closed, canceled]) {
       for (const nextStatus of ['draft', 'closed', 'canceled']) {
-        const [status, response] = await RequestGenerator.PATCH_event_status(event.event_key, { status: nextStatus }, headers)
+        const payload = nextStatus === 'canceled' ? { status: nextStatus, reason: 'Teste.' } : { status: nextStatus }
+        const [status, response] = await RequestGenerator.PATCH_event_status(event.event_key, payload, headers)
         assert.equal(status, 409, `${event.event_key} -> ${nextStatus}`)
         assert.equal(response.code, 'EVP000026')
       }
@@ -167,6 +170,61 @@ describe('PATCH /events/:event_key/status (RF08 - Publicação para cotação)',
 
     assert.equal(status, 409)
     assert.equal(response.code, 'EVP000026')
+    assert.equal(response.translation, 'O evento já está com esse status.')
+  })
+
+  test('cancelar exige motivo, que fica guardado no evento', async () => {
+    const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
+    fixtureUserKeys.push(organizer.userKey)
+    const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
+    const [, created] = await RequestGenerator.POST_events(PayloadGenerator.createEventPayload(), headers)
+
+    for (const payload of [
+      { status: 'canceled' },
+      { status: 'canceled', reason: '   ' },
+      { status: 'canceled', reason: 'a'.repeat(501) },
+    ]) {
+      const [status, response] = await RequestGenerator.PATCH_event_status(created.event_key, payload, headers)
+      assert.equal(status, 400)
+      assert.equal(response.code, 'APP000001')
+    }
+
+    const [status, response] = await RequestGenerator.PATCH_event_status(
+      created.event_key,
+      { status: 'canceled', reason: '  Patrocinador desistiu.  ' },
+      headers,
+    )
+    assert.equal(status, 200)
+    assert.equal(response.status, 'canceled')
+    assert.equal(response.cancellation_reason, 'Patrocinador desistiu.')
+    assert.equal(response.is_editable, false)
+  })
+
+  test('mudanças simultâneas de status aceitam só uma', async () => {
+    const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
+    fixtureUserKeys.push(organizer.userKey)
+    const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
+    const [, created] = await RequestGenerator.POST_events(PayloadGenerator.createEventPayload(), headers)
+    await RequestGenerator.PATCH_event_status(created.event_key, { status: 'open_for_quotes' }, headers)
+
+    const results = await Promise.all([
+      RequestGenerator.PATCH_event_status(created.event_key, { status: 'closed' }, headers),
+      RequestGenerator.PATCH_event_status(created.event_key, { status: 'canceled', reason: 'Chuva.' }, headers),
+    ])
+
+    assert.deepEqual(results.map(([status]) => status).sort(), [200, 409])
+  })
+
+  test('republicar evento já em cotação responde que ele já está com esse status', async () => {
+    const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
+    fixtureUserKeys.push(organizer.userKey)
+    const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
+    const [, created] = await RequestGenerator.POST_events(PayloadGenerator.createEventPayload(), headers)
+    await RequestGenerator.PATCH_event_status(created.event_key, { status: 'open_for_quotes' }, headers)
+
+    const [status, response] = await RequestGenerator.PATCH_event_status(created.event_key, { status: 'open_for_quotes' }, headers)
+
+    assert.equal(status, 409)
     assert.equal(response.translation, 'O evento já está com esse status.')
   })
 })

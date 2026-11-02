@@ -62,7 +62,8 @@ export class EventResource {
     SchemaHandler.validate(req, 'patch_event_status.json')
 
     const controller = new EventController(req.context)
-    const event = await controller.updateEventStatus(req.context.user.userKey, eventKey, req.context.media.status)
+    const { status, reason } = req.context.media
+    const event = await controller.updateEventStatus(req.context.user.userKey, eventKey, status, reason)
 
     res.status(200).json(event)
   }

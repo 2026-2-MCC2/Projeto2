@@ -104,4 +104,16 @@ describe('GET /events (RF05)', () => {
     )
     assert.deepEqual(sublinhado.data, [])
   })
+
+  test('filtro de status vazio traz todos os eventos', async () => {
+    const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
+    fixtureUserKeys.push(organizer.userKey)
+    const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
+    await RequestGenerator.POST_events(PayloadGenerator.createEventPayload(), headers)
+
+    const [status, response] = await RequestGenerator.GET_events({ status: '' }, headers)
+
+    assert.equal(status, 200)
+    assert.equal(response.data.length, 1)
+  })
 })

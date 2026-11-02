@@ -97,6 +97,7 @@ CREATE TABLE event(
     profit_margin                   DECIMAL(5,4) NOT NULL,
     reference_scenario              ENUM('minimum', 'expected', 'maximum') NOT NULL DEFAULT 'expected',
     status                          ENUM('draft', 'open_for_quotes', 'closed', 'canceled') NOT NULL DEFAULT 'draft',
+    cancellation_reason             VARCHAR(500) NULL,
     created_at                      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(event_key),
     FOREIGN KEY (organizer_id) REFERENCES organizer(id),

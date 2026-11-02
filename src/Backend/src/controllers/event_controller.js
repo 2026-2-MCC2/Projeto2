@@ -1,5 +1,5 @@
 import { BaseController } from './base_controller.js'
-import { EVENT_STATUSES, REFERENCE_SCENARIOS } from '../constants.js'
+import { EVENT_STATUS_TRANSITIONS, EVENT_STATUSES, REFERENCE_SCENARIOS, isFinalEventStatus } from '../constants.js'
 import { EventDto } from '../dtos/event_dto.js'
 import {
   EventCannotBeModified,
@@ -21,19 +21,6 @@ import { EventRepository } from '../repositories/event_repository.js'
 import { OrganizerRepository } from '../repositories/organizer_repository.js'
 import { UserRepository } from '../repositories/user_repository.js'
 import { TextTools } from '../utils/text_tools.js'
-
-// encerrado e cancelado são finais: o evento não volta a ser editado nem cotado
-const ALLOWED_STATUS_TRANSITIONS = {
-  [EVENT_STATUSES.DRAFT]: [EVENT_STATUSES.OPEN_FOR_QUOTES, EVENT_STATUSES.CANCELED],
-  [EVENT_STATUSES.OPEN_FOR_QUOTES]: [EVENT_STATUSES.CLOSED, EVENT_STATUSES.CANCELED],
-  [EVENT_STATUSES.CLOSED]: [],
-  [EVENT_STATUSES.CANCELED]: [],
-}
-
-// final é o status de onde não se sai mais
-const FINAL_STATUSES = Object.keys(ALLOWED_STATUS_TRANSITIONS).filter(
-  (status) => ALLOWED_STATUS_TRANSITIONS[status].length === 0,
-)
 
 const STATUS_CONFLICT_MESSAGES = {
   [EVENT_STATUSES.DRAFT]: 'Publique o evento para cotação antes de encerrá-lo.',
@@ -183,7 +170,9 @@ export class EventController extends BaseController {
    * @param {object} options Opções de busca e paginação.
    * @returns {Promise<object>} Lista paginada de eventos.
    */
-  async getEventsList(userKey, { status, search, limit = 20, page = 0 } = {}) {
+  async getEventsList(userKey, { status: rawStatus, search, limit = 20, page = 0 } = {}) {
+    // ?status= vazio é o mesmo que não filtrar
+    const status = rawStatus || undefined
     if (status !== undefined && !Object.values(EVENT_STATUSES).includes(status)) {
       throw new InvalidParameter(`The "status" parameter is invalid. Status ${status} does not exist.`)
     }
@@ -235,13 +224,14 @@ export class EventController extends BaseController {
    */
   async updateEvent(userKey, eventKey, payload) {
     const organizer = await this.#getOrganizerByUserKey(userKey)
-    const event = await this.eventRepository.getByKey(eventKey)
+    // trava a linha: uma mudança de status ao mesmo tempo não escapa da checagem de status final
+    const event = await this.eventRepository.getByKeyForUpdate(eventKey)
 
     if (!event || event.organizer_id !== organizer.id) {
       throw new NotFoundEvent(eventKey)
     }
 
-    if (FINAL_STATUSES.includes(event.status)) {
+    if (isFinalEventStatus(event.status)) {
       throw new EventCannotBeModified(event.status)
     }
 
@@ -268,26 +258,29 @@ export class EventController extends BaseController {
    * @param {string} newStatus Novo status do evento.
    * @returns {Promise<object>} DTO atualizado.
    */
-  async updateEventStatus(userKey, eventKey, newStatus) {
+  async updateEventStatus(userKey, eventKey, newStatus, cancellationReason) {
     const organizer = await this.#getOrganizerByUserKey(userKey)
-    const event = await this.eventRepository.getByKey(eventKey)
+    // trava a linha: duas mudanças ao mesmo tempo não passam juntas pela checagem de transição
+    const event = await this.eventRepository.getByKeyForUpdate(eventKey)
 
     if (!event || event.organizer_id !== organizer.id) {
       throw new NotFoundEvent(eventKey)
     }
 
-    const isAllowedTransition = ALLOWED_STATUS_TRANSITIONS[event.status]?.includes(newStatus) ?? false
-    if (!isAllowedTransition && newStatus === EVENT_STATUSES.OPEN_FOR_QUOTES) {
-      throw new EventCannotBePublished(event.status)
-    }
     if (newStatus === event.status) {
       throw new EventStatusConflict('O evento já está com esse status.')
+    }
+
+    const isAllowedTransition = EVENT_STATUS_TRANSITIONS[event.status]?.includes(newStatus) ?? false
+    if (!isAllowedTransition && newStatus === EVENT_STATUSES.OPEN_FOR_QUOTES) {
+      throw new EventCannotBePublished(event.status)
     }
     if (!isAllowedTransition) {
       throw new EventStatusConflict(STATUS_CONFLICT_MESSAGES[event.status] ?? 'O status do evento não pode ser alterado.')
     }
 
-    const updatedEvent = await this.eventRepository.updateStatus(event, newStatus)
+    const reason = newStatus === EVENT_STATUSES.CANCELED ? cancellationReason.trim() : null
+    const updatedEvent = await this.eventRepository.updateStatus(event, newStatus, reason)
     await this.session.commit()
 
     return EventDto.fromModel(updatedEvent)

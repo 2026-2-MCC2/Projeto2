@@ -1,3 +1,5 @@
+import { isFinalEventStatus } from '../constants.js'
+
 export class EventDto {
   static fromModel(event) {
     if (!event) return null
@@ -32,6 +34,9 @@ export class EventDto {
       profit_margin: Number(event.profit_margin),
       reference_scenario: event.reference_scenario,
       status: event.status,
+      cancellation_reason: event.cancellation_reason ?? null,
+      // o front mostra o botão de editar a partir daqui, sem repetir a regra dos status finais
+      is_editable: !isFinalEventStatus(event.status),
       created_at: event.created_at instanceof Date ? event.created_at.toISOString() : event.created_at,
       internal_costs: internalCosts,
       total_internal_cost: totalInternalCost,

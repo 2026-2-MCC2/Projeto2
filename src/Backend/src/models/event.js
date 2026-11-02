@@ -27,6 +27,7 @@ Event.init(
     profit_margin: { type: DataTypes.DECIMAL(5, 4) },
     reference_scenario: { type: DataTypes.ENUM('minimum', 'expected', 'maximum') },
     status: { type: DataTypes.ENUM('draft', 'open_for_quotes', 'closed', 'canceled') },
+    cancellation_reason: { type: DataTypes.STRING(500) },
     created_at: { type: DataTypes.DATE },
   },
   { sequelize, tableName: 'event', timestamps: false },

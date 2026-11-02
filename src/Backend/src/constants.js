@@ -67,6 +67,16 @@ export const EVENT_STATUSES = Object.freeze({
   CANCELED: 'canceled',
 })
 
+// encerrado e cancelado são finais: o evento não volta a ser editado nem cotado
+export const EVENT_STATUS_TRANSITIONS = Object.freeze({
+  [EVENT_STATUSES.DRAFT]: [EVENT_STATUSES.OPEN_FOR_QUOTES, EVENT_STATUSES.CANCELED],
+  [EVENT_STATUSES.OPEN_FOR_QUOTES]: [EVENT_STATUSES.CLOSED, EVENT_STATUSES.CANCELED],
+  [EVENT_STATUSES.CLOSED]: [],
+  [EVENT_STATUSES.CANCELED]: [],
+})
+
+export const isFinalEventStatus = (status) => EVENT_STATUS_TRANSITIONS[status]?.length === 0
+
 export const REFERENCE_SCENARIOS = Object.freeze({
   MINIMUM: 'minimum',
   EXPECTED: 'expected',

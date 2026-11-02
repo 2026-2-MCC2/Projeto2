@@ -44,6 +44,14 @@ export class EventRepository {
     })
   }
 
+  async getByKeyForUpdate(eventKey) {
+    return Event.findOne({
+      where: { event_key: eventKey },
+      lock: this.session.LOCK.UPDATE,
+      transaction: this.session,
+    })
+  }
+
   async getByOrganizer(organizerId, { status, search, limit = 20, offset = 0 } = {}) {
     const where = { organizer_id: organizerId }
 
@@ -78,8 +86,9 @@ export class EventRepository {
     return this.getByKey(event.event_key)
   }
 
-  async updateStatus(event, newStatus) {
+  async updateStatus(event, newStatus, cancellationReason = null) {
     event.status = newStatus
+    event.cancellation_reason = cancellationReason
     await event.save({ transaction: this.session })
     return this.getByKey(event.event_key)
   }
