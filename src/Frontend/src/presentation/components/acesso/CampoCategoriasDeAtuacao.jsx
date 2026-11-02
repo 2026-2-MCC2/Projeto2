@@ -9,21 +9,33 @@ export function CampoCategoriasDeAtuacao({ selecionadas, aoMudar }) {
     )
   }
 
+  const resumo =
+    selecionadas.length === 0
+      ? 'Escolha uma ou mais'
+      : `${selecionadas.length} ${selecionadas.length === 1 ? 'escolhida' : 'escolhidas'}`
+
   return (
     <fieldset className="campo campo-categorias">
-      <legend>Categorias de atuação</legend>
+      <legend className="campo-categorias__titulo">
+        Categorias de atuação
+        <span className="campo-categorias__resumo">{resumo}</span>
+      </legend>
 
       <div className="campo-categorias__opcoes">
         {CATEGORIAS_DE_ATUACAO.map((categoria) => {
           const marcada = selecionadas.includes(categoria)
           return (
-            <label key={categoria} className={`filtro${marcada ? ' filtro--ativo' : ''}`}>
+            <label
+              key={categoria}
+              className={`campo-categorias__opcao${marcada ? ' campo-categorias__opcao--marcada' : ''}`}
+            >
               <input
                 type="checkbox"
                 className="campo-categorias__caixa"
                 checked={marcada}
                 onChange={() => alternarCategoria(categoria)}
               />
+              <span className="campo-categorias__marcador" aria-hidden="true" />
               {categoria}
             </label>
           )
