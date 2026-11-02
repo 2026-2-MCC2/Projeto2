@@ -87,4 +87,21 @@ describe('GET /events (RF05)', () => {
     assert.equal(status, 400)
     assert.equal(response.code, 'APP000010')
   })
+
+  test('% e _ na busca são procurados como texto', async () => {
+    const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
+    fixtureUserKeys.push(organizer.userKey)
+    const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
+    await RequestGenerator.POST_events(PayloadGenerator.createEventPayload({ name: 'Promoção 50% off' }), headers)
+    await RequestGenerator.POST_events(PayloadGenerator.createEventPayload({ name: 'Festival de Verão' }), headers)
+
+    const [, porcentagem] = await RequestGenerator.GET_events({ search: '50%' }, headers)
+    const [, sublinhado] = await RequestGenerator.GET_events({ search: '_' }, headers)
+
+    assert.deepEqual(
+      porcentagem.data.map((event) => event.name),
+      ['Promoção 50% off'],
+    )
+    assert.deepEqual(sublinhado.data, [])
+  })
 })

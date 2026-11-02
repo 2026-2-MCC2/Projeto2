@@ -1,5 +1,5 @@
 import { BaseController } from './base_controller.js'
-import { EVENT_STATUSES } from '../constants.js'
+import { EVENT_STATUSES, REFERENCE_SCENARIOS } from '../constants.js'
 import { EventDto } from '../dtos/event_dto.js'
 import {
   EventCannotBeModified,
@@ -28,6 +28,8 @@ const ALLOWED_STATUS_TRANSITIONS = {
   [EVENT_STATUSES.CLOSED]: [],
   [EVENT_STATUSES.CANCELED]: [],
 }
+
+const FINAL_STATUSES = [EVENT_STATUSES.CLOSED, EVENT_STATUSES.CANCELED]
 
 const STATUS_CONFLICT_MESSAGES = {
   [EVENT_STATUSES.DRAFT]: 'Publique o evento para cotação antes de encerrá-lo.',
@@ -112,6 +114,29 @@ export class EventController extends BaseController {
   }
 
   /**
+   * Campos que vêm do formulário iguais na criação e na edição, já limpos e normalizados.
+   */
+  #buildEventFields(payload) {
+    return {
+      name: payload.name.trim(),
+      category: payload.category.trim(),
+      description: payload.description?.trim() || null,
+      start_date: new Date(payload.start_date),
+      end_date: new Date(payload.end_date),
+      venue_name: payload.venue_name.trim(),
+      address: payload.address.trim(),
+      city: payload.city.trim(),
+      state: payload.state.toUpperCase().trim(),
+      zip_code: payload.zip_code ? TextTools.onlyDigits(payload.zip_code) : null,
+      venue_capacity: payload.venue_capacity ?? null,
+      min_audience: payload.min_audience,
+      expected_audience: payload.expected_audience,
+      max_audience: payload.max_audience,
+      profit_margin: payload.profit_margin,
+    }
+  }
+
+  /**
    * Cria um novo evento e seus custos próprios iniciais (se informados).
    *
    * @param {string} userKey Chave do organizador.
@@ -126,24 +151,10 @@ export class EventController extends BaseController {
     this.#validateProfitMargin(payload.profit_margin)
 
     const eventData = {
+      ...this.#buildEventFields(payload),
       organizer_id: organizer.id,
-      name: payload.name.trim(),
-      category: payload.category.trim(),
-      description: payload.description ? payload.description.trim() : null,
-      start_date: new Date(payload.start_date),
-      end_date: new Date(payload.end_date),
-      venue_name: payload.venue_name.trim(),
-      address: payload.address.trim(),
-      city: payload.city.trim(),
-      state: payload.state.toUpperCase().trim(),
-      zip_code: payload.zip_code ? TextTools.onlyDigits(payload.zip_code) : null,
-      venue_capacity: payload.venue_capacity ?? null,
-      min_audience: payload.min_audience,
-      expected_audience: payload.expected_audience,
-      max_audience: payload.max_audience,
-      profit_margin: payload.profit_margin,
-      reference_scenario: payload.reference_scenario ?? 'expected',
-      status: payload.status ?? 'draft',
+      reference_scenario: payload.reference_scenario ?? REFERENCE_SCENARIOS.EXPECTED,
+      status: payload.status ?? EVENT_STATUSES.DRAFT,
     }
 
     const internalCosts = payload.internal_costs ?? []
@@ -218,7 +229,7 @@ export class EventController extends BaseController {
       throw new NotFoundEvent(eventKey)
     }
 
-    if (event.status === 'closed' || event.status === 'canceled') {
+    if (FINAL_STATUSES.includes(event.status)) {
       throw new EventCannotBeModified(event.status)
     }
 
@@ -227,21 +238,7 @@ export class EventController extends BaseController {
     this.#validateProfitMargin(payload.profit_margin)
 
     const updatedFields = {
-      name: payload.name.trim(),
-      category: payload.category.trim(),
-      description: payload.description ? payload.description.trim() : null,
-      start_date: new Date(payload.start_date),
-      end_date: new Date(payload.end_date),
-      venue_name: payload.venue_name.trim(),
-      address: payload.address.trim(),
-      city: payload.city.trim(),
-      state: payload.state.toUpperCase().trim(),
-      zip_code: payload.zip_code ? TextTools.onlyDigits(payload.zip_code) : null,
-      venue_capacity: payload.venue_capacity ?? null,
-      min_audience: payload.min_audience,
-      expected_audience: payload.expected_audience,
-      max_audience: payload.max_audience,
-      profit_margin: payload.profit_margin,
+      ...this.#buildEventFields(payload),
       reference_scenario: payload.reference_scenario ?? event.reference_scenario,
     }
 

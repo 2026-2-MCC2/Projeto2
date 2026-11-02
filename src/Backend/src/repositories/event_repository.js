@@ -52,7 +52,7 @@ export class EventRepository {
     }
 
     if (search && search.trim() !== '') {
-      const term = `%${search.trim()}%`
+      const term = `%${escapeLikeWildcards(search.trim())}%`
       where[Op.or] = [{ name: { [Op.like]: term } }, { venue_name: { [Op.like]: term } }, { city: { [Op.like]: term } }]
     }
 
@@ -83,4 +83,9 @@ export class EventRepository {
     await event.save({ transaction: this.session })
     return this.getByKey(event.event_key)
   }
+}
+
+// % e _ digitados na busca são texto, não curingas do LIKE
+function escapeLikeWildcards(text) {
+  return text.replace(/[\\%_]/g, '\\$&')
 }

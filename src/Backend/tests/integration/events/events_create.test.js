@@ -191,4 +191,30 @@ describe('POST /events (RF05, RF07)', () => {
       assert.equal(response.code, 'APP000001')
     }
   })
+
+  test('data fora do formato ISO responde 400 de validação', async () => {
+    const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
+    fixtureUserKeys.push(organizer.userKey)
+    const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
+
+    for (const startDate of ['abc', '10/12/2026', '2026-12-10']) {
+      const [status, response] = await RequestGenerator.POST_events(PayloadGenerator.createEventPayload({ start_date: startDate }), headers)
+      assert.equal(status, 400, startDate)
+      assert.equal(response.code, 'APP000001')
+    }
+  })
+
+  test('custo acima do que o banco guarda responde 400 em vez de 500', async () => {
+    const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
+    fixtureUserKeys.push(organizer.userKey)
+    const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
+
+    const payload = PayloadGenerator.createEventPayload({
+      internal_costs: [{ type: 'tax', description: 'Valor gigante', amount: 1e11 }],
+    })
+    const [status, response] = await RequestGenerator.POST_events(payload, headers)
+
+    assert.equal(status, 400)
+    assert.equal(response.code, 'APP000001')
+  })
 })
