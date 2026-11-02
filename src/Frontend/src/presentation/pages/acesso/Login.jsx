@@ -70,7 +70,7 @@ export function Login() {
         </label>
 
         <Link to="/recuperar-senha" className="acesso__link">
-          Esqueci minha senha
+          Esqueceu sua senha?
         </Link>
 
         <RetornoDoEnvio erro={erro} />
