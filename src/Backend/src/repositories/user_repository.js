@@ -20,6 +20,10 @@ export class UserRepository {
   async getByKey(userKey) {
     return User.findOne({
       where: { user_key: userKey },
+      include: [
+        'organizer',
+        { association: 'supplier', include: ['categories'] },
+      ],
       transaction: this.session,
     })
   }
