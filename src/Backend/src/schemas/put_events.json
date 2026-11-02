@@ -15,7 +15,10 @@
       "pattern": "\\S"
     },
     "description": {
-      "type": ["string", "null"],
+      "type": [
+        "string",
+        "null"
+      ],
       "maxLength": 2000
     },
     "start_date": {
@@ -49,11 +52,18 @@
       "pattern": "^[A-Za-z]{2}$"
     },
     "zip_code": {
-      "type": ["string", "null"],
-      "maxLength": 10
+      "description": "CEP com ou sem hífen: 01310-100 ou 01310100.",
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^\\s*\\d{5}-?\\d{3}\\s*$"
     },
     "venue_capacity": {
-      "type": ["integer", "null"],
+      "type": [
+        "integer",
+        "null"
+      ],
       "minimum": 1
     },
     "min_audience": {
@@ -75,7 +85,11 @@
     },
     "reference_scenario": {
       "type": "string",
-      "enum": ["minimum", "expected", "maximum"]
+      "enum": [
+        "minimum",
+        "expected",
+        "maximum"
+      ]
     }
   },
   "required": [

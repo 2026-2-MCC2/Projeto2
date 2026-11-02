@@ -11,28 +11,6 @@ const fixtureUserKeys = []
 
 afterEach(async () => DbUtils.deleteUserFixtures(fixtureUserKeys.splice(0)))
 
-function createValidUpdatePayload(overrides = {}) {
-  return {
-    name: 'Festival Primavera Som & Luz 2026 - Edição Especial',
-    category: 'Festival',
-    description: 'Nova descrição atualizada',
-    start_date: '2026-10-19T14:00:00.000Z',
-    end_date: '2026-10-21T23:00:00.000Z',
-    venue_name: 'Novo Espaço',
-    address: 'Nova Rua, 100',
-    city: 'São Paulo',
-    state: 'SP',
-    zip_code: '05001100',
-    venue_capacity: 25000,
-    min_audience: 9000,
-    expected_audience: 13000,
-    max_audience: 18000,
-    profit_margin: 0.25,
-    reference_scenario: 'expected',
-    ...overrides,
-  }
-}
-
 describe('PUT /events/:event_key (RF05)', () => {
   test('validação de schema: payload inválido ou campo extra responde 400', async () => {
     const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
@@ -44,20 +22,16 @@ describe('PUT /events/:event_key (RF05)', () => {
     // 1. Campo extra não permitido
     const [statusExtra, respExtra] = await RequestGenerator.PUT_event_by_key(
       created.event_key,
-      createValidUpdatePayload({ campo_invalido: 123 }),
+      PayloadGenerator.createEventUpdatePayload({ campo_invalido: 123 }),
       headers,
     )
     assert.equal(statusExtra, 400)
     assert.equal(respExtra.code, 'APP000001')
 
     // 2. Campo obrigatório faltando (name)
-    const semNome = createValidUpdatePayload()
+    const semNome = PayloadGenerator.createEventUpdatePayload()
     delete semNome.name
-    const [statusSemNome, respSemNome] = await RequestGenerator.PUT_event_by_key(
-      created.event_key,
-      semNome,
-      headers,
-    )
+    const [statusSemNome, respSemNome] = await RequestGenerator.PUT_event_by_key(created.event_key, semNome, headers)
     assert.equal(statusSemNome, 400)
     assert.equal(respSemNome.code, 'APP000001')
   })
@@ -68,7 +42,7 @@ describe('PUT /events/:event_key (RF05)', () => {
     const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
 
     const [, created] = await RequestGenerator.POST_events(PayloadGenerator.createEventPayload(), headers)
-    const updatePayload = createValidUpdatePayload()
+    const updatePayload = PayloadGenerator.createEventUpdatePayload()
 
     const [status, response] = await RequestGenerator.PUT_event_by_key(created.event_key, updatePayload, headers)
 
@@ -90,7 +64,7 @@ describe('PUT /events/:event_key (RF05)', () => {
 
     const [status, response] = await RequestGenerator.PUT_event_by_key(
       created.event_key,
-      createValidUpdatePayload({ name: 'Tentativa Hacker' }),
+      PayloadGenerator.createEventUpdatePayload({ name: 'Tentativa Hacker' }),
       headersB,
     )
     assert.equal(status, 404)

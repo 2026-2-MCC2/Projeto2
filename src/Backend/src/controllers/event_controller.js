@@ -1,4 +1,5 @@
 import { BaseController } from './base_controller.js'
+import { EVENT_STATUSES } from '../constants.js'
 import { EventDto } from '../dtos/event_dto.js'
 import {
   EventCannotBeModified,
@@ -8,6 +9,8 @@ import {
   EventExpectedAudienceLessThanMin,
   EventMaxAudienceLessThanExpected,
   EventMinAudienceInvalid,
+  EventStatusConflict,
+  InvalidParameter,
   InvalidProfitMargin,
   NotFoundEvent,
   NotFoundOrganizer,
@@ -16,6 +19,22 @@ import {
 import { EventRepository } from '../repositories/event_repository.js'
 import { OrganizerRepository } from '../repositories/organizer_repository.js'
 import { UserRepository } from '../repositories/user_repository.js'
+import { TextTools } from '../utils/text_tools.js'
+
+// encerrado e cancelado são finais: o evento não volta a ser editado nem cotado
+const ALLOWED_STATUS_TRANSITIONS = {
+  [EVENT_STATUSES.DRAFT]: [EVENT_STATUSES.OPEN_FOR_QUOTES, EVENT_STATUSES.CANCELED],
+  [EVENT_STATUSES.OPEN_FOR_QUOTES]: [EVENT_STATUSES.CLOSED, EVENT_STATUSES.CANCELED],
+  [EVENT_STATUSES.CLOSED]: [],
+  [EVENT_STATUSES.CANCELED]: [],
+}
+
+const STATUS_CONFLICT_MESSAGES = {
+  [EVENT_STATUSES.DRAFT]: 'Publique o evento para cotação antes de encerrá-lo.',
+  [EVENT_STATUSES.OPEN_FOR_QUOTES]: 'Um evento em cotação só pode ser encerrado ou cancelado.',
+  [EVENT_STATUSES.CLOSED]: 'Eventos encerrados não podem mudar de status.',
+  [EVENT_STATUSES.CANCELED]: 'Eventos cancelados não podem mudar de status.',
+}
 
 /**
  * Controller responsável pelas operações de eventos do Organizador (RF05, RF07, RF08).
@@ -117,7 +136,7 @@ export class EventController extends BaseController {
       address: payload.address.trim(),
       city: payload.city.trim(),
       state: payload.state.toUpperCase().trim(),
-      zip_code: payload.zip_code ? payload.zip_code.replace(/\D/g, '') : null,
+      zip_code: payload.zip_code ? TextTools.onlyDigits(payload.zip_code) : null,
       venue_capacity: payload.venue_capacity ?? null,
       min_audience: payload.min_audience,
       expected_audience: payload.expected_audience,
@@ -142,6 +161,10 @@ export class EventController extends BaseController {
    * @returns {Promise<object>} Lista paginada de eventos.
    */
   async getEventsList(userKey, { status, search, limit = 20, page = 0 } = {}) {
+    if (status !== undefined && !Object.values(EVENT_STATUSES).includes(status)) {
+      throw new InvalidParameter(`The "status" parameter is invalid. Status ${status} does not exist.`)
+    }
+
     const organizer = await this.#getOrganizerByUserKey(userKey)
     const offset = page * limit
 
@@ -213,7 +236,7 @@ export class EventController extends BaseController {
       address: payload.address.trim(),
       city: payload.city.trim(),
       state: payload.state.toUpperCase().trim(),
-      zip_code: payload.zip_code ? payload.zip_code.replace(/\D/g, '') : null,
+      zip_code: payload.zip_code ? TextTools.onlyDigits(payload.zip_code) : null,
       venue_capacity: payload.venue_capacity ?? null,
       min_audience: payload.min_audience,
       expected_audience: payload.expected_audience,
@@ -244,8 +267,12 @@ export class EventController extends BaseController {
       throw new NotFoundEvent(eventKey)
     }
 
-    if (newStatus === 'open_for_quotes' && event.status !== 'draft') {
+    const isAllowedTransition = ALLOWED_STATUS_TRANSITIONS[event.status].includes(newStatus)
+    if (!isAllowedTransition && newStatus === EVENT_STATUSES.OPEN_FOR_QUOTES) {
       throw new EventCannotBePublished(event.status)
+    }
+    if (!isAllowedTransition) {
+      throw new EventStatusConflict(STATUS_CONFLICT_MESSAGES[event.status])
     }
 
     const updatedEvent = await this.eventRepository.updateStatus(event, newStatus)

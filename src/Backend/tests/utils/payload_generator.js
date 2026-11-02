@@ -51,4 +51,26 @@ export class PayloadGenerator {
       ...overrides,
     }
   }
+
+  static createEventUpdatePayload(overrides = {}) {
+    return {
+      name: 'Festival Primavera Som & Luz 2026 - Edição Especial',
+      category: 'Festival',
+      description: 'Nova descrição atualizada',
+      start_date: '2026-10-19T14:00:00.000Z',
+      end_date: '2026-10-21T23:00:00.000Z',
+      venue_name: 'Novo Espaço',
+      address: 'Nova Rua, 100',
+      city: 'São Paulo',
+      state: 'SP',
+      zip_code: '05001100',
+      venue_capacity: 25000,
+      min_audience: 9000,
+      expected_audience: 13000,
+      max_audience: 18000,
+      profit_margin: 0.25,
+      reference_scenario: 'expected',
+      ...overrides,
+    }
+  }
 }

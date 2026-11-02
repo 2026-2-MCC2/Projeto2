@@ -168,4 +168,27 @@ describe('POST /events (RF05, RF07)', () => {
     assert.equal(response.code, 'EVP000018')
     assert.equal(response.translation, 'A capacidade do espaço não pode ser menor que o público máximo do evento.')
   })
+
+  test('CEP com hífen é gravado só com os números', async () => {
+    const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
+    fixtureUserKeys.push(organizer.userKey)
+    const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
+
+    const [status, response] = await RequestGenerator.POST_events(PayloadGenerator.createEventPayload({ zip_code: '01310-100' }), headers)
+
+    assert.equal(status, 201)
+    assert.equal(response.zip_code, '01310100')
+  })
+
+  test('CEP sem 8 dígitos ou com letras responde 400', async () => {
+    const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
+    fixtureUserKeys.push(organizer.userKey)
+    const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
+
+    for (const zipCode of ['123456789', '12345-6789', '1234567', 'abc-defgh', '']) {
+      const [status, response] = await RequestGenerator.POST_events(PayloadGenerator.createEventPayload({ zip_code: zipCode }), headers)
+      assert.equal(status, 400, zipCode)
+      assert.equal(response.code, 'APP000001')
+    }
+  })
 })

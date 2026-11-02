@@ -40,14 +40,8 @@ describe('GET /events (RF05)', () => {
     fixtureUserKeys.push(organizer.userKey)
     const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
 
-    await RequestGenerator.POST_events(
-      PayloadGenerator.createEventPayload({ name: 'Festival Rock Paulista', city: 'São Paulo' }),
-      headers,
-    )
-    await RequestGenerator.POST_events(
-      PayloadGenerator.createEventPayload({ name: 'Congresso de Tecnologia', city: 'Campinas' }),
-      headers,
-    )
+    await RequestGenerator.POST_events(PayloadGenerator.createEventPayload({ name: 'Festival Rock Paulista', city: 'São Paulo' }), headers)
+    await RequestGenerator.POST_events(PayloadGenerator.createEventPayload({ name: 'Congresso de Tecnologia', city: 'Campinas' }), headers)
 
     // Busca textual
     const [statusBusca, responseBusca] = await RequestGenerator.GET_events({ search: 'Rock' }, headers)
@@ -81,5 +75,16 @@ describe('GET /events (RF05)', () => {
     const [status, response] = await RequestGenerator.GET_events()
     assert.equal(status, 401)
     assert.equal(response.code, 'APP000401')
+  })
+
+  test('status inexistente no filtro responde 400', async () => {
+    const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
+    fixtureUserKeys.push(organizer.userKey)
+    const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
+
+    const [status, response] = await RequestGenerator.GET_events({ status: 'arquivado' }, headers)
+
+    assert.equal(status, 400)
+    assert.equal(response.code, 'APP000010')
   })
 })
