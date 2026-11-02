@@ -205,6 +205,7 @@ select:user-invalid {
 
 /* grade de uma célula: campo e ícone se sobrepõem, e a mensagem de erro cai na linha de baixo */
 .entrada-data {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
 }
@@ -227,6 +228,17 @@ select:user-invalid {
   width: 2.25rem;
   height: 2.25rem;
   margin-right: 0.25rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  border-radius: 8px;
+  padding: 0;
+  transition: background 0.15s ease;
+}
+
+.entrada-data__calendario:hover {
+  background: var(--fundo-marca-suave, rgba(37, 99, 235, 0.08));
+  --icone-padrao: var(--texto-marca);
 }
 
 .entrada-data__calendario .icone {
@@ -234,15 +246,180 @@ select:user-invalid {
   height: 18px;
 }
 
-.entrada-data__calendario input {
+/* ---------- calendario popover customizado (components/comum/Calendario.jsx) ---------- */
+.calendario-popover {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  padding: 0;
-  border: 0;
-  opacity: 0;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 100;
+  width: 290px;
+  background: var(--fundo-superficie);
+  border: 1px solid var(--borda-padrao);
+  border-radius: 14px;
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.12),
+    0 4px 10px rgba(0, 0, 0, 0.04);
+  padding: 1rem;
+  user-select: none;
+  animation: surgimento-suave 0.18s ease-out;
+}
+
+@keyframes surgimento-suave {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.calendario__cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.calendario__mes-ano {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--texto-primario);
+}
+
+.calendario__navegacao {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.875rem;
+  height: 1.875rem;
+  border: 1px solid var(--borda-padrao);
+  border-radius: 8px;
+  background: var(--fundo-superficie);
+  color: var(--texto-secundario);
   cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.calendario__navegacao:hover {
+  background: var(--fundo-marca-suave);
+  color: var(--texto-marca);
+  border-color: var(--texto-marca);
+}
+
+.calendario__navegacao .icone {
+  width: 12px;
+  height: 12px;
+}
+
+.calendario__dias-semana {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  text-align: center;
+  margin-bottom: 0.375rem;
+}
+
+.calendario__dia-semana {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--texto-terciario);
+  padding: 0.25rem 0;
+}
+
+.calendario__grade {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+}
+
+.calendario__dia {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--texto-primario);
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.15s ease;
+}
+
+.calendario__dia:hover:not(:disabled) {
+  background: var(--fundo-marca-suave);
+  color: var(--texto-marca);
+}
+
+.calendario__dia--outro-mes {
+  color: var(--texto-terciario);
+  opacity: 0.45;
+}
+
+.calendario__dia--hoje {
+  font-weight: 700;
+  border-color: var(--texto-marca);
+}
+
+.calendario__dia--selecionado {
+  background: var(--texto-marca) !important;
+  color: #ffffff !important;
+  font-weight: 700;
+}
+
+.calendario__dia--desabilitado,
+.calendario__dia:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+  background: transparent !important;
+  pointer-events: none;
+}
+
+.calendario__rodape {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.75rem;
+  padding-top: 0.625rem;
+  border-top: 1px solid var(--borda-padrao);
+}
+
+.calendario__botao-hoje {
+  background: transparent;
+  border: none;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--texto-marca);
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  transition: background 0.15s ease;
+}
+
+.calendario__botao-hoje:hover {
+  background: var(--fundo-marca-suave);
+}
+
+.calendario__botao-fechar {
+  background: transparent;
+  border: none;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--texto-secundario);
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  transition: background 0.15s ease;
+}
+
+.calendario__botao-fechar:hover {
+  background: var(--borda-padrao);
 }
 
 /* ---------- toasts (components/comum/Toaster.jsx) ---------- */
