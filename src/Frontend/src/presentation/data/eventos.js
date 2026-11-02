@@ -2,6 +2,7 @@ export const STATUS = {
   planejamento: { nome: 'Em planejamento', nomeCurto: 'Planejamento' },
   cotacao: { nome: 'Em cotação', nomeCurto: 'Cotação' },
   aprovado: { nome: 'Aprovado', nomeCurto: 'Aprovado' },
+  cancelado: { nome: 'Cancelado', nomeCurto: 'Cancelado' },
 }
 
 export const EVENTOS = [
