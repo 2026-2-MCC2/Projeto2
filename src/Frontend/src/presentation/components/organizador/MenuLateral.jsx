@@ -109,26 +109,30 @@ export function MenuLateral({ aoSair, perfil = 'organizador' }) {
             Todos os eventos
           </ItemMenu>
 
-          <div className="menu__recentes">
-            <p className="menu__secao">RECENTES</p>
+          {eventosRecentes.length > 0 && (
+            <div className="menu__recentes">
+              <p className="menu__secao">RECENTES</p>
 
-            {eventosRecentes.map((evento) => (
-              <NavLink
-                key={evento.id}
-                to={`/organizador/eventos/${evento.id}`}
-                viewTransition
-                className={({ isActive }) =>
-                  `menu__evento${isActive ? ' menu__evento--ativo' : ''}`
-                }
-              >
-                <span className={`menu__evento-marcador menu__evento-marcador--${evento.status}`} />
-                <span className="menu__evento-texto">
-                  <strong>{evento.nome}</strong>
-                  <small>{evento.periodoCurto}</small>
-                </span>
-              </NavLink>
-            ))}
-          </div>
+              {eventosRecentes.map((evento) => (
+                <NavLink
+                  key={evento.id}
+                  to={`/organizador/eventos/${evento.id}`}
+                  viewTransition
+                  className={({ isActive }) =>
+                    `menu__evento${isActive ? ' menu__evento--ativo' : ''}`
+                  }
+                >
+                  <span
+                    className={`menu__evento-marcador menu__evento-marcador--${evento.status}`}
+                  />
+                  <span className="menu__evento-texto">
+                    <strong>{evento.nome}</strong>
+                    <small>{evento.periodoCurto}</small>
+                  </span>
+                </NavLink>
+              ))}
+            </div>
+          )}
         </>
       )}
 
