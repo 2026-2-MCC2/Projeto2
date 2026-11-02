@@ -32,12 +32,8 @@ export function useEnvioCadastro() {
         state: { perfil: dados.perfil, nome: dados.nome, cnpj: dados.cnpj },
       })
     } catch (falha) {
-      // sem status, a requisição nem chegou ao backend (fora do ar ou sem internet)
-      setErro(
-        falha.status
-          ? falha.message
-          : 'Não foi possível conectar ao servidor. Tente novamente em instantes.',
-      )
+      // a mensagem já vem em português, inclusive quando o backend está fora do ar (ver infrastructure/api.js)
+      setErro(falha.message)
       setEnviando(false)
     }
   }
