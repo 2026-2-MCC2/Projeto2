@@ -2,6 +2,7 @@ import nodemailer from 'nodemailer'
 
 import { EMAIL_FROM, SMTP_CREDENTIALS_SECRET_NAME, SMTP_HOST, SMTP_PORT } from '../constants.js'
 import { Logger } from '../utils/logger.js'
+import { maskEmail } from '../utils/sensitive_data.js'
 import { SecretManagerConnector } from './secret_manager_connector.js'
 
 const logger = new Logger(null, 'EmailConnector')
@@ -52,9 +53,4 @@ export class EmailConnector {
       logger.error(`Email to ${maskEmail(email.to)} failed: ${error.message}`)
     })
   }
-}
-
-function maskEmail(email) {
-  const [name, domain] = email.split('@')
-  return `${name.slice(0, 2)}***@${domain}`
 }

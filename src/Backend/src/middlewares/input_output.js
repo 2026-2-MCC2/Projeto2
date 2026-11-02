@@ -3,6 +3,7 @@ import { buffer } from 'node:stream/consumers'
 import { BYPASS_ENDPOINTS } from '../constants.js'
 import { InvalidSchema } from '../errors/index.js'
 import { Logger } from '../utils/logger.js'
+import { hideSensitiveData } from '../utils/sensitive_data.js'
 
 export class InputOutputMiddleware {
   async processRequest(req, res) {
@@ -18,10 +19,10 @@ export class InputOutputMiddleware {
 
     const toLogJson = {}
     if (req.context.media !== null) {
-      toLogJson.media = hideBase64(req.context.media)
+      toLogJson.media = hideSensitiveData(req.context.media)
     }
     if (Object.keys(req.query).length > 0) {
-      toLogJson.params = req.query
+      toLogJson.params = hideSensitiveData(req.query)
     }
 
     logger.info(`INCOMING REQUEST ${req.method} ${req.path} ${req.ip}`, toLogJson)
@@ -37,7 +38,7 @@ export class InputOutputMiddleware {
 
     logger.info(
       `OUTGOING RESPONSE ${res.statusCode} ${req.method} ${req.path} ${req.ip} ${totalRequestTime} ms`,
-      hideBase64(req.context.responseMedia),
+      hideSensitiveData(req.context.responseMedia),
     )
   }
 
@@ -69,11 +70,4 @@ export class InputOutputMiddleware {
       return originalJson(body)
     }
   }
-}
-
-function hideBase64(media) {
-  if (media && media.document_b64) {
-    return { ...media, document_b64: 'BASE64 HIDDEN' }
-  }
-  return media
 }
