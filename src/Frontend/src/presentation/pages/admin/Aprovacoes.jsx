@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { OrganizadorLayout } from '../../components/organizador/OrganizadorLayout.jsx'
 import { Botao, Campo } from '../../components/organizador/Formulario.jsx'
 import { Modal } from '../../components/comum/Modal.jsx'
@@ -13,6 +13,7 @@ import {
 } from '../../../domain/formatacao.js'
 import iconeAprovar from '../../assets/organizador/icone-modal-aceitar.svg'
 import iconeRejeitar from '../../assets/admin/icone-modal-rejeitar.svg'
+import { toast } from '../../toasts.js'
 import '../../styles/admin.css'
 
 const ETIQUETAS = {
@@ -20,30 +21,27 @@ const ETIQUETAS = {
   fornecedor: { nome: 'Fornecedor', variacao: 'planejamento' },
 }
 
-// rótulo e formatação de cada dado do cartão
 const CAMPOS = {
   cnpj: { rotulo: 'CNPJ', formatar: formatarCnpj },
-  areaDeAtuacao: { rotulo: 'Área de atuação', formatar: (area) => area },
+  categorias: { rotulo: 'Categorias', formatar: (categorias) => categorias.join(', ') },
   email: { rotulo: 'E-mail', formatar: (email) => email },
   telefone: { rotulo: 'Telefone', formatar: formatarTelefone },
   enviadoEm: { rotulo: 'Enviado em', formatar: formatarData },
 }
 
-// No mobile os dados viram duas colunas, o e-mail ocupa a linha inteira e a data de envio sai.
-// A área de atuação só existe no fornecedor: no organizador ela sai da lista (ver camposDoCartao).
-const ORDEM_DESKTOP = ['cnpj', 'areaDeAtuacao', 'email', 'telefone', 'enviadoEm']
-const ORDEM_MOBILE = ['cnpj', 'areaDeAtuacao', 'telefone', 'email']
+// no mobile a data de envio sai
+const ORDEM_DESKTOP = ['cnpj', 'categorias', 'email', 'telefone', 'enviadoEm']
+const ORDEM_MOBILE = ['cnpj', 'categorias', 'telefone', 'email']
 
 function camposDoCartao(cadastro, isMobile) {
   const ordem = isMobile ? ORDEM_MOBILE : ORDEM_DESKTOP
-  return cadastro.perfil === 'fornecedor'
-    ? ordem
-    : ordem.filter((campo) => campo !== 'areaDeAtuacao')
+  return cadastro.perfil === 'fornecedor' ? ordem : ordem.filter((campo) => campo !== 'categorias')
 }
 
 const RESULTADOS = { aprovar: 'aprovado', rejeitar: 'rejeitado' }
 
 function ModalDecisao({ decisao, cadastro, enviando, aoConfirmar, aoFechar }) {
+  const [motivo, setMotivo] = useState('')
   const empresa = { rotulo: 'Empresa', valor: cadastro.nome }
   const perfil = { rotulo: 'Perfil', valor: ETIQUETAS[cadastro.perfil].nome }
 
@@ -53,7 +51,7 @@ function ModalDecisao({ decisao, cadastro, enviando, aoConfirmar, aoFechar }) {
         icone={iconeAprovar}
         corDoIcone="verde"
         titulo="Aprovar este cadastro?"
-        mensagem="O usuário passa a acessar a plataforma com o perfil solicitado e recebe um aviso por e-mail."
+        mensagem="O usuário passa a acessar a plataforma com o perfil solicitado."
         dados={[empresa, perfil, { rotulo: 'CNPJ', valor: formatarCnpj(cadastro.cnpj) }]}
         acao={{
           cancelar: 'Cancelar',
@@ -71,18 +69,25 @@ function ModalDecisao({ decisao, cadastro, enviando, aoConfirmar, aoFechar }) {
       icone={iconeRejeitar}
       corDoIcone="vermelho"
       titulo="Rejeitar este cadastro?"
-      mensagem="O usuário é avisado de que o cadastro não foi aprovado. Informe o motivo para que ele possa corrigir e enviar de novo."
+      mensagem="O usuário não consegue entrar enquanto o cadastro estiver rejeitado. O motivo fica registrado no histórico de decisões."
       dados={[empresa, perfil]}
       acao={{
         cancelar: 'Cancelar',
         confirmar: enviando ? 'Rejeitando...' : 'Rejeitar cadastro',
-        aoConfirmar: aoConfirmar,
+        aoConfirmar: () => aoConfirmar(motivo),
         ocupado: enviando,
       }}
       aoFechar={aoFechar}
     >
       <Campo rotulo="Motivo da rejeição">
-        <textarea rows={2} placeholder="Ex.: documentação fiscal incompleta." required />
+        <textarea
+          rows={2}
+          maxLength={500}
+          placeholder="Ex.: documentação fiscal incompleta."
+          value={motivo}
+          onChange={(evento) => setMotivo(evento.target.value)}
+          required
+        />
       </Campo>
     </Modal>
   )
@@ -107,7 +112,6 @@ function CartaoSolicitacao({ cadastro, bloqueado, aoDecidir }) {
         </div>
       </div>
 
-      {/* uma coluna por dado no desktop: 4 no organizador, 5 no fornecedor */}
       <dl className="solicitacao__dados" style={{ '--colunas': campos.length }}>
         {campos.map((campo) => (
           <div key={campo} className={`solicitacao__dado solicitacao__dado--${campo}`}>
@@ -134,48 +138,72 @@ export function Aprovacoes() {
   // situacao: 'carregando' | 'erro' | 'pronto'
   const [lista, setLista] = useState({ situacao: 'carregando', cadastros: [], temMais: false })
   const [tentativa, setTentativa] = useState(0)
+  const [atualizando, setAtualizando] = useState(false)
+  const listaJaCarregou = useRef(false)
   const [decisao, setDecisao] = useState(null)
   const [enviando, setEnviando] = useState(false)
-  // { tipo: 'sucesso' | 'erro', texto }
-  const [aviso, setAviso] = useState(null)
 
   useEffect(() => {
-    let ativo = true
+    let telaAberta = true
 
     listarCadastrosPendentes()
       .then(({ cadastros, temMais }) => {
-        if (ativo) setLista({ situacao: 'pronto', cadastros, temMais })
+        if (!telaAberta) return
+        listaJaCarregou.current = true
+        setLista({ situacao: 'pronto', cadastros, temMais })
       })
       .catch((erro) => {
-        if (ativo) setLista({ situacao: 'erro', cadastros: [], temMais: false, erro })
+        if (!telaAberta) return
+        // com a lista já na tela, uma falha ao atualizar vira toast em vez de esconder os cadastros
+        if (listaJaCarregou.current)
+          toast.erro('Não foi possível atualizar a lista', { descricao: erro.message })
+        else setLista({ situacao: 'erro', cadastros: [], temMais: false, erro })
+      })
+      .finally(() => {
+        if (telaAberta) setAtualizando(false)
       })
 
-    // a tela pode fechar antes da resposta chegar: aí a resposta é ignorada
     return () => {
-      ativo = false
+      telaAberta = false
     }
   }, [tentativa])
 
-  function tentarDeNovo() {
-    setLista({ situacao: 'carregando', cadastros: [], temMais: false })
-    setTentativa(tentativa + 1)
+  // a lista só é buscada ao abrir a tela: ao voltar para a aba, busca de novo para mostrar cadastros novos
+  useEffect(() => {
+    function atualizarAoVoltarParaAba() {
+      if (document.visibilityState === 'visible') atualizarLista()
+    }
+
+    document.addEventListener('visibilitychange', atualizarAoVoltarParaAba)
+    return () => document.removeEventListener('visibilitychange', atualizarAoVoltarParaAba)
+  }, [])
+
+  function atualizarLista() {
+    setAtualizando(true)
+    setTentativa((atual) => atual + 1)
   }
 
-  async function confirmarDecisao() {
+  function tentarDeNovo() {
+    setLista({ situacao: 'carregando', cadastros: [], temMais: false })
+    setTentativa((atual) => atual + 1)
+  }
+
+  async function confirmarDecisao(motivo) {
     const { tipo, cadastro } = decisao
     setEnviando(true)
-    setAviso(null)
 
     try {
-      await decidirCadastro(cadastro.chave, tipo)
+      await decidirCadastro(cadastro.chave, tipo, motivo)
       setLista((atual) => ({
         ...atual,
         cadastros: atual.cadastros.filter((item) => item.chave !== cadastro.chave),
       }))
-      setAviso({ tipo: 'sucesso', texto: `Cadastro de ${cadastro.nome} ${RESULTADOS[tipo]}.` })
+      toast.sucesso(`Cadastro ${RESULTADOS[tipo]}`, { descricao: cadastro.nome })
+      // decidiu o último da página e há mais pendentes: busca os próximos
+      if (lista.cadastros.length === 1 && lista.temMais) atualizarLista()
     } catch (falha) {
-      // ex.: outro admin já decidiu este cadastro ("Esse usuário não pode ter o status alterado.")
-      setAviso({ tipo: 'erro', texto: falha.message })
+      // ex.: outro admin já decidiu este cadastro
+      toast.erro('Não foi possível concluir a decisão', { descricao: falha.message })
     } finally {
       setEnviando(false)
       setDecisao(null)
@@ -195,15 +223,12 @@ export function Aprovacoes() {
       apoio={`${apoio}.`}
       apoioMobile={apoio}
     >
-      {aviso?.tipo === 'sucesso' && (
-        <p className="aviso" role="status">
-          {aviso.texto}
-        </p>
-      )}
-      {aviso?.tipo === 'erro' && (
-        <p className="mensagem-erro" role="alert">
-          {aviso.texto}
-        </p>
+      {lista.situacao === 'pronto' && (
+        <div className="aprovacoes__barra">
+          <Botao type="button" secundario disabled={atualizando} onClick={atualizarLista}>
+            {atualizando ? 'Atualizando…' : 'Atualizar lista'}
+          </Botao>
+        </div>
       )}
 
       {lista.situacao === 'carregando' && <Carregando mensagem="Carregando solicitações…" />}

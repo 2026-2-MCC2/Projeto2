@@ -1,14 +1,11 @@
-// Painel de aprovações do admin: lista os cadastros pendentes e decide cada um.
-// A tela usa nomes em português; aqui eles são traduzidos de/para os nomes do backend.
 import { api } from './api.js'
 
-// O backend devolve no máximo 100 por página, do cadastro mais antigo para o mais novo.
-const LIMITE = 100
+// máximo aceito pelo backend
+const LIMITE_POR_PAGINA = 100
 
-// { cadastros: [{ chave, nome, perfil, email, enviadoEm, cnpj, telefone, areaDeAtuacao }], temMais }
-// areaDeAtuacao só vem preenchida para fornecedor (null para organizador).
+// categorias é null para organizador
 export async function listarCadastrosPendentes() {
-  const resposta = await api.get(`/admin/users?status=pending&limit=${LIMITE}&page=0`)
+  const resposta = await api.get(`/admin/users?status=pending&limit=${LIMITE_POR_PAGINA}&page=0`)
 
   return {
     cadastros: resposta.data.map((usuario) => ({
@@ -19,14 +16,15 @@ export async function listarCadastrosPendentes() {
       enviadoEm: usuario.created_at,
       cnpj: usuario.cnpj,
       telefone: usuario.phone,
-      areaDeAtuacao: usuario.service_area,
+      categorias: usuario.categories,
     })),
     temMais: !resposta.is_last_page,
   }
 }
 
-// decisao: 'aprovar' ou 'rejeitar'
-export function decidirCadastro(chave, decisao) {
-  const status = decisao === 'aprovar' ? 'approved' : 'rejected'
-  return api.put(`/admin/users/${encodeURIComponent(chave)}/status`, { status: status })
+// decisao: 'aprovar' ou 'rejeitar'; o motivo é obrigatório ao rejeitar
+export function decidirCadastro(chave, decisao, motivo) {
+  const corpo =
+    decisao === 'aprovar' ? { status: 'approved' } : { status: 'rejected', reason: motivo }
+  return api.put(`/admin/users/${encodeURIComponent(chave)}/status`, corpo)
 }

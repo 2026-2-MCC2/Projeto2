@@ -294,6 +294,11 @@
 
 /* ---------- aprovações ---------- */
 
+.aprovacoes__barra {
+  display: flex;
+  justify-content: flex-end;
+}
+
 .solicitacoes {
   display: flex;
   flex-direction: column;

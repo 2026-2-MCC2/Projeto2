@@ -203,6 +203,128 @@ select:user-invalid {
   cursor: pointer;
 }
 
+/* ---------- toasts (components/comum/Toaster.jsx) ---------- */
+
+/* no celular fica acima da barra de abas; no desktop, acima dos botões flutuantes do canto */
+.toaster {
+  position: fixed;
+  right: 0.75rem;
+  bottom: calc(6.5rem + env(safe-area-inset-bottom));
+  left: 0.75rem;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  pointer-events: none;
+}
+
+@media (min-width: 901px) {
+  .toaster {
+    right: 2rem;
+    bottom: 6.5rem;
+    left: auto;
+    width: 400px;
+  }
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem;
+  border: 1px solid var(--borda-padrao);
+  border-radius: 12px;
+  background: var(--fundo-superficie);
+  box-shadow: 0 12px 28px rgb(15 23 42 / 16%);
+  pointer-events: auto;
+  animation: toast-entra 0.2s ease;
+}
+
+@keyframes toast-entra {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.toast__icone {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 8px;
+}
+
+.toast--sucesso .toast__icone {
+  --icone-cor: var(--status-sucesso-texto);
+  background: var(--status-sucesso-fundo);
+}
+
+.toast--erro .toast__icone {
+  --icone-cor: var(--status-perigo-texto);
+  background: var(--status-perigo-fundo);
+}
+
+.toast--info .toast__icone {
+  --icone-cor: var(--texto-marca);
+  background: var(--fundo-marca-suave);
+}
+
+.toast__texto {
+  flex: 1;
+  min-width: 0;
+}
+
+.toast__titulo {
+  margin: 0;
+  color: var(--texto-primario);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.toast__descricao {
+  margin: 0.125rem 0 0;
+  color: var(--texto-secundario);
+  font-size: 0.75rem;
+}
+
+.toast__acao,
+.toast__fechar {
+  flex-shrink: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+}
+
+.toast__acao {
+  padding: 0.25rem 0.375rem;
+  color: var(--texto-marca);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.toast__fechar {
+  display: grid;
+  place-items: center;
+  padding: 0.25rem;
+}
+
+.toast__acao:hover,
+.toast__fechar:hover {
+  background: var(--fundo-sutil);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    animation: none;
+  }
+}
+
 /* ---------- estados da tela ---------- */
 
 .estado-tela {
