@@ -577,33 +577,14 @@ select:user-invalid {
   font-size: var(--logo-altura, 71px);
 }
 
-.logotipo__claro {
+.logotipo__claro,
+.logotipo__negativo {
   height: 100%;
   width: auto;
 }
 
 .logotipo__negativo {
   display: none;
-  align-items: center;
-}
-
-.logotipo__negativo img {
-  height: 0.39em;
-  margin: 0 0.115em 0.11em 0.3em;
-}
-
-.logotipo__nome {
-  color: var(--texto-primario);
-  font-family: Nunito, Inter, sans-serif;
-  font-size: 0.36em;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  line-height: 1;
-  white-space: nowrap;
-}
-
-.logotipo__nome span {
-  color: #fe7524;
 }
 
 :root[data-tema='escuro'] .logotipo__claro {
@@ -611,5 +592,5 @@ select:user-invalid {
 }
 
 :root[data-tema='escuro'] .logotipo__negativo {
-  display: inline-flex;
+  display: block;
 }
