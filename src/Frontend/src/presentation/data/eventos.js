@@ -435,7 +435,18 @@ export const EVENTOS = [
   },
 ]
 
-export const buscarEvento = (id) => EVENTOS.find((evento) => evento.id === id)
+const EVENTOS_CACHE = new Map()
+
+export function registrarEventoCache(evento) {
+  if (evento?.id) {
+    EVENTOS_CACHE.set(evento.id, evento)
+    if (evento.event_key) {
+      EVENTOS_CACHE.set(evento.event_key, evento)
+    }
+  }
+}
+
+export const buscarEvento = (id) => EVENTOS_CACHE.get(id) || EVENTOS.find((evento) => evento.id === id)
 
 const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
 
