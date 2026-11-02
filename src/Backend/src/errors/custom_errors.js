@@ -65,3 +65,39 @@ export class UserStatusConflict extends ApiException {
     super(title, UserStatusConflict.code, httpStatus, description, translation)
   }
 }
+
+export class EmailAlreadyRegistered extends ApiException {
+  static code = 'EVP000005'
+
+  constructor() {
+    const title = 'Email already registered'
+    const httpStatus = 409
+    const description = 'A registration with this email already exists.'
+    const translation = 'Já existe um cadastro com este e-mail.'
+    super(title, EmailAlreadyRegistered.code, httpStatus, description, translation)
+  }
+}
+
+export class CnpjAlreadyRegistered extends ApiException {
+  static code = 'EVP000006'
+
+  constructor() {
+    const title = 'CNPJ already registered'
+    const httpStatus = 409
+    const description = 'A registration with this CNPJ already exists.'
+    const translation = 'Já existe um cadastro com este CNPJ.'
+    super(title, CnpjAlreadyRegistered.code, httpStatus, description, translation)
+  }
+}
+
+export class InvalidCnpj extends ApiException {
+  static code = 'EVP000007'
+
+  constructor() {
+    const title = 'Invalid CNPJ'
+    const httpStatus = 400
+    const description = 'The informed CNPJ is not valid.'
+    const translation = 'Informe um CNPJ válido.'
+    super(title, InvalidCnpj.code, httpStatus, description, translation)
+  }
+}
