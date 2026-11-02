@@ -1,6 +1,10 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { entrar, rotaInicialDoPerfil } from '../../../application/sessao.js'
+import {
+  acompanhamentoDoCadastro,
+  entrar,
+  rotaInicialDoPerfil,
+} from '../../../application/sessao.js'
 import { AcessoLayout } from '../../components/acesso/AcessoLayout.jsx'
 import { RetornoDoEnvio } from '../../components/acesso/RetornoDoEnvio.jsx'
 import { useValidacao } from '../../hooks/useValidacao.js'
@@ -22,7 +26,11 @@ export function Login() {
       const usuario = await entrar({ email, senha })
       navegar(rotaInicialDoPerfil(usuario.perfil), { replace: true })
     } catch (falha) {
-      // ex.: "E-mail ou senha incorretos." ou "Seu cadastro ainda está em análise."
+      const acompanhamento = acompanhamentoDoCadastro(falha)
+      if (acompanhamento) {
+        navegar('/cadastro-pendente', { state: acompanhamento })
+        return
+      }
       setErro(falha.message)
       setEnviando(false)
     }

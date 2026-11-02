@@ -1,20 +1,13 @@
-// Sessão de quem está logado: o único lugar que sabe entrar, sair e quem é o usuário atual.
-//   const usuario = await entrar({ email, senha })   // { chave, nome, perfil }
-//   usuarioAtual()                                    // o mesmo objeto, ou null se ninguém entrou
-//   perfilAtual()                                     // 'organizador' | 'fornecedor' | 'admin' | null
-//   rotaInicialDoPerfil('admin')                      // '/admin/aprovacoes'
-//   sair()
 import { api } from '../infrastructure/api.js'
 import { guardarSessao, lerSessao, limparSessao } from '../infrastructure/armazenamentoDaSessao.js'
 
-// Para onde cada perfil vai depois do login (e quando tenta abrir a área de outro perfil).
+// também usada quando alguém tenta abrir a área de outro perfil
 const ROTAS_INICIAIS = {
   organizador: '/organizador/eventos',
   fornecedor: '/fornecedor/eventos',
   admin: '/admin/aprovacoes',
 }
 
-// Erros da API chegam com a mensagem em português (ver infrastructure/api.js).
 export async function entrar({ email, senha }) {
   const resposta = await api.post('/auth/login', { email: email, password: senha })
 
@@ -25,6 +18,26 @@ export async function entrar({ email, senha }) {
   }
   guardarSessao({ token: resposta.token, usuario: usuario })
   return usuario
+}
+
+const SITUACOES_POR_CODIGO = { EVP000009: 'pendente', EVP000010: 'rejeitado' }
+
+// login barrado por cadastro pendente ou rejeitado: dados para a tela de acompanhamento, ou null
+export function acompanhamentoDoCadastro(falhaNoLogin) {
+  const situacao = SITUACOES_POR_CODIGO[falhaNoLogin.codigo]
+  const detalhes = falhaNoLogin.detalhes
+  if (!situacao || !detalhes) return null
+
+  return {
+    situacao,
+    perfil: detalhes.profile,
+    nome: detalhes.name,
+    cnpj: detalhes.cnpj,
+    categorias: detalhes.categories,
+    enviadoEm: detalhes.submitted_at,
+    decididoEm: detalhes.decided_at,
+    motivo: detalhes.reason,
+  }
 }
 
 export function sair() {

@@ -278,6 +278,12 @@
   font-weight: 600;
 }
 
+.acesso__situacao--rejeitado {
+  --icone-cor: var(--status-perigo-texto);
+  background: var(--status-perigo-fundo);
+  color: var(--status-perigo-texto);
+}
+
 .acesso__situacao .icone {
   width: 8px;
   height: 8px;
@@ -317,6 +323,19 @@
 .acesso__etapa--pendente span {
   color: var(--texto-secundario);
   font-weight: 500;
+}
+
+.acesso__etapa--rejeitada strong {
+  color: var(--status-perigo-texto);
+}
+
+.acesso__etapa-motivo {
+  margin: 0.25rem 0 0;
+  padding: 0.5rem 0.625rem;
+  border-radius: 8px;
+  background: var(--status-perigo-fundo);
+  color: var(--texto-primario);
+  font-size: 0.75rem;
 }
 
 .acesso__etapa-marcador {
@@ -687,4 +706,39 @@
 
 .etapas__topo .acessibilidade-area + .botao-tema {
   margin-left: calc(4px - 0.75rem);
+}
+
+/* ---------- categorias de atuação do fornecedor ---------- */
+
+.campo-categorias {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.campo-categorias legend {
+  margin-bottom: 0.375rem;
+  padding: 0;
+}
+
+.campo-categorias__opcoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.campo-categorias__opcoes .filtro:has(:focus-visible) {
+  outline: 2px solid var(--texto-marca);
+  outline-offset: 2px;
+}
+
+.campo-categorias__caixa,
+.campo-categorias__exigencia {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  opacity: 0;
 }
