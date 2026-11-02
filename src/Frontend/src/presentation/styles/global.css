@@ -623,6 +623,9 @@ select:user-invalid {
 .logotipo__negativo {
   height: 100%;
   width: auto;
+  /* alinhamento óptico: a ponta do símbolo é fina, então o desenho é puxado para o corpo dele
+     ficar na mesma linha do texto ao lado (o em vale a altura do logo) */
+  margin-left: -0.04em;
 }
 
 .logotipo__negativo {
