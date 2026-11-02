@@ -1,5 +1,7 @@
+import { useEffect, useState } from 'react'
 import { NavLink } from 'react-router-dom'
-import { EVENTOS } from '../../data/eventos.js'
+import { listarEventos } from '../../../application/eventos.js'
+import { usuarioAtual } from '../../../application/sessao.js'
 import { Icone } from '../comum/Icone.jsx'
 import simbolo from '../../assets/organizador/simbolo.png'
 import iconeOrganizador from '../../assets/organizador/icone-organizador.svg'
@@ -63,6 +65,23 @@ function ItemMenu({ to, end = false, classe = '', children }) {
 export function MenuLateral({ aoSair, perfil = 'organizador' }) {
   const dadosPerfil = PERFIS[perfil] ?? PERFIS.organizador
   const itens = ITENS[perfil]
+  const usuario = usuarioAtual()
+  const nomeExibicao = usuario?.nome || dadosPerfil.nome
+  const [eventosRecentes, setEventosRecentes] = useState([])
+
+  useEffect(() => {
+    let ativo = true
+    if (perfil === 'organizador') {
+      listarEventos({ limit: 4 })
+        .then((res) => {
+          if (ativo && res?.data) setEventosRecentes(res.data)
+        })
+        .catch(() => {})
+    }
+    return () => {
+      ativo = false
+    }
+  }, [perfil])
 
   return (
     <nav className="menu">
@@ -94,7 +113,7 @@ export function MenuLateral({ aoSair, perfil = 'organizador' }) {
           <div className="menu__recentes">
             <p className="menu__secao">RECENTES</p>
 
-            {EVENTOS.map((evento) => (
+            {eventosRecentes.map((evento) => (
               <NavLink
                 key={evento.id}
                 to={`/organizador/eventos/${evento.id}`}
@@ -123,7 +142,7 @@ export function MenuLateral({ aoSair, perfil = 'organizador' }) {
 
       <div className="menu__usuario">
         <div>
-          <p className="menu__usuario-nome">{dadosPerfil.nome}</p>
+          <p className="menu__usuario-nome">{nomeExibicao}</p>
           <p className="menu__usuario-papel">{dadosPerfil.papel}</p>
         </div>
         <button type="button" className="menu__sair" aria-label="Sair" onClick={aoSair}>
