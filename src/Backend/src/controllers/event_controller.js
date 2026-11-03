@@ -19,7 +19,9 @@ import {
 import { EventRepository } from '../repositories/event_repository.js'
 import { InternalCostRepository } from '../repositories/internal_cost_repository.js'
 import { OrganizerRepository } from '../repositories/organizer_repository.js'
+import { ProposalRepository } from '../repositories/proposal_repository.js'
 import { UserRepository } from '../repositories/user_repository.js'
+import { ProposalComparisonDTO } from '../dtos/proposal_comparison_dto.js'
 import { TextTools } from '../utils/text_tools.js'
 
 const STATUS_CONFLICT_MESSAGES = {
@@ -47,6 +49,7 @@ export class EventController extends BaseController {
     this.organizerRepository = new OrganizerRepository(context)
     this.eventRepository = new EventRepository(context)
     this.internalCostRepository = new InternalCostRepository(context)
+    this.proposalRepository = new ProposalRepository(context)
   }
 
   /**
@@ -197,6 +200,24 @@ export class EventController extends BaseController {
     }
 
     return EventDto.fromModel(event)
+  }
+
+  /**
+   * Consulta as propostas dos itens de um evento pertencente ao organizador.
+   * @param {string} userKey Chave pública do organizador autenticado.
+   * @param {string} eventKey UUID público do evento.
+   * @returns {Promise<object>} Propostas agrupadas por item, com a validade indicada.
+   */
+  async getEventProposals(userKey, eventKey) {
+    const organizer = await this.#getOrganizerByUserKey(userKey)
+    const event = await this.eventRepository.getByKey(eventKey)
+
+    if (!event || event.organizer_id !== organizer.id) {
+      throw new NotFoundEvent(eventKey)
+    }
+
+    const rows = await this.proposalRepository.getByEventId(event.id)
+    return ProposalComparisonDTO.fromRows(eventKey, rows)
   }
 
   /**
