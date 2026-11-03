@@ -128,8 +128,7 @@
 
 .fornecedor-evento__numeros {
   display: grid;
-  /* público e itens ocupam só o que precisam; o orçamento, que é o número maior, fica com o resto */
-  grid-template-columns: auto auto minmax(0, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   /* números e botão encostam no fim do card: ficam alinhados entre cards da mesma linha */
   margin-top: auto;
   gap: 16px;
@@ -157,10 +156,6 @@
   font-size: 1rem;
   font-weight: 600;
   white-space: nowrap;
-}
-
-.fornecedor-evento__numeros .fornecedor-evento__orcamento {
-  color: var(--texto-marca);
 }
 
 .fornecedor-evento__acao {
@@ -912,6 +907,77 @@
   text-align: center;
 }
 
+.fornecedor-evento-detalhe {
+  display: grid;
+  gap: 16px;
+}
+
+.fornecedor-evento-detalhe__dados {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin: 0;
+}
+
+.fornecedor-evento-detalhe__dados > div,
+.fornecedor-evento-detalhe__valor {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.fornecedor-evento-detalhe__dados dt,
+.fornecedor-evento-detalhe__valor span {
+  color: var(--texto-secundario);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.fornecedor-evento-detalhe__dados dd {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.fornecedor-evento-detalhe__itens {
+  display: grid;
+  gap: 12px;
+}
+
+.fornecedor-evento-detalhe__item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px;
+  border: 1px solid var(--borda-padrao);
+  border-radius: 12px;
+}
+
+.fornecedor-evento-detalhe__item h3 {
+  margin: 10px 0 4px;
+  font-size: 1rem;
+}
+
+.fornecedor-evento-detalhe__item p {
+  margin: 4px 0;
+  color: var(--texto-secundario);
+  font-size: 0.8125rem;
+}
+
+.fornecedor-evento-detalhe__valor {
+  min-width: 155px;
+  text-align: right;
+}
+
+.fornecedor-evento-detalhe__valor strong {
+  color: var(--texto-marca);
+}
+
+.fornecedor-evento-detalhe__valor small {
+  color: var(--texto-secundario);
+}
+
 @media (max-width: 1100px) {
   .fornecedor__busca-filtros {
     align-items: stretch;
@@ -1192,5 +1258,18 @@
 
   .fornecedor-evento__numeros strong {
     font-size: 0.875rem;
+  }
+
+  .fornecedor-evento-detalhe__dados {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .fornecedor-evento-detalhe__item {
+    flex-direction: column;
+  }
+
+  .fornecedor-evento-detalhe__valor {
+    min-width: 0;
+    text-align: left;
   }
 }

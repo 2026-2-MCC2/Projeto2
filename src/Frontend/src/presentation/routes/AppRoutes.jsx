@@ -31,6 +31,7 @@ const PropostaRecebida = doOrganizador('PropostaRecebida')
 const Configuracoes = comuns('Configuracoes')
 const Duvidas = comuns('Duvidas')
 const EventosDisponiveis = doFornecedor('EventosDisponiveis')
+const EventoDisponivel = doFornecedor('EventoDisponivel')
 const EnviarProposta = doFornecedor('EnviarProposta')
 const EnviarPropostaEtapa2 = doFornecedor('EnviarPropostaEtapa2')
 const EnviarPropostaEtapa3 = doFornecedor('EnviarPropostaEtapa3')
@@ -73,6 +74,7 @@ export function AppRoutes() {
           <Route element={<AreaDoPerfil perfil="fornecedor" />}>
             <Route path="/fornecedor" element={<Navigate to="/fornecedor/eventos" replace />} />
             <Route path="/fornecedor/eventos" element={<EventosDisponiveis />} />
+            <Route path="/fornecedor/eventos/:id" element={<EventoDisponivel />} />
             <Route path="/fornecedor/propostas" element={<MinhasPropostas />} />
             <Route
               path="/fornecedor/configuracoes"
