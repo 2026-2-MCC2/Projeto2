@@ -127,6 +127,19 @@ export class RequestGenerator {
     return [response.responseStatus, response.responseJson]
   }
 
+  static async GET_supplier_events(params = {}, headers = {}) {
+    const response = await ClientRequisition.send('GET', '/event_planning/supplier/events', {
+      headers,
+      queryParams: params,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async GET_supplier_event_by_key(eventKey, headers = {}) {
+    const response = await ClientRequisition.send('GET', `/event_planning/supplier/events/${eventKey}`, { headers })
+    return [response.responseStatus, response.responseJson]
+  }
+
   static async PUT_event_item(eventKey, itemKey, payload, headers = {}) {
     const response = await ClientRequisition.send('PUT', `/event_planning/events/${eventKey}/items/${itemKey}`, {
       payload,
