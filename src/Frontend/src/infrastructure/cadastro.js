@@ -12,3 +12,7 @@ export function enviarCadastro({ perfil, nome, email, senha, cnpj, telefone, cat
     ...(categorias !== undefined && { categories: categorias }),
   })
 }
+
+export function verificarCnpj(cnpj) {
+  return api.post('/auth/verificar-cnpj', { cnpj })
+}

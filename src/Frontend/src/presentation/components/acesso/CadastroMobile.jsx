@@ -8,6 +8,7 @@ import { TituloDaPagina } from '../comum/TituloDaPagina.jsx'
 import { CampoCategoriasDeAtuacao } from './CampoCategoriasDeAtuacao.jsx'
 import { RetornoDoEnvio } from './RetornoDoEnvio.jsx'
 import { useEnvioCadastro } from '../../hooks/useEnvioCadastro.js'
+import { useVerificacaoDeCnpj } from '../../hooks/useVerificacaoDeCnpj.js'
 import { useValidacao } from '../../hooks/useValidacao.js'
 import { validarConfirmacaoSenha } from '../../../domain/validacao.js'
 import setaVoltar from '../../assets/acesso/seta-voltar.svg'
@@ -15,6 +16,7 @@ import perfilSelecionado from '../../assets/acesso/perfil-selecionado.svg'
 import '../../styles/acesso.css'
 
 const ETAPAS = ['Perfil', 'Dados da empresa', 'Acesso']
+const ETAPA_DO_CNPJ = 2
 
 const PERFIS = [
   {
@@ -40,6 +42,12 @@ const DADOS_INICIAIS = {
   confirmacaoSenha: '',
 }
 
+function textoDoBotao({ etapa, enviando, verificando }) {
+  if (verificando) return 'Verificando...'
+  if (etapa < ETAPAS.length) return 'Continuar'
+  return enviando ? 'Enviando...' : 'Enviar cadastro'
+}
+
 export function CadastroMobile() {
   const navegar = useNavigate()
   const [etapa, setEtapa] = useState(1)
@@ -48,9 +56,13 @@ export function CadastroMobile() {
     confirmacaoSenha: (valor, valores) => validarConfirmacaoSenha(valor, valores.senha),
   })
   const { enviar, enviando, erro } = useEnvioCadastro()
+  const { verificando, erroDoCnpj, cnpjEstaLivre, limparErroDoCnpj } = useVerificacaoDeCnpj()
 
   function preencher(campo) {
-    return (evento) => setDados({ ...dados, [campo]: evento.target.value })
+    return (evento) => {
+      if (campo === 'cnpj') limparErroDoCnpj()
+      setDados({ ...dados, [campo]: evento.target.value })
+    }
   }
 
   // categorias são só do fornecedor: recomeçam vazias ao trocar de perfil
@@ -66,8 +78,10 @@ export function CadastroMobile() {
     setEtapa(etapa - 1)
   }
 
-  function aoEnviar(evento) {
+  async function aoEnviar(evento) {
     evento.preventDefault()
+
+    if (etapa === ETAPA_DO_CNPJ && !(await cnpjEstaLivre(dados.cnpj))) return
 
     if (etapa < ETAPAS.length) {
       setEtapa(etapa + 1)
@@ -232,10 +246,11 @@ export function CadastroMobile() {
         </div>
 
         <div className="etapas__acoes">
+          {etapa === ETAPA_DO_CNPJ && <RetornoDoEnvio erro={erroDoCnpj} />}
           {etapa === ETAPAS.length && <RetornoDoEnvio erro={erro} />}
 
-          <button type="submit" className="acesso__botao" disabled={enviando}>
-            {etapa < ETAPAS.length ? 'Continuar' : enviando ? 'Enviando...' : 'Enviar cadastro'}
+          <button type="submit" className="acesso__botao" disabled={enviando || verificando}>
+            {textoDoBotao({ etapa, enviando, verificando })}
           </button>
         </div>
       </form>
