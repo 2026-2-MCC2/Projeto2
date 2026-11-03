@@ -68,6 +68,7 @@ export function create() {
   addRoute(app, `${API_PREFIX}/events`, eventResource, 'List')
   addRoute(app, `${API_PREFIX}/events/:event_key`, eventResource, 'ByKey')
   addRoute(app, `${API_PREFIX}/events/:event_key/proposals`, eventResource, 'Proposals')
+  addRoute(app, `${API_PREFIX}/events/:event_key/proposals/:proposal_key/accept`, eventResource, 'ProposalAccept')
   addRoute(app, `${API_PREFIX}/events/:event_key/status`, eventResource, 'StatusByKey')
   addRoute(app, `${API_PREFIX}/events/:event_key/internal-costs`, eventResource, 'InternalCosts')
   addRoute(app, `${API_PREFIX}/events/:event_key/internal-costs/:internal_cost_key`, eventResource, 'InternalCostByKey')

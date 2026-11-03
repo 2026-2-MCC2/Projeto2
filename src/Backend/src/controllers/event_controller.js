@@ -4,6 +4,7 @@ import { EventDto } from '../dtos/event_dto.js'
 import {
   EventCannotBeModified,
   EventCannotBePublished,
+  EventNotOpenForQuotes,
   EventCapacityLessThanMaxAudience,
   EventEndDateBeforeStartDate,
   EventInvalidDate,
@@ -14,6 +15,7 @@ import {
   NotFoundEvent,
   NotFoundInternalCost,
   NotFoundOrganizer,
+  NotFoundProposal,
   NotFoundUser,
 } from '../errors/index.js'
 import { EventRepository } from '../repositories/event_repository.js'
@@ -217,6 +219,34 @@ export class EventController extends BaseController {
     }
 
     const rows = await this.proposalRepository.getByEventId(event.id)
+    return ProposalComparisonDTO.fromRows(eventKey, rows)
+  }
+
+  /**
+   * Aceita uma proposta do evento e rejeita as concorrentes do mesmo item.
+   * @param {string} userKey Chave pública do organizador autenticado.
+   * @param {string} eventKey UUID público do evento.
+   * @param {string} proposalKey UUID público da proposta.
+   * @returns {Promise<object>} Comparação atualizada e custo consolidado.
+   */
+  async acceptProposal(userKey, eventKey, proposalKey) {
+    const organizer = await this.#getOrganizerByUserKey(userKey)
+    const event = await this.eventRepository.getByKeyForUpdate(eventKey)
+
+    if (!event || event.organizer_id !== organizer.id) {
+      throw new NotFoundEvent(eventKey)
+    }
+    if (event.status !== EVENT_STATUSES.OPEN_FOR_QUOTES) {
+      throw new EventNotOpenForQuotes()
+    }
+
+    const accepted = await this.proposalRepository.acceptByProposalKey(event.id, proposalKey)
+    if (!accepted) {
+      throw new NotFoundProposal(proposalKey)
+    }
+
+    const rows = await this.proposalRepository.getByEventId(event.id)
+    await this.session.commit()
     return ProposalComparisonDTO.fromRows(eventKey, rows)
   }
 

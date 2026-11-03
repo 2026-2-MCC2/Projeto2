@@ -255,6 +255,54 @@ export class EventInvalidDate extends ApiException {
   }
 }
 
+export class EventNotOpenForQuotes extends ApiException {
+  static code = 'EVP000030'
+
+  constructor() {
+    const title = 'Event is not open for quotes'
+    const httpStatus = 409
+    const description = 'Proposals can only be accepted while the event is open for quotes.'
+    const translation = 'Só é possível aceitar propostas enquanto o evento está em cotação.'
+    super(title, EventNotOpenForQuotes.code, httpStatus, description, translation)
+  }
+}
+
+export class NotFoundProposal extends ApiException {
+  static code = 'EVP000033'
+
+  constructor(proposalKey = '') {
+    const title = 'Proposal not found'
+    const httpStatus = 404
+    const description = `Proposal ${proposalKey} was not found in this event.`
+    const translation = 'A proposta não foi encontrada neste evento.'
+    super(title, NotFoundProposal.code, httpStatus, description, translation)
+  }
+}
+
+export class ProposalExpired extends ApiException {
+  static code = 'EVP000034'
+
+  constructor() {
+    const title = 'Proposal expired'
+    const httpStatus = 409
+    const description = 'An expired proposal cannot be accepted.'
+    const translation = 'Esta proposta está vencida e não pode ser aceita.'
+    super(title, ProposalExpired.code, httpStatus, description, translation)
+  }
+}
+
+export class ProposalDecisionConflict extends ApiException {
+  static code = 'EVP000035'
+
+  constructor() {
+    const title = 'Proposal was decided concurrently'
+    const httpStatus = 409
+    const description = 'Another proposal for this item was accepted while this request was waiting.'
+    const translation = 'Outra proposta deste item foi aceita ao mesmo tempo. Atualize a tela e tente novamente.'
+    super(title, ProposalDecisionConflict.code, httpStatus, description, translation)
+  }
+}
+
 export class CurrentPasswordIncorrect extends ApiException {
   static code = 'EVP000037'
 
