@@ -66,6 +66,7 @@ describe('GET /events/:event_key/proposals', () => {
         amount: 980,
         valid_until: '2000-01-01',
         notes: 'Validade encerrada.',
+        status: 'sent',
         is_expired: true,
       },
       {
@@ -74,6 +75,7 @@ describe('GET /events/:event_key/proposals', () => {
         amount: 1250,
         valid_until: '2099-01-01',
         notes: 'Inclui montagem e desmontagem.',
+        status: 'sent',
         is_expired: false,
       },
     ])

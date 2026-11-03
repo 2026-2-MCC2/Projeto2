@@ -82,6 +82,13 @@ export class RequestGenerator {
     return [response.responseStatus, response.responseJson]
   }
 
+  static async POST_event_proposal_accept(eventKey, proposalKey, headers = {}) {
+    const response = await ClientRequisition.send('POST', `/event_planning/events/${eventKey}/proposals/${proposalKey}/accept`, {
+      headers: headers,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
   static async PUT_event_by_key(eventKey, payload, headers = {}) {
     const response = await ClientRequisition.send('PUT', `/event_planning/events/${eventKey}`, {
       payload: payload,
