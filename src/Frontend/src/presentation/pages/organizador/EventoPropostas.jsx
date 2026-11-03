@@ -1,13 +1,13 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { EventoLayout } from '../../components/organizador/EventoLayout.jsx'
-import { Vazio } from '../../components/comum/EstadoDaTela.jsx'
+import { Carregando, ErroNaTela, Vazio } from '../../components/comum/EstadoDaTela.jsx'
 import { Tabela } from '../../components/organizador/Tabela.jsx'
 import { Botao } from '../../components/organizador/Formulario.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
-import { estaVencida } from '../../data/eventos.js'
-import { useEvento } from '../../hooks/useEvento.js'
 import { Icone } from '../../components/comum/Icone.jsx'
+import { formatarMoeda } from '../../../application/eventos.js'
+import { buscarComparacaoDePropostas } from '../../../application/propostas.js'
 import iconeAvancar from '../../assets/organizador/icone-avancar.svg'
 import iconeCards from '../../assets/organizador/icone-cards.svg'
 import iconeLista from '../../assets/organizador/icone-lista.svg'
@@ -20,15 +20,16 @@ const VISOES = [
 function Etiquetas({ proposta }) {
   return (
     <>
-      {proposta.selecionada && <span className="etiqueta etiqueta--aprovado">Selecionada</span>}
-      {estaVencida(proposta.validade) && (
-        <span className="etiqueta etiqueta--vencida">Vencida</span>
-      )}
-      {proposta.etiqueta && (
-        <span className="etiqueta etiqueta--destaque">{proposta.etiqueta}</span>
+      {proposta.is_expired && (
+        <span className="etiqueta etiqueta--vencida">Vencida · indisponível para seleção</span>
       )}
     </>
   )
+}
+
+function formatarValidade(validade) {
+  const [ano, mes, dia] = validade.split('-')
+  return `${dia}/${mes}/${ano}`
 }
 
 export function EventoPropostas() {
@@ -37,8 +38,47 @@ export function EventoPropostas() {
   const navigate = useNavigate()
   const [visao, setVisao] = useState('cards')
   const [itemAberto, setItemAberto] = useState('todos')
-  const itens = useEvento(id).evento?.detalhe?.comparacao?.itens
-  const total = itens ? itens.reduce((soma, item) => soma + item.propostas.length, 0) : 0
+  const [resultado, setResultado] = useState({ event_key: null, items: [], error: null })
+  const [tentativa, setTentativa] = useState(0)
+
+  useEffect(() => {
+    let telaAberta = true
+
+    buscarComparacaoDePropostas(id)
+      .then((resposta) => {
+        if (telaAberta) setResultado({ ...resposta, error: null })
+      })
+      .catch((error) => {
+        if (telaAberta) setResultado({ event_key: id, items: [], error })
+      })
+
+    return () => {
+      telaAberta = false
+    }
+  }, [id, tentativa])
+
+  const carregando = resultado.event_key !== id
+  const itens = resultado.items
+  const total = itens ? itens.reduce((soma, item) => soma + item.proposals.length, 0) : 0
+
+  if (resultado.error && !carregando) {
+    return (
+      <EventoLayout>
+        <ErroNaTela
+          erro={resultado.error}
+          aoTentarDeNovo={() => setTentativa((valor) => valor + 1)}
+        />
+      </EventoLayout>
+    )
+  }
+
+  if (carregando) {
+    return (
+      <EventoLayout>
+        <Carregando mensagem="Carregando propostas do evento…" />
+      </EventoLayout>
+    )
+  }
 
   if (!itens || itens.length === 0 || total === 0) {
     return (
@@ -51,15 +91,20 @@ export function EventoPropostas() {
     )
   }
 
-  const visiveis = itemAberto === 'todos' ? itens : itens.filter((item) => item.id === itemAberto)
+  const visiveis =
+    itemAberto === 'todos' ? itens : itens.filter((item) => item.item_key === itemAberto)
   const emLista = !isMobile && visao === 'lista'
 
-  const rotaDa = (proposta) => `/organizador/eventos/${id}/propostas/${proposta.id}`
+  const rotaDa = (proposta) => `/organizador/eventos/${id}/propostas/${proposta.proposal_key}`
   const abrir = (proposta) => navigate(rotaDa(proposta), { viewTransition: true })
 
   const abas = [
     { id: 'todos', nome: 'Todos os itens', conta: total },
-    ...itens.map((item) => ({ id: item.id, nome: item.nome, conta: item.propostas.length })),
+    ...itens.map((item) => ({
+      id: item.item_key,
+      nome: item.description,
+      conta: item.proposals.length,
+    })),
   ]
 
   // abas da WAI-ARIA: só a aba ativa entra no Tab; as setas trocam de aba
@@ -132,30 +177,27 @@ export function EventoPropostas() {
         tabIndex={0}
       >
         {visiveis.map((item) => (
-          <section key={item.id} className="grupo-propostas">
+          <section key={item.item_key} className="grupo-propostas">
             <p className="proposta-recebida__origem">
-              {item.propostas.length} propostas para <strong>{item.nome}</strong>
-              <span
-                className={`etiqueta etiqueta--${item.situacao === 'Selecionada' ? 'aprovado' : 'cotacao'}`}
-              >
-                {item.situacao}
-              </span>
+              {item.proposals.length} propostas para <strong>{item.description}</strong>
             </p>
 
             {emLista ? (
               <Tabela
-                colunas={['FORNECEDOR', 'VALOR', 'PRAZO DE ENTREGA', 'VALIDADE', '']}
-                aoClicarNaLinha={(chave) => abrir(item.propostas.find((p) => p.id === chave))}
-                linhas={item.propostas.map((proposta) => ({
-                  chave: proposta.id,
+                colunas={['FORNECEDOR', 'VALOR', 'VALIDADE', 'OBSERVAÇÕES', '']}
+                aoClicarNaLinha={(chave) =>
+                  abrir(item.proposals.find((proposal) => proposal.proposal_key === chave))
+                }
+                linhas={item.proposals.map((proposta) => ({
+                  chave: proposta.proposal_key,
                   celulas: [
                     <span className="lista-proposta__nome" key="nome">
-                      {proposta.fornecedor}
+                      {proposta.supplier_name}
                       <Etiquetas proposta={proposta} />
                     </span>,
-                    proposta.valor,
-                    proposta.prazo,
-                    proposta.validade,
+                    formatarMoeda(proposta.amount),
+                    formatarValidade(proposta.valid_until),
+                    proposta.notes || 'Sem observações',
                     <Link key="acao" to={rotaDa(proposta)} className="cartao__link" viewTransition>
                       Ver proposta
                       <Icone src={iconeAvancar} />
@@ -165,33 +207,33 @@ export function EventoPropostas() {
               />
             ) : (
               <div className="comparacao">
-                {item.propostas.map((proposta) => (
+                {item.proposals.map((proposta) => (
                   <article
-                    key={proposta.id}
-                    className={`proposta${estaVencida(proposta.validade) ? ' proposta--vencida' : ''}`}
-                    onClick={() => abrir(proposta)}
+                    key={proposta.proposal_key}
+                    className={`proposta${proposta.is_expired ? ' proposta--vencida' : ''}`}
                   >
                     <div className="proposta__etiquetas">
                       <Etiquetas proposta={proposta} />
                     </div>
 
                     <div className="proposta__cabecalho">
-                      <strong className="proposta__fornecedor">{proposta.fornecedor}</strong>
-                      <strong className="proposta__valor">{proposta.valor}</strong>
+                      <strong className="proposta__fornecedor">{proposta.supplier_name}</strong>
+                      <strong className="proposta__valor">{formatarMoeda(proposta.amount)}</strong>
                     </div>
 
                     <div className="proposta__dados">
                       <div>
-                        <span>Prazo de entrega</span>
-                        <strong>{proposta.prazo}</strong>
-                      </div>
-                      <div>
                         <span>{isMobile ? 'Validade' : 'Validade da proposta'}</span>
-                        <strong>{proposta.validade}</strong>
+                        <strong>{formatarValidade(proposta.valid_until)}</strong>
                       </div>
                     </div>
 
-                    <Botao type="button" secundario>
+                    <div className="proposta__observacoes">
+                      <span>Observações</span>
+                      <p>{proposta.notes || 'Nenhuma observação enviada.'}</p>
+                    </div>
+
+                    <Botao type="button" secundario onClick={() => abrir(proposta)}>
                       Ver proposta
                     </Botao>
                   </article>

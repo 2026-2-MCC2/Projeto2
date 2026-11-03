@@ -1607,10 +1607,6 @@
   background: var(--fundo-superficie);
 }
 
-.proposta {
-  cursor: pointer;
-}
-
 .proposta:hover {
   border-color: var(--texto-marca);
   background: var(--fundo-marca-suave);
@@ -1653,6 +1649,21 @@
 
 .proposta__dados strong {
   font-weight: 500;
+}
+
+.proposta__observacoes {
+  width: 100%;
+}
+
+.proposta__observacoes span {
+  color: var(--texto-secundario);
+  font-size: 0.75rem;
+}
+
+.proposta__observacoes p {
+  margin: 0.375rem 0 0;
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
 }
 
 .proposta .botao {
