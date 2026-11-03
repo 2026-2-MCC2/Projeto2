@@ -74,6 +74,7 @@ export function create() {
 
   const budgetItemResource = new BudgetItemResource()
   addRoute(app, `${API_PREFIX}/events/:event_key/items`, budgetItemResource, 'Items')
+  addRoute(app, `${API_PREFIX}/events/:event_key/items/:item_key`, budgetItemResource, 'ItemsByKey')
 
   const sinkResource = new SinkResource()
   addSink(app, sinkResource)

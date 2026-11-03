@@ -75,3 +75,51 @@ describe('GET /events/:event_key/items', () => {
     assert.equal(items[0].accepted_proposal, null)
   })
 })
+
+describe('PUT /events/:event_key/items/:item_key', () => {
+  test('organizador atualiza um item sem propostas', async () => {
+    const headers = await createOrganizer()
+    const event = await createEvent(headers)
+    const [createStatus, item] = await createBudgetItem(event.event_key, headers)
+    assert.equal(createStatus, 201)
+
+    const updatedPayload = PayloadGenerator.createBudgetItemPayload({
+      category: 'Alimentação',
+      description: 'Jantar da equipe',
+      type: 'product',
+      quantity: 12,
+      estimated_value: 800,
+      notes: 'Servir após o encerramento',
+    })
+    const [status, updatedItem] = await RequestGenerator.PUT_event_item(event.event_key, item.item_key, updatedPayload, headers)
+
+    assert.equal(status, 200)
+    assert.equal(updatedItem.item_key, item.item_key)
+    assert.equal(updatedItem.category, updatedPayload.category)
+    assert.equal(updatedItem.description, updatedPayload.description)
+    assert.equal(updatedItem.type, updatedPayload.type)
+    assert.equal(updatedItem.quantity, updatedPayload.quantity)
+    assert.equal(updatedItem.estimated_value, updatedPayload.estimated_value)
+    assert.equal(updatedItem.notes, updatedPayload.notes)
+
+    const storedItem = await DbUtils.getBudgetItemByKey(item.item_key)
+    assert.equal(storedItem.category, updatedPayload.category)
+    assert.equal(storedItem.description, updatedPayload.description)
+    assert.equal(storedItem.quantity, updatedPayload.quantity)
+  })
+})
+
+describe('DELETE /events/:event_key/items/:item_key', () => {
+  test('organizador apaga um item sem propostas', async () => {
+    const headers = await createOrganizer()
+    const event = await createEvent(headers)
+    const [createStatus, item] = await createBudgetItem(event.event_key, headers)
+    assert.equal(createStatus, 201)
+
+    const [status, response] = await RequestGenerator.DELETE_event_item(event.event_key, item.item_key, headers)
+
+    assert.equal(status, 204)
+    assert.equal(response, null)
+    assert.equal(await DbUtils.getBudgetItemByKey(item.item_key), null)
+  })
+})

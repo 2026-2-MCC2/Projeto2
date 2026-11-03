@@ -127,6 +127,19 @@ export class RequestGenerator {
     return [response.responseStatus, response.responseJson]
   }
 
+  static async PUT_event_item(eventKey, itemKey, payload, headers = {}) {
+    const response = await ClientRequisition.send('PUT', `/event_planning/events/${eventKey}/items/${itemKey}`, {
+      payload,
+      headers,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async DELETE_event_item(eventKey, itemKey, headers = {}) {
+    const response = await ClientRequisition.send('DELETE', `/event_planning/events/${eventKey}/items/${itemKey}`, { headers })
+    return [response.responseStatus, response.responseJson]
+  }
+
   static async PATCH_me(payload, headers = {}) {
     const response = await ClientRequisition.send('PATCH', '/event_planning/me', { payload: payload, headers: headers })
     return [response.responseStatus, response.responseJson]
