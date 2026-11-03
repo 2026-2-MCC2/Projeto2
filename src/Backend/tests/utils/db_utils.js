@@ -201,6 +201,24 @@ export class DbUtils {
     }
   }
 
+  static async getBudgetItemByKey(itemKey) {
+    const connection = await mysql.createConnection(TEST_DATABASE_URL)
+    try {
+      const [[item]] = await connection.execute(
+        `SELECT budget_item.budget_item_key AS item_key, event.event_key, item_category.name AS category,
+                budget_item.description, budget_item.type, budget_item.quantity, budget_item.estimated_value, budget_item.notes
+         FROM budget_item
+         INNER JOIN event ON event.id = budget_item.event_id
+         INNER JOIN item_category ON item_category.id = budget_item.category_id
+         WHERE budget_item.budget_item_key = ?`,
+        [itemKey],
+      )
+      return item ?? null
+    } finally {
+      await connection.end()
+    }
+  }
+
   // cria um link direto no banco, sem passar pela espera entre pedidos; devolve o token do link.
   // as datas usam o relógio do banco em UTC, como a API grava
   static async createPasswordResetToken(userKey, { expiresInSeconds = 3_600 } = {}) {

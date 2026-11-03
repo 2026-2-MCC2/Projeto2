@@ -72,4 +72,16 @@ export class PayloadGenerator {
       ...overrides,
     }
   }
+
+  static createBudgetItemPayload(overrides = {}) {
+    return {
+      category: 'Estrutura',
+      description: 'Palco principal',
+      type: 'service',
+      quantity: 1,
+      estimated_value: 2500,
+      notes: 'Inclui montagem',
+      ...overrides,
+    }
+  }
 }

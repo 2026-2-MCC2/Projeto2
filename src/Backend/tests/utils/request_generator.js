@@ -114,6 +114,19 @@ export class RequestGenerator {
     return [response.responseStatus, response.responseJson]
   }
 
+  static async POST_event_item(eventKey, payload, headers = {}) {
+    const response = await ClientRequisition.send('POST', `/event_planning/events/${eventKey}/items`, {
+      payload,
+      headers,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async GET_event_items(eventKey, headers = {}) {
+    const response = await ClientRequisition.send('GET', `/event_planning/events/${eventKey}/items`, { headers })
+    return [response.responseStatus, response.responseJson]
+  }
+
   static async PATCH_me(payload, headers = {}) {
     const response = await ClientRequisition.send('PATCH', '/event_planning/me', { payload: payload, headers: headers })
     return [response.responseStatus, response.responseJson]
