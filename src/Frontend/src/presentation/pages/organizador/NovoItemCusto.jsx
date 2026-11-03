@@ -36,7 +36,7 @@ export function NovoItemCusto() {
       >
         <p className="secao__apoio">{evento?.detalhe?.nomeCompleto}</p>
 
-        <CamposDoItem dados={dados} definir={definir} isMobile linhas={3} />
+        <CamposDoItem dados={dados} definir={definir} linhas={3} />
       </form>
     </OrganizadorLayout>
   )
