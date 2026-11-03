@@ -1,22 +1,90 @@
-import { Campo, Grupo, Linha } from '../../../components/organizador/Formulario.jsx'
+import { useRef, useState } from 'react'
+import { Campo, Grupo, Linha, SeDesktop } from '../../../components/organizador/Formulario.jsx'
+import { consultarCep } from '../../../../application/localizacao.js'
+import { digitos, mascararCep } from '../../../../domain/formatacao.js'
 
 const CAMPO_PUBLICO = { inputMode: 'numeric', 'data-validar': 'inteiro', required: true }
 
-export function EtapaLocal({ campo, isMobile }) {
+export function EtapaLocal({ campo, definir, atualizarCampos, isMobile }) {
+  const [buscandoCep, setBuscandoCep] = useState(false)
+  // o endereço só é preenchido quando o CEP muda, para não apagar o número que a pessoa já digitou;
+  // volta a null quando o CEP fica incompleto ou a busca falha, para a próxima tentativa buscar de novo
+  // começa com o CEP que o formulário já tem (edição ou voltar de etapa), para não buscar de novo
+  const ultimoCepBuscado = useRef(digitos(campo('cep').value) || null)
+
+  async function preencherEndereco(cepDigitos) {
+    if (cepDigitos === ultimoCepBuscado.current) return
+    ultimoCepBuscado.current = cepDigitos
+    setBuscandoCep(true)
+
+    const enderecoEncontrado = await consultarCep(cepDigitos)
+    // a pessoa mudou o CEP enquanto esta busca andava: a resposta antiga é descartada
+    if (cepDigitos !== ultimoCepBuscado.current) return
+    setBuscandoCep(false)
+
+    if (!enderecoEncontrado) {
+      ultimoCepBuscado.current = null
+      return
+    }
+    // CEP geral de cidade não traz rua: o que a pessoa já digitou continua
+    const encontrados = {
+      cidade: enderecoEncontrado.cidade,
+      estado: enderecoEncontrado.estado,
+      endereco: enderecoEncontrado.enderecoCompleto || enderecoEncontrado.logradouro,
+    }
+    preencherCampos(Object.fromEntries(Object.entries(encontrados).filter(([, valor]) => valor)))
+  }
+
+  function preencherCampos(novos) {
+    if (atualizarCampos) {
+      atualizarCampos(novos)
+    } else if (definir) {
+      Object.entries(novos).forEach(([nome, valor]) => definir(nome, valor))
+    }
+  }
+
+  function aoMudarCep(evento) {
+    const valorOriginal = evento.target.value
+    const valorMascarado = mascararCep(valorOriginal)
+
+    if (definir) {
+      definir('cep', valorMascarado)
+    } else {
+      campo('cep').onChange({ target: { value: valorMascarado } })
+    }
+
+    const cepDigitos = digitos(valorMascarado)
+    if (cepDigitos.length === 8) {
+      preencherEndereco(cepDigitos)
+    } else {
+      ultimoCepBuscado.current = null
+      setBuscandoCep(false)
+    }
+  }
+
+  const propsCep = campo('cep')
+
   return (
     <>
       <Grupo isMobile={isMobile} titulo="Local">
-        <Linha>
+        <SeDesktop isMobile={isMobile} envolver={Linha}>
           <Campo
             rotulo="Nome do espaço"
             placeholder="Allianz Parque"
             required
             {...campo('nomeEspaco')}
           />
-          {!isMobile && (
-            <Campo rotulo="CEP" placeholder="05001-100" data-validar="cep" {...campo('cep')} />
-          )}
-        </Linha>
+          <Campo
+            rotulo="CEP"
+            placeholder="05001-100"
+            data-validar="cep"
+            inputMode="numeric"
+            maxLength={9}
+            ajuda={buscandoCep ? 'Buscando endereço no ViaCEP...' : undefined}
+            {...propsCep}
+            onChange={aoMudarCep}
+          />
+        </SeDesktop>
 
         <Campo
           rotulo="Endereço"

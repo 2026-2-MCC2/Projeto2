@@ -1,10 +1,15 @@
+import { useEffect, useState } from 'react'
 import { NavLink } from 'react-router-dom'
-import { EVENTOS } from '../../data/eventos.js'
+import { listarEventosRecentes } from '../../../application/eventos.js'
+import { buscarEventoEmMemoria, observarEventos } from '../../../application/eventosEmMemoria.js'
+import { usuarioAtual } from '../../../application/sessao.js'
 import { Icone } from '../comum/Icone.jsx'
 import simbolo from '../../assets/organizador/simbolo.png'
 import iconeOrganizador from '../../assets/organizador/icone-organizador.svg'
+import iconeEventos from '../../assets/organizador/icone-eventos.svg'
 import iconeSair from '../../assets/organizador/icone-sair.svg'
 import iconeDuvidas from '../../assets/comum/icone-duvidas.svg'
+import iconeAjustes from '../../assets/organizador/icone-ajustes.svg'
 import iconeFornecedor from '../../assets/fornecedor/icone-fornecedor.svg'
 import iconeAdministracao from '../../assets/admin/icone-administracao.svg'
 
@@ -34,14 +39,12 @@ const ITENS = {
   fornecedor: [
     { rota: '/fornecedor/eventos', nome: 'Eventos disponíveis' },
     { rota: '/fornecedor/propostas', nome: 'Minhas propostas' },
-    { rota: '/fornecedor/configuracoes', nome: 'Configurações' },
   ],
   admin: [
     { rota: '/admin/aprovacoes', nome: 'Aprovações' },
     { rota: '/admin/usuarios', nome: 'Usuários' },
     { rota: '/admin/historico', nome: 'Histórico' },
     { rota: '/admin/visao-geral', nome: 'Visão geral' },
-    { rota: '/admin/configuracoes', nome: 'Configurações' },
   ],
 }
 
@@ -63,6 +66,33 @@ function ItemMenu({ to, end = false, classe = '', children }) {
 export function MenuLateral({ aoSair, perfil = 'organizador' }) {
   const dadosPerfil = PERFIS[perfil] ?? PERFIS.organizador
   const itens = ITENS[perfil]
+  const usuario = usuarioAtual()
+  const nomeExibicao = usuario?.nome || dadosPerfil.nome
+  const [eventosRecentes, setEventosRecentes] = useState([])
+
+  // refaz a lista quando algum evento muda (criado, editado, publicado ou cancelado)
+  useEffect(() => {
+    if (perfil !== 'organizador') return
+    let ativo = true
+
+    function atualizarRecentes() {
+      // ao sair, a limpeza dos eventos também avisa o menu: sem sessão não há o que buscar
+      if (!usuarioAtual()) return
+      listarEventosRecentes(4)
+        .then((eventos) => {
+          if (ativo)
+            setEventosRecentes(eventos.map((evento) => buscarEventoEmMemoria(evento.id) ?? evento))
+        })
+        .catch(() => {})
+    }
+
+    atualizarRecentes()
+    const pararDeObservar = observarEventos(atualizarRecentes)
+    return () => {
+      ativo = false
+      pararDeObservar()
+    }
+  }, [perfil])
 
   return (
     <nav className="menu">
@@ -88,47 +118,57 @@ export function MenuLateral({ aoSair, perfil = 'organizador' }) {
       ) : (
         <>
           <ItemMenu to="/organizador/eventos" end>
+            <Icone src={iconeEventos} />
             Todos os eventos
           </ItemMenu>
 
-          <div className="menu__recentes">
-            <p className="menu__secao">RECENTES</p>
+          {eventosRecentes.length > 0 && (
+            <div className="menu__recentes">
+              <p className="menu__secao">RECENTES</p>
 
-            {EVENTOS.map((evento) => (
-              <NavLink
-                key={evento.id}
-                to={`/organizador/eventos/${evento.id}`}
-                viewTransition
-                className={({ isActive }) =>
-                  `menu__evento${isActive ? ' menu__evento--ativo' : ''}`
-                }
-              >
-                <span className={`menu__evento-marcador menu__evento-marcador--${evento.status}`} />
-                <span className="menu__evento-texto">
-                  <strong>{evento.nome}</strong>
-                  <small>{evento.periodoCurto}</small>
-                </span>
-              </NavLink>
-            ))}
-          </div>
-
-          <ItemMenu to="/organizador/configuracoes">Configurações</ItemMenu>
+              {eventosRecentes.map((evento) => (
+                <NavLink
+                  key={evento.id}
+                  to={`/organizador/eventos/${evento.id}`}
+                  viewTransition
+                  className={({ isActive }) =>
+                    `menu__evento${isActive ? ' menu__evento--ativo' : ''}`
+                  }
+                >
+                  <span
+                    className={`menu__evento-marcador menu__evento-marcador--${evento.status}`}
+                  />
+                  <span className="menu__evento-texto">
+                    <strong>{evento.nome}</strong>
+                    <small>{evento.periodoCurto}</small>
+                  </span>
+                </NavLink>
+              ))}
+            </div>
+          )}
         </>
       )}
 
-      <ItemMenu to={`/${perfil}/duvidas`} classe="menu__item--ajuda">
-        <Icone src={iconeDuvidas} />
-        Dúvidas
-      </ItemMenu>
+      <div className="menu__rodape">
+        <ItemMenu to={`/${perfil}/duvidas`} classe="menu__item--ajuda">
+          <Icone src={iconeDuvidas} />
+          Dúvidas
+        </ItemMenu>
 
-      <div className="menu__usuario">
-        <div>
-          <p className="menu__usuario-nome">{dadosPerfil.nome}</p>
-          <p className="menu__usuario-papel">{dadosPerfil.papel}</p>
+        <ItemMenu to={`/${perfil}/configuracoes`} classe="menu__item--ajuda">
+          <Icone src={iconeAjustes} />
+          Configurações
+        </ItemMenu>
+
+        <div className="menu__usuario">
+          <div>
+            <p className="menu__usuario-nome">{nomeExibicao}</p>
+            <p className="menu__usuario-papel">{dadosPerfil.papel}</p>
+          </div>
+          <button type="button" className="menu__sair" aria-label="Sair" onClick={aoSair}>
+            <Icone src={iconeSair} />
+          </button>
         </div>
-        <button type="button" className="menu__sair" aria-label="Sair" onClick={aoSair}>
-          <Icone src={iconeSair} />
-        </button>
       </div>
     </nav>
   )

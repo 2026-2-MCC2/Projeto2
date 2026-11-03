@@ -59,4 +59,66 @@ export class RequestGenerator {
     const response = await ClientRequisition.send('POST', '/event_planning/auth/redefinir-senha', { payload: payload })
     return [response.responseStatus, response.responseJson]
   }
+
+  static async POST_events(payload, headers = {}) {
+    const response = await ClientRequisition.send('POST', '/event_planning/events', {
+      payload: payload,
+      headers: headers,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async GET_events(params = {}, headers = {}) {
+    const response = await ClientRequisition.send('GET', '/event_planning/events', {
+      headers: headers,
+      queryParams: params,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async GET_event_by_key(eventKey, headers = {}) {
+    const response = await ClientRequisition.send('GET', `/event_planning/events/${eventKey}`, {
+      headers: headers,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async PUT_event_by_key(eventKey, payload, headers = {}) {
+    const response = await ClientRequisition.send('PUT', `/event_planning/events/${eventKey}`, {
+      payload: payload,
+      headers: headers,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async PATCH_event_status(eventKey, statusPayload, headers = {}) {
+    const response = await ClientRequisition.send('PATCH', `/event_planning/events/${eventKey}/status`, {
+      payload: statusPayload,
+      headers: headers,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async POST_event_internal_cost(eventKey, costPayload, headers = {}) {
+    const response = await ClientRequisition.send('POST', `/event_planning/events/${eventKey}/internal-costs`, {
+      payload: costPayload,
+      headers: headers,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async PUT_event_internal_cost(eventKey, costKey, costPayload, headers = {}) {
+    const response = await ClientRequisition.send('PUT', `/event_planning/events/${eventKey}/internal-costs/${costKey}`, {
+      payload: costPayload,
+      headers: headers,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async DELETE_event_internal_cost(eventKey, costKey, headers = {}) {
+    const response = await ClientRequisition.send('DELETE', `/event_planning/events/${eventKey}/internal-costs/${costKey}`, {
+      headers: headers,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
 }

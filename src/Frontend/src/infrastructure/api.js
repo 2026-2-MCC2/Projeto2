@@ -98,4 +98,15 @@ export const api = {
       body: JSON.stringify(dados),
     })
   },
+
+  patch(caminho, dados) {
+    return requisitar(caminho, {
+      method: 'PATCH',
+      body: JSON.stringify(dados),
+    })
+  },
+
+  delete(caminho) {
+    return requisitar(caminho, { method: 'DELETE' })
+  },
 }

@@ -90,6 +90,8 @@ export function Selecao({ valor, opcoes, aoEscolher, rotuloAcessivel }) {
           className="selecao__lista"
           role="listbox"
           aria-label={rotuloAcessivel}
+          onMouseDown={(evento) => evento.stopPropagation()}
+          onClick={(evento) => evento.stopPropagation()}
         >
           {opcoes.map((opcao, indice) => (
             <li
@@ -98,8 +100,15 @@ export function Selecao({ valor, opcoes, aoEscolher, rotuloAcessivel }) {
               role="option"
               aria-selected={indice === indiceEscolhido}
               className={`selecao__opcao${indice === indiceEscolhido ? ' selecao__opcao--ativa' : ''}${indice === destacada ? ' selecao__opcao--destacada' : ''}`}
-              onMouseDown={(evento) => evento.preventDefault()}
-              onClick={() => escolher(indice)}
+              onMouseDown={(evento) => {
+                evento.preventDefault()
+                evento.stopPropagation()
+              }}
+              onClick={(evento) => {
+                evento.preventDefault()
+                evento.stopPropagation()
+                escolher(indice)
+              }}
             >
               {opcao.nome}
             </li>

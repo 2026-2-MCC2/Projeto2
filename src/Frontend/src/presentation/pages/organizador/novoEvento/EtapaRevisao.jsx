@@ -1,6 +1,6 @@
 import { nomeDoCenario } from './cenarios.js'
 
-export function EtapaRevisao({ dados, isMobile }) {
+export function EtapaRevisao({ dados, comCustosProprios, aviso, isMobile }) {
   const periodo = [dados.dataInicio, dados.dataTermino].filter(Boolean).join(' a ')
   const custosProprios = [dados.custosFiscais, dados.equipeProducao, dados.outrosCustos]
     .filter(Boolean)
@@ -18,7 +18,7 @@ export function EtapaRevisao({ dados, isMobile }) {
           />
           <DadoResumo rotulo="Público esperado" valor={dados.publicoEsperado} />
           <DadoResumo rotulo="Margem de lucro" valor={dados.margemLucro} />
-          <DadoResumo rotulo="Custos próprios" valor={custosProprios} />
+          {comCustosProprios && <DadoResumo rotulo="Custos próprios" valor={custosProprios} />}
         </div>
 
         <div className="preveia-ticket preveia-ticket--mobile">
@@ -51,7 +51,7 @@ export function EtapaRevisao({ dados, isMobile }) {
 
         <BlocoResumo titulo="Financeiro">
           <DadoResumo rotulo="Margem de lucro" valor={dados.margemLucro} />
-          <DadoResumo rotulo="Custos próprios" valor={custosProprios} />
+          {comCustosProprios && <DadoResumo rotulo="Custos próprios" valor={custosProprios} />}
           <DadoResumo
             rotulo="Cenário de referência"
             valor={nomeDoCenario(dados.cenarioReferencia)}
@@ -67,10 +67,7 @@ export function EtapaRevisao({ dados, isMobile }) {
         <strong>—</strong>
       </div>
 
-      <p className="aviso">
-        Ao publicar, o evento e seus itens de custo ficam visíveis para os fornecedores aprovados
-        nas categorias escolhidas.
-      </p>
+      <p className="aviso">{aviso}</p>
     </>
   )
 }

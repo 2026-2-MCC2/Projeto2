@@ -62,6 +62,9 @@
 }
 
 .menu__item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   transition:
     background 0.15s ease,
     color 0.15s ease;
@@ -71,6 +74,13 @@
   font-size: 0.8125rem;
   font-weight: 500;
   text-decoration: none;
+}
+
+.menu__item .icone {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  transform: translateY(-1px);
 }
 
 .menu__item--ativo {
@@ -150,23 +160,32 @@
   font-size: 0.625rem;
 }
 
+.menu__rodape {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
 .menu__item--ajuda {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-top: auto;
 }
 
-.menu__item--ajuda + .menu__usuario {
-  margin-top: 0.5rem;
+.menu__item--ajuda .icone {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
 }
 
 .menu__usuario {
   display: flex;
   align-items: center;
   gap: 0.625rem;
-  margin-top: auto;
-  padding-top: 1rem;
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--borda-padrao);
 }
 
 .menu__usuario div {
@@ -780,7 +799,8 @@
 
 .etiqueta--planejamento,
 .etiqueta--cotacao,
-.etiqueta--aprovado {
+.etiqueta--aprovado,
+.etiqueta--cancelado {
   padding: 0.25rem 0.625rem;
   font-size: 0.6875rem;
 }
@@ -793,6 +813,11 @@
 .etiqueta--aprovado {
   background: var(--status-sucesso-fundo);
   color: var(--status-sucesso-texto);
+}
+
+.etiqueta--cancelado {
+  background: var(--status-perigo-fundo);
+  color: var(--status-perigo-texto);
 }
 
 .etiqueta--sucesso {
@@ -1288,7 +1313,9 @@
 
 .indicadores {
   display: flex;
+  flex-wrap: wrap;
   gap: 1.25rem;
+  container-type: inline-size;
 }
 
 .indicador {
@@ -1304,11 +1331,35 @@
   font-size: 0.625rem;
   font-weight: 600;
   letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+/* em cartão estreito os três valores não cabem lado a lado: cada um vira uma linha */
+@container (max-width: 34rem) {
+  .indicadores > .indicador {
+    flex-basis: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+  }
 }
 
 .indicador strong {
   font-size: 1.25rem;
   font-weight: 600;
+  white-space: nowrap;
+}
+
+.indicador strong.indicador__valor--compacto {
+  font-size: 0.9375rem;
+}
+
+.cartao__vazio {
+  margin: 0;
+  padding: 0.875rem 0;
+  color: var(--texto-secundario);
+  font-size: 0.8125rem;
 }
 
 .indicador__valor--positivo {
@@ -1353,6 +1404,13 @@
   min-width: 0;
 }
 
+.lista__texto strong,
+.lista__texto small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .lista__texto strong {
   font-size: 0.8125rem;
   font-weight: 500;
@@ -1373,6 +1431,11 @@
   color: var(--texto-marca);
   font-size: 2.375rem;
   font-weight: 700;
+  white-space: nowrap;
+}
+
+.ticket__valor--compacto {
+  font-size: 1.625rem;
 }
 
 .cenarios {
@@ -1393,11 +1456,17 @@
   font-size: 0.625rem;
   font-weight: 600;
   letter-spacing: 0.04em;
+  white-space: nowrap;
 }
 
 .cenario__valor {
   font-size: 0.9375rem;
   font-weight: 600;
+  white-space: nowrap;
+}
+
+.cenario__valor--compacto {
+  font-size: 0.6875rem;
 }
 
 .cenario__valor--destaque {
@@ -1407,6 +1476,7 @@
 .cenario small {
   color: var(--texto-terciario);
   font-size: 0.625rem;
+  white-space: nowrap;
 }
 
 .andamento {
@@ -1614,7 +1684,7 @@
 
 .cenarios-grade {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 0.875rem;
 }
 
@@ -1658,6 +1728,11 @@
   color: var(--status-sucesso-texto);
   font-size: 1.25rem;
   font-weight: 700;
+  white-space: nowrap;
+}
+
+.cenario-cartao__resultado.cenario-cartao__resultado--compacto {
+  font-size: 0.9375rem;
 }
 
 .cenario-cartao__resultado--negativo {
@@ -1677,6 +1752,11 @@
 
 .cenario-cartao__receita strong {
   font-weight: 500;
+  white-space: nowrap;
+}
+
+.cenario-cartao__receita strong.cenario-cartao__receita--compacto {
+  font-size: 0.625rem;
 }
 
 .equilibrio {
@@ -1772,6 +1852,11 @@
 .dado-linha strong {
   font-weight: 500;
   text-align: right;
+  white-space: nowrap;
+}
+
+.dado-linha strong.dado-linha__valor--compacto {
+  font-size: 0.6875rem;
 }
 
 .dado-linha__positivo {
@@ -1877,8 +1962,19 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  width: 100%;
   padding: 1.125rem 1.125rem;
+  border: 0;
   border-bottom: 1px solid var(--borda-padrao);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.grupo__item:disabled {
+  cursor: default;
 }
 
 .grupo__item:last-child {
@@ -2337,6 +2433,10 @@
     font-size: 2.25rem;
   }
 
+  .ticket__valor--grande.ticket__valor--compacto {
+    font-size: 1.5rem;
+  }
+
   .cenario-cartao {
     gap: 0.5rem;
     padding: 0.875rem 1rem;
@@ -2347,10 +2447,8 @@
   }
 
   .cenario-cartao__numeros {
-    flex-direction: row;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 0.75rem;
+    flex-direction: column;
+    gap: 0.375rem;
   }
 
   .cenario-cartao__receita {
@@ -2686,4 +2784,27 @@
     opacity: 0;
     transform: translateY(8px);
   }
+}
+
+.formulario__erro {
+  margin: 0.5rem 0 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  background: var(--status-perigo-fundo);
+  color: var(--status-perigo-texto);
+  font-weight: 500;
+}
+
+.botao.botao--texto-perigo {
+  color: var(--status-perigo-texto);
+}
+
+.evento-acoes-mobile {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.evento-acoes-mobile .botao {
+  flex: 1 1 auto;
 }

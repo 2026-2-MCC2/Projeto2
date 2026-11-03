@@ -92,7 +92,7 @@ export class AuthController extends BaseController {
   }
 
   async getCurrentUser(userKey) {
-    const user = await this.userRepository.getByKey(userKey)
+    const user = await this.userRepository.getProfileByKey(userKey)
     return AuthDTO.currentUser(user)
   }
 

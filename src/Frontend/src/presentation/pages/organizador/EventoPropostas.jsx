@@ -5,7 +5,8 @@ import { Vazio } from '../../components/comum/EstadoDaTela.jsx'
 import { Tabela } from '../../components/organizador/Tabela.jsx'
 import { Botao } from '../../components/organizador/Formulario.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
-import { buscarEvento, estaVencida } from '../../data/eventos.js'
+import { estaVencida } from '../../data/eventos.js'
+import { useEvento } from '../../hooks/useEvento.js'
 import { Icone } from '../../components/comum/Icone.jsx'
 import iconeAvancar from '../../assets/organizador/icone-avancar.svg'
 import iconeCards from '../../assets/organizador/icone-cards.svg'
@@ -36,13 +37,14 @@ export function EventoPropostas() {
   const navigate = useNavigate()
   const [visao, setVisao] = useState('cards')
   const [itemAberto, setItemAberto] = useState('todos')
-  const itens = buscarEvento(id)?.detalhe?.comparacao?.itens
+  const itens = useEvento(id).evento?.detalhe?.comparacao?.itens
+  const total = itens ? itens.reduce((soma, item) => soma + item.propostas.length, 0) : 0
 
-  if (!itens) {
+  if (!itens || itens.length === 0 || total === 0) {
     return (
       <EventoLayout>
         <Vazio
-          titulo="Nenhuma proposta recebida"
+          titulo="Não há propostas"
           mensagem="As propostas aparecem aqui quando o evento for publicado e os fornecedores responderem."
         />
       </EventoLayout>
@@ -51,7 +53,6 @@ export function EventoPropostas() {
 
   const visiveis = itemAberto === 'todos' ? itens : itens.filter((item) => item.id === itemAberto)
   const emLista = !isMobile && visao === 'lista'
-  const total = itens.reduce((soma, item) => soma + item.propostas.length, 0)
 
   const rotaDa = (proposta) => `/organizador/eventos/${id}/propostas/${proposta.id}`
   const abrir = (proposta) => navigate(rotaDa(proposta), { viewTransition: true })

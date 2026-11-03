@@ -43,7 +43,7 @@ function cnpjValido(numeros) {
 }
 
 function inteiroPositivo(texto) {
-  const numero = texto.replace(/\./g, '')
+  const numero = String(texto ?? '').replace(/\./g, '')
   return /^\d+$/.test(numero) && Number(numero) > 0
 }
 
@@ -95,11 +95,18 @@ export function validarTermino(termino, inicio) {
   return dataTermino >= dataInicio ? '' : 'O término não pode ser antes do início.'
 }
 
-export function validarPublicoMaximo(maximo, minimo) {
-  if (!inteiroPositivo(maximo) || !inteiroPositivo(minimo)) return ''
-  return paraNumero(maximo) >= paraNumero(minimo)
-    ? ''
-    : 'O público máximo não pode ser menor que o mínimo.'
+// a capacidade do espaço é opcional: sem ela, só o mínimo limita o máximo
+export function validarPublicoMaximo(maximo, minimo, capacidade) {
+  if (!inteiroPositivo(maximo)) return ''
+  const valor = paraNumero(maximo)
+  if (inteiroPositivo(minimo) && valor < paraNumero(minimo)) {
+    return 'O público máximo não pode ser menor que o mínimo.'
+  }
+  if (inteiroPositivo(capacidade) && valor > paraNumero(capacidade)) {
+    const limite = paraNumero(capacidade).toLocaleString('pt-BR')
+    return `O público máximo não pode passar da capacidade do espaço (${limite} pessoas).`
+  }
+  return ''
 }
 
 export function validarPublicoEsperado(esperado, minimo, maximo) {

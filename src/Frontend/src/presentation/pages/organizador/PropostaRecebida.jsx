@@ -4,14 +4,14 @@ import { EventoLayout } from '../../components/organizador/EventoLayout.jsx'
 import { Vazio } from '../../components/comum/EstadoDaTela.jsx'
 import { Cartao } from '../../components/organizador/Cartao.jsx'
 import { Modal } from '../../components/comum/Modal.jsx'
-import { buscarEvento } from '../../data/eventos.js'
+import { useEvento } from '../../hooks/useEvento.js'
 import iconeAceitar from '../../assets/organizador/icone-modal-aceitar.svg'
 import iconeRecusar from '../../assets/organizador/icone-modal-recusar.svg'
 
 export function PropostaRecebida() {
   const { id, proposta: idDaProposta } = useParams()
   const [decisao, setDecisao] = useState(null)
-  const itens = buscarEvento(id)?.detalhe?.comparacao?.itens
+  const itens = useEvento(id).evento?.detalhe?.comparacao?.itens
 
   const item = itens?.find((linha) => linha.propostas.some((p) => p.id === idDaProposta))
   const proposta = item?.propostas.find((p) => p.id === idDaProposta)

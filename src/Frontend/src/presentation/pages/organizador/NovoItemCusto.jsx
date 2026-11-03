@@ -2,21 +2,23 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { OrganizadorLayout } from '../../components/organizador/OrganizadorLayout.jsx'
 import { CamposDoItem } from '../../components/organizador/CamposDoItem.jsx'
 import { Acoes, Botao } from '../../components/organizador/Formulario.jsx'
-import { buscarEvento } from '../../data/eventos.js'
+import { useEvento } from '../../hooks/useEvento.js'
 import { useValidacao } from '../../hooks/useValidacao.js'
+import { useNovoItemDeCusto } from '../../hooks/useNovoItemDeCusto.js'
 
 export function NovoItemCusto() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const evento = buscarEvento(id)
+  const { evento } = useEvento(id)
   const validacao = useValidacao()
 
   const voltar = () => navigate(`/organizador/eventos/${id}/itens`, { viewTransition: true })
+  const { dados, definir, enviando, salvar } = useNovoItemDeCusto(id, voltar)
 
   const acoes = (
     <Acoes>
-      <Botao type="submit" form="form-novo-item">
-        Adicionar item
+      <Botao type="submit" form="form-novo-item" disabled={enviando}>
+        {enviando ? 'Salvando...' : 'Adicionar item'}
       </Botao>
     </Acoes>
   )
@@ -28,13 +30,13 @@ export function NovoItemCusto() {
         className="novo-evento-form"
         onSubmit={(submissao) => {
           submissao.preventDefault()
-          voltar()
+          salvar()
         }}
         {...validacao}
       >
         <p className="secao__apoio">{evento?.detalhe?.nomeCompleto}</p>
 
-        <CamposDoItem isMobile linhas={3} />
+        <CamposDoItem dados={dados} definir={definir} isMobile linhas={3} />
       </form>
     </OrganizadorLayout>
   )

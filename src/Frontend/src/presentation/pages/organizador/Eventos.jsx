@@ -1,16 +1,17 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { OrganizadorLayout } from '../../components/organizador/OrganizadorLayout.jsx'
 import { CartaoEvento } from '../../components/organizador/CartaoEvento.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
-import { EVENTOS, STATUS } from '../../data/eventos.js'
+import { listarTodosOsEventos, STATUS_FRONTEND } from '../../../application/eventos.js'
 import { Icone } from '../../components/comum/Icone.jsx'
+import { toast } from '../../toasts.js'
 import iconeBuscar from '../../assets/organizador/icone-buscar.svg'
 import iconeAdicionar from '../../assets/organizador/icone-adicionar.svg'
 
 const FILTROS = [
   { id: 'todos', nome: 'Todos', nomeCurto: 'Todos' },
-  ...Object.entries(STATUS).map(([id, status]) => ({ id, ...status })),
+  ...Object.entries(STATUS_FRONTEND).map(([id, status]) => ({ id, ...status })),
 ]
 
 export function Eventos() {
@@ -18,13 +19,39 @@ export function Eventos() {
   const navigate = useNavigate()
   const [busca, setBusca] = useState('')
   const [filtro, setFiltro] = useState('todos')
-  const emPlanejamento = EVENTOS.filter((evento) => evento.status === 'planejamento').length
-  const resumoDoPlanejamento = `${emPlanejamento} ${emPlanejamento === 1 ? 'evento' : 'eventos'} em planejamento`
+  const [listaEventos, setListaEventos] = useState([])
+  const [carregando, setCarregando] = useState(true)
+
+  useEffect(() => {
+    let ativo = true
+    async function carregar() {
+      setCarregando(true)
+      try {
+        const eventos = await listarTodosOsEventos()
+        if (ativo) setListaEventos(eventos)
+      } catch (falha) {
+        if (ativo) toast.erro('Não foi possível carregar os eventos', { descricao: falha.message })
+      } finally {
+        if (ativo) setCarregando(false)
+      }
+    }
+    carregar()
+    return () => {
+      ativo = false
+    }
+  }, [])
+
+  const emPlanejamento = listaEventos.filter((evento) => evento.status === 'planejamento').length
+  const resumoDoPlanejamento = carregando
+    ? 'Carregando eventos...'
+    : `${emPlanejamento} ${emPlanejamento === 1 ? 'evento' : 'eventos'} em planejamento`
 
   const termo = busca.trim().toLowerCase()
-  const eventos = EVENTOS.filter((evento) => {
+  const eventos = listaEventos.filter((evento) => {
     const combinaStatus = filtro === 'todos' || evento.status === filtro
-    const combinaBusca = `${evento.nome} ${evento.local}`.toLowerCase().includes(termo)
+    const combinaBusca = `${evento.nome} ${evento.local} ${evento.cidade}`
+      .toLowerCase()
+      .includes(termo)
     return combinaStatus && combinaBusca
   })
 
