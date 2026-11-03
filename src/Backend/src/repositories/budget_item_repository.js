@@ -44,10 +44,11 @@ export class BudgetItemRepository {
   }
 
   async hasProposals(itemId) {
-    const proposals = await sequelize.query(
-      'SELECT 1 FROM proposal WHERE budget_item_id = ? LIMIT 1',
-      { replacements: [itemId], transaction: this.session, type: QueryTypes.SELECT },
-    )
+    const proposals = await sequelize.query('SELECT 1 FROM proposal WHERE budget_item_id = ? LIMIT 1', {
+      replacements: [itemId],
+      transaction: this.session,
+      type: QueryTypes.SELECT,
+    })
     return proposals.length > 0
   }
 
