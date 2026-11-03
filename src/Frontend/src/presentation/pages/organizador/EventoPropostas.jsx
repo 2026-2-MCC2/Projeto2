@@ -4,6 +4,7 @@ import { EventoLayout } from '../../components/organizador/EventoLayout.jsx'
 import { Carregando, ErroNaTela, Vazio } from '../../components/comum/EstadoDaTela.jsx'
 import { Tabela } from '../../components/organizador/Tabela.jsx'
 import { Botao } from '../../components/organizador/Formulario.jsx'
+import { Cartao } from '../../components/organizador/Cartao.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
 import { Icone } from '../../components/comum/Icone.jsx'
 import { formatarMoeda } from '../../../application/eventos.js'
@@ -20,6 +21,12 @@ const VISOES = [
 function Etiquetas({ proposta }) {
   return (
     <>
+      {proposta.status === 'accepted' && (
+        <span className="etiqueta etiqueta--aprovado">Selecionada</span>
+      )}
+      {proposta.status === 'rejected' && (
+        <span className="etiqueta etiqueta--rejeitado">Rejeitada</span>
+      )}
       {proposta.is_expired && (
         <span className="etiqueta etiqueta--vencida">Vencida · indisponível para seleção</span>
       )}
@@ -83,10 +90,16 @@ export function EventoPropostas() {
   if (!itens || itens.length === 0 || total === 0) {
     return (
       <EventoLayout>
-        <Vazio
-          titulo="Não há propostas"
-          mensagem="As propostas aparecem aqui quando o evento for publicado e os fornecedores responderem."
-        />
+        <div className="painel-propostas">
+          <Cartao titulo="Custo consolidado do evento">
+            <strong className="decisao__valor">{formatarMoeda(resultado.total_cost)}</strong>
+            <p className="cartao__apoio">Custos próprios e propostas aceitas.</p>
+          </Cartao>
+          <Vazio
+            titulo="Não há propostas"
+            mensagem="As propostas aparecem aqui quando os fornecedores responderem."
+          />
+        </div>
       </EventoLayout>
     )
   }
@@ -125,6 +138,12 @@ export function EventoPropostas() {
 
   return (
     <EventoLayout>
+      <div className="painel-propostas__resumo">
+        <Cartao titulo="Custo consolidado do evento">
+          <strong className="decisao__valor">{formatarMoeda(resultado.total_cost)}</strong>
+          <p className="cartao__apoio">Custos próprios e propostas aceitas.</p>
+        </Cartao>
+      </div>
       <div className="propostas-topo">
         <div
           className="itens-em-cotacao"

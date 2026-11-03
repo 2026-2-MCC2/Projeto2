@@ -820,6 +820,11 @@
   color: var(--status-perigo-texto);
 }
 
+.etiqueta--rejeitado {
+  background: var(--status-perigo-fundo);
+  color: var(--status-perigo-texto);
+}
+
 .etiqueta--sucesso {
   background: var(--status-sucesso-fundo);
   color: var(--status-sucesso-texto);

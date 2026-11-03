@@ -3,11 +3,18 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
-import { buscarComparacaoDePropostas } from '../../../application/propostas.js'
+import {
+  aceitarPropostaDoEvento,
+  buscarComparacaoDePropostas,
+} from '../../../application/propostas.js'
 import { formatarMoeda } from '../../../application/eventos.js'
 import { Carregando, ErroNaTela, Vazio } from '../../components/comum/EstadoDaTela.jsx'
+import { Modal } from '../../components/comum/Modal.jsx'
 import { Cartao } from '../../components/organizador/Cartao.jsx'
 import { EventoLayout } from '../../components/organizador/EventoLayout.jsx'
+import { Botao } from '../../components/organizador/Formulario.jsx'
+import { toast } from '../../toasts.js'
+import iconeAceitar from '../../assets/organizador/icone-modal-aceitar.svg'
 
 function formatarValidade(validade) {
   const [ano, mes, dia] = validade.split('-')
@@ -19,6 +26,8 @@ export function PropostaRecebida() {
   const [comparacao, setComparacao] = useState(null)
   const [erro, setErro] = useState(null)
   const [tentativa, setTentativa] = useState(0)
+  const [confirmacaoAberta, setConfirmacaoAberta] = useState(false)
+  const [salvando, setSalvando] = useState(false)
 
   useEffect(() => {
     let telaAberta = true
@@ -75,6 +84,22 @@ export function PropostaRecebida() {
   const outras = item.proposals.filter(
     (otherProposal) => otherProposal.proposal_key !== proposalKey,
   )
+  const existeOutraSelecionada = outras.some((otherProposal) => otherProposal.status === 'accepted')
+
+  async function confirmarAceite() {
+    setSalvando(true)
+    try {
+      const comparacaoAtualizada = await aceitarPropostaDoEvento(id, proposalKey)
+      setComparacao(comparacaoAtualizada)
+      setConfirmacaoAberta(false)
+      toast.sucesso('Proposta aceita', { descricao: proposta.supplier_name })
+    } catch (falha) {
+      toast.erro('Não foi possível aceitar a proposta', { descricao: falha.message })
+      if (falha.status === 409) setTentativa((valor) => valor + 1)
+    } finally {
+      setSalvando(false)
+    }
+  }
 
   return (
     <EventoLayout voltar={{ para: `/organizador/eventos/${id}/propostas`, nome: 'Propostas' }}>
@@ -104,9 +129,29 @@ export function PropostaRecebida() {
               <span className="etiqueta etiqueta--vencida">
                 Vencida · indisponível para seleção
               </span>
+            ) : proposta.status === 'accepted' ? (
+              <span className="etiqueta etiqueta--aprovado">Selecionada</span>
+            ) : proposta.status === 'rejected' ? (
+              <span className="etiqueta etiqueta--rejeitado">Rejeitada anteriormente</span>
             ) : (
               <span className="etiqueta etiqueta--aprovado">Dentro do prazo de validade</span>
             )}
+
+            <p className="cartao__apoio">
+              Custo consolidado: {formatarMoeda(comparacaoDoEvento.total_cost)}
+            </p>
+
+            <Botao
+              type="button"
+              disabled={proposta.is_expired || proposta.status === 'accepted' || salvando}
+              onClick={() => setConfirmacaoAberta(true)}
+            >
+              {proposta.status === 'accepted'
+                ? 'Proposta selecionada'
+                : existeOutraSelecionada
+                  ? 'Trocar proposta escolhida'
+                  : 'Aceitar proposta'}
+            </Botao>
           </Cartao>
 
           {outras.length > 0 && (
@@ -128,6 +173,22 @@ export function PropostaRecebida() {
           )}
         </div>
       </div>
+
+      {confirmacaoAberta && (
+        <Modal
+          icone={iconeAceitar}
+          corDoIcone="verde"
+          titulo={existeOutraSelecionada ? 'Trocar proposta escolhida?' : 'Aceitar esta proposta?'}
+          mensagem="As outras propostas deste item serão rejeitadas e o custo consolidado será atualizado."
+          dados={[
+            { rotulo: 'Fornecedor', valor: proposta.supplier_name },
+            { rotulo: 'Item', valor: item.description },
+            { rotulo: 'Valor', valor: formatarMoeda(proposta.amount) },
+          ]}
+          acao={{ confirmar: 'Aceitar proposta', ocupado: salvando, aoConfirmar: confirmarAceite }}
+          aoFechar={() => setConfirmacaoAberta(false)}
+        />
+      )}
     </EventoLayout>
   )
 }

@@ -5,3 +5,7 @@ import { api } from '../infrastructure/api.js'
 export function buscarComparacaoDePropostas(eventKey) {
   return api.get(`/events/${eventKey}/proposals`)
 }
+
+export function aceitarPropostaDoEvento(eventKey, proposalKey) {
+  return api.post(`/events/${eventKey}/proposals/${proposalKey}/accept`, {})
+}
