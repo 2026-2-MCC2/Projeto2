@@ -326,3 +326,31 @@ describe('Autocadastro de fornecedor até o login (ponta a ponta)', () => {
     assert.deepEqual(login.user, { user_key: registration.user_key, name: 'RF02 Fornecedor Teste', profile: 'fornecedor' })
   })
 })
+
+describe('POST /auth/verificar-cnpj', () => {
+  test('CNPJ livre responde disponível e CNPJ já usado por qualquer perfil responde indisponível', async () => {
+    const organizerPayload = PayloadGenerator.createOrganizerRegistrationPayload()
+    const [registerStatus] = await register(organizerPayload)
+    assert.equal(registerStatus, 201)
+
+    const [usedStatus, used] = await RequestGenerator.POST_auth_verificar_cnpj({ cnpj: organizerPayload.cnpj })
+    const [freeStatus, free] = await RequestGenerator.POST_auth_verificar_cnpj({
+      cnpj: PayloadGenerator.createOrganizerRegistrationPayload().cnpj,
+    })
+
+    assert.equal(usedStatus, 200)
+    assert.deepEqual(used, { available: false })
+    assert.equal(freeStatus, 200)
+    assert.deepEqual(free, { available: true })
+  })
+
+  test('CNPJ com dígito errado responde 400 com EVP000007 e formato inválido responde 400 de validação', async () => {
+    const [wrongDigitStatus, wrongDigit] = await RequestGenerator.POST_auth_verificar_cnpj({ cnpj: '11.222.333/0001-82' })
+    const [formatStatus, format] = await RequestGenerator.POST_auth_verificar_cnpj({ cnpj: 'abc' })
+
+    assert.equal(wrongDigitStatus, 400)
+    assert.equal(wrongDigit.code, 'EVP000007')
+    assert.equal(formatStatus, 400)
+    assert.equal(format.code, 'APP000001')
+  })
+})

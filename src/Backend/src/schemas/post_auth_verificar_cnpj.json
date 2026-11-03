@@ -1,0 +1,17 @@
+{
+  "title": "PostAuthVerificarCnpj",
+  "type": "object",
+  "properties": {
+    "cnpj": {
+      "type": "string",
+      "minLength": 14,
+      "maxLength": 18,
+      "description": "Com ou sem pontuação: 11.222.333/0001-81 ou 11222333000181.",
+      "pattern": "^\\s*\\d{2}\\.?\\d{3}\\.?\\d{3}/?\\d{4}-?\\d{2}\\s*$"
+    }
+  },
+  "required": [
+    "cnpj"
+  ],
+  "additionalProperties": false
+}

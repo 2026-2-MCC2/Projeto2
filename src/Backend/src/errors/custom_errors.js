@@ -254,3 +254,15 @@ export class EventInvalidDate extends ApiException {
     super(title, EventInvalidDate.code, httpStatus, description, translation)
   }
 }
+
+export class CurrentPasswordIncorrect extends ApiException {
+  static code = 'EVP000037'
+
+  constructor() {
+    const title = 'Current password is incorrect'
+    const httpStatus = 400
+    const description = 'The current password does not match.'
+    const translation = 'A senha atual não confere.'
+    super(title, CurrentPasswordIncorrect.code, httpStatus, description, translation)
+  }
+}

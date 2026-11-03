@@ -113,4 +113,24 @@ export class RequestGenerator {
     })
     return [response.responseStatus, response.responseJson]
   }
+
+  static async PATCH_me(payload, headers = {}) {
+    const response = await ClientRequisition.send('PATCH', '/event_planning/me', { payload: payload, headers: headers })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async PUT_me_categorias(payload, headers = {}) {
+    const response = await ClientRequisition.send('PUT', '/event_planning/me/categorias', { payload: payload, headers: headers })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async PUT_me_senha(payload, headers = {}) {
+    const response = await ClientRequisition.send('PUT', '/event_planning/me/senha', { payload: payload, headers: headers })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async POST_auth_verificar_cnpj(payload) {
+    const response = await ClientRequisition.send('POST', '/event_planning/auth/verificar-cnpj', { payload: payload })
+    return [response.responseStatus, response.responseJson]
+  }
 }
