@@ -3,6 +3,13 @@ import { Icone } from '../comum/Icone.jsx'
 import iconeSelecionado from '../../assets/organizador/icone-selecionado.svg'
 import { TIPOS_DE_CUSTO } from '../../hooks/useNovoItemDeCusto.js'
 import { Selecao } from './Selecao.jsx'
+import { CATEGORIAS_DE_ATUACAO } from '../../../domain/categoriasDeAtuacao.js'
+
+// as mesmas categorias de atuação dos fornecedores: é por elas que o item chega a quem pode cotar
+const OPCOES_DE_CATEGORIA = CATEGORIAS_DE_ATUACAO.map((categoria) => ({
+  valor: categoria,
+  nome: categoria,
+}))
 
 const ORIGENS = [
   {
@@ -33,7 +40,14 @@ export function CamposDoItem({ dados, definir, isMobile = false, linhas = 2 }) {
 
       <SeDesktop isMobile={isMobile} envolver={Linha}>
         {porCotacao ? (
-          <Campo rotulo="Categoria" placeholder="Estrutura" required {...campo('categoria')} />
+          <Campo as="div" rotulo="Categoria">
+            <Selecao
+              valor={dados.categoria}
+              opcoes={OPCOES_DE_CATEGORIA}
+              aoEscolher={(valor) => definir('categoria', valor)}
+              rotuloAcessivel="Categoria"
+            />
+          </Campo>
         ) : (
           <Campo as="div" rotulo="Tipo de custo">
             <Selecao
