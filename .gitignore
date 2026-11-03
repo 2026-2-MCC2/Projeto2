@@ -141,3 +141,8 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+.DS_Store
+AGENTS.md
+Contextos/PI_2CCOMP_202602_TrocaTicket_FINAL.pdf
+Contextos/PI_2CCOMP_202602_TrocaTicket_FINAL.txt
+Contextos/Spec.txt
