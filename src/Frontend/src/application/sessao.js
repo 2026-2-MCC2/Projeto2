@@ -59,28 +59,48 @@ export function rotaInicialDoPerfil(perfil) {
   return ROTAS_INICIAIS[perfil] ?? '/'
 }
 
-export async function carregarPerfilAtual() {
-  const dados = await obterDadosDoUsuarioAtual()
-  if (dados) {
-    const atual = lerSessao()
-    if (atual?.token) {
-      guardarSessao({
-        token: atual.token,
-        usuario: {
-          ...atual.usuario,
-          chave: dados.user_key,
-          nome: dados.name,
-          email: dados.email,
-          perfil: dados.profile,
-          cnpj: dados.cnpj,
-          phone: dados.phone,
-          responsible_name: dados.responsible_name,
-          city: dados.city,
-          state: dados.state,
-          categories: dados.categories,
-        },
-      })
-    }
-  }
+// o menu e o topo leem o nome da sessão, então ela acompanha os dados vindos da API
+function atualizarSessaoComPerfil(dados) {
+  const atual = lerSessao()
+  if (!dados || !atual?.token) return dados
+
+  guardarSessao({
+    token: atual.token,
+    usuario: {
+      ...atual.usuario,
+      chave: dados.user_key,
+      nome: dados.name,
+      email: dados.email,
+      perfil: dados.profile,
+      cnpj: dados.cnpj,
+      phone: dados.phone,
+      responsible_name: dados.responsible_name,
+      city: dados.city,
+      state: dados.state,
+      categories: dados.categories,
+    },
+  })
   return dados
+}
+
+export async function carregarPerfilAtual() {
+  return atualizarSessaoComPerfil(await obterDadosDoUsuarioAtual())
+}
+
+// só os campos enviados mudam; e-mail e CNPJ não mudam por aqui
+export async function salvarMeusDados(campos) {
+  return atualizarSessaoComPerfil(await api.patch('/me', campos))
+}
+
+export async function salvarMinhasCategorias(categorias) {
+  return atualizarSessaoComPerfil(await api.put('/me/categorias', { categories: categorias }))
+}
+
+// a troca encerra os outros logins; o token novo mantém esta sessão aberta
+export async function trocarMinhaSenha({ senhaAtual, novaSenha }) {
+  const resposta = await api.put('/me/senha', {
+    current_password: senhaAtual,
+    new_password: novaSenha,
+  })
+  guardarSessao({ ...lerSessao(), token: resposta.token })
 }
