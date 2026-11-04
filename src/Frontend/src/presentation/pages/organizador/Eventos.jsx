@@ -49,9 +49,10 @@ export function Eventos() {
   const termo = busca.trim().toLowerCase()
   const eventos = listaEventos.filter((evento) => {
     const combinaStatus = filtro === 'todos' || evento.status === filtro
-    const combinaBusca = `${evento.nome} ${evento.local} ${evento.cidade} ${evento.motivoDoCancelamento ?? ''}`
-      .toLowerCase()
-      .includes(termo)
+    const combinaBusca =
+      `${evento.nome} ${evento.local} ${evento.cidade} ${evento.motivoDoCancelamento ?? ''}`
+        .toLowerCase()
+        .includes(termo)
     return combinaStatus && combinaBusca
   })
 
@@ -110,9 +111,7 @@ export function Eventos() {
             <CartaoEventoSkeleton />
           </>
         ) : (
-          eventos.map((evento) => (
-            <CartaoEvento key={evento.id} evento={evento} />
-          ))
+          eventos.map((evento) => <CartaoEvento key={evento.id} evento={evento} />)
         )}
 
         {cardNovoEvento}

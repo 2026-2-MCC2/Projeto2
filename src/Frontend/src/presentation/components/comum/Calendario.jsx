@@ -28,10 +28,7 @@ export function Calendario({ valor, aoSelecionar, aoFechar, semPassado = false, 
 
   const anoMinimo = Math.min(hoje.getFullYear() - 10, anoAtual - 5)
   const anoMaximo = Math.max(hoje.getFullYear() + 15, anoAtual + 5)
-  const anosDisponiveis = Array.from(
-    { length: anoMaximo - anoMinimo + 1 },
-    (_, i) => anoMinimo + i,
-  )
+  const anosDisponiveis = Array.from({ length: anoMaximo - anoMinimo + 1 }, (_, i) => anoMinimo + i)
 
   const diasGrade = gerarGradeDoMes(anoAtual, mesAtual)
   const dataLimite = semPassado ? hoje : minData
