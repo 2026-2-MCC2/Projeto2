@@ -3,6 +3,11 @@
 -- o arquivo é UTF-8; sem isto o MySQL do Docker grava os acentos errados
 SET NAMES utf8mb4;
 
+-- Recria o banco do zero (apaga os dados existentes).
+DROP DATABASE IF EXISTS event_planning;
+CREATE DATABASE event_planning CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE event_planning;
+
 -- Contas de acesso: admin, organizador ou fornecedor.
 CREATE TABLE user(
     id                              INT AUTO_INCREMENT PRIMARY KEY,
