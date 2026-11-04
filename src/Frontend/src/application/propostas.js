@@ -53,10 +53,72 @@ export function paraPropostaDaApi(rascunho) {
   return proposta
 }
 
+// Detalhe da API (GET /supplier/proposals/:proposal_key) → rascunho das etapas, para editar.
+// O contrário do paraPropostaDaApi: 1500 vira "R$ 1.500,00" e "2026-11-30" vira "30/11/2026".
+export function paraRascunho(proposta) {
+  const valor = Number(proposta.amount).toLocaleString('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
+
+  return {
+    valor: `R$ ${valor}`,
+    validade: formatarValidade(proposta.valid_until),
+    descricao: proposta.description ?? '',
+    naoIncluido: proposta.not_included ?? '',
+    prazoDeEntrega: proposta.delivery_terms ?? '',
+    condicaoDePagamento: proposta.payment_terms ?? '',
+    equipe: proposta.team ?? '',
+    garantia: proposta.warranty ?? '',
+    observacoes: proposta.notes ?? '',
+  }
+}
+
+// Só a proposta enviada (ainda não analisada) de um evento em cotação pode ser editada ou retirada;
+// é a mesma regra que a API confere (ela responde 409 nos outros casos).
+export function propostaPodeSerAlterada(proposta) {
+  return proposta.status === 'sent' && proposta.event?.status === 'open_for_quotes'
+}
+
 // 201 { proposal_key, status }; os erros chegam com a mensagem em português (infrastructure/api.js)
 export function enviarProposta(eventKey, itemKey, rascunho) {
   return api.post(
     `/supplier/events/${eventKey}/items/${itemKey}/proposals`,
     paraPropostaDaApi(rascunho),
   )
+}
+
+// mesmo body do envio; responde o detalhe atualizado
+export function atualizarProposta(proposalKey, rascunho) {
+  return api.put(`/supplier/proposals/${proposalKey}`, paraPropostaDaApi(rascunho))
+}
+
+// 204: a proposta é apagada e o fornecedor pode enviar outra para o item
+export function retirarProposta(proposalKey) {
+  return api.delete(`/supplier/proposals/${proposalKey}`)
+}
+
+export function buscarMinhaProposta(proposalKey) {
+  return api.get(`/supplier/proposals/${proposalKey}`)
+}
+
+// histórico do fornecedor logado: { data, total, is_last_page }, da proposta mais recente para a mais antiga
+export function listarMinhasPropostas({ status, limit = 20, page = 0 } = {}) {
+  const parametros = new URLSearchParams({ limit: String(limit), page: String(page) })
+  if (status) parametros.set('status', status)
+  return api.get(`/supplier/proposals?${parametros}`)
+}
+
+// quantas propostas o fornecedor tem em cada status (os cartões do topo de Minhas propostas);
+// usa o total de cada filtro, então não depende de quantas páginas da lista já foram carregadas
+export async function contarMinhasPropostas() {
+  const status = [null, ...Object.keys(STATUS_DA_PROPOSTA)]
+  const respostas = await Promise.all(
+    status.map((filtro) => listarMinhasPropostas({ status: filtro, limit: 1 })),
+  )
+
+  const totais = Object.fromEntries(
+    status.slice(1).map((filtro, indice) => [filtro, respostas[indice + 1].total]),
+  )
+  return { todas: respostas[0].total, ...totais }
 }

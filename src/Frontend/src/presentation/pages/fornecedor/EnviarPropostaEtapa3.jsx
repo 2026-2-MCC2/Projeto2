@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { enviarProposta } from '../../../application/propostas.js'
+import { atualizarProposta, enviarProposta } from '../../../application/propostas.js'
 import { RetornoDoEnvio } from '../../components/acesso/RetornoDoEnvio.jsx'
 import { EtapaDaProposta } from '../../components/fornecedor/EtapaDaProposta.jsx'
 import { ResumoItemCotacao, ResumoProposta } from '../../components/fornecedor/ResumoProposta.jsx'
@@ -25,7 +25,8 @@ function CampoCondicao({ id, rotulo, obrigatorio = false, somenteDesktop = false
   )
 }
 
-// Etapa 3 do envio de proposta: condições de execução e envio. Só aqui a proposta vai para a API.
+// Etapa 3 do envio de proposta: condições de execução e envio. Só aqui a proposta vai para a API
+// (POST na proposta nova, PUT na edição de uma proposta ainda Enviada).
 export function EnviarPropostaEtapa3() {
   const navigate = useNavigate()
   const isMobile = useIsMobile()
@@ -42,6 +43,14 @@ export function EnviarPropostaEtapa3() {
     setEnviando(true)
 
     try {
+      if (proposta.editando) {
+        await atualizarProposta(proposta.proposalKey, rascunho)
+        proposta.descartar()
+        toast.sucesso('Proposta atualizada', { descricao: item.description })
+        navigate(`/fornecedor/propostas/${proposta.proposalKey}`)
+        return
+      }
+
       await enviarProposta(proposta.eventKey, proposta.itemKey, rascunho)
       proposta.descartar()
       toast.sucesso('Proposta enviada', { descricao: item.description })
@@ -53,6 +62,10 @@ export function EnviarPropostaEtapa3() {
     }
   }
 
+  const textoDoBotao = proposta.editando
+    ? { parado: 'Salvar alterações', enviando: 'Salvando...' }
+    : { parado: 'Enviar proposta', enviando: 'Enviando...' }
+
   const acoes = (
     <div className="proposta-condicoes__acoes">
       {!isMobile && <span>* Campos obrigatórios</span>}
@@ -60,7 +73,7 @@ export function EnviarPropostaEtapa3() {
         Voltar
       </Botao>
       <Botao type="submit" form="form-proposta-condicoes" disabled={enviando}>
-        {enviando ? 'Enviando...' : 'Enviar proposta'}
+        {enviando ? textoDoBotao.enviando : textoDoBotao.parado}
       </Botao>
     </div>
   )

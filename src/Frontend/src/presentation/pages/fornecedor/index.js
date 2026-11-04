@@ -2,6 +2,7 @@
 export { EnviarProposta } from './EnviarProposta.jsx'
 export { EnviarPropostaEtapa2 } from './EnviarPropostaEtapa2.jsx'
 export { EnviarPropostaEtapa3 } from './EnviarPropostaEtapa3.jsx'
+export { DetalheDaProposta } from './DetalheDaProposta.jsx'
 export { EventosDisponiveis } from './EventosDisponiveis.jsx'
 export { EventoDisponivel } from './EventoDisponivel.jsx'
 export { MinhasPropostas } from './MinhasPropostas.jsx'

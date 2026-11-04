@@ -85,7 +85,10 @@ export function EventoDisponivel() {
                             Sua proposta: {traduzirStatusDaProposta(item.my_proposal.status)} ·{' '}
                             {formatarMoeda(item.my_proposal.amount)}
                           </small>
-                          <Link to="/fornecedor/propostas" className="botao botao--secundario">
+                          <Link
+                            to={`/fornecedor/propostas/${item.my_proposal.proposal_key}`}
+                            className="botao botao--secundario"
+                          >
                             Ver proposta
                           </Link>
                         </>

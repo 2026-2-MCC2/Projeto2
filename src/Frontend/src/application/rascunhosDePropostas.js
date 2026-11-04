@@ -14,6 +14,8 @@ export const RASCUNHO_VAZIO = Object.freeze({
   equipe: '',
   garantia: '',
   observacoes: '',
+  // na edição, a proposta de onde os campos vieram (para não buscar de novo a cada etapa)
+  chaveDaProposta: null,
 })
 
 const rascunhosPorItem = new Map()

@@ -36,6 +36,7 @@ const EnviarProposta = doFornecedor('EnviarProposta')
 const EnviarPropostaEtapa2 = doFornecedor('EnviarPropostaEtapa2')
 const EnviarPropostaEtapa3 = doFornecedor('EnviarPropostaEtapa3')
 const MinhasPropostas = doFornecedor('MinhasPropostas')
+const DetalheDaProposta = doFornecedor('DetalheDaProposta')
 const Aprovacoes = doAdmin('Aprovacoes')
 const Historico = doAdmin('Historico')
 const Usuarios = doAdmin('Usuarios')
@@ -76,6 +77,7 @@ export function AppRoutes() {
             <Route path="/fornecedor/eventos" element={<EventosDisponiveis />} />
             <Route path="/fornecedor/eventos/:id" element={<EventoDisponivel />} />
             <Route path="/fornecedor/propostas" element={<MinhasPropostas />} />
+            <Route path="/fornecedor/propostas/:proposalKey" element={<DetalheDaProposta />} />
             <Route
               path="/fornecedor/configuracoes"
               element={<Configuracoes perfil="fornecedor" />}

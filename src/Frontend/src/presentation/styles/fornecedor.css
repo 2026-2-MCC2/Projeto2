@@ -248,6 +248,31 @@
   font-weight: 500;
 }
 
+/* item da lista que abre o detalhe da proposta (pages/fornecedor/DetalheDaProposta.jsx) */
+.minhas-propostas__link {
+  color: var(--texto-marca);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.minhas-propostas__link:hover,
+.minhas-propostas__link:focus-visible {
+  text-decoration: underline;
+}
+
+.detalhe-proposta__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+/* descrições e condições digitadas em várias linhas */
+.detalhe-proposta__texto {
+  white-space: pre-line;
+}
+
 .minhas-propostas__data {
   text-align: right;
 }

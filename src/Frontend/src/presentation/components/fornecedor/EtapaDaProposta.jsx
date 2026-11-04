@@ -8,8 +8,8 @@ import { useIsMobile } from '../../hooks/useIsMobile.js'
 
 const ETAPAS_PROPOSTA = ['Valor e validade', 'Descrição e fotos', 'Condições e envio']
 
-// Moldura das 3 etapas do envio de proposta: carregando, erro, item indisponível, proposta já
-// enviada e, com tudo certo, o cabeçalho com o evento, o item e o progresso.
+// Moldura das 3 etapas do envio (ou da edição) de proposta: carregando, erro, item indisponível,
+// proposta já analisada e, com tudo certo, o cabeçalho com o evento, o item e o progresso.
 // children é uma função: só roda quando o evento e o item já chegaram.
 //   <EtapaDaProposta proposta={usePropostaEmEdicao()} etapa={2} aoVoltar={...} rodape={acoes}>
 //     {() => <form>...</form>}
@@ -18,10 +18,11 @@ export function EtapaDaProposta({ proposta, etapa, aoVoltar, rodape, children })
   const isMobile = useIsMobile()
   const { carregando, erro, evento, item, tentarDeNovo, eventKey } = proposta
   const paginaDoEvento = `/fornecedor/eventos/${eventKey}`
+  const titulo = proposta.editando ? 'Editar proposta' : 'Enviar proposta'
 
   if (carregando) {
     return (
-      <OrganizadorLayout perfil="fornecedor" titulo="Enviar proposta" voltarPara={paginaDoEvento}>
+      <OrganizadorLayout perfil="fornecedor" titulo={titulo} voltarPara={paginaDoEvento}>
         <Carregando mensagem="Carregando o item…" />
       </OrganizadorLayout>
     )
@@ -29,7 +30,7 @@ export function EtapaDaProposta({ proposta, etapa, aoVoltar, rodape, children })
 
   if (erro && erro.status !== 404) {
     return (
-      <OrganizadorLayout perfil="fornecedor" titulo="Enviar proposta" voltarPara={paginaDoEvento}>
+      <OrganizadorLayout perfil="fornecedor" titulo={titulo} voltarPara={paginaDoEvento}>
         <ErroNaTela erro={erro} aoTentarDeNovo={tentarDeNovo} />
       </OrganizadorLayout>
     )
@@ -54,14 +55,18 @@ export function EtapaDaProposta({ proposta, etapa, aoVoltar, rodape, children })
     )
   }
 
-  if (item.my_proposal) {
+  // proposta já analisada pelo organizador: só a consulta (a enviada vira edição, ver usePropostaEmEdicao)
+  if (item.my_proposal && !proposta.editando) {
     return (
-      <OrganizadorLayout perfil="fornecedor" titulo="Enviar proposta" voltarPara={paginaDoEvento}>
+      <OrganizadorLayout perfil="fornecedor" titulo="Proposta enviada" voltarPara={paginaDoEvento}>
         <Vazio
-          titulo="Você já enviou uma proposta para este item"
+          titulo="Esta proposta não pode mais ser alterada"
           mensagem={`Situação: ${traduzirStatusDaProposta(item.my_proposal.status)}.`}
         >
-          <Link to="/fornecedor/propostas" className="botao botao--secundario">
+          <Link
+            to={`/fornecedor/propostas/${item.my_proposal.proposal_key}`}
+            className="botao botao--secundario"
+          >
             Ver proposta
           </Link>
         </Vazio>
@@ -77,7 +82,7 @@ export function EtapaDaProposta({ proposta, etapa, aoVoltar, rodape, children })
   return (
     <OrganizadorLayout
       perfil="fornecedor"
-      titulo="Enviar proposta"
+      titulo={titulo}
       sobreTitulo={`Eventos disponíveis · ${evento.name}`}
       apoio={`Item: ${item.description}`}
       voltarPara={aoVoltar ? undefined : paginaDoEvento}

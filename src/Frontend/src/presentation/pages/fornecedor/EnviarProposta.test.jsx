@@ -6,16 +6,21 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
-const { buscarEventoDisponivel, enviarProposta, toast } = vi.hoisted(() => ({
-  buscarEventoDisponivel: vi.fn(),
-  enviarProposta: vi.fn(),
-  toast: { sucesso: vi.fn() },
-}))
+const { buscarEventoDisponivel, enviarProposta, atualizarProposta, buscarMinhaProposta, toast } =
+  vi.hoisted(() => ({
+    buscarEventoDisponivel: vi.fn(),
+    enviarProposta: vi.fn(),
+    atualizarProposta: vi.fn(),
+    buscarMinhaProposta: vi.fn(),
+    toast: { sucesso: vi.fn() },
+  }))
 
 vi.mock('../../../application/eventosDisponiveis.js', () => ({ buscarEventoDisponivel }))
 vi.mock('../../../application/propostas.js', async (importOriginal) => ({
   ...(await importOriginal()),
   enviarProposta,
+  atualizarProposta,
+  buscarMinhaProposta,
 }))
 vi.mock('../../toasts.js', () => ({ toast }))
 vi.mock('../../hooks/useIsMobile.js', () => ({ useIsMobile: () => false }))
@@ -83,6 +88,7 @@ function renderizarEm(caminho) {
           element={<EnviarPropostaEtapa3 />}
         />
         <Route path="/fornecedor/propostas" element={<p>Tela de minhas propostas</p>} />
+        <Route path="/fornecedor/propostas/:proposalKey" element={<p>Tela do detalhe</p>} />
       </Routes>
     </MemoryRouter>,
   )
@@ -111,7 +117,7 @@ describe('EventoDisponivel', () => {
     )
   })
 
-  test('item com proposta mostra o status traduzido e o link para Minhas propostas', async () => {
+  test('item com proposta mostra o status traduzido e o link para o detalhe dela', async () => {
     buscarEventoDisponivel.mockResolvedValue(
       eventoComItem({
         proposal_key: 'p1',
@@ -126,7 +132,7 @@ describe('EventoDisponivel', () => {
     expect(await screen.findByText(/Sua proposta: Aceita/)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Ver proposta' })).toHaveAttribute(
       'href',
-      '/fornecedor/propostas',
+      '/fornecedor/propostas/p1',
     )
     expect(screen.queryByRole('link', { name: 'Enviar proposta' })).not.toBeInTheDocument()
   })
@@ -207,11 +213,11 @@ describe('Envio de proposta', () => {
     expect(toast.sucesso).not.toHaveBeenCalled()
   })
 
-  test('item que já tem proposta não abre o formulário de novo', async () => {
+  test('proposta já analisada não abre o formulário de novo', async () => {
     buscarEventoDisponivel.mockResolvedValue(
       eventoComItem({
         proposal_key: 'p1',
-        status: 'sent',
+        status: 'accepted',
         amount: 1800,
         valid_until: '2026-12-15',
       }),
@@ -219,9 +225,76 @@ describe('Envio de proposta', () => {
 
     renderizarEm(`/fornecedor/eventos/${EVENTO}/itens/${ITEM}/propostas/etapa-1`)
 
-    expect(
-      await screen.findByText('Você já enviou uma proposta para este item'),
-    ).toBeInTheDocument()
+    expect(await screen.findByText('Esta proposta não pode mais ser alterada')).toBeInTheDocument()
+    expect(screen.getByText('Situação: Aceita.')).toBeInTheDocument()
     expect(screen.queryByLabelText(/Valor total da proposta/)).not.toBeInTheDocument()
+    expect(buscarMinhaProposta).not.toHaveBeenCalled()
+  })
+})
+
+describe('Edição de proposta enviada', () => {
+  const propostaEnviada = {
+    proposal_key: 'p1',
+    status: 'sent',
+    amount: 1800,
+    valid_until: '2026-12-15',
+  }
+
+  // detalhe do GET /supplier/proposals/p1
+  const detalhe = {
+    proposal_key: 'p1',
+    status: 'sent',
+    amount: 1800.5,
+    valid_until: '2026-12-15',
+    description: 'Palco 10x8',
+    not_included: null,
+    delivery_terms: 'Na véspera',
+    payment_terms: 'À vista',
+    team: 'Equipe de 4',
+    warranty: null,
+    notes: null,
+    event: { event_key: EVENTO, name: 'Festival RF10', status: 'open_for_quotes' },
+    item: { item_key: ITEM, description: 'Palco principal' },
+  }
+
+  beforeEach(() => {
+    buscarEventoDisponivel.mockResolvedValue(eventoComItem(propostaEnviada))
+    buscarMinhaProposta.mockResolvedValue(detalhe)
+  })
+
+  test('a etapa 1 abre como edição, já preenchida com os dados da proposta', async () => {
+    renderizarEm(`/fornecedor/eventos/${EVENTO}/itens/${ITEM}/propostas/etapa-1`)
+
+    // o título já aparece no "carregando": espera o campo, que só existe com a proposta carregada
+    expect(await screen.findByLabelText(/Valor total da proposta/)).toHaveValue('R$ 1.800,50')
+    expect(screen.getByRole('heading', { name: 'Editar proposta' })).toBeInTheDocument()
+    expect(buscarMinhaProposta).toHaveBeenCalledWith('p1')
+    expect(lerRascunho(EVENTO, ITEM)).toMatchObject({
+      validade: '15/12/2026',
+      descricao: 'Palco 10x8',
+      equipe: 'Equipe de 4',
+      chaveDaProposta: 'p1',
+    })
+  })
+
+  test('a etapa 3 salva com o PUT e volta para o detalhe da proposta', async () => {
+    const usuario = userEvent.setup()
+    renderizarEm(etapa3)
+
+    const pagamento = await screen.findByLabelText(/Condição de pagamento/)
+    expect(pagamento).toHaveValue('À vista')
+    await usuario.clear(pagamento)
+    await usuario.type(pagamento, '30 dias')
+    await usuario.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+
+    expect(await screen.findByText('Tela do detalhe')).toBeInTheDocument()
+    expect(atualizarProposta).toHaveBeenCalledWith(
+      'p1',
+      expect.objectContaining({ valor: 'R$ 1.800,50', condicaoDePagamento: '30 dias' }),
+    )
+    expect(enviarProposta).not.toHaveBeenCalled()
+    expect(toast.sucesso).toHaveBeenCalledWith('Proposta atualizada', {
+      descricao: 'Palco principal',
+    })
   })
 })
