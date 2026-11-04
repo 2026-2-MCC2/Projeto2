@@ -4,7 +4,6 @@ import {
   formatarCep,
   formatarCnpj,
   formatarTelefone,
-  formatarData,
   mascararCep,
   iniciais,
 } from '../src/domain/formatacao.js'

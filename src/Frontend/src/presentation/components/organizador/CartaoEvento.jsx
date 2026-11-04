@@ -70,4 +70,3 @@ function Dado({ rotulo, valor, destaquePerigo = false }) {
     </div>
   )
 }
-
