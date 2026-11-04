@@ -91,6 +91,7 @@ function calcularDadosTicket(evento, totalCustos) {
   const cenarioRef = evento.reference_scenario || 'expected'
   const publicoRef =
     cenarioRef === 'minimum' ? publicoMin : cenarioRef === 'maximum' ? publicoMax : publicoExp
+  const margemInvalida = margem >= 1
 
   // ticket = custo total ÷ [público × (1 − margem)]
   const ticketPara = (publico) =>
@@ -111,8 +112,9 @@ function calcularDadosTicket(evento, totalCustos) {
           ? 'Cenário máximo'
           : 'Cenário esperado',
     valor: precoSugerido,
-    explicacao:
-      totalCustos > 0
+    explicacao: margemInvalida
+      ? 'A margem de lucro precisa ser menor que 100% para calcular o ticket.'
+      : totalCustos > 0
         ? `Custo de ${formatarMoeda(totalCustos)} dividido por ${quantidadeDePessoas(publicoRef)}, com margem de ${Math.round(margem * 100)}%.`
         : 'Cadastre os custos para calcular o ticket sugerido.',
     cenarios: [
@@ -275,6 +277,7 @@ export function formatarEventoParaExibicao(evento, itensDeCotacao = evento.budge
   const publico = `${quantidadeDePessoas(Number(evento.expected_audience || 0))}`
 
   const totalCustos = Number(evento.total_cost ?? evento.total_internal_cost) || 0
+  const totalPropostasAceitas = Number(evento.total_accepted_proposals) || 0
   const { precoSugerido, ticketEstimado, calculo } = calcularDadosTicket(evento, totalCustos)
 
   const dadosExibicao = [
@@ -357,8 +360,11 @@ export function formatarEventoParaExibicao(evento, itensDeCotacao = evento.budge
         total: formatarMoeda(totalCustos),
         resumoMobile: `${linhasCustos.length} custos cadastrados`,
         indicadores: [
-          { nome: 'Custos de fornecedores', valor: 'R$ 0,00' },
-          { nome: 'Custos fiscais e operacionais', valor: formatarMoeda(totalCustos) },
+          { nome: 'Custos de fornecedores', valor: formatarMoeda(totalPropostasAceitas) },
+          {
+            nome: 'Custos fiscais e operacionais',
+            valor: formatarMoeda(Number(evento.total_internal_cost) || 0),
+          },
           { nome: 'Custo total do evento', valor: formatarMoeda(totalCustos) },
         ],
         linhas: linhasCustos,
