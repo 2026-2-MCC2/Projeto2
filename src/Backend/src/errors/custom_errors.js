@@ -398,3 +398,50 @@ export class ProposalEventNotOpen extends ApiException {
     super(title, ProposalEventNotOpen.code, httpStatus, description, translation)
   }
 }
+
+export class ProposalPhotoLimitReached extends ApiException {
+  static code = 'EVP000043'
+
+  constructor(maxPhotos) {
+    const title = 'Proposal photo limit reached'
+    const httpStatus = 409
+    const description = `A proposal can have at most ${maxPhotos} photos.`
+    const translation = `Esta proposta já tem ${maxPhotos} fotos. Retire uma para enviar outra.`
+    super(title, ProposalPhotoLimitReached.code, httpStatus, description, translation)
+  }
+}
+
+export class InvalidProposalPhoto extends ApiException {
+  static code = 'EVP000044'
+
+  constructor(description = 'The photo must be a JPG, PNG or WebP image sent in the "photo" field.') {
+    const title = 'Invalid proposal photo'
+    const httpStatus = 400
+    const translation = 'Envie uma foto em JPG, PNG ou WebP.'
+    super(title, InvalidProposalPhoto.code, httpStatus, description, translation)
+  }
+}
+
+export class ProposalPhotoTooLarge extends ApiException {
+  static code = 'EVP000045'
+
+  constructor(maxMegabytes) {
+    const title = 'Proposal photo too large'
+    const httpStatus = 413
+    const description = `The photo must have at most ${maxMegabytes} MB.`
+    const translation = `A foto pode ter até ${maxMegabytes} MB.`
+    super(title, ProposalPhotoTooLarge.code, httpStatus, description, translation)
+  }
+}
+
+export class NotFoundProposalPhoto extends ApiException {
+  static code = 'EVP000046'
+
+  constructor(photoKey = '') {
+    const title = 'Proposal photo not Found'
+    const httpStatus = 404
+    const description = `Photo ${photoKey} was not found in this proposal.`
+    const translation = 'A foto não foi encontrada.'
+    super(title, NotFoundProposalPhoto.code, httpStatus, description, translation)
+  }
+}

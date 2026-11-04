@@ -24,6 +24,7 @@ import { OrganizerRepository } from '../repositories/organizer_repository.js'
 import { ProposalRepository } from '../repositories/proposal_repository.js'
 import { UserRepository } from '../repositories/user_repository.js'
 import { ProposalComparisonDTO } from '../dtos/proposal_comparison_dto.js'
+import { toPhotoResponses } from '../utils/proposal_photo_tools.js'
 import { TextTools } from '../utils/text_tools.js'
 
 const STATUS_CONFLICT_MESSAGES = {
@@ -218,8 +219,22 @@ export class EventController extends BaseController {
       throw new NotFoundEvent(eventKey)
     }
 
+    return this.#getProposalComparison(event)
+  }
+
+  // comparação das propostas do evento, com as fotos de cada uma (URL de leitura assinada)
+  async #getProposalComparison(event) {
     const rows = await this.proposalRepository.getByEventId(event.id)
-    return ProposalComparisonDTO.fromRows(eventKey, rows)
+    const photos = await this.proposalRepository.getPhotosByEventId(event.id)
+    const photoResponses = await toPhotoResponses(photos)
+
+    const photosByProposalKey = {}
+    photos.forEach((photo, index) => {
+      photosByProposalKey[photo.proposal_key] ??= []
+      photosByProposalKey[photo.proposal_key].push(photoResponses[index])
+    })
+
+    return ProposalComparisonDTO.fromRows(event.event_key, rows, photosByProposalKey)
   }
 
   /**
@@ -245,9 +260,9 @@ export class EventController extends BaseController {
       throw new NotFoundProposal(proposalKey)
     }
 
-    const rows = await this.proposalRepository.getByEventId(event.id)
+    const comparison = await this.#getProposalComparison(event)
     await this.session.commit()
-    return ProposalComparisonDTO.fromRows(eventKey, rows)
+    return comparison
   }
 
   /**

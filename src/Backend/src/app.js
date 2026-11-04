@@ -101,6 +101,8 @@ export function create() {
   const supplierProposalResource = new SupplierProposalResource()
   addRoute(app, `${API_PREFIX}/supplier/proposals`, supplierProposalResource, 'List')
   addRoute(app, `${API_PREFIX}/supplier/proposals/:proposal_key`, supplierProposalResource, 'ByKey')
+  addRoute(app, `${API_PREFIX}/supplier/proposals/:proposal_key/photos`, supplierProposalResource, 'Photos')
+  addRoute(app, `${API_PREFIX}/supplier/proposals/:proposal_key/photos/:photo_key`, supplierProposalResource, 'PhotosByKey')
 
   const sinkResource = new SinkResource()
   addSink(app, sinkResource)

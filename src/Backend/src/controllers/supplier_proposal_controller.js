@@ -1,23 +1,36 @@
-// Regras das propostas do fornecedor: envio (RF10), histórico, detalhe, edição e retirada.
+// Regras das propostas do fornecedor: envio (RF10), histórico, detalhe, edição, retirada e fotos.
 
 import { UniqueConstraintError } from 'sequelize'
 
+import { StorageConnector } from '../connectors/storage/index.js'
 import { EVENT_STATUSES, PROPOSAL_STATUSES } from '../constants.js'
 import { SupplierProposalDto } from '../dtos/supplier_proposal_dto.js'
 import {
   InvalidParameter,
+  InvalidProposalPhoto,
   NotFoundBudgetItem,
   NotFoundEvent,
   NotFoundProposal,
+  NotFoundProposalPhoto,
   ProposalAlreadySent,
   ProposalCannotBeChanged,
   ProposalEventNotOpen,
+  ProposalPhotoLimitReached,
   ProposalValidUntilAfterEvent,
   ProposalValidUntilInPast,
 } from '../errors/index.js'
 import { ProposalRepository } from '../repositories/proposal_repository.js'
 import { SupplierEventRepository } from '../repositories/supplier_event_repository.js'
 import { UserRepository } from '../repositories/user_repository.js'
+import {
+  buildPhotoPath,
+  detectImageType,
+  firstFreePosition,
+  isPhotoKey,
+  MAX_PHOTOS_PER_PROPOSAL,
+  possiblePhotoPaths,
+  toPhotoResponses,
+} from '../utils/proposal_photo_tools.js'
 import { BaseController } from './base_controller.js'
 import { getSupplierOfUser } from './supplier_access.js'
 
@@ -104,9 +117,76 @@ export class SupplierProposalController extends BaseController {
   async deleteProposal(userKey, proposalKey) {
     const supplier = await getSupplierOfUser(this.userRepository, userKey)
     const { proposal } = await this.#getChangeableProposal(supplier.id, proposalKey)
+    const photos = await this.proposalRepository.getPhotos(proposal.id)
 
+    // os registros das fotos saem junto com a proposta (ON DELETE CASCADE); os arquivos, só depois do commit
     await this.proposalRepository.delete(proposal)
     await this.session.commit()
+    await this.#removeFiles(photos.map((photo) => photo.url))
+  }
+
+  // Foto nova da proposta (até 5). A ordem evita sobra dos dois lados:
+  //   1. tudo que pode recusar a foto é conferido antes de gravar qualquer coisa;
+  //   2. o arquivo vai para o armazenamento; se falhar, nada foi gravado no banco (a transação é desfeita);
+  //   3. o registro entra no banco; se ele ou o commit falhar, o arquivo recém-gravado é apagado.
+  async addPhoto(userKey, proposalKey, file) {
+    const imageType = detectImageType(file.buffer)
+    if (!imageType) {
+      throw new InvalidProposalPhoto()
+    }
+
+    const supplier = await getSupplierOfUser(this.userRepository, userKey)
+    // a trava da proposta também faz dois envios ao mesmo tempo esperarem um pelo outro na contagem
+    const { proposal } = await this.#getChangeableProposal(supplier.id, proposalKey)
+    const position = firstFreePosition(await this.proposalRepository.getPhotos(proposal.id))
+    if (position === null) {
+      throw new ProposalPhotoLimitReached(MAX_PHOTOS_PER_PROPOSAL)
+    }
+
+    const { photoKey, path } = buildPhotoPath(proposalKey, imageType.extension)
+    await StorageConnector.save(file.buffer, imageType.contentType, path)
+
+    try {
+      await this.proposalRepository.createPhoto(proposal.id, position, path)
+      const url = await StorageConnector.getUrl(path)
+      await this.session.commit()
+      return { photo_key: photoKey, url }
+    } catch (error) {
+      await this.#removeFiles([path])
+      throw error
+    }
+  }
+
+  // O registro sai primeiro (com commit) e o arquivo depois: se a remoção do arquivo falhar, sobra só
+  // um arquivo que nenhum registro aponta (fica no log), nunca um registro apontando para o nada.
+  async deletePhoto(userKey, proposalKey, photoKey) {
+    const supplier = await getSupplierOfUser(this.userRepository, userKey)
+    const { proposal } = await this.#getChangeableProposal(supplier.id, proposalKey)
+
+    const photo = isPhotoKey(photoKey)
+      ? await this.proposalRepository.getPhotoByPaths(proposal.id, possiblePhotoPaths(proposalKey, photoKey))
+      : null
+    if (!photo) {
+      throw new NotFoundProposalPhoto(photoKey)
+    }
+
+    await this.proposalRepository.deletePhoto(photo)
+    await this.session.commit()
+    await this.#removeFiles([photo.url])
+  }
+
+  // Apagar arquivo é a última etapa: depois do commit, uma falha aqui não pode virar erro para o
+  // fornecedor (o banco já mudou). Fica registrada com o caminho, para a limpeza manual.
+  async #removeFiles(paths) {
+    for (const path of paths) {
+      try {
+        await StorageConnector.remove(path)
+      } catch (error) {
+        this.logger.error(`Could not remove stored file ${path}; it is no longer referenced and can be deleted`, {
+          error: error.message,
+        })
+      }
+    }
   }
 
   async #getProposalDetail(supplierId, proposalKey) {
@@ -115,7 +195,7 @@ export class SupplierProposalController extends BaseController {
       throw new NotFoundProposal(proposalKey)
     }
 
-    const photos = await this.proposalRepository.getPhotos(proposal.id)
+    const photos = await toPhotoResponses(await this.proposalRepository.getPhotos(proposal.id))
     return SupplierProposalDto.fromDetail(proposal, photos)
   }
 

@@ -3,6 +3,8 @@ import { afterEach, describe, test } from 'node:test'
 
 import { UniqueConstraintError } from 'sequelize'
 
+import { StorageConnector } from '../../src/connectors/storage/index.js'
+
 import { SupplierProposalController } from '../../src/controllers/supplier_proposal_controller.js'
 import {
   ForbiddenProfile,
@@ -24,6 +26,7 @@ const EVENT_KEY = '11111111-1111-4111-8111-111111111111'
 const ITEM_KEY = '22222222-2222-4222-8222-222222222222'
 
 const originals = {
+  getUrl: StorageConnector.getUrl,
   getProfileByKey: UserRepository.prototype.getProfileByKey,
   getAvailableEvent: SupplierEventRepository.prototype.getAvailableEvent,
   getAvailableItem: SupplierEventRepository.prototype.getAvailableItem,
@@ -39,6 +42,7 @@ const originals = {
 }
 
 afterEach(() => {
+  StorageConnector.getUrl = originals.getUrl
   UserRepository.prototype.getProfileByKey = originals.getProfileByKey
   SupplierEventRepository.prototype.getAvailableEvent = originals.getAvailableEvent
   SupplierEventRepository.prototype.getAvailableItem = originals.getAvailableItem
@@ -256,6 +260,8 @@ describe('SupplierProposalController.createProposal', () => {
 })
 
 const PROPOSAL_KEY = '33333333-3333-4333-8333-333333333333'
+const PHOTO_KEY = '44444444-4444-4444-8444-444444444444'
+const PHOTO_PATH = `proposals/${PROPOSAL_KEY}/${PHOTO_KEY}.jpg`
 
 // linha do ProposalRepository.getSupplierProposalByKey: proposta 99 do fornecedor 8, evento 20
 function proposalRow(overrides = {}) {
@@ -296,7 +302,9 @@ function mockChangeableProposal(operations, { status = 'sent', eventStatus = 'op
     calls.lookup = { supplierId, proposalKey }
     return proposalRow({ status, event_status: eventStatus, ...calls.updatedFields })
   }
-  ProposalRepository.prototype.getPhotos = async () => [{ position: 1, url: 'https://exemplo.test/palco.jpg' }]
+  ProposalRepository.prototype.getPhotos = async () => [{ position: 1, url: PHOTO_PATH }]
+  // URL de leitura simulada: o teste não fala com o armazenamento
+  StorageConnector.getUrl = async (path) => `https://armazenamento.test/${path}?assinatura=teste`
   SupplierEventRepository.prototype.getEventForShare = async (eventId) => {
     operations.push(`lockEvent:${eventId}`)
     return { id: eventId, status: eventStatus, end_date: new Date(`${daysFromToday(10)}T22:00:00.000Z`) }
@@ -370,7 +378,7 @@ describe('SupplierProposalController.getProposal', () => {
     assert.equal(result.delivery_terms, 'Na véspera')
     assert.equal(result.event.end_date, `${daysFromToday(10)}T22:00:00.000Z`)
     assert.deepEqual(result.item, { item_key: ITEM_KEY, description: 'Palco', category: 'Estrutura', type: 'service', quantity: 1 })
-    assert.deepEqual(result.photos, [{ position: 1, url: 'https://exemplo.test/palco.jpg' }])
+    assert.deepEqual(result.photos, [{ photo_key: PHOTO_KEY, url: `https://armazenamento.test/${PHOTO_PATH}?assinatura=teste` }])
     assert.equal('id' in result, false)
     assert.equal('event_id' in result, false)
   })

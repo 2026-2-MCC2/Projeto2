@@ -6,7 +6,7 @@ import { QueryTypes } from 'sequelize'
 
 import { sequelize } from '../connectors/database_connector.js'
 import { ProposalDecisionConflict, ProposalExpired } from '../errors/index.js'
-import { Proposal } from '../models/index.js'
+import { Proposal, ProposalPhoto } from '../models/index.js'
 
 // colunas e junções das propostas vistas pelo próprio fornecedor (histórico e detalhe)
 const SUPPLIER_PROPOSAL_COLUMNS = `proposal.proposal_key, proposal.amount,
@@ -116,6 +116,35 @@ export class ProposalRepository {
       transaction: this.session,
       type: QueryTypes.SELECT,
     })
+  }
+
+  async createPhoto(proposalId, position, path) {
+    await ProposalPhoto.create(
+      { proposal_id: proposalId, position: position, url: path, created_at: new Date() },
+      { transaction: this.session },
+    )
+  }
+
+  // a foto da proposta guardada num destes caminhos (um por formato aceito, ver proposal_photo_tools.js)
+  async getPhotoByPaths(proposalId, paths) {
+    return ProposalPhoto.findOne({ where: { proposal_id: proposalId, url: paths }, transaction: this.session })
+  }
+
+  async deletePhoto(photo) {
+    await photo.destroy({ transaction: this.session })
+  }
+
+  // fotos de todas as propostas de um evento, para a comparação do organizador
+  async getPhotosByEventId(eventId) {
+    return sequelize.query(
+      `SELECT proposal.proposal_key, proposal_photo.position, proposal_photo.url
+       FROM proposal_photo
+       INNER JOIN proposal ON proposal.id = proposal_photo.proposal_id
+       INNER JOIN budget_item ON budget_item.id = proposal.budget_item_id
+       WHERE budget_item.event_id = :eventId
+       ORDER BY proposal_photo.proposal_id ASC, proposal_photo.position ASC`,
+      { replacements: { eventId }, transaction: this.session, type: QueryTypes.SELECT },
+    )
   }
 
   // trava a proposta até o commit: um aceite do organizador ao mesmo tempo espera, e vice-versa

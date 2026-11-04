@@ -53,7 +53,8 @@ export class SupplierProposalDto {
       status: proposal.status,
       selected: Boolean(proposal.selected),
       sent_at: toIsoString(proposal.sent_at),
-      photos: photos.map((photo) => ({ position: Number(photo.position), url: photo.url })),
+      // [{ photo_key, url }] com a URL de leitura assinada (ver utils/proposal_photo_tools.js)
+      photos: photos,
     }
   }
 }

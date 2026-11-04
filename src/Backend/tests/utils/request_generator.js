@@ -185,6 +185,27 @@ export class RequestGenerator {
     return [response.responseStatus, response.responseJson]
   }
 
+  // file: { buffer, filename, contentType } vai no campo "photo" (ou em outro, com fieldName);
+  // null manda o formulário sem arquivo. O fetch monta o multipart/form-data sozinho.
+  static async POST_supplier_proposal_photo(proposalKey, file, headers = {}, { fieldName = 'photo' } = {}) {
+    const form = new FormData()
+    if (file) {
+      form.append(fieldName, new Blob([file.buffer], { type: file.contentType }), file.filename)
+    }
+    const response = await ClientRequisition.send('POST', `/event_planning/supplier/proposals/${proposalKey}/photos`, {
+      data: form,
+      headers,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async DELETE_supplier_proposal_photo(proposalKey, photoKey, headers = {}) {
+    const response = await ClientRequisition.send('DELETE', `/event_planning/supplier/proposals/${proposalKey}/photos/${photoKey}`, {
+      headers,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
   static async DELETE_supplier_proposal(proposalKey, headers = {}) {
     const response = await ClientRequisition.send('DELETE', `/event_planning/supplier/proposals/${proposalKey}`, { headers })
     return [response.responseStatus, response.responseJson]
