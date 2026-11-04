@@ -338,3 +338,39 @@ export class CurrentPasswordIncorrect extends ApiException {
     super(title, CurrentPasswordIncorrect.code, httpStatus, description, translation)
   }
 }
+
+export class ProposalAlreadySent extends ApiException {
+  static code = 'EVP000038'
+
+  constructor() {
+    const title = 'Proposal already sent'
+    const httpStatus = 409
+    const description = 'The supplier already sent a proposal for this budget item.'
+    const translation = 'Você já enviou uma proposta para este item.'
+    super(title, ProposalAlreadySent.code, httpStatus, description, translation)
+  }
+}
+
+export class ProposalValidUntilInPast extends ApiException {
+  static code = 'EVP000039'
+
+  constructor() {
+    const title = 'Proposal validity in the past'
+    const httpStatus = 400
+    const description = 'valid_until must be today or a later date.'
+    const translation = 'A validade da proposta precisa ser a partir de hoje.'
+    super(title, ProposalValidUntilInPast.code, httpStatus, description, translation)
+  }
+}
+
+export class ProposalValidUntilAfterEvent extends ApiException {
+  static code = 'EVP000040'
+
+  constructor() {
+    const title = 'Proposal validity after the event'
+    const httpStatus = 400
+    const description = 'valid_until cannot be later than the event end date.'
+    const translation = 'A validade da proposta não pode passar da data de término do evento.'
+    super(title, ProposalValidUntilAfterEvent.code, httpStatus, description, translation)
+  }
+}

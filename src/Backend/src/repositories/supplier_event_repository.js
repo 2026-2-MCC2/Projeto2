@@ -54,7 +54,8 @@ export class SupplierEventRepository {
     return { events, total: Number(countResult.total) }
   }
 
-  async getAvailableEvent(supplierId, eventKey) {
+  // lock: trava o evento (FOR SHARE) até o commit, para ele não sair de cotação no meio do envio da proposta
+  async getAvailableEvent(supplierId, eventKey, { lock = false } = {}) {
     const events = await sequelize.query(
       `SELECT event.id, event.event_key, event.name, event.category, event.description,
               event.start_date, event.end_date, event.venue_name, event.address,
@@ -68,10 +69,26 @@ export class SupplierEventRepository {
            FROM budget_item
            INNER JOIN supplier_category ON supplier_category.category_id = budget_item.category_id
            WHERE budget_item.event_id = event.id AND supplier_category.supplier_id = ?
-         )`,
+         )${lock ? ' FOR SHARE' : ''}`,
       { replacements: [eventKey, supplierId], transaction: this.session, type: QueryTypes.SELECT },
     )
     return events[0] ?? null
+  }
+
+  // item do evento numa categoria que o fornecedor atende; travado (FOR SHARE) para o organizador
+  // não editar ou apagar o item enquanto a proposta é gravada
+  async getAvailableItem(eventId, supplierId, itemKey) {
+    const items = await sequelize.query(
+      `SELECT budget_item.id, budget_item.budget_item_key AS item_key
+       FROM budget_item
+       INNER JOIN supplier_category ON supplier_category.category_id = budget_item.category_id
+       WHERE budget_item.budget_item_key = :itemKey
+         AND budget_item.event_id = :eventId
+         AND supplier_category.supplier_id = :supplierId
+       FOR SHARE`,
+      { replacements: { itemKey, eventId, supplierId }, transaction: this.session, type: QueryTypes.SELECT },
+    )
+    return items[0] ?? null
   }
 
   async getAvailableItems(eventId, supplierId) {

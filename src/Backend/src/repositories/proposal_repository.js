@@ -1,9 +1,12 @@
-// Consulta propostas recebidas para os itens de um evento.
+// Grava as propostas dos fornecedores e consulta as recebidas para os itens de um evento.
+
+import { randomUUID } from 'node:crypto'
 
 import { QueryTypes } from 'sequelize'
 
 import { sequelize } from '../connectors/database_connector.js'
 import { ProposalDecisionConflict, ProposalExpired } from '../errors/index.js'
+import { Proposal } from '../models/index.js'
 
 export class ProposalRepository {
   constructor(context) {
@@ -31,6 +34,29 @@ export class ProposalRepository {
        ORDER BY budget_item.created_at ASC, budget_item.id ASC,
                 proposal.amount ASC, proposal.id ASC`,
       { replacements: { eventId }, transaction: this.session, type: QueryTypes.SELECT },
+    )
+  }
+
+  async getBySupplierAndItem(supplierId, budgetItemId) {
+    return Proposal.findOne({
+      where: { supplier_id: supplierId, budget_item_id: budgetItemId },
+      transaction: this.session,
+    })
+  }
+
+  // a proposta nasce enviada e não selecionada; o organizador decide depois (acceptByProposalKey)
+  async create(supplierId, budgetItemId, fields) {
+    return Proposal.create(
+      {
+        proposal_key: randomUUID(),
+        budget_item_id: budgetItemId,
+        supplier_id: supplierId,
+        ...fields,
+        status: 'sent',
+        selected: false,
+        sent_at: new Date(),
+      },
+      { transaction: this.session },
     )
   }
 

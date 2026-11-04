@@ -86,6 +86,7 @@ export function create() {
   const supplierEventResource = new SupplierEventResource()
   addRoute(app, `${API_PREFIX}/supplier/events`, supplierEventResource, 'List')
   addRoute(app, `${API_PREFIX}/supplier/events/:event_key`, supplierEventResource, 'ByKey')
+  addRoute(app, `${API_PREFIX}/supplier/events/:event_key/items/:item_key/proposals`, supplierEventResource, 'ItemProposals')
 
   const sinkResource = new SinkResource()
   addSink(app, sinkResource)

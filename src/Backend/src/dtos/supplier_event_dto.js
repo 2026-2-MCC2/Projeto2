@@ -57,6 +57,16 @@ export class SupplierEventDto {
   }
 }
 
+// resposta do envio de proposta: só a chave pública e o status, sem ids internos
+export class SupplierProposalDto {
+  static fromCreated(proposal) {
+    return {
+      proposal_key: proposal.proposal_key,
+      status: proposal.status,
+    }
+  }
+}
+
 function toIsoString(value) {
   return value instanceof Date ? value.toISOString() : new Date(value).toISOString()
 }

@@ -1,8 +1,9 @@
-// Rotas para fornecedores consultarem eventos e itens disponíveis para cotação.
+// Rotas para fornecedores consultarem eventos e itens disponíveis para cotação e enviarem propostas.
 
 import { USER_PROFILES } from '../constants.js'
 import { SupplierEventController } from '../controllers/supplier_event_controller.js'
 import { getParam, getParamAsInt } from '../utils/request_params.js'
+import { SchemaHandler } from '../utils/schema_handler.js'
 import { SecurityTools } from '../utils/security_tools.js'
 
 export class SupplierEventResource {
@@ -26,5 +27,21 @@ export class SupplierEventResource {
     const event = await controller.getAvailableEvent(req.context.user.userKey, eventKey)
 
     res.status(200).json(event)
+  }
+
+  // POST /event_planning/supplier/events/:event_key/items/:item_key/proposals
+  //   201 { "proposal_key": "6f1c2a9e-...", "status": "sent" }
+  //   404 evento fora de cotação ou item que não é do evento ou de uma categoria do fornecedor
+  //   409 { "code": "EVP000038", ... } se o fornecedor já enviou proposta para o item
+  //   400 { "code": "EVP000039" | "EVP000040", ... } validade antes de hoje ou depois do fim do evento
+  async onPostItemProposals(req, res, eventKey, itemKey) {
+    // autorização antes do schema para outros perfis sempre receberem 403
+    SecurityTools.requireProfile(req.context, [USER_PROFILES.SUPPLIER])
+    SchemaHandler.validate(req, 'post_supplier_proposal.json')
+
+    const controller = new SupplierEventController(req.context)
+    const proposal = await controller.createProposal(req.context.user.userKey, eventKey, itemKey, req.context.media)
+
+    res.status(201).json(proposal)
   }
 }

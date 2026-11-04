@@ -73,6 +73,29 @@ export class PayloadGenerator {
     }
   }
 
+  // proposta válida para um evento que termina depois de valid_until (padrão: daqui a 7 dias, em UTC)
+  static createSupplierProposalPayload(overrides = {}) {
+    return {
+      amount: 1500,
+      description: 'Palco 10x8 com cobertura e iluminação básica',
+      delivery_terms: 'Montagem na véspera do evento',
+      payment_terms: '50% na assinatura e 50% no dia do evento',
+      valid_until: PayloadGenerator.dateFromToday(7),
+      not_included: 'Gerador de energia',
+      team: '4 montadores',
+      warranty: 'Troca de peças durante o evento',
+      notes: 'Frete incluso na capital',
+      ...overrides,
+    }
+  }
+
+  // AAAA-MM-DD em UTC, a mesma referência de "hoje" que a API usa para a validade das propostas
+  static dateFromToday(days) {
+    const date = new Date()
+    date.setUTCDate(date.getUTCDate() + days)
+    return date.toISOString().slice(0, 10)
+  }
+
   static createBudgetItemPayload(overrides = {}) {
     return {
       category: 'Estrutura',

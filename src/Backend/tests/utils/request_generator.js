@@ -162,6 +162,14 @@ export class RequestGenerator {
     return [response.responseStatus, response.responseJson]
   }
 
+  static async POST_supplier_item_proposal(eventKey, itemKey, payload, headers = {}) {
+    const response = await ClientRequisition.send('POST', `/event_planning/supplier/events/${eventKey}/items/${itemKey}/proposals`, {
+      payload,
+      headers,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
   static async PUT_event_item(eventKey, itemKey, payload, headers = {}) {
     const response = await ClientRequisition.send('PUT', `/event_planning/events/${eventKey}/items/${itemKey}`, {
       payload,
