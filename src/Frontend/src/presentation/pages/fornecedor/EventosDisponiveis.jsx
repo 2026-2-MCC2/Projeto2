@@ -15,7 +15,7 @@ function CartaoEvento({ evento }) {
   return (
     <article className="fornecedor-evento">
       <div className="fornecedor-evento__identificacao">
-        <span className="fornecedor-evento__categorias">{evento.categorias.join(' · ')}</span>
+        <span className="fornecedor-evento__categorias">{evento.categories.join(' · ')}</span>
         <h2>{evento.name}</h2>
         <p>
           {formatarPeriodo(evento.start_date, evento.end_date)}
