@@ -12,14 +12,18 @@ export function EventoTicket() {
   const { id } = useParams()
   const isMobile = useIsMobile()
   const { evento } = useEvento(id)
+  const ticketEstimado = evento?.detalhe?.ticketEstimado
   const calculo = evento?.detalhe?.calculo
 
   if (!calculo) {
     return (
       <EventoLayout>
         <Vazio
-          titulo="Cálculo ainda indisponível"
-          mensagem="O ticket é calculado quando o evento tiver custos cadastrados."
+          titulo="Cálculo indisponível"
+          mensagem={
+            ticketEstimado?.explicacao ??
+            'O ticket é calculado quando o evento tiver custos cadastrados.'
+          }
         />
       </EventoLayout>
     )
@@ -132,6 +136,24 @@ export function EventoTicket() {
     </section>
   )
 
+  const ticketsPorCenario = (
+    <Cartao titulo="Ticket estimado por público">
+      <div className="cenarios">
+        {ticketEstimado.cenarios.map((cenario) => (
+          <div key={cenario.nome} className="cenario">
+            <span className="cenario__nome">{cenario.nome}</span>
+            <strong
+              className={`cenario__valor${cenario.destaque ? ' cenario__valor--destaque' : ''}`}
+            >
+              {cenario.valor}
+            </strong>
+            <small>{cenario.publico}</small>
+          </div>
+        ))}
+      </div>
+    </Cartao>
+  )
+
   const premissas = (
     <Cartao titulo="Premissas do cálculo">
       <p className="formula">{calculo.formula}</p>
@@ -178,6 +200,7 @@ export function EventoTicket() {
     return (
       <EventoLayout>
         {precoSugerido}
+        {ticketsPorCenario}
         {cenarios}
         {grafico}
         {premissas}
@@ -189,6 +212,7 @@ export function EventoTicket() {
     <EventoLayout>
       <div className="colunas">
         <div className="colunas__principal">
+          {ticketsPorCenario}
           {cenarios}
           {grafico}
         </div>
