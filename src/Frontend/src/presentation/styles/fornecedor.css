@@ -926,6 +926,11 @@
   gap: 5px;
 }
 
+/* "Enviar proposta" ou "Ver proposta" do item */
+.fornecedor-evento-detalhe__valor .botao {
+  margin-top: 0.5rem;
+}
+
 .fornecedor-evento-detalhe__dados dt,
 .fornecedor-evento-detalhe__valor span {
   color: var(--texto-secundario);

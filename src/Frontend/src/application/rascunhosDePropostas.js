@@ -1,0 +1,48 @@
+// Rascunho da proposta que o fornecedor está preenchendo, um por item (event_key + item_key).
+// Fica em memória enquanto ele passa pelas 3 etapas: voltar uma etapa não perde o que foi digitado.
+// Recarregar a página ou sair da conta começa de novo.
+
+import { paraData, paraNumero } from '../domain/validacao.js'
+
+export const RASCUNHO_VAZIO = Object.freeze({
+  valor: '',
+  validade: '',
+  descricao: '',
+  naoIncluido: '',
+  prazoDeEntrega: '',
+  condicaoDePagamento: '',
+  equipe: '',
+  garantia: '',
+  observacoes: '',
+})
+
+const rascunhosPorItem = new Map()
+
+// Etapa com campo obrigatório ainda vazio (1 ou 2), ou null: abrir a etapa 3 direto pelo endereço
+// não pode pular o valor, a validade e a descrição.
+export function primeiraEtapaIncompleta(rascunho) {
+  if (!(paraNumero(rascunho.valor) > 0) || !paraData(rascunho.validade)) return 1
+  if (!rascunho.descricao.trim()) return 2
+  return null
+}
+
+const chaveDoItem = (eventKey, itemKey) => `${eventKey}/${itemKey}`
+
+export function lerRascunho(eventKey, itemKey) {
+  return rascunhosPorItem.get(chaveDoItem(eventKey, itemKey)) ?? RASCUNHO_VAZIO
+}
+
+export function atualizarRascunho(eventKey, itemKey, campos) {
+  const atualizado = { ...lerRascunho(eventKey, itemKey), ...campos }
+  rascunhosPorItem.set(chaveDoItem(eventKey, itemKey), atualizado)
+  return atualizado
+}
+
+export function descartarRascunho(eventKey, itemKey) {
+  rascunhosPorItem.delete(chaveDoItem(eventKey, itemKey))
+}
+
+// chamada ao sair da conta: o próximo usuário da aba não vê o rascunho de outro
+export function esquecerRascunhosDePropostas() {
+  rascunhosPorItem.clear()
+}

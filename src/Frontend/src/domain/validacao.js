@@ -27,6 +27,12 @@ export function paraData(texto) {
   return data.getDate() === dia && data.getMonth() === mes - 1 ? data : null
 }
 
+// Date → "2026-10-18", o formato de data (sem horário) que a API recebe; usa o dia local da Date
+export function paraDataIso(data) {
+  const doisDigitos = (numero) => String(numero).padStart(2, '0')
+  return `${data.getFullYear()}-${doisDigitos(data.getMonth() + 1)}-${doisDigitos(data.getDate())}`
+}
+
 // Os dois últimos números do CNPJ são calculados a partir dos 12 primeiros caracteres, que podem
 // ter letras (CNPJ alfanumérico): na regra da Receita cada caractere vale o código ASCII menos 48.
 function cnpjValido(caracteres) {
@@ -90,6 +96,19 @@ export const REGRAS = {
 }
 
 // Regras que comparam dois campos.
+
+// Validade de uma proposta: até o dia em que o evento termina. O dia do fim é o da data em UTC,
+// porque é assim que a API confere; o "a partir de hoje" fica com a regra dataFutura.
+export function validarValidadeDaProposta(validade, fimDoEventoIso) {
+  const data = paraData(validade)
+  if (!data || !fimDoEventoIso) return ''
+
+  const fim = new Date(fimDoEventoIso).toISOString().slice(0, 10)
+  if (paraDataIso(data) <= fim) return ''
+
+  const [ano, mes, dia] = fim.split('-')
+  return `A validade não pode passar do fim do evento (${dia}/${mes}/${ano}).`
+}
 
 export const validarConfirmacaoSenha = (confirmacao, senha) =>
   confirmacao === senha ? '' : 'As senhas não conferem.'
