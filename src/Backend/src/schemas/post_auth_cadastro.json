@@ -28,7 +28,7 @@
     "cnpj": {
       "type": "string",
       "minLength": 14,
-      "maxLength": 18,
+      "maxLength": 32,
       "description": "Com ou sem pontuação: 11.222.333/0001-81 ou 11222333000181.",
       "pattern": "^\\s*\\d{2}\\.?\\d{3}\\.?\\d{3}/?\\d{4}-?\\d{2}\\s*$"
     },

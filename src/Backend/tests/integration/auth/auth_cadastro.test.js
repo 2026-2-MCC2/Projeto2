@@ -68,6 +68,19 @@ describe('POST /auth/cadastro', () => {
     assert.equal(response.code, 'EVP000006')
   })
 
+  test('CNPJ formatado com espaços nas pontas, como ao colar no celular, é aceito', async () => {
+    const payload = PayloadGenerator.createOrganizerRegistrationPayload()
+    const formattedCnpj = payload.cnpj.replace(/\D/g, '').replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5')
+
+    const [checkStatus, check] = await RequestGenerator.POST_auth_verificar_cnpj({ cnpj: `  ${formattedCnpj}  ` })
+    const [status, response] = await register({ ...payload, cnpj: `  ${formattedCnpj}  ` })
+
+    assert.equal(checkStatus, 200)
+    assert.deepEqual(check, { available: true })
+    assert.equal(status, 201)
+    assert.equal((await DbUtils.getOrganizerByUserKey(response.user_key)).cnpj, formattedCnpj.replace(/\D/g, ''))
+  })
+
   test('CNPJ com letras ou fora do formato responde 400 sem gravar', async () => {
     const validCnpj = PayloadGenerator.createOrganizerRegistrationPayload().cnpj.replace(/\D/g, '')
     const invalidCnpjs = [

@@ -176,6 +176,7 @@ export function Cadastro() {
                   type="text"
                   name="cnpj"
                   data-validar="cnpj"
+                  maxLength={20}
                   placeholder="00.000.000/0001-00"
                   value={dados.cnpj}
                   onChange={preencher('cnpj')}
