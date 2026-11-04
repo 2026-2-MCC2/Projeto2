@@ -49,7 +49,7 @@ export function Eventos() {
   const termo = busca.trim().toLowerCase()
   const eventos = listaEventos.filter((evento) => {
     const combinaStatus = filtro === 'todos' || evento.status === filtro
-    const combinaBusca = `${evento.nome} ${evento.local} ${evento.cidade}`
+    const combinaBusca = `${evento.nome} ${evento.local} ${evento.cidade} ${evento.motivoDoCancelamento ?? ''}`
       .toLowerCase()
       .includes(termo)
     return combinaStatus && combinaBusca

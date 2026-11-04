@@ -404,6 +404,16 @@
   text-align: right;
 }
 
+.evento__dado--perigo {
+  align-items: flex-start;
+}
+
+.evento__dado--perigo strong {
+  color: var(--status-perigo-texto);
+  word-break: break-word;
+  max-width: 70%;
+}
+
 .evento__ticket {
   display: flex;
   align-items: center;
@@ -1026,6 +1036,27 @@
   background: var(--fundo-pagina);
   color: var(--texto-secundario);
   font-size: 0.75rem;
+}
+
+.aviso--cancelamento {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  background: var(--status-perigo-fundo);
+  color: var(--status-perigo-texto);
+  border: 1px solid color-mix(in srgb, var(--status-perigo-texto) 30%, transparent);
+  border-left: 3px solid var(--status-perigo-texto);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.aviso--cancelamento .icone {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex-shrink: 0;
+  --icone-cor: var(--status-perigo-texto);
 }
 
 /* ---------- mobile: barra superior e abas no rodapé ---------- */

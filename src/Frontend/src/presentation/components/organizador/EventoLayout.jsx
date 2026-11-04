@@ -7,6 +7,7 @@ import { Icone } from '../comum/Icone.jsx'
 import { TituloDaPagina } from '../comum/TituloDaPagina.jsx'
 import { Carregando, ErroNaTela, Vazio } from '../comum/EstadoDaTela.jsx'
 import iconeVoltar from '../../assets/organizador/icone-voltar.svg'
+import iconeAtencao from '../../assets/organizador/icone-atencao.svg'
 
 const ABAS = [
   { fim: '', nome: 'Visão geral', nomeCurto: 'Visão geral' },
@@ -55,6 +56,19 @@ export function EventoLayout({ acoes, comResumo = false, voltar, children }) {
   const destinoDoVoltar = voltar?.para ?? '/organizador/eventos'
   const nomeDoVoltar = voltar?.nome ?? 'Meus eventos'
 
+  const estaCancelado = evento.status === 'cancelado'
+  const avisoCancelamento = estaCancelado && (
+    <div className="aviso aviso--cancelamento" role="status">
+      <Icone src={iconeAtencao} />
+      <span>
+        <strong>Evento cancelado.</strong>{' '}
+        {evento.motivoDoCancelamento
+          ? `Motivo: ${evento.motivoDoCancelamento}`
+          : 'Nenhum motivo informado.'}
+      </span>
+    </div>
+  )
+
   const abas = (
     <div className="evento-abas">
       {ABAS.map((aba) => (
@@ -79,6 +93,7 @@ export function EventoLayout({ acoes, comResumo = false, voltar, children }) {
         subCabecalho={abas}
         voltarPara={destinoDoVoltar}
       >
+        {avisoCancelamento}
         {/* no celular o rodapé é das abas do app, então as ações ficam no topo do conteúdo */}
         {acoes && <div className="evento-acoes-mobile">{acoes}</div>}
         {children}
@@ -110,6 +125,8 @@ export function EventoLayout({ acoes, comResumo = false, voltar, children }) {
 
         {comResumo && acoes && <div className="evento-topo__acoes">{acoes}</div>}
       </div>
+
+      {avisoCancelamento}
 
       {abas}
 
