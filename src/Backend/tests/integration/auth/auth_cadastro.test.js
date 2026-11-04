@@ -4,6 +4,7 @@ import { afterEach, describe, test } from 'node:test'
 import { DbUtils } from '../../utils/db_utils.js'
 import { ObjectGenerator } from '../../utils/object_generator.js'
 import { PayloadGenerator } from '../../utils/payload_generator.js'
+import { RandomGenerator } from '../../utils/random_generator.js'
 import { RequestGenerator } from '../../utils/request_generator.js'
 import { TokenGenerator } from '../../utils/token_generator.js'
 
@@ -68,7 +69,53 @@ describe('POST /auth/cadastro', () => {
     assert.equal(response.code, 'EVP000006')
   })
 
-  test('CNPJ com letras ou fora do formato responde 400 sem gravar', async () => {
+  test('CNPJ formatado com espaços nas pontas, como ao colar no celular, é aceito', async () => {
+    const payload = PayloadGenerator.createOrganizerRegistrationPayload()
+    const formattedCnpj = payload.cnpj.replace(/\D/g, '').replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5')
+
+    const [checkStatus, check] = await RequestGenerator.POST_auth_verificar_cnpj({ cnpj: `  ${formattedCnpj}  ` })
+    const [status, response] = await register({ ...payload, cnpj: `  ${formattedCnpj}  ` })
+
+    assert.equal(checkStatus, 200)
+    assert.deepEqual(check, { available: true })
+    assert.equal(status, 201)
+    assert.equal((await DbUtils.getOrganizerByUserKey(response.user_key)).cnpj, formattedCnpj.replace(/\D/g, ''))
+  })
+
+  test('CNPJ alfanumérico válido é aceito e guardado em maiúsculas, sem pontuação', async () => {
+    const cnpj = RandomGenerator.generateAlphanumericCnpj()
+
+    const [checkStatus, check] = await RequestGenerator.POST_auth_verificar_cnpj({ cnpj: cnpj.toLowerCase() })
+    const [status, response] = await register(PayloadGenerator.createSupplierRegistrationPayload({ cnpj: cnpj.toLowerCase() }))
+
+    assert.equal(checkStatus, 200)
+    assert.deepEqual(check, { available: true })
+    assert.equal(status, 201)
+    assert.equal((await DbUtils.getSupplierByUserKey(response.user_key)).cnpj, cnpj.replace(/[^A-Z0-9]/g, ''))
+  })
+
+  test('CNPJ alfanumérico com dígito verificador errado responde 400 com EVP000007', async () => {
+    const cnpj = RandomGenerator.generateAlphanumericCnpj()
+    const wrongDigit = `${cnpj.slice(0, -1)}${(Number(cnpj.at(-1)) + 1) % 10}`
+
+    const [status, response] = await register(PayloadGenerator.createOrganizerRegistrationPayload({ cnpj: wrongDigit }))
+
+    assert.equal(status, 400)
+    assert.equal(response.code, 'EVP000007')
+  })
+
+  test('o mesmo CNPJ alfanumérico em minúsculas ou maiúsculas é um só cadastro', async () => {
+    const cnpj = RandomGenerator.generateAlphanumericCnpj()
+    const [firstStatus] = await register(PayloadGenerator.createOrganizerRegistrationPayload({ cnpj: cnpj.toLowerCase() }))
+
+    const [status, response] = await register(PayloadGenerator.createSupplierRegistrationPayload({ cnpj }))
+
+    assert.equal(firstStatus, 201)
+    assert.equal(status, 409)
+    assert.equal(response.code, 'EVP000006')
+  })
+
+  test('CNPJ com letra no dígito verificador ou fora do formato responde 400 sem gravar', async () => {
     const validCnpj = PayloadGenerator.createOrganizerRegistrationPayload().cnpj.replace(/\D/g, '')
     const invalidCnpjs = [
       `${validCnpj.slice(0, 13)}A${validCnpj.slice(13)}`,

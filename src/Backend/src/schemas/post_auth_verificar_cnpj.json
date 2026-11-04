@@ -5,9 +5,9 @@
     "cnpj": {
       "type": "string",
       "minLength": 14,
-      "maxLength": 18,
-      "description": "Com ou sem pontuação: 11.222.333/0001-81 ou 11222333000181.",
-      "pattern": "^\\s*\\d{2}\\.?\\d{3}\\.?\\d{3}/?\\d{4}-?\\d{2}\\s*$"
+      "maxLength": 32,
+      "description": "Com ou sem pontuação, numérico (11.222.333/0001-81) ou alfanumérico (12.ABC.345/01DE-35).",
+      "pattern": "^\\s*[A-Za-z0-9]{2}\\.?[A-Za-z0-9]{3}\\.?[A-Za-z0-9]{3}/?[A-Za-z0-9]{4}-?\\d{2}\\s*$"
     }
   },
   "required": [

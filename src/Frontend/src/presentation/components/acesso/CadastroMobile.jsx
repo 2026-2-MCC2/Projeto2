@@ -161,6 +161,8 @@ export function CadastroMobile() {
                 <input
                   type="text"
                   data-validar="cnpj"
+                  autoCapitalize="characters"
+                  maxLength={20}
                   placeholder="00.000.000/0001-00"
                   value={dados.cnpj}
                   onChange={preencher('cnpj')}

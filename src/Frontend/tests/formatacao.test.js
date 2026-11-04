@@ -27,6 +27,7 @@ describe('Domain: Formatação', () => {
 
   it('formatarCnpj formata 14 digitos', () => {
     assert.equal(formatarCnpj('12345678000199'), '12.345.678/0001-99')
+    assert.equal(formatarCnpj('12abc34501de35'), '12.ABC.345/01DE-35')
   })
 
   it('formatarTelefone formata 10 e 11 digitos', () => {
