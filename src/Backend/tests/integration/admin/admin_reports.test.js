@@ -71,17 +71,17 @@ describe('GET /admin/reports', () => {
     assert.deepEqual(report.data[0].values, {
       estimated_items_total: '200.00',
       internal_cost_total: '30.00',
-      selected_proposals_total: '240.00',
-      planning_cost_total: '240.00',
+      selected_proposals_total: '120.00',
+      planning_cost_total: '120.00',
     })
     assert.deepEqual(report.data[0].estimated_ticket, {
-      minimum: '0.68',
-      expected: '0.34',
-      maximum: '0.17',
+      minimum: '0.38',
+      expected: '0.19',
+      maximum: '0.09',
     })
     assert.equal(report.summary.values.estimated_items_total, '200.00')
     assert.equal(report.summary.values.internal_cost_total, '30.00')
-    assert.equal(report.summary.values.selected_proposals_total, '240.00')
+    assert.equal(report.summary.values.selected_proposals_total, '120.00')
   })
 
   test('organizador e fornecedor aprovados recebem 403', async () => {
@@ -155,7 +155,7 @@ async function createReportEventFixture(organizerUserKey, supplierUserKey) {
          proposal_key, budget_item_id, supplier_id, amount, description, delivery_terms,
          payment_terms, valid_until, status, selected
        ) VALUES (?, ?, ?, 120.00, 'Proposta RF14', 'Entrega no evento', 'À vista',
-                 '2026-11-30', 'accepted', TRUE)`,
+                 '2026-11-30', 'accepted', FALSE)`,
       [randomUUID(), budgetItem.insertId, supplier.id],
     )
     await connection.execute(

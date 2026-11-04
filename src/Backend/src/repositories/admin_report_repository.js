@@ -60,8 +60,8 @@ export class AdminReportRepository {
                 SUM(proposal.status = 'under_review') AS review_count,
                 SUM(proposal.status = 'accepted') AS accepted_count,
                 SUM(proposal.status = 'rejected') AS rejected_count,
-                SUM(CASE WHEN proposal.selected = TRUE
-                         THEN proposal.amount * budget_item.quantity ELSE 0 END) AS selected_total
+                SUM(CASE WHEN (proposal.selected = TRUE OR proposal.status = 'accepted')
+                         THEN proposal.amount ELSE 0 END) AS selected_total
          FROM budget_item
          INNER JOIN proposal ON proposal.budget_item_id = budget_item.id
          GROUP BY budget_item.event_id
@@ -69,7 +69,7 @@ export class AdminReportRepository {
        LEFT JOIN (
          SELECT budget_item.event_id,
                 SUM(CASE WHEN selected_for_item.selected_amount IS NOT NULL
-                         THEN selected_for_item.selected_amount * budget_item.quantity
+                         THEN selected_for_item.selected_amount
                          ELSE COALESCE(budget_item.estimated_value, 0) * budget_item.quantity END) AS planning_cost_total,
                 SUM(CASE WHEN selected_for_item.selected_amount IS NULL
                               AND budget_item.estimated_value IS NULL
@@ -78,7 +78,7 @@ export class AdminReportRepository {
          LEFT JOIN (
            SELECT proposal.budget_item_id, SUM(proposal.amount) AS selected_amount
            FROM proposal
-           WHERE proposal.selected = TRUE
+           WHERE (proposal.selected = TRUE OR proposal.status = 'accepted')
            GROUP BY proposal.budget_item_id
          ) AS selected_for_item ON selected_for_item.budget_item_id = budget_item.id
          GROUP BY budget_item.event_id
@@ -157,13 +157,13 @@ export class AdminReportRepository {
           INNER JOIN organizer ON organizer.id = e.organizer_id
           INNER JOIN user AS organizer_user ON organizer_user.id = organizer.user_id
           ${where}) AS internal_cost_total,
-         (SELECT COALESCE(SUM(proposal.amount * budget_item.quantity), 0)
+         (SELECT COALESCE(SUM(proposal.amount), 0)
           FROM proposal
           INNER JOIN budget_item ON budget_item.id = proposal.budget_item_id
           INNER JOIN event AS e ON e.id = budget_item.event_id
           INNER JOIN organizer ON organizer.id = e.organizer_id
           INNER JOIN user AS organizer_user ON organizer_user.id = organizer.user_id
-          WHERE proposal.selected = TRUE AND ${where.slice('WHERE '.length)}) AS selected_proposals_total`,
+          WHERE (proposal.selected = TRUE OR proposal.status = 'accepted') AND ${where.slice('WHERE '.length)}) AS selected_proposals_total`,
       { replacements: replacements, type: QueryTypes.SELECT, transaction: this.session },
     )
 
