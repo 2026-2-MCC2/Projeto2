@@ -40,7 +40,7 @@ export class AuthController extends BaseController {
     const profileRegistration = this.getProfileRegistration(payload)
 
     const email = TextTools.normalizeEmail(payload.email)
-    const cnpj = TextTools.onlyDigits(payload.cnpj)
+    const cnpj = DocumentTools.normalizeCnpj(payload.cnpj)
     const phone = TextTools.onlyDigits(payload.phone)
 
     if (!DocumentTools.isValidCnpj(cnpj)) {
@@ -53,8 +53,7 @@ export class AuthController extends BaseController {
     if ((await this.userRepository.getByEmail(email)) !== null) {
       throw new EmailAlreadyRegistered()
     }
-    // um CNPJ = um cadastro, seja de organizador ou de fornecedor
-    if ((await this.organizerRepository.getByCnpj(cnpj)) !== null || (await this.supplierRepository.getByCnpj(cnpj)) !== null) {
+    if (await this.#isCnpjRegistered(cnpj)) {
       throw new CnpjAlreadyRegistered()
     }
 
@@ -75,6 +74,21 @@ export class AuthController extends BaseController {
     } catch (error) {
       throw toDuplicatedRegistrationError(error)
     }
+  }
+
+  // a tela de cadastro avisa já na etapa do CNPJ, antes de a pessoa preencher o resto
+  async checkCnpjAvailability(rawCnpj) {
+    const cnpj = DocumentTools.normalizeCnpj(rawCnpj)
+    if (!DocumentTools.isValidCnpj(cnpj)) {
+      throw new InvalidCnpj()
+    }
+    return { available: !(await this.#isCnpjRegistered(cnpj)) }
+  }
+
+  // um CNPJ = um cadastro, seja de organizador ou de fornecedor
+  async #isCnpjRegistered(cnpj) {
+    const organizer = await this.organizerRepository.getByCnpj(cnpj)
+    return organizer !== null || (await this.supplierRepository.getByCnpj(cnpj)) !== null
   }
 
   getProfileRegistration(payload) {

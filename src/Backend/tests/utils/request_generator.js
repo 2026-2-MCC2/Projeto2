@@ -75,6 +75,20 @@ export class RequestGenerator {
     return [response.responseStatus, response.responseJson]
   }
 
+  static async GET_event_proposals(eventKey, headers = {}) {
+    const response = await ClientRequisition.send('GET', `/event_planning/events/${eventKey}/proposals`, {
+      headers: headers,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async POST_event_proposal_accept(eventKey, proposalKey, headers = {}) {
+    const response = await ClientRequisition.send('POST', `/event_planning/events/${eventKey}/proposals/${proposalKey}/accept`, {
+      headers: headers,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
   static async PUT_event_by_key(eventKey, payload, headers = {}) {
     const response = await ClientRequisition.send('PUT', `/event_planning/events/${eventKey}`, {
       payload: payload,
@@ -111,6 +125,65 @@ export class RequestGenerator {
     const response = await ClientRequisition.send('DELETE', `/event_planning/events/${eventKey}/internal-costs/${costKey}`, {
       headers: headers,
     })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async POST_event_item(eventKey, payload, headers = {}) {
+    const response = await ClientRequisition.send('POST', `/event_planning/events/${eventKey}/items`, {
+      payload,
+      headers,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async GET_event_items(eventKey, headers = {}) {
+    const response = await ClientRequisition.send('GET', `/event_planning/events/${eventKey}/items`, { headers })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async GET_supplier_events(params = {}, headers = {}) {
+    const response = await ClientRequisition.send('GET', '/event_planning/supplier/events', {
+      headers,
+      queryParams: params,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async GET_supplier_event_by_key(eventKey, headers = {}) {
+    const response = await ClientRequisition.send('GET', `/event_planning/supplier/events/${eventKey}`, { headers })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async PUT_event_item(eventKey, itemKey, payload, headers = {}) {
+    const response = await ClientRequisition.send('PUT', `/event_planning/events/${eventKey}/items/${itemKey}`, {
+      payload,
+      headers,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async DELETE_event_item(eventKey, itemKey, headers = {}) {
+    const response = await ClientRequisition.send('DELETE', `/event_planning/events/${eventKey}/items/${itemKey}`, { headers })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async PATCH_me(payload, headers = {}) {
+    const response = await ClientRequisition.send('PATCH', '/event_planning/me', { payload: payload, headers: headers })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async PUT_me_categorias(payload, headers = {}) {
+    const response = await ClientRequisition.send('PUT', '/event_planning/me/categorias', { payload: payload, headers: headers })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async PUT_me_senha(payload, headers = {}) {
+    const response = await ClientRequisition.send('PUT', '/event_planning/me/senha', { payload: payload, headers: headers })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async POST_auth_verificar_cnpj(payload) {
+    const response = await ClientRequisition.send('POST', '/event_planning/auth/verificar-cnpj', { payload: payload })
     return [response.responseStatus, response.responseJson]
   }
 }

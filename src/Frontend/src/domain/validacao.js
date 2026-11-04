@@ -1,3 +1,5 @@
+import { normalizarCnpj } from './formatacao.js'
+
 // Regras de validação dos campos de formulário.
 // Cada regra recebe o texto digitado e devolve a mensagem de erro, ou '' quando o valor é válido.
 // Campo vazio não passa por aqui: quem exige o preenchimento é o atributo required do campo.
@@ -25,21 +27,25 @@ export function paraData(texto) {
   return data.getDate() === dia && data.getMonth() === mes - 1 ? data : null
 }
 
-// Os dois últimos números do CNPJ são calculados a partir dos 12 primeiros.
-function cnpjValido(numeros) {
-  if (numeros.length !== 14 || /^(\d)\1+$/.test(numeros)) return false
+// Os dois últimos números do CNPJ são calculados a partir dos 12 primeiros caracteres, que podem
+// ter letras (CNPJ alfanumérico): na regra da Receita cada caractere vale o código ASCII menos 48.
+function cnpjValido(caracteres) {
+  if (!/^[A-Z0-9]{12}\d{2}$/.test(caracteres) || /^(.)\1+$/.test(caracteres)) return false
 
   const digitoVerificador = (base) => {
     const soma = [...base]
       .reverse()
-      .reduce((total, numero, indice) => total + Number(numero) * (2 + (indice % 8)), 0)
+      .reduce(
+        (total, caractere, indice) => total + (caractere.charCodeAt(0) - 48) * (2 + (indice % 8)),
+        0,
+      )
     const resto = soma % 11
     return resto < 2 ? 0 : 11 - resto
   }
 
-  const primeiro = digitoVerificador(numeros.slice(0, 12))
-  const segundo = digitoVerificador(numeros.slice(0, 12) + primeiro)
-  return numeros.endsWith(`${primeiro}${segundo}`)
+  const primeiro = digitoVerificador(caracteres.slice(0, 12))
+  const segundo = digitoVerificador(caracteres.slice(0, 12) + primeiro)
+  return caracteres.endsWith(`${primeiro}${segundo}`)
 }
 
 function inteiroPositivo(texto) {
@@ -53,7 +59,7 @@ export const REGRAS = {
     /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(texto)
       ? ''
       : 'Informe um e-mail válido, como nome@empresa.com.',
-  cnpj: (texto) => (cnpjValido(digitos(texto)) ? '' : 'Informe um CNPJ válido.'),
+  cnpj: (texto) => (cnpjValido(normalizarCnpj(texto)) ? '' : 'Informe um CNPJ válido.'),
   telefone: (texto) =>
     [10, 11].includes(digitos(texto).length)
       ? ''

@@ -7,6 +7,7 @@ import { RetornoDoEnvio } from '../../components/acesso/RetornoDoEnvio.jsx'
 import { Icone } from '../../components/comum/Icone.jsx'
 import { ProgressoEtapas } from '../../components/comum/ProgressoEtapas.jsx'
 import { useEnvioCadastro } from '../../hooks/useEnvioCadastro.js'
+import { useVerificacaoDeCnpj } from '../../hooks/useVerificacaoDeCnpj.js'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
 import { useValidacao } from '../../hooks/useValidacao.js'
 import { validarConfirmacaoSenha } from '../../../domain/validacao.js'
@@ -14,6 +15,7 @@ import fotoMusica from '../../assets/acesso/foto-musica.jpg'
 import perfilSelecionado from '../../assets/acesso/perfil-selecionado.svg'
 
 const ETAPAS = ['Perfil', 'Dados da empresa', 'Acesso']
+const ETAPA_DO_CNPJ = 2
 
 const PERFIS = [
   {
@@ -62,9 +64,13 @@ export function Cadastro() {
     confirmacaoSenha: (valor, valores) => validarConfirmacaoSenha(valor, valores.senha),
   })
   const { enviar, enviando, erro } = useEnvioCadastro()
+  const { verificando, erroDoCnpj, cnpjEstaLivre, limparErroDoCnpj } = useVerificacaoDeCnpj()
 
   function preencher(campo) {
-    return (evento) => setDados({ ...dados, [campo]: evento.target.value })
+    return (evento) => {
+      if (campo === 'cnpj') limparErroDoCnpj()
+      setDados({ ...dados, [campo]: evento.target.value })
+    }
   }
 
   // categorias são só do fornecedor: recomeçam vazias ao trocar de perfil
@@ -79,8 +85,10 @@ export function Cadastro() {
     }
   }
 
-  function aoEnviar(evento) {
+  async function aoEnviar(evento) {
     evento.preventDefault()
+
+    if (etapa === ETAPA_DO_CNPJ && !(await cnpjEstaLivre(dados.cnpj))) return
 
     if (etapa < ETAPAS.length) {
       setEtapa(etapa + 1)
@@ -168,6 +176,8 @@ export function Cadastro() {
                   type="text"
                   name="cnpj"
                   data-validar="cnpj"
+                  autoCapitalize="characters"
+                  maxLength={20}
                   placeholder="00.000.000/0001-00"
                   value={dados.cnpj}
                   onChange={preencher('cnpj')}
@@ -197,6 +207,8 @@ export function Cadastro() {
               />
             )}
 
+            <RetornoDoEnvio erro={erroDoCnpj} />
+
             <div className="acesso__acoes">
               <button
                 type="button"
@@ -205,8 +217,8 @@ export function Cadastro() {
               >
                 Voltar
               </button>
-              <button type="submit" className="acesso__botao">
-                Continuar
+              <button type="submit" className="acesso__botao" disabled={verificando}>
+                {verificando ? 'Verificando...' : 'Continuar'}
               </button>
             </div>
           </>
