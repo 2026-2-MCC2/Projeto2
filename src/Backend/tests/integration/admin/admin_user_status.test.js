@@ -56,7 +56,9 @@ describe('Admin user status', () => {
 
     const email = await Mailpit.waitForEmailTo(target.email)
     assert.equal(email.subject, 'Seu cadastro no TrocaTicket foi aprovado')
-    assert.match(email.text, /http:\/\/localhost:5173\/login/)
+    // o login do site fica na raiz: /login não existe e daria 404
+    assert.match(email.text, /http:\/\/localhost:5173\/$/m)
+    assert.doesNotMatch(email.text, /\/login/)
   })
 
   test('admin rejeita um fornecedor pendente e registra a decisão com o motivo', async () => {
