@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { OrganizadorLayout } from '../../components/organizador/OrganizadorLayout.jsx'
-import { CartaoEvento } from '../../components/organizador/CartaoEvento.jsx'
+import { CartaoEvento, CartaoEventoSkeleton } from '../../components/organizador/CartaoEvento.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
 import { listarTodosOsEventos, STATUS_FRONTEND } from '../../../application/eventos.js'
 import { Icone } from '../../components/comum/Icone.jsx'
@@ -49,7 +49,7 @@ export function Eventos() {
   const termo = busca.trim().toLowerCase()
   const eventos = listaEventos.filter((evento) => {
     const combinaStatus = filtro === 'todos' || evento.status === filtro
-    const combinaBusca = `${evento.nome} ${evento.local} ${evento.cidade}`
+    const combinaBusca = `${evento.nome} ${evento.local} ${evento.cidade} ${evento.motivoDoCancelamento ?? ''}`
       .toLowerCase()
       .includes(termo)
     return combinaStatus && combinaBusca
@@ -102,10 +102,18 @@ export function Eventos() {
         </div>
       </div>
 
-      <div className="organizador__grade">
-        {eventos.map((evento) => (
-          <CartaoEvento key={evento.id} evento={evento} />
-        ))}
+      <div className="organizador__grade" aria-busy={carregando}>
+        {carregando ? (
+          <>
+            <CartaoEventoSkeleton />
+            <CartaoEventoSkeleton />
+            <CartaoEventoSkeleton />
+          </>
+        ) : (
+          eventos.map((evento) => (
+            <CartaoEvento key={evento.id} evento={evento} />
+          ))
+        )}
 
         {cardNovoEvento}
       </div>

@@ -404,6 +404,16 @@
   text-align: right;
 }
 
+.evento__dado--perigo {
+  align-items: flex-start;
+}
+
+.evento__dado--perigo strong {
+  color: var(--status-perigo-texto);
+  word-break: break-word;
+  max-width: 70%;
+}
+
 .evento__ticket {
   display: flex;
   align-items: center;
@@ -422,6 +432,73 @@
   color: var(--texto-marca);
   font-size: 1rem;
   font-weight: 600;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.evento--skeleton {
+  pointer-events: none;
+  user-select: none;
+  cursor: default;
+}
+
+.skeleton-bloco {
+  display: inline-block;
+  background: linear-gradient(
+    90deg,
+    var(--fundo-sutil) 0%,
+    var(--borda-padrao) 50%,
+    var(--fundo-sutil) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+.skeleton-bloco--etiqueta {
+  width: 84px;
+  height: 22px;
+  border-radius: 999px;
+}
+
+.skeleton-bloco--titulo {
+  width: 65%;
+  height: 1.25rem;
+  margin-top: 0.125rem;
+}
+
+.skeleton-bloco--rotulo {
+  width: 52px;
+  height: 0.75rem;
+}
+
+.skeleton-bloco--valor {
+  width: 88px;
+  height: 0.75rem;
+}
+
+.skeleton-bloco--ticket-rotulo {
+  width: 96px;
+  height: 0.75rem;
+}
+
+.skeleton-bloco--ticket-valor {
+  width: 68px;
+  height: 1.125rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-bloco {
+    animation: none;
+    background: var(--fundo-sutil);
+  }
 }
 
 .novo-evento {
@@ -959,6 +1036,27 @@
   background: var(--fundo-pagina);
   color: var(--texto-secundario);
   font-size: 0.75rem;
+}
+
+.aviso--cancelamento {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  background: var(--status-perigo-fundo);
+  color: var(--status-perigo-texto);
+  border: 1px solid color-mix(in srgb, var(--status-perigo-texto) 30%, transparent);
+  border-left: 3px solid var(--status-perigo-texto);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.aviso--cancelamento .icone {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex-shrink: 0;
+  --icone-cor: var(--status-perigo-texto);
 }
 
 /* ---------- mobile: barra superior e abas no rodapé ---------- */

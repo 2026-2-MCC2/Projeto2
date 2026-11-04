@@ -165,12 +165,6 @@ export function EventoVisaoGeral() {
     </Modal>
   )
 
-  const avisoDeCancelamento = evento.motivoDoCancelamento && (
-    <p className="aviso" role="status">
-      Evento cancelado. Motivo: {evento.motivoDoCancelamento}
-    </p>
-  )
-
   const dadosDoEvento = (
     <Cartao titulo="Dados do evento">
       <div className="ficha">
@@ -316,7 +310,6 @@ export function EventoVisaoGeral() {
   if (isMobile) {
     return (
       <EventoLayout acoes={acoes}>
-        {avisoDeCancelamento}
         {dadosDoEvento}
         {orcamento}
         {itensDeCusto}
@@ -330,7 +323,6 @@ export function EventoVisaoGeral() {
 
   return (
     <EventoLayout acoes={acoes} comResumo>
-      {avisoDeCancelamento}
       <div className="colunas">
         <div className="colunas__principal">
           {dadosDoEvento}

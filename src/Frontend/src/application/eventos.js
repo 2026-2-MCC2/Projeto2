@@ -279,6 +279,7 @@ export function formatarEventoParaExibicao(evento, itensDeCotacao = evento.budge
   const totalCustos = Number(evento.total_cost ?? evento.total_internal_cost) || 0
   const totalPropostasAceitas = Number(evento.total_accepted_proposals) || 0
   const { precoSugerido, ticketEstimado, calculo } = calcularDadosTicket(evento, totalCustos)
+  const motivoCancelamento = evento.cancellation_reason ?? evento.motivoDoCancelamento ?? null
 
   const dadosExibicao = [
     { rotulo: 'PERÍODO', valor: periodo },
@@ -289,6 +290,9 @@ export function formatarEventoParaExibicao(evento, itensDeCotacao = evento.budge
     },
     { rotulo: 'MARGEM DE LUCRO', valor: `${Math.round(Number(evento.profit_margin) * 100)}%` },
     { rotulo: 'TIPO DE INGRESSO', valor: 'Inteira' },
+    ...(statusFront === 'cancelado' || motivoCancelamento
+      ? [{ rotulo: 'MOTIVO DO CANCELAMENTO', valor: motivoCancelamento || 'Não informado' }]
+      : []),
   ]
 
   const linhasCustos = (evento.internal_costs || []).map((custo) => ({
