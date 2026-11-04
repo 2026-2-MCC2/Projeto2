@@ -1,6 +1,7 @@
 # Entregas do PI
 ### **DECLARAÇÃO DE USO DE INTELIGÊNCIA ARTIFICIAL**
 
+<br><br>
 ## Entrega 1
 <br><br>
 
@@ -48,6 +49,8 @@
 | ***Prompts* principais utilizados** | "Conferir os cálculos do custo de processamento"; "Revisar o texto e formatar o documento" |
 | **Trechos ou entregas afetadas** | `Projeto2_Custo_de_Processamento_2MACCOMP.pdf` |
 
+
+<br><br>
 ## Entrega 2
 <br><br>
 
