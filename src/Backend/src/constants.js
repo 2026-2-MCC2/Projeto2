@@ -89,6 +89,14 @@ export const INTERNAL_COST_TYPES = Object.freeze({
   OTHER: 'other',
 })
 
+// status da proposta (ENUM proposal.status do banco); só a enviada ainda pode ser editada ou retirada
+export const PROPOSAL_STATUSES = Object.freeze({
+  SENT: 'sent',
+  UNDER_REVIEW: 'under_review',
+  ACCEPTED: 'accepted',
+  REJECTED: 'rejected',
+})
+
 // rotas de infraestrutura: não passam pelos middlewares de log, login e banco
 export const BYPASS_ENDPOINTS = [API_PREFIX, `${API_PREFIX}/`, `${API_PREFIX}/health_check`]
 

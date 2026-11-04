@@ -8,6 +8,18 @@ import { sequelize } from '../connectors/database_connector.js'
 import { ProposalDecisionConflict, ProposalExpired } from '../errors/index.js'
 import { Proposal } from '../models/index.js'
 
+// colunas e junções das propostas vistas pelo próprio fornecedor (histórico e detalhe)
+const SUPPLIER_PROPOSAL_COLUMNS = `proposal.proposal_key, proposal.amount,
+       DATE_FORMAT(proposal.valid_until, '%Y-%m-%d') AS valid_until, proposal.status, proposal.selected, proposal.sent_at,
+       event.event_key, event.name AS event_name, event.status AS event_status,
+       budget_item.budget_item_key AS item_key, budget_item.description AS item_description,
+       item_category.name AS item_category`
+
+const SUPPLIER_PROPOSAL_JOINS = `FROM proposal
+       INNER JOIN budget_item ON budget_item.id = proposal.budget_item_id
+       INNER JOIN event ON event.id = budget_item.event_id
+       INNER JOIN item_category ON item_category.id = budget_item.category_id`
+
 export class ProposalRepository {
   constructor(context) {
     this.session = context.dbSession
@@ -58,6 +70,71 @@ export class ProposalRepository {
       },
       { transaction: this.session },
     )
+  }
+
+  // histórico do fornecedor, da proposta mais recente para a mais antiga; status opcional
+  async getSupplierProposals(supplierId, { status, limit, offset }) {
+    const replacements = { supplierId, status: status ?? null, limit, offset }
+
+    const [countResult] = await sequelize.query(
+      `SELECT COUNT(*) AS total
+       FROM proposal
+       WHERE proposal.supplier_id = :supplierId AND (:status IS NULL OR proposal.status = :status)`,
+      { replacements, transaction: this.session, type: QueryTypes.SELECT },
+    )
+
+    const proposals = await sequelize.query(
+      `SELECT ${SUPPLIER_PROPOSAL_COLUMNS}
+       ${SUPPLIER_PROPOSAL_JOINS}
+       WHERE proposal.supplier_id = :supplierId AND (:status IS NULL OR proposal.status = :status)
+       ORDER BY proposal.sent_at DESC, proposal.id DESC
+       LIMIT :limit OFFSET :offset`,
+      { replacements, transaction: this.session, type: QueryTypes.SELECT },
+    )
+
+    return { proposals, total: Number(countResult.total) }
+  }
+
+  // proposta do próprio fornecedor com evento e item; de outro fornecedor volta null
+  async getSupplierProposalByKey(supplierId, proposalKey) {
+    const proposals = await sequelize.query(
+      `SELECT ${SUPPLIER_PROPOSAL_COLUMNS},
+              proposal.id, event.id AS event_id, event.end_date AS event_end_date,
+              budget_item.type AS item_type, budget_item.quantity AS item_quantity,
+              proposal.description, proposal.not_included, proposal.delivery_terms, proposal.payment_terms,
+              proposal.team, proposal.warranty, proposal.notes
+       ${SUPPLIER_PROPOSAL_JOINS}
+       WHERE proposal.supplier_id = :supplierId AND proposal.proposal_key = :proposalKey`,
+      { replacements: { supplierId, proposalKey }, transaction: this.session, type: QueryTypes.SELECT },
+    )
+    return proposals[0] ?? null
+  }
+
+  async getPhotos(proposalId) {
+    return sequelize.query(`SELECT position, url FROM proposal_photo WHERE proposal_id = :proposalId ORDER BY position ASC`, {
+      replacements: { proposalId },
+      transaction: this.session,
+      type: QueryTypes.SELECT,
+    })
+  }
+
+  // trava a proposta até o commit: um aceite do organizador ao mesmo tempo espera, e vice-versa
+  async getSupplierProposalForUpdate(supplierId, proposalKey) {
+    return Proposal.findOne({
+      where: { supplier_id: supplierId, proposal_key: proposalKey },
+      lock: this.session.LOCK.UPDATE,
+      transaction: this.session,
+    })
+  }
+
+  async update(proposal, fields) {
+    proposal.set(fields)
+    await proposal.save({ transaction: this.session })
+  }
+
+  // as fotos da proposta saem junto (ON DELETE CASCADE em proposal_photo)
+  async delete(proposal) {
+    await proposal.destroy({ transaction: this.session })
   }
 
   async acceptByProposalKey(eventId, proposalKey) {

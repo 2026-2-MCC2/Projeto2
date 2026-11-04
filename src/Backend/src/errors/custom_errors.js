@@ -374,3 +374,27 @@ export class ProposalValidUntilAfterEvent extends ApiException {
     super(title, ProposalValidUntilAfterEvent.code, httpStatus, description, translation)
   }
 }
+
+export class ProposalCannotBeChanged extends ApiException {
+  static code = 'EVP000041'
+
+  constructor(status = '') {
+    const title = 'Proposal cannot be changed'
+    const httpStatus = 409
+    const description = `A proposal with status ${status} can no longer be edited or withdrawn.`
+    const translation = 'Esta proposta já foi analisada pelo organizador e não pode mais ser alterada nem retirada.'
+    super(title, ProposalCannotBeChanged.code, httpStatus, description, translation)
+  }
+}
+
+export class ProposalEventNotOpen extends ApiException {
+  static code = 'EVP000042'
+
+  constructor() {
+    const title = 'Event is not open for quotes'
+    const httpStatus = 409
+    const description = 'Proposals can only be edited or withdrawn while the event is open for quotes.'
+    const translation = 'O evento não está mais em cotação: a proposta não pode ser alterada nem retirada.'
+    super(title, ProposalEventNotOpen.code, httpStatus, description, translation)
+  }
+}

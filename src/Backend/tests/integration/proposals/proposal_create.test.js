@@ -20,40 +20,10 @@ async function createUser(profile, name = 'RF10 Test User') {
   return { user, headers: TokenGenerator.authorizationHeader(profile, { userKey: user.userKey }) }
 }
 
-// evento que acontece daqui a 20 dias e termina daqui a 30: a validade padrão (7 dias) cabe nele
-async function createEventWithItems(organizerHeaders, { categories = ['Estrutura'], publish = true } = {}) {
-  const [eventStatus, event] = await RequestGenerator.POST_events(
-    PayloadGenerator.createEventPayload({
-      start_date: `${PayloadGenerator.dateFromToday(20)}T14:00:00.000Z`,
-      end_date: `${PayloadGenerator.dateFromToday(30)}T23:00:00.000Z`,
-    }),
-    organizerHeaders,
-  )
-  assert.equal(eventStatus, 201)
-
-  const items = []
-  for (const category of categories) {
-    const [itemStatus, item] = await RequestGenerator.POST_event_item(
-      event.event_key,
-      PayloadGenerator.createBudgetItemPayload({ category, description: `${category} do evento` }),
-      organizerHeaders,
-    )
-    assert.equal(itemStatus, 201)
-    items.push(item)
-  }
-
-  if (publish) {
-    const [publishStatus] = await RequestGenerator.PATCH_event_status(event.event_key, { status: 'open_for_quotes' }, organizerHeaders)
-    assert.equal(publishStatus, 200)
-  }
-
-  return { event, items }
-}
-
 async function createScenario(eventOptions) {
   const organizer = await createUser('organizador')
   const supplier = await createUser('fornecedor', 'Palcos RF10 Ltda.')
-  const { event, items } = await createEventWithItems(organizer.headers, eventOptions)
+  const { event, items } = await ObjectGenerator.createEventWithItems(organizer.headers, eventOptions)
   return { organizer, supplier, event, items }
 }
 
@@ -169,7 +139,7 @@ describe('POST /supplier/events/:event_key/items/:item_key/proposals', () => {
 
   test('item de outro evento responde 404', async () => {
     const { organizer, supplier, event } = await createScenario()
-    const otherEvent = await createEventWithItems(organizer.headers)
+    const otherEvent = await ObjectGenerator.createEventWithItems(organizer.headers)
 
     const [status, response] = await RequestGenerator.POST_supplier_item_proposal(
       event.event_key,

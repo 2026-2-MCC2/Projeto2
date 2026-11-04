@@ -2,6 +2,7 @@
 
 import { USER_PROFILES } from '../constants.js'
 import { SupplierEventController } from '../controllers/supplier_event_controller.js'
+import { SupplierProposalController } from '../controllers/supplier_proposal_controller.js'
 import { getParam, getParamAsInt } from '../utils/request_params.js'
 import { SchemaHandler } from '../utils/schema_handler.js'
 import { SecurityTools } from '../utils/security_tools.js'
@@ -39,7 +40,7 @@ export class SupplierEventResource {
     SecurityTools.requireProfile(req.context, [USER_PROFILES.SUPPLIER])
     SchemaHandler.validate(req, 'post_supplier_proposal.json')
 
-    const controller = new SupplierEventController(req.context)
+    const controller = new SupplierProposalController(req.context)
     const proposal = await controller.createProposal(req.context.user.userKey, eventKey, itemKey, req.context.media)
 
     res.status(201).json(proposal)

@@ -22,6 +22,7 @@ import {
   MeResource,
   SinkResource,
   SupplierEventResource,
+  SupplierProposalResource,
 } from './resources/index.js'
 import { addRoute, addSink, useMiddlewares } from './utils/routing.js'
 
@@ -87,6 +88,10 @@ export function create() {
   addRoute(app, `${API_PREFIX}/supplier/events`, supplierEventResource, 'List')
   addRoute(app, `${API_PREFIX}/supplier/events/:event_key`, supplierEventResource, 'ByKey')
   addRoute(app, `${API_PREFIX}/supplier/events/:event_key/items/:item_key/proposals`, supplierEventResource, 'ItemProposals')
+
+  const supplierProposalResource = new SupplierProposalResource()
+  addRoute(app, `${API_PREFIX}/supplier/proposals`, supplierProposalResource, 'List')
+  addRoute(app, `${API_PREFIX}/supplier/proposals/:proposal_key`, supplierProposalResource, 'ByKey')
 
   const sinkResource = new SinkResource()
   addSink(app, sinkResource)

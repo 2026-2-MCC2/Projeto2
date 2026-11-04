@@ -75,6 +75,17 @@ export class SupplierEventRepository {
     return events[0] ?? null
   }
 
+  // status e fim do evento de uma proposta, travado (FOR SHARE) para ele não sair de cotação
+  // enquanto a proposta é editada ou retirada
+  async getEventForShare(eventId) {
+    const events = await sequelize.query(`SELECT id, status, end_date FROM event WHERE id = :eventId FOR SHARE`, {
+      replacements: { eventId },
+      transaction: this.session,
+      type: QueryTypes.SELECT,
+    })
+    return events[0] ?? null
+  }
+
   // item do evento numa categoria que o fornecedor atende; travado (FOR SHARE) para o organizador
   // não editar ou apagar o item enquanto a proposta é gravada
   async getAvailableItem(eventId, supplierId, itemKey) {

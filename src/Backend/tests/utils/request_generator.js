@@ -170,6 +170,26 @@ export class RequestGenerator {
     return [response.responseStatus, response.responseJson]
   }
 
+  static async GET_supplier_proposals(params = {}, headers = {}) {
+    const response = await ClientRequisition.send('GET', '/event_planning/supplier/proposals', { headers, queryParams: params })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async GET_supplier_proposal_by_key(proposalKey, headers = {}) {
+    const response = await ClientRequisition.send('GET', `/event_planning/supplier/proposals/${proposalKey}`, { headers })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async PUT_supplier_proposal(proposalKey, payload, headers = {}) {
+    const response = await ClientRequisition.send('PUT', `/event_planning/supplier/proposals/${proposalKey}`, { payload, headers })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async DELETE_supplier_proposal(proposalKey, headers = {}) {
+    const response = await ClientRequisition.send('DELETE', `/event_planning/supplier/proposals/${proposalKey}`, { headers })
+    return [response.responseStatus, response.responseJson]
+  }
+
   static async PUT_event_item(eventKey, itemKey, payload, headers = {}) {
     const response = await ClientRequisition.send('PUT', `/event_planning/events/${eventKey}/items/${itemKey}`, {
       payload,
