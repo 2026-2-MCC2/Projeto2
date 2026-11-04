@@ -1,6 +1,7 @@
 import express from 'express'
 
-import { API_PREFIX } from './constants.js'
+import { API_PREFIX, STORAGE_DRIVER } from './constants.js'
+import { STORAGE_DRIVERS } from './connectors/storage/index.js'
 import { APIErrorHandler } from './errors/index.js'
 import {
   ContextCreator,
@@ -19,6 +20,7 @@ import {
   EventResource,
   HealthCheckResource,
   HomeResource,
+  LocalFileResource,
   MeResource,
   SinkResource,
   SupplierEventResource,
@@ -32,6 +34,13 @@ export function create() {
   app.disable('x-powered-by')
   // no cloud run há um load balancer na frente; assim req.ip é o ip real do cliente
   app.set('trust proxy', true)
+
+  // arquivos do armazenamento local (só em desenvolvimento e testes): antes dos middlewares, porque
+  // uma tag <img> não manda o token de login; quem protege o arquivo é a URL assinada
+  if (STORAGE_DRIVER === STORAGE_DRIVERS.LOCAL) {
+    const localFileResource = new LocalFileResource()
+    app.get(`${API_PREFIX}/files/*path`, (req, res) => localFileResource.onGet(req, res))
+  }
 
   // cors antes de tudo para que respostas de erro também levem os headers (senão o navegador esconde o erro);
   // sessão do banco só depois do login, para não gastar conexão com requisição recusada
