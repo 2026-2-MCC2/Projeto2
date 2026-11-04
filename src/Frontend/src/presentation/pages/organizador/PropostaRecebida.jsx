@@ -6,6 +6,7 @@ import { Link, useParams } from 'react-router-dom'
 import {
   aceitarPropostaDoEvento,
   buscarComparacaoDePropostas,
+  formatarValidade,
 } from '../../../application/propostas.js'
 import { formatarMoeda } from '../../../application/eventos.js'
 import { Carregando, ErroNaTela, Vazio } from '../../components/comum/EstadoDaTela.jsx'
@@ -15,11 +16,6 @@ import { EventoLayout } from '../../components/organizador/EventoLayout.jsx'
 import { Botao } from '../../components/organizador/Formulario.jsx'
 import { toast } from '../../toasts.js'
 import iconeAceitar from '../../assets/organizador/icone-modal-aceitar.svg'
-
-function formatarValidade(validade) {
-  const [ano, mes, dia] = validade.split('-')
-  return `${dia}/${mes}/${ano}`
-}
 
 export function PropostaRecebida() {
   const { id, proposta: proposalKey } = useParams()

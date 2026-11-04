@@ -9,3 +9,9 @@ export function buscarComparacaoDePropostas(eventKey) {
 export function aceitarPropostaDoEvento(eventKey, proposalKey) {
   return api.post(`/events/${eventKey}/proposals/${proposalKey}/accept`, {})
 }
+
+// a API manda a validade como AAAA-MM-DD
+export function formatarValidade(validade) {
+  const [ano, mes, dia] = validade.split('-')
+  return `${dia}/${mes}/${ano}`
+}

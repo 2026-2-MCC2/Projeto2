@@ -8,7 +8,7 @@ import { Cartao } from '../../components/organizador/Cartao.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
 import { Icone } from '../../components/comum/Icone.jsx'
 import { formatarMoeda } from '../../../application/eventos.js'
-import { buscarComparacaoDePropostas } from '../../../application/propostas.js'
+import { buscarComparacaoDePropostas, formatarValidade } from '../../../application/propostas.js'
 import iconeAvancar from '../../assets/organizador/icone-avancar.svg'
 import iconeCards from '../../assets/organizador/icone-cards.svg'
 import iconeLista from '../../assets/organizador/icone-lista.svg'
@@ -32,11 +32,6 @@ function Etiquetas({ proposta }) {
       )}
     </>
   )
-}
-
-function formatarValidade(validade) {
-  const [ano, mes, dia] = validade.split('-')
-  return `${dia}/${mes}/${ano}`
 }
 
 export function EventoPropostas() {
