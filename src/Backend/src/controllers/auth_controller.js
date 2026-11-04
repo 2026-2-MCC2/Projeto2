@@ -40,7 +40,7 @@ export class AuthController extends BaseController {
     const profileRegistration = this.getProfileRegistration(payload)
 
     const email = TextTools.normalizeEmail(payload.email)
-    const cnpj = TextTools.onlyDigits(payload.cnpj)
+    const cnpj = DocumentTools.normalizeCnpj(payload.cnpj)
     const phone = TextTools.onlyDigits(payload.phone)
 
     if (!DocumentTools.isValidCnpj(cnpj)) {
@@ -78,7 +78,7 @@ export class AuthController extends BaseController {
 
   // a tela de cadastro avisa já na etapa do CNPJ, antes de a pessoa preencher o resto
   async checkCnpjAvailability(rawCnpj) {
-    const cnpj = TextTools.onlyDigits(rawCnpj)
+    const cnpj = DocumentTools.normalizeCnpj(rawCnpj)
     if (!DocumentTools.isValidCnpj(cnpj)) {
       throw new InvalidCnpj()
     }

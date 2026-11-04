@@ -16,10 +16,16 @@ export function mascararCep(texto) {
   return limpo
 }
 
+// o CNPJ alfanumérico (emitido desde 07/2026) tem letras nos 12 primeiros caracteres
+export const normalizarCnpj = (texto) =>
+  String(texto ?? '')
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, '')
+
 export function formatarCnpj(cnpj) {
-  const numeros = digitos(cnpj)
-  if (numeros.length !== 14) return cnpj ?? ''
-  return numeros.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5')
+  const caracteres = normalizarCnpj(cnpj)
+  if (caracteres.length !== 14) return cnpj ?? ''
+  return caracteres.replace(/^(.{2})(.{3})(.{3})(.{4})(.{2})$/, '$1.$2.$3/$4-$5')
 }
 
 export function formatarTelefone(telefone) {
