@@ -70,7 +70,8 @@ export class ProposalRepository {
 
     await sequelize.query(
       `UPDATE proposal
-       SET status = CASE WHEN proposal_key = :proposalKey THEN 'accepted' ELSE 'rejected' END
+       SET status = CASE WHEN proposal_key = :proposalKey THEN 'accepted' ELSE 'rejected' END,
+           selected = CASE WHEN proposal_key = :proposalKey THEN TRUE ELSE FALSE END
        WHERE budget_item_id = :budgetItemId`,
       { replacements: { proposalKey, budgetItemId }, transaction: this.session },
     )

@@ -12,6 +12,7 @@ import {
   UserStatusMiddleware,
 } from './middlewares/index.js'
 import {
+  AdminReportResource,
   AdminUserResource,
   AuthResource,
   BudgetItemResource,
@@ -65,6 +66,9 @@ export function create() {
   addRoute(app, `${API_PREFIX}/admin/users`, adminUserResource, 'List')
   addRoute(app, `${API_PREFIX}/admin/users/:user_key/status`, adminUserResource, 'ByKey')
   addRoute(app, `${API_PREFIX}/admin/users/:user_key/redefinicao-de-senha`, adminUserResource, 'PasswordResetByKey')
+
+  const adminReportResource = new AdminReportResource()
+  addRoute(app, `${API_PREFIX}/admin/reports`, adminReportResource)
 
   const eventResource = new EventResource()
   addRoute(app, `${API_PREFIX}/events`, eventResource, 'List')
