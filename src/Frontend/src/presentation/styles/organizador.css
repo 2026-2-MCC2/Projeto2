@@ -424,6 +424,73 @@
   font-weight: 600;
 }
 
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.evento--skeleton {
+  pointer-events: none;
+  user-select: none;
+  cursor: default;
+}
+
+.skeleton-bloco {
+  display: inline-block;
+  background: linear-gradient(
+    90deg,
+    var(--fundo-sutil) 0%,
+    var(--borda-padrao) 50%,
+    var(--fundo-sutil) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+.skeleton-bloco--etiqueta {
+  width: 84px;
+  height: 22px;
+  border-radius: 999px;
+}
+
+.skeleton-bloco--titulo {
+  width: 65%;
+  height: 1.25rem;
+  margin-top: 0.125rem;
+}
+
+.skeleton-bloco--rotulo {
+  width: 52px;
+  height: 0.75rem;
+}
+
+.skeleton-bloco--valor {
+  width: 88px;
+  height: 0.75rem;
+}
+
+.skeleton-bloco--ticket-rotulo {
+  width: 96px;
+  height: 0.75rem;
+}
+
+.skeleton-bloco--ticket-valor {
+  width: 68px;
+  height: 1.125rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-bloco {
+    animation: none;
+    background: var(--fundo-sutil);
+  }
+}
+
 .novo-evento {
   display: flex;
   flex-direction: column;

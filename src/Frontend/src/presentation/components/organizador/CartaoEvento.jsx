@@ -23,6 +23,36 @@ export function CartaoEvento({ evento }) {
   )
 }
 
+export function CartaoEventoSkeleton() {
+  return (
+    <div className="evento evento--skeleton" aria-hidden="true">
+      <span className="skeleton-bloco skeleton-bloco--etiqueta" />
+
+      <div className="skeleton-bloco skeleton-bloco--titulo" />
+
+      <div className="evento__dados">
+        <div className="evento__dado">
+          <span className="skeleton-bloco skeleton-bloco--rotulo" />
+          <span className="skeleton-bloco skeleton-bloco--valor" />
+        </div>
+        <div className="evento__dado">
+          <span className="skeleton-bloco skeleton-bloco--rotulo" />
+          <span className="skeleton-bloco skeleton-bloco--valor" />
+        </div>
+        <div className="evento__dado">
+          <span className="skeleton-bloco skeleton-bloco--rotulo" />
+          <span className="skeleton-bloco skeleton-bloco--valor" />
+        </div>
+      </div>
+
+      <div className="evento__ticket">
+        <span className="skeleton-bloco skeleton-bloco--ticket-rotulo" />
+        <span className="skeleton-bloco skeleton-bloco--ticket-valor" />
+      </div>
+    </div>
+  )
+}
+
 function Dado({ rotulo, valor }) {
   return (
     <div className="evento__dado">
@@ -31,3 +61,4 @@ function Dado({ rotulo, valor }) {
     </div>
   )
 }
+
