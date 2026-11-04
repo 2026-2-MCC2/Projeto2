@@ -4,6 +4,7 @@ import viteConfig from './vite.config.js'
 
 export default mergeConfig(viteConfig, {
   test: {
+    environment: 'jsdom',
     include: ['src/**/*.test.{js,jsx}'],
   },
 })

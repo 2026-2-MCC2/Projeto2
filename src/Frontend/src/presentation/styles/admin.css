@@ -186,6 +186,11 @@
   gap: 0.5rem;
 }
 
+.visao-geral__filtro-erro {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
 .visao-geral__paginacao {
   display: flex;
   align-items: center;

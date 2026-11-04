@@ -121,6 +121,21 @@ describe('VisaoGeral administrativa', () => {
     })
   })
 
+  test('impede envio e exibe alerta quando data inicial for posterior à final', async () => {
+    const usuario = userEvent.setup()
+    render(<VisaoGeral />)
+    await screen.findByText('Festival RF14')
+
+    await usuario.type(screen.getByLabelText('De'), '2026-10-25')
+    await usuario.type(screen.getByLabelText('Até'), '2026-10-20')
+    await usuario.click(screen.getByRole('button', { name: 'Aplicar filtros' }))
+
+    expect(
+      await screen.findByText('A data inicial não pode ser posterior à data final.'),
+    ).toBeInTheDocument()
+    expect(buscarRelatorioAdmin).toHaveBeenCalledTimes(1)
+  })
+
   test('avança página e respeita o estado de última página retornado pela API', async () => {
     const usuario = userEvent.setup()
     buscarRelatorioAdmin

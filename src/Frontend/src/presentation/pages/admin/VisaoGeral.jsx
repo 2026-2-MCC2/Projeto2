@@ -160,6 +160,7 @@ export function VisaoGeral() {
   const [situacao, setSituacao] = useState('carregando')
   const [relatorio, setRelatorio] = useState(null)
   const [erro, setErro] = useState(null)
+  const [erroFiltro, setErroFiltro] = useState('')
   const [tentativa, setTentativa] = useState(0)
 
   useEffect(() => {
@@ -192,6 +193,11 @@ export function VisaoGeral() {
 
   function aplicarFiltros(event) {
     event.preventDefault()
+    if (filtrosRascunho.from && filtrosRascunho.to && filtrosRascunho.from > filtrosRascunho.to) {
+      setErroFiltro('A data inicial não pode ser posterior à data final.')
+      return
+    }
+    setErroFiltro('')
     setSituacao('carregando')
     setFiltros({
       eventName: filtrosRascunho.eventName.trim(),
@@ -204,6 +210,7 @@ export function VisaoGeral() {
   }
 
   function limparFiltros() {
+    setErroFiltro('')
     const filtrosVazios = { eventName: '', organizerName: '', from: '', to: '' }
     setFiltrosRascunho(filtrosVazios)
     setFiltros({})
@@ -251,9 +258,10 @@ export function VisaoGeral() {
             type="date"
             required={Boolean(filtrosRascunho.to)}
             value={filtrosRascunho.from}
-            onChange={(event) =>
+            onChange={(event) => {
+              if (erroFiltro) setErroFiltro('')
               setFiltrosRascunho({ ...filtrosRascunho, from: event.target.value })
-            }
+            }}
           />
         </label>
         <label>
@@ -262,7 +270,10 @@ export function VisaoGeral() {
             type="date"
             required={Boolean(filtrosRascunho.from)}
             value={filtrosRascunho.to}
-            onChange={(event) => setFiltrosRascunho({ ...filtrosRascunho, to: event.target.value })}
+            onChange={(event) => {
+              if (erroFiltro) setErroFiltro('')
+              setFiltrosRascunho({ ...filtrosRascunho, to: event.target.value })
+            }}
           />
         </label>
         <div className="visao-geral__filtros-acoes">
@@ -273,6 +284,11 @@ export function VisaoGeral() {
             Limpar
           </button>
         </div>
+        {erroFiltro && (
+          <p className="mensagem-erro visao-geral__filtro-erro" role="alert">
+            {erroFiltro}
+          </p>
+        )}
       </form>
 
       {situacao === 'carregando' && <Carregando mensagem="Carregando relatórios…" />}
