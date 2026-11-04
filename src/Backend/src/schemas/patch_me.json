@@ -1,0 +1,43 @@
+{
+  "title": "PatchMe",
+  "description": "Dados da conta logada. Só os campos enviados mudam; e-mail e CNPJ não mudam por aqui.",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 150,
+      "pattern": "\\S"
+    },
+    "phone": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 20,
+      "pattern": "^[\\d\\s()+-]+$"
+    },
+    "responsible_name": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 150
+    },
+    "city": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 100
+    },
+    "state": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^\\s*([A-Za-z]{2})?\\s*$",
+      "description": "Sigla da UF; vazio apaga o estado."
+    }
+  },
+  "minProperties": 1,
+  "additionalProperties": false
+}

@@ -14,6 +14,7 @@ export class EventDto {
       : []
 
     const totalInternalCost = internalCosts.reduce((total, cost) => total + cost.amount, 0)
+    const totalAcceptedProposals = Number(event.get?.('total_accepted_proposals') ?? event.total_accepted_proposals ?? 0)
 
     return {
       event_key: event.event_key,
@@ -40,6 +41,8 @@ export class EventDto {
       created_at: event.created_at instanceof Date ? event.created_at.toISOString() : event.created_at,
       internal_costs: internalCosts,
       total_internal_cost: totalInternalCost,
+      total_accepted_proposals: totalAcceptedProposals,
+      total_cost: totalInternalCost + totalAcceptedProposals,
     }
   }
 

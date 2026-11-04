@@ -26,6 +26,10 @@ export function Calendario({ valor, aoSelecionar, aoFechar, semPassado = false, 
   const anoAtual = dataVisualizada.getFullYear()
   const mesAtual = dataVisualizada.getMonth()
 
+  const anoMinimo = Math.min(hoje.getFullYear() - 10, anoAtual - 5)
+  const anoMaximo = Math.max(hoje.getFullYear() + 15, anoAtual + 5)
+  const anosDisponiveis = Array.from({ length: anoMaximo - anoMinimo + 1 }, (_, i) => anoMinimo + i)
+
   const diasGrade = gerarGradeDoMes(anoAtual, mesAtual)
   const dataLimite = semPassado ? hoje : minData
 
@@ -37,6 +41,18 @@ export function Calendario({ valor, aoSelecionar, aoFechar, semPassado = false, 
   function mesProximo(e) {
     e.stopPropagation()
     setDataVisualizada(new Date(anoAtual, mesAtual + 1, 1))
+  }
+
+  function mudarMes(e) {
+    e.stopPropagation()
+    const novoMes = Number(e.target.value)
+    setDataVisualizada(new Date(anoAtual, novoMes, 1))
+  }
+
+  function mudarAno(e) {
+    e.stopPropagation()
+    const novoAno = Number(e.target.value)
+    setDataVisualizada(new Date(novoAno, mesAtual, 1))
   }
 
   function selecionarDia(diaObj, e) {
@@ -96,9 +112,33 @@ export function Calendario({ valor, aoSelecionar, aoFechar, semPassado = false, 
             <Icone src={iconeVoltar} />
           </button>
 
-          <span className="calendario__mes-ano" aria-live="polite">
-            {NOMES_DOS_MESES[mesAtual]} {anoAtual}
-          </span>
+          <div className="calendario__seletores">
+            <select
+              className="calendario__seletor calendario__seletor--mes"
+              aria-label="Selecionar mês"
+              value={mesAtual}
+              onChange={mudarMes}
+            >
+              {NOMES_DOS_MESES.map((nomeMes, indice) => (
+                <option key={nomeMes} value={indice}>
+                  {nomeMes}
+                </option>
+              ))}
+            </select>
+
+            <select
+              className="calendario__seletor calendario__seletor--ano"
+              aria-label="Selecionar ano"
+              value={anoAtual}
+              onChange={mudarAno}
+            >
+              {anosDisponiveis.map((ano) => (
+                <option key={ano} value={ano}>
+                  {ano}
+                </option>
+              ))}
+            </select>
+          </div>
 
           <button
             type="button"

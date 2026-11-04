@@ -10,6 +10,7 @@ export class DbUtils {
   static async createUserFixture({
     profile = 'organizador',
     status = 'pending',
+    name = 'RF03 Test User',
     userKey = randomUUID(),
     passwordHash = 'test-password-hash',
   } = {}) {
@@ -21,7 +22,7 @@ export class DbUtils {
       await connection.execute(
         `INSERT INTO user (user_key, name, email, password_hash, profile, status, approved_at)
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [userKey, 'RF03 Test User', email, passwordHash, profile, status, status === 'approved' ? new Date() : null],
+        [userKey, name, email, passwordHash, profile, status, status === 'approved' ? new Date() : null],
       )
 
       const [[user]] = await connection.execute('SELECT id FROM user WHERE user_key = ?', [userKey])
@@ -201,6 +202,50 @@ export class DbUtils {
     }
   }
 
+  static async getBudgetItemByKey(itemKey) {
+    const connection = await mysql.createConnection(TEST_DATABASE_URL)
+    try {
+      const [[item]] = await connection.execute(
+        `SELECT budget_item.budget_item_key AS item_key, event.event_key, item_category.name AS category,
+                budget_item.description, budget_item.type, budget_item.quantity, budget_item.estimated_value, budget_item.notes
+         FROM budget_item
+         INNER JOIN event ON event.id = budget_item.event_id
+         INNER JOIN item_category ON item_category.id = budget_item.category_id
+         WHERE budget_item.budget_item_key = ?`,
+        [itemKey],
+      )
+      return item ?? null
+    } finally {
+      await connection.end()
+    }
+  }
+
+  static async createProposalFixture(itemKey, supplierUserKey, { status = 'sent', amount = 1200 } = {}) {
+    const connection = await mysql.createConnection(TEST_DATABASE_URL)
+    try {
+      const proposalKey = randomUUID()
+      const [[item]] = await connection.execute('SELECT id FROM budget_item WHERE budget_item_key = ?', [itemKey])
+      const [[supplier]] = await connection.execute(
+        `SELECT supplier.id
+         FROM supplier
+         INNER JOIN user ON user.id = supplier.user_id
+         WHERE user.user_key = ?`,
+        [supplierUserKey],
+      )
+
+      const [result] = await connection.execute(
+        `INSERT INTO proposal (
+           proposal_key, budget_item_id, supplier_id, amount, description,
+           delivery_terms, payment_terms, valid_until, status
+         ) VALUES (?, ?, ?, ?, ?, ?, ?, DATE_ADD(UTC_DATE(), INTERVAL 30 DAY), ?)`,
+        [proposalKey, item.id, supplier.id, amount, 'Proposta de teste', 'Entrega combinada', 'Pagamento combinado', status],
+      )
+      return { id: result.insertId, proposalKey }
+    } finally {
+      await connection.end()
+    }
+  }
+
   // cria um link direto no banco, sem passar pela espera entre pedidos; devolve o token do link.
   // as datas usam o relógio do banco em UTC, como a API grava
   static async createPasswordResetToken(userKey, { expiresInSeconds = 3_600 } = {}) {
@@ -224,6 +269,55 @@ export class DbUtils {
     const connection = await mysql.createConnection(TEST_DATABASE_URL)
     try {
       await connection.execute('UPDATE user SET status = ? WHERE user_key = ?', [status, userKey])
+    } finally {
+      await connection.end()
+    }
+  }
+
+  static async createBudgetItemFixture(eventKey, { category = 'Alimentação', description = 'Item de teste' } = {}) {
+    const connection = await mysql.createConnection(TEST_DATABASE_URL)
+    try {
+      const itemKey = randomUUID()
+      const [result] = await connection.execute(
+        `INSERT INTO budget_item (budget_item_key, event_id, category_id, description, type, quantity)
+         SELECT ?, event.id, item_category.id, ?, 'service', 1
+         FROM event, item_category
+         WHERE event.event_key = ? AND item_category.name = ?`,
+        [itemKey, description, eventKey, category],
+      )
+      if (result.affectedRows !== 1) {
+        throw new Error(`Não foi possível criar item de teste para o evento ${eventKey}.`)
+      }
+      return { itemKey }
+    } finally {
+      await connection.end()
+    }
+  }
+
+  static async createProposalFixture(
+    itemKey,
+    supplierUserKey,
+    { amount = 1200, validUntil = '2099-01-01', notes = null, status = 'sent' } = {},
+  ) {
+    const connection = await mysql.createConnection(TEST_DATABASE_URL)
+    try {
+      const proposalKey = randomUUID()
+      const [result] = await connection.execute(
+        `INSERT INTO proposal (
+           proposal_key, budget_item_id, supplier_id, amount, description,
+           delivery_terms, payment_terms, valid_until, notes, status
+         )
+         SELECT ?, budget_item.id, supplier.id, ?, 'Descrição da proposta',
+                'Entrega combinada', 'Pagamento combinado', ?, ?, ?
+         FROM budget_item
+         INNER JOIN supplier ON supplier.user_id = (SELECT id FROM user WHERE user_key = ?)
+         WHERE budget_item.budget_item_key = ?`,
+        [proposalKey, amount, validUntil, notes, status, supplierUserKey, itemKey],
+      )
+      if (result.affectedRows !== 1) {
+        throw new Error(`Não foi possível criar proposta de teste para o item ${itemKey}.`)
+      }
+      return { proposalKey }
     } finally {
       await connection.end()
     }

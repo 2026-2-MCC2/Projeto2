@@ -97,6 +97,7 @@ export const PUBLIC_ENDPOINTS = [
   ...BYPASS_ENDPOINTS,
   `${API_PREFIX}/auth/login`,
   `${API_PREFIX}/auth/cadastro`,
+  `${API_PREFIX}/auth/verificar-cnpj`,
   `${API_PREFIX}/auth/esqueci-senha`,
   `${API_PREFIX}/auth/redefinir-senha`,
 ]

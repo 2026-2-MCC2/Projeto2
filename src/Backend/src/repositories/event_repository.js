@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto'
-import { Op } from 'sequelize'
+import { Op, QueryTypes } from 'sequelize'
 
+import { sequelize } from '../connectors/database_connector.js'
 import { Event, InternalCost } from '../models/index.js'
 
 export class EventRepository {
@@ -37,11 +38,25 @@ export class EventRepository {
   }
 
   async getByKey(eventKey) {
-    return Event.findOne({
+    const event = await Event.findOne({
       where: { event_key: eventKey },
       include: [{ association: 'internal_costs' }],
       transaction: this.session,
     })
+
+    if (!event) return null
+
+    const [totals] = await sequelize.query(
+      `SELECT (SELECT COALESCE(SUM(accepted_proposal.amount), 0)
+              FROM budget_item AS accepted_item
+              INNER JOIN proposal AS accepted_proposal ON accepted_proposal.budget_item_id = accepted_item.id
+              WHERE accepted_item.event_id = event.id AND accepted_proposal.status = 'accepted') AS total_accepted_proposals
+       FROM event WHERE event.id = :eventId`,
+      { replacements: { eventId: event.id }, transaction: this.session, type: QueryTypes.SELECT },
+    )
+
+    event.setDataValue('total_accepted_proposals', Number(totals.total_accepted_proposals))
+    return event
   }
 
   async getByKeyForUpdate(eventKey) {

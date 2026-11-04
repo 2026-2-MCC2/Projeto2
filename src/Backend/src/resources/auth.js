@@ -43,4 +43,13 @@ export class AuthResource {
 
     res.status(204).end()
   }
+
+  async onPostVerificarCnpj(req, res) {
+    SchemaHandler.validate(req, 'post_auth_verificar_cnpj.json')
+
+    const authController = new AuthController(req.context)
+    const availability = await authController.checkCnpjAvailability(req.context.media.cnpj)
+
+    res.status(200).json(availability)
+  }
 }

@@ -5,43 +5,45 @@
 //   DocumentTools.isValidCpf('529.982.247-26')       false (dígito verificador errado)
 //   DocumentTools.isValidCpf('52998224725')          false (CPF só é aceito com pontuação)
 //   DocumentTools.isValidCnpj('11.222.333/0001-81')  true
-//   DocumentTools.isValidCnpj('11222333000181')      true  (CNPJ aceita com ou sem pontuação)
-//   DocumentTools.isValidCnpj('00.000.000/0000-00')  false (todos os dígitos iguais)
+//   DocumentTools.isValidCnpj('12.ABC.345/01DE-35')  true  (CNPJ alfanumérico, emitido desde 07/2026)
+//   DocumentTools.isValidCnpj('00.000.000/0000-00')  false (todos os caracteres iguais)
 //
 // Os dígitos verificadores são os dois últimos números: são calculados a partir dos outros, então
-// um número digitado errado quase sempre dá um dígito verificador diferente.
+// um caractere digitado errado quase sempre dá um dígito verificador diferente.
 
-const CNPJ_PATTERN = /^([0-9]{2}[.]?[0-9]{3}[.]?[0-9]{3}[/]?[0-9]{4}[-]?[0-9]{2})/
+// 12 letras ou números e 2 dígitos verificadores numéricos, já sem pontuação
+const NORMALIZED_CNPJ_PATTERN = /^[A-Z0-9]{12}[0-9]{2}$/
 const CPF_PATTERN = /^([0-9]{3}[.]?[0-9]{3}[.]?[0-9]{3}[-]?[0-9]{2})$/
 const ALL_SAME_DIGIT = /^(\d)\1+$/
+const ALL_SAME_CHARACTER = /^(.)\1+$/
+
+// na regra da Receita cada caractere vale o código ASCII menos 48: '0' a '9' valem 0 a 9, 'A' vale 17
+const cnpjCharacterValue = (character) => character.charCodeAt(0) - 48
 
 export class DocumentTools {
+  static normalizeCnpj(documentNumber) {
+    return String(documentNumber)
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, '')
+  }
+
   static isValidCnpj(documentNumber) {
-    const validSize = 14
-
-    if (!CNPJ_PATTERN.test(documentNumber)) {
+    const cnpj = DocumentTools.normalizeCnpj(documentNumber)
+    if (!NORMALIZED_CNPJ_PATTERN.test(cnpj) || ALL_SAME_CHARACTER.test(cnpj)) {
       return false
     }
 
-    const cnpj = documentNumber.replace(/[^0-9]/g, '')
-    if (cnpj.length !== validSize) {
-      return false
-    }
-    if (ALL_SAME_DIGIT.test(cnpj)) {
-      return false
-    }
-
-    // Cada dígito verificador é a soma dos dígitos anteriores multiplicados por pesos
+    // Cada dígito verificador é a soma dos caracteres anteriores multiplicados por pesos
     // 2, 3, ..., 9, 2, 3... (contando da direita para a esquerda).
-    const digitsFromRight = cnpj.split('').reverse()
+    const charactersFromRight = cnpj.split('').reverse()
     for (const position of [2, 1]) {
       let sum = 0
-      digitsFromRight.slice(position).forEach((digit, index) => {
-        sum += Number(digit) * (2 + (index % 8))
+      charactersFromRight.slice(position).forEach((character, index) => {
+        sum += cnpjCharacterValue(character) * (2 + (index % 8))
       })
 
       const verificationDigit = ((sum * 10) % 11) % 10
-      if (digitsFromRight[position - 1] !== String(verificationDigit)) {
+      if (charactersFromRight[position - 1] !== String(verificationDigit)) {
         return false
       }
     }

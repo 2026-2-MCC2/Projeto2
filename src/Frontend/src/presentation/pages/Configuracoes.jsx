@@ -12,7 +12,13 @@ import { useIsMobile } from '../hooks/useIsMobile.js'
 import { useValidacao } from '../hooks/useValidacao.js'
 import { CATEGORIAS_DE_ATUACAO } from '../../domain/categoriasDeAtuacao.js'
 import { formatarCnpj, formatarTelefone } from '../../domain/formatacao.js'
-import { carregarPerfilAtual } from '../../application/sessao.js'
+import {
+  carregarPerfilAtual,
+  salvarMeusDados,
+  salvarMinhasCategorias,
+  trocarMinhaSenha,
+} from '../../application/sessao.js'
+import { toast } from '../toasts.js'
 import { Carregando, ErroNaTela } from '../components/comum/EstadoDaTela.jsx'
 import { validarConfirmacaoSenha } from '../../domain/validacao.js'
 import { Icone } from '../components/comum/Icone.jsx'
@@ -58,10 +64,8 @@ const CONFIGURACOES = {
     empresa: {
       rotuloNome: 'Razão social',
       nome: 'Sabor & Arte Gastronomia Ltda.',
-      nomeMobile: 'Sabor & Arte Gastronomia',
       responsavel: 'Ana Lima',
       email: 'ana@saborarte.com.br',
-      comEndereco: true,
     },
     perfil: {
       etiquetas: [{ nome: 'Fornecedor' }, { nome: 'Aprovado', classe: 'etiqueta--sucesso' }],
@@ -117,7 +121,9 @@ export function Configuracoes({ perfil = 'organizador' }) {
     setTentativa((atual) => atual + 1)
   }
 
-  const dadosProntos = aba === 'dados' && perfilCarregado.situacao === 'pronto'
+  const perfilPronto = perfilCarregado.situacao === 'pronto'
+  const abaPrecisaDoPerfil = aba === 'dados' || aba === 'categorias'
+  const aoSalvarPerfil = (dados) => setPerfilCarregado({ situacao: 'pronto', usuario: dados })
 
   return (
     <OrganizadorLayout
@@ -141,56 +147,98 @@ export function Configuracoes({ perfil = 'organizador' }) {
         ))}
       </div>
 
-      {aba === 'dados' && perfilCarregado.situacao === 'carregando' && (
+      {abaPrecisaDoPerfil && perfilCarregado.situacao === 'carregando' && (
         <Carregando mensagem="Carregando seus dados…" />
       )}
-      {aba === 'dados' && perfilCarregado.situacao === 'erro' && (
+      {abaPrecisaDoPerfil && perfilCarregado.situacao === 'erro' && (
         <ErroNaTela erro={perfilCarregado.erro} aoTentarDeNovo={tentarDeNovo} />
       )}
-      {dadosProntos && config.empresa && (
-        <DadosCadastrais empresa={config.empresa} usuario={usuario} isMobile={isMobile} />
+      {aba === 'dados' && perfilPronto && config.empresa && (
+        <DadosCadastrais
+          empresa={config.empresa}
+          usuario={usuario}
+          isMobile={isMobile}
+          aoSalvar={aoSalvarPerfil}
+        />
       )}
-      {dadosProntos && perfil === 'admin' && <DadosAdmin usuario={usuario} isMobile={isMobile} />}
-      {aba === 'categorias' && <PainelCategorias isMobile={isMobile} />}
+      {aba === 'dados' && perfilPronto && perfil === 'admin' && (
+        <DadosAdmin usuario={usuario} isMobile={isMobile} aoSalvar={aoSalvarPerfil} />
+      )}
+      {aba === 'categorias' && perfilPronto && (
+        <PainelCategorias usuario={usuario} isMobile={isMobile} aoSalvar={aoSalvarPerfil} />
+      )}
       {aba === 'perfil' && <PainelPerfil {...config.perfil} isMobile={isMobile} />}
       {aba === 'senha' && <PainelSenha />}
     </OrganizadorLayout>
   )
 }
 
-// placeholder mostra o valor atual: campo vazio mantém o valor
-function PainelDados({ titulo = 'Dados cadastrais', apoio, children }) {
+// envia, avisa o resultado e devolve o perfil atualizado para a tela
+async function salvarComAviso(acao, mensagemDeSucesso, aoSalvar) {
+  try {
+    const resultado = await acao()
+    toast.sucesso(mensagemDeSucesso)
+    aoSalvar?.(resultado)
+    return true
+  } catch (falha) {
+    toast.erro('Não foi possível salvar', { descricao: falha.message })
+    return false
+  }
+}
+
+function PainelDados({ titulo = 'Dados cadastrais', apoio, aoEnviar, children }) {
   const validacao = useValidacao()
+  const [enviando, setEnviando] = useState(false)
+
+  async function enviar(evento) {
+    evento.preventDefault()
+    setEnviando(true)
+    await aoEnviar()
+    setEnviando(false)
+  }
 
   return (
-    <Painel
-      titulo={titulo}
-      apoio={apoio}
-      onSubmit={(evento) => evento.preventDefault()}
-      {...validacao}
-    >
+    <Painel titulo={titulo} apoio={apoio} onSubmit={enviar} {...validacao}>
       {children}
 
       <Acoes>
-        <Botao type="submit">Salvar alterações</Botao>
+        <Botao type="submit" disabled={enviando}>
+          {enviando ? 'Salvando...' : 'Salvar alterações'}
+        </Botao>
       </Acoes>
     </Painel>
   )
 }
 
+const AJUDA_DO_EMAIL = 'O e-mail é o seu login e não muda por aqui.'
+
 // no mobile o figma mostra só nome, cnpj, telefone e e-mail
-function DadosCadastrais({ empresa, usuario, isMobile }) {
-  const cnpjFormatado = usuario?.cnpj ? formatarCnpj(usuario.cnpj) : '—'
-  const telefoneFormatado = usuario?.phone ? formatarTelefone(usuario.phone) : ''
-  // os campos mostram só o que a empresa informou; os dados de exemplo ficam como dica
-  const nome = usuario?.name ?? ''
-  const responsavel = usuario?.responsible_name ?? ''
-  const emailCadastrado = usuario?.email ?? ''
+function DadosCadastrais({ empresa, usuario, isMobile, aoSalvar }) {
+  const [dados, setDados] = useState({
+    name: usuario.name ?? '',
+    phone: usuario.phone ? formatarTelefone(usuario.phone) : '',
+    responsible_name: usuario.responsible_name ?? '',
+    city: usuario.city ?? '',
+    state: usuario.state ?? '',
+  })
+  const campo = (nome) => ({
+    value: dados[nome],
+    onChange: (evento) => setDados((atual) => ({ ...atual, [nome]: evento.target.value })),
+  })
+
+  // no celular a tela não mostra responsável nem endereço, então eles não são enviados
+  const camposDaTela = isMobile ? ['name', 'phone'] : Object.keys(dados)
+  const salvar = () =>
+    salvarComAviso(
+      () => salvarMeusDados(Object.fromEntries(camposDaTela.map((nome) => [nome, dados[nome]]))),
+      'Dados atualizados',
+      aoSalvar,
+    )
 
   const cnpj = (
     <CampoFixo
       rotulo="CNPJ"
-      valor={cnpjFormatado}
+      valor={usuario.cnpj ? formatarCnpj(usuario.cnpj) : '—'}
       icone={iconeBloqueado}
       ajuda="O CNPJ não pode ser alterado depois da aprovação do cadastro."
     />
@@ -201,29 +249,30 @@ function DadosCadastrais({ empresa, usuario, isMobile }) {
         type="tel"
         autoComplete="tel"
         data-validar="telefone"
-        defaultValue={telefoneFormatado}
         placeholder="(11) 90000-0000"
+        required
+        {...campo('phone')}
       />
     </Campo>
   )
   const email = (
-    <Campo rotulo="E-mail">
-      <input
-        type="email"
-        autoComplete="email"
-        data-validar="email"
-        defaultValue={emailCadastrado}
-        placeholder={empresa.email}
-      />
+    <CampoFixo
+      rotulo="E-mail"
+      valor={usuario.email}
+      icone={iconeBloqueado}
+      ajuda={AJUDA_DO_EMAIL}
+    />
+  )
+  const nome = (
+    <Campo rotulo={empresa.rotuloNome}>
+      <input type="text" maxLength={150} placeholder={empresa.nome} required {...campo('name')} />
     </Campo>
   )
 
   if (isMobile) {
     return (
-      <PainelDados apoio="Aprovados pelo administrador.">
-        <Campo rotulo={empresa.rotuloNome}>
-          <input type="text" defaultValue={nome} placeholder={empresa.nome} />
-        </Campo>
+      <PainelDados apoio="Aprovados pelo administrador." aoEnviar={salvar}>
+        {nome}
         {cnpj}
         {telefone}
         {email}
@@ -232,10 +281,11 @@ function DadosCadastrais({ empresa, usuario, isMobile }) {
   }
 
   return (
-    <PainelDados apoio="Informações enviadas no cadastro e aprovadas pelo administrador.">
-      <Campo rotulo={empresa.rotuloNome}>
-        <input type="text" defaultValue={nome} placeholder={empresa.nome} />
-      </Campo>
+    <PainelDados
+      apoio="Informações enviadas no cadastro e aprovadas pelo administrador."
+      aoEnviar={salvar}
+    >
+      {nome}
 
       <Linha>
         {cnpj}
@@ -244,22 +294,29 @@ function DadosCadastrais({ empresa, usuario, isMobile }) {
 
       <Linha>
         <Campo rotulo="Responsável">
-          <input type="text" defaultValue={responsavel} placeholder={empresa.responsavel} />
+          <input
+            type="text"
+            maxLength={150}
+            placeholder={empresa.responsavel}
+            {...campo('responsible_name')}
+          />
         </Campo>
         {email}
       </Linha>
 
-      {empresa.comEndereco && (
-        <Linha>
-          <Campo rotulo="Cidade" defaultValue={usuario?.city ?? ''} placeholder="São Paulo" />
-          <Campo rotulo="Estado" defaultValue={usuario?.state ?? ''} placeholder="SP" />
-        </Linha>
-      )}
+      <Linha>
+        <Campo rotulo="Cidade" maxLength={100} placeholder="São Paulo" {...campo('city')} />
+        <Campo rotulo="Estado" data-validar="estado" placeholder="SP" {...campo('state')} />
+      </Linha>
     </PainelDados>
   )
 }
 
-function DadosAdmin({ usuario, isMobile }) {
+function DadosAdmin({ usuario, isMobile, aoSalvar }) {
+  const [nome, setNome] = useState(usuario.name ?? '')
+  const salvar = () =>
+    salvarComAviso(() => salvarMeusDados({ name: nome }), 'Dados atualizados', aoSalvar)
+
   return (
     <PainelDados
       titulo="Dados da conta"
@@ -268,32 +325,32 @@ function DadosAdmin({ usuario, isMobile }) {
           ? 'Identificação do administrador.'
           : 'Identificação do administrador da plataforma.'
       }
+      aoEnviar={salvar}
     >
       <Linha>
         <Campo rotulo="Nome">
           <input
             type="text"
-            defaultValue={usuario?.name || 'Admin TrocaTicket'}
-            placeholder={usuario?.name || 'Admin TrocaTicket'}
+            maxLength={150}
+            required
+            value={nome}
+            onChange={(evento) => setNome(evento.target.value)}
           />
         </Campo>
-        <Campo rotulo="E-mail">
-          <input
-            type="email"
-            autoComplete="email"
-            data-validar="email"
-            defaultValue={usuario?.email || 'admin@trocaticket.com.br'}
-            placeholder={usuario?.email || 'admin@trocaticket.com.br'}
-          />
-        </Campo>
+        <CampoFixo
+          rotulo="E-mail"
+          valor={usuario.email}
+          icone={iconeBloqueado}
+          ajuda={AJUDA_DO_EMAIL}
+        />
       </Linha>
     </PainelDados>
   )
 }
 
-function PainelCategorias({ isMobile }) {
-  const [selecionadas, setSelecionadas] = useState(['Alimentação', 'Bebidas'])
-  const categorias = isMobile ? CATEGORIAS_DE_ATUACAO.slice(0, 4) : CATEGORIAS_DE_ATUACAO
+function PainelCategorias({ usuario, isMobile, aoSalvar }) {
+  const [selecionadas, setSelecionadas] = useState(usuario.categories ?? [])
+  const [enviando, setEnviando] = useState(false)
 
   function alternar(categoria) {
     setSelecionadas((atuais) =>
@@ -303,14 +360,29 @@ function PainelCategorias({ isMobile }) {
     )
   }
 
+  async function salvar(evento) {
+    evento.preventDefault()
+    if (selecionadas.length === 0) {
+      toast.erro('Escolha pelo menos uma categoria')
+      return
+    }
+    setEnviando(true)
+    await salvarComAviso(
+      () => salvarMinhasCategorias(selecionadas),
+      'Categorias atualizadas',
+      aoSalvar,
+    )
+    setEnviando(false)
+  }
+
   return (
     <Painel
       titulo="Categorias de atuação"
       apoio="Definem em quais itens de custo você recebe oportunidades de cotação."
-      onSubmit={(evento) => evento.preventDefault()}
+      onSubmit={salvar}
     >
       <div className="categorias">
-        {categorias.map((categoria) => {
+        {CATEGORIAS_DE_ATUACAO.map((categoria) => {
           const ativa = selecionadas.includes(categoria)
           return (
             <button
@@ -333,7 +405,9 @@ function PainelCategorias({ isMobile }) {
       )}
 
       <Acoes>
-        <Botao type="submit">Salvar alterações</Botao>
+        <Botao type="submit" disabled={enviando}>
+          {enviando ? 'Salvando...' : 'Salvar alterações'}
+        </Botao>
       </Acoes>
     </Painel>
   )
@@ -379,16 +453,28 @@ const CAMPOS_DE_SENHA = [
   { nome: 'confirmacaoSenha', rotulo: 'Confirmar nova senha', placeholder: 'Repita a nova senha' },
 ]
 
+const SENHAS_EM_BRANCO = { senhaAtual: '', novaSenha: '', confirmacaoSenha: '' }
+
 function PainelSenha() {
   const validacao = useValidacao({
     confirmacaoSenha: (valor, valores) => validarConfirmacaoSenha(valor, valores.novaSenha),
   })
+  const [senhas, setSenhas] = useState(SENHAS_EM_BRANCO)
+  const [enviando, setEnviando] = useState(false)
+
+  async function salvar(evento) {
+    evento.preventDefault()
+    setEnviando(true)
+    const salvou = await salvarComAviso(() => trocarMinhaSenha(senhas), 'Senha alterada')
+    if (salvou) setSenhas(SENHAS_EM_BRANCO)
+    setEnviando(false)
+  }
 
   return (
     <Painel
       titulo="Senha"
-      apoio="Use uma senha com pelo menos 8 caracteres."
-      onSubmit={(evento) => evento.preventDefault()}
+      apoio="Use uma senha com pelo menos 8 caracteres. Os acessos em outros aparelhos são encerrados."
+      onSubmit={salvar}
       {...validacao}
     >
       <Linha>
@@ -400,14 +486,21 @@ function PainelSenha() {
               autoComplete={item.preencher ?? 'new-password'}
               placeholder={item.placeholder}
               data-validar={item.regra}
+              maxLength={72}
               required
+              value={senhas[item.nome]}
+              onChange={(evento) =>
+                setSenhas((atuais) => ({ ...atuais, [item.nome]: evento.target.value }))
+              }
             />
           </Campo>
         ))}
       </Linha>
 
       <Acoes>
-        <Botao type="submit">Salvar alterações</Botao>
+        <Botao type="submit" disabled={enviando}>
+          {enviando ? 'Salvando...' : 'Salvar alterações'}
+        </Botao>
       </Acoes>
     </Painel>
   )

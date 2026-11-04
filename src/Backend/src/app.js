@@ -15,11 +15,13 @@ import {
   AdminReportResource,
   AdminUserResource,
   AuthResource,
+  BudgetItemResource,
   EventResource,
   HealthCheckResource,
   HomeResource,
   MeResource,
   SinkResource,
+  SupplierEventResource,
 } from './resources/index.js'
 import { addRoute, addSink, useMiddlewares } from './utils/routing.js'
 
@@ -50,11 +52,15 @@ export function create() {
 
   const authResource = new AuthResource()
   addRoute(app, `${API_PREFIX}/auth/cadastro`, authResource, 'Cadastro')
+  addRoute(app, `${API_PREFIX}/auth/verificar-cnpj`, authResource, 'VerificarCnpj')
   addRoute(app, `${API_PREFIX}/auth/login`, authResource, 'Login')
   addRoute(app, `${API_PREFIX}/auth/esqueci-senha`, authResource, 'EsqueciSenha')
   addRoute(app, `${API_PREFIX}/auth/redefinir-senha`, authResource, 'RedefinirSenha')
 
-  addRoute(app, `${API_PREFIX}/me`, new MeResource())
+  const meResource = new MeResource()
+  addRoute(app, `${API_PREFIX}/me`, meResource)
+  addRoute(app, `${API_PREFIX}/me/categorias`, meResource, 'Categorias')
+  addRoute(app, `${API_PREFIX}/me/senha`, meResource, 'Senha')
 
   const adminUserResource = new AdminUserResource()
   addRoute(app, `${API_PREFIX}/admin/users`, adminUserResource, 'List')
@@ -67,9 +73,19 @@ export function create() {
   const eventResource = new EventResource()
   addRoute(app, `${API_PREFIX}/events`, eventResource, 'List')
   addRoute(app, `${API_PREFIX}/events/:event_key`, eventResource, 'ByKey')
+  addRoute(app, `${API_PREFIX}/events/:event_key/proposals`, eventResource, 'Proposals')
+  addRoute(app, `${API_PREFIX}/events/:event_key/proposals/:proposal_key/accept`, eventResource, 'ProposalAccept')
   addRoute(app, `${API_PREFIX}/events/:event_key/status`, eventResource, 'StatusByKey')
   addRoute(app, `${API_PREFIX}/events/:event_key/internal-costs`, eventResource, 'InternalCosts')
   addRoute(app, `${API_PREFIX}/events/:event_key/internal-costs/:internal_cost_key`, eventResource, 'InternalCostByKey')
+
+  const budgetItemResource = new BudgetItemResource()
+  addRoute(app, `${API_PREFIX}/events/:event_key/items`, budgetItemResource, 'Items')
+  addRoute(app, `${API_PREFIX}/events/:event_key/items/:item_key`, budgetItemResource, 'ItemsByKey')
+
+  const supplierEventResource = new SupplierEventResource()
+  addRoute(app, `${API_PREFIX}/supplier/events`, supplierEventResource, 'List')
+  addRoute(app, `${API_PREFIX}/supplier/events/:event_key`, supplierEventResource, 'ByKey')
 
   const sinkResource = new SinkResource()
   addSink(app, sinkResource)

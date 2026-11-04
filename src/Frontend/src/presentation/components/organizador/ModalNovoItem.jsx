@@ -2,8 +2,12 @@ import { Modal } from '../comum/Modal.jsx'
 import { useNovoItemDeCusto } from '../../hooks/useNovoItemDeCusto.js'
 import { CamposDoItem } from './CamposDoItem.jsx'
 
-export function ModalNovoItem({ eventKey, evento, aoFechar }) {
-  const { dados, definir, enviando, salvar } = useNovoItemDeCusto(eventKey, aoFechar)
+export function ModalNovoItem({ eventKey, evento, aoFechar, aoSalvar }) {
+  const concluir = () => {
+    aoFechar()
+    aoSalvar?.()
+  }
+  const { dados, definir, enviando, salvar } = useNovoItemDeCusto(eventKey, concluir)
 
   return (
     <Modal

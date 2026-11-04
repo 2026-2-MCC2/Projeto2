@@ -91,6 +91,7 @@ function calcularDadosTicket(evento, totalCustos) {
   const cenarioRef = evento.reference_scenario || 'expected'
   const publicoRef =
     cenarioRef === 'minimum' ? publicoMin : cenarioRef === 'maximum' ? publicoMax : publicoExp
+  const margemInvalida = margem >= 1
 
   // ticket = custo total ÷ [público × (1 − margem)]
   const ticketPara = (publico) =>
@@ -111,8 +112,9 @@ function calcularDadosTicket(evento, totalCustos) {
           ? 'Cenário máximo'
           : 'Cenário esperado',
     valor: precoSugerido,
-    explicacao:
-      totalCustos > 0
+    explicacao: margemInvalida
+      ? 'A margem de lucro precisa ser menor que 100% para calcular o ticket.'
+      : totalCustos > 0
         ? `Custo de ${formatarMoeda(totalCustos)} dividido por ${quantidadeDePessoas(publicoRef)}, com margem de ${Math.round(margem * 100)}%.`
         : 'Cadastre os custos para calcular o ticket sugerido.',
     cenarios: [
@@ -265,7 +267,7 @@ function calcularAndamento(statusBackend, internalCostsCount) {
 /**
  * Converte um objeto Event do Backend para o formato esperado pelos componentes visuais do Frontend.
  */
-export function formatarEventoParaExibicao(evento) {
+export function formatarEventoParaExibicao(evento, itensDeCotacao = evento.budget_items ?? []) {
   if (!evento) return null
 
   const statusFront = mapearStatusBackend(evento.status)
@@ -274,8 +276,10 @@ export function formatarEventoParaExibicao(evento) {
   const local = `${evento.venue_name}, ${evento.state}`
   const publico = `${quantidadeDePessoas(Number(evento.expected_audience || 0))}`
 
-  const totalCustos = Number(evento.total_internal_cost) || 0
+  const totalCustos = Number(evento.total_cost ?? evento.total_internal_cost) || 0
+  const totalPropostasAceitas = Number(evento.total_accepted_proposals) || 0
   const { precoSugerido, ticketEstimado, calculo } = calcularDadosTicket(evento, totalCustos)
+  const motivoCancelamento = evento.cancellation_reason ?? evento.motivoDoCancelamento ?? null
 
   const dadosExibicao = [
     { rotulo: 'PERÍODO', valor: periodo },
@@ -286,6 +290,9 @@ export function formatarEventoParaExibicao(evento) {
     },
     { rotulo: 'MARGEM DE LUCRO', valor: `${Math.round(Number(evento.profit_margin) * 100)}%` },
     { rotulo: 'TIPO DE INGRESSO', valor: 'Inteira' },
+    ...(statusFront === 'cancelado' || motivoCancelamento
+      ? [{ rotulo: 'MOTIVO DO CANCELAMENTO', valor: motivoCancelamento || 'Não informado' }]
+      : []),
   ]
 
   const linhasCustos = (evento.internal_costs || []).map((custo) => ({
@@ -299,13 +306,23 @@ export function formatarEventoParaExibicao(evento) {
     valor: formatarMoeda(custo.amount),
   }))
 
-  const itens = (evento.internal_costs || []).map((custo) => ({
+  const itensProprios = (evento.internal_costs || []).map((custo) => ({
+    chave: custo.internal_cost_key,
     nome: custo.description,
     categoria:
       custo.type === 'tax' ? 'Fiscal' : custo.type === 'operational' ? 'Operacional' : 'Outros',
     situacao: 'custoProprio',
     valor: formatarMoeda(custo.amount),
   }))
+  const itensDeFornecedores = itensDeCotacao.map((item) => ({
+    chave: item.item_key,
+    nome: item.description,
+    categoria: item.category,
+    situacao: item.accepted_proposal ? 'aceita' : 'cotacao',
+    valor: formatarMoeda(item.accepted_proposal?.amount ?? item.estimated_value),
+    propostasCount: Number(item.proposals_count) || 0,
+  }))
+  const itens = [...itensDeFornecedores, ...itensProprios]
 
   const andamento = calcularAndamento(evento.status, (evento.internal_costs || []).length)
 
@@ -347,8 +364,11 @@ export function formatarEventoParaExibicao(evento) {
         total: formatarMoeda(totalCustos),
         resumoMobile: `${linhasCustos.length} custos cadastrados`,
         indicadores: [
-          { nome: 'Custos de fornecedores', valor: 'R$ 0,00' },
-          { nome: 'Custos fiscais e operacionais', valor: formatarMoeda(totalCustos) },
+          { nome: 'Custos de fornecedores', valor: formatarMoeda(totalPropostasAceitas) },
+          {
+            nome: 'Custos fiscais e operacionais',
+            valor: formatarMoeda(Number(evento.total_internal_cost) || 0),
+          },
           { nome: 'Custo total do evento', valor: formatarMoeda(totalCustos) },
         ],
         linhas: linhasCustos,
@@ -472,7 +492,10 @@ const EVENTOS_POR_PAGINA = 100
 const montarBuscaDeEventos = ({ limit, page }) => `/events?limit=${limit}&page=${page}`
 
 function formatarEGuardar(eventosDaApi, pedido) {
-  const eventos = eventosDaApi.map(formatarEventoParaExibicao)
+  const eventos = eventosDaApi.map((evento) => {
+    const itensEmMemoria = buscarEventoEmMemoria(evento.event_key)?.raw?.budget_items
+    return formatarEventoParaExibicao(evento, evento.budget_items ?? itensEmMemoria ?? [])
+  })
   guardarEventos(eventos, pedido)
   return eventos
 }
@@ -536,8 +559,13 @@ export async function listarTodosOsEventos() {
  */
 export async function buscarEventoPorChave(eventKey) {
   const pedido = iniciarPedido()
-  const resposta = await api.get(`/events/${eventKey}`)
-  return formatarEGuardar([resposta], pedido)[0]
+  const [evento, itensDeCotacao] = await Promise.all([
+    api.get(`/events/${eventKey}`),
+    api.get(`/events/${eventKey}/items`),
+  ])
+  const formatado = formatarEventoParaExibicao({ ...evento, budget_items: itensDeCotacao })
+  guardarEventos([formatado], pedido)
+  return formatado
 }
 
 const carregamentosEmAndamento = new Map()
@@ -668,6 +696,39 @@ export async function apagarCustoProprio(eventKey, chaveDoCusto) {
   const pedido = iniciarPedido()
   const resposta = await api.delete(`${caminhoDosCustos(eventKey)}/${chaveDoCusto}`)
   return formatarEGuardar([resposta], pedido)[0]
+}
+
+export async function listarItensDeCotacao(eventKey) {
+  return api.get(`/events/${eventKey}/items`)
+}
+
+export async function criarItemDeCotacao(eventKey, item) {
+  const resposta = await api.post(`/events/${eventKey}/items`, itemParaApi(item))
+  await buscarEventoPorChave(eventKey)
+  return resposta
+}
+
+export async function atualizarItemDeCotacao(eventKey, itemKey, item) {
+  const resposta = await api.put(`/events/${eventKey}/items/${itemKey}`, itemParaApi(item))
+  await buscarEventoPorChave(eventKey)
+  return resposta
+}
+
+export async function excluirItemDeCotacao(eventKey, itemKey) {
+  await api.delete(`/events/${eventKey}/items/${itemKey}`)
+  await buscarEventoPorChave(eventKey)
+}
+
+function itemParaApi(item) {
+  const dados = {
+    category: item.categoria,
+    description: item.descricao.trim(),
+    type: item.tipoItem,
+    quantity: Number(item.quantidade),
+  }
+  if (item.valorEstimado !== '') dados.estimated_value = paraNumero(String(item.valorEstimado))
+  if (item.observacoes?.trim()) dados.notes = item.observacoes.trim()
+  return dados
 }
 
 /**
