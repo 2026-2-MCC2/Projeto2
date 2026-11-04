@@ -128,6 +128,45 @@ export class RequestGenerator {
     return [response.responseStatus, response.responseJson]
   }
 
+  static async POST_event_item(eventKey, payload, headers = {}) {
+    const response = await ClientRequisition.send('POST', `/event_planning/events/${eventKey}/items`, {
+      payload,
+      headers,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async GET_event_items(eventKey, headers = {}) {
+    const response = await ClientRequisition.send('GET', `/event_planning/events/${eventKey}/items`, { headers })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async GET_supplier_events(params = {}, headers = {}) {
+    const response = await ClientRequisition.send('GET', '/event_planning/supplier/events', {
+      headers,
+      queryParams: params,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async GET_supplier_event_by_key(eventKey, headers = {}) {
+    const response = await ClientRequisition.send('GET', `/event_planning/supplier/events/${eventKey}`, { headers })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async PUT_event_item(eventKey, itemKey, payload, headers = {}) {
+    const response = await ClientRequisition.send('PUT', `/event_planning/events/${eventKey}/items/${itemKey}`, {
+      payload,
+      headers,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async DELETE_event_item(eventKey, itemKey, headers = {}) {
+    const response = await ClientRequisition.send('DELETE', `/event_planning/events/${eventKey}/items/${itemKey}`, { headers })
+    return [response.responseStatus, response.responseJson]
+  }
+
   static async PATCH_me(payload, headers = {}) {
     const response = await ClientRequisition.send('PATCH', '/event_planning/me', { payload: payload, headers: headers })
     return [response.responseStatus, response.responseJson]

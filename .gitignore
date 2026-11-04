@@ -141,8 +141,11 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Arquivos locais de contexto do Codex
+/AGENTS.md
+/Contextos/
+/contextos/
+
+# Metadados de pastas do macOS
 .DS_Store
-AGENTS.md
-Contextos/PI_2CCOMP_202602_TrocaTicket_FINAL.pdf
-Contextos/PI_2CCOMP_202602_TrocaTicket_FINAL.txt
-Contextos/Spec.txt

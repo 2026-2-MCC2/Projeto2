@@ -14,11 +14,13 @@ import {
 import {
   AdminUserResource,
   AuthResource,
+  BudgetItemResource,
   EventResource,
   HealthCheckResource,
   HomeResource,
   MeResource,
   SinkResource,
+  SupplierEventResource,
 } from './resources/index.js'
 import { addRoute, addSink, useMiddlewares } from './utils/routing.js'
 
@@ -72,6 +74,14 @@ export function create() {
   addRoute(app, `${API_PREFIX}/events/:event_key/status`, eventResource, 'StatusByKey')
   addRoute(app, `${API_PREFIX}/events/:event_key/internal-costs`, eventResource, 'InternalCosts')
   addRoute(app, `${API_PREFIX}/events/:event_key/internal-costs/:internal_cost_key`, eventResource, 'InternalCostByKey')
+
+  const budgetItemResource = new BudgetItemResource()
+  addRoute(app, `${API_PREFIX}/events/:event_key/items`, budgetItemResource, 'Items')
+  addRoute(app, `${API_PREFIX}/events/:event_key/items/:item_key`, budgetItemResource, 'ItemsByKey')
+
+  const supplierEventResource = new SupplierEventResource()
+  addRoute(app, `${API_PREFIX}/supplier/events`, supplierEventResource, 'List')
+  addRoute(app, `${API_PREFIX}/supplier/events/:event_key`, supplierEventResource, 'ByKey')
 
   const sinkResource = new SinkResource()
   addSink(app, sinkResource)

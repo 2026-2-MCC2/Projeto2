@@ -195,6 +195,30 @@ export class EventCannotBeModified extends ApiException {
   }
 }
 
+export class NotFoundBudgetItem extends ApiException {
+  static code = 'EVP000028'
+
+  constructor(itemKey = '') {
+    const title = 'Budget item not Found'
+    const httpStatus = 404
+    const description = `Budget item ${itemKey} was not found.`
+    const translation = 'O item de custo não foi encontrado.'
+    super(title, NotFoundBudgetItem.code, httpStatus, description, translation)
+  }
+}
+
+export class BudgetItemLocked extends ApiException {
+  static code = 'EVP000029'
+
+  constructor(itemKey = '') {
+    const title = 'Budget item is locked'
+    const httpStatus = 409
+    const description = `Budget item ${itemKey} cannot be changed because it already has proposals.`
+    const translation = 'O item de custo não pode ser alterado ou removido porque já recebeu propostas.'
+    super(title, BudgetItemLocked.code, httpStatus, description, translation)
+  }
+}
+
 export class EventCannotBePublished extends ApiException {
   static code = 'EVP000021'
 

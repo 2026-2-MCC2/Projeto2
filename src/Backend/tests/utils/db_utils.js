@@ -202,6 +202,50 @@ export class DbUtils {
     }
   }
 
+  static async getBudgetItemByKey(itemKey) {
+    const connection = await mysql.createConnection(TEST_DATABASE_URL)
+    try {
+      const [[item]] = await connection.execute(
+        `SELECT budget_item.budget_item_key AS item_key, event.event_key, item_category.name AS category,
+                budget_item.description, budget_item.type, budget_item.quantity, budget_item.estimated_value, budget_item.notes
+         FROM budget_item
+         INNER JOIN event ON event.id = budget_item.event_id
+         INNER JOIN item_category ON item_category.id = budget_item.category_id
+         WHERE budget_item.budget_item_key = ?`,
+        [itemKey],
+      )
+      return item ?? null
+    } finally {
+      await connection.end()
+    }
+  }
+
+  static async createProposalFixture(itemKey, supplierUserKey, { status = 'sent', amount = 1200 } = {}) {
+    const connection = await mysql.createConnection(TEST_DATABASE_URL)
+    try {
+      const proposalKey = randomUUID()
+      const [[item]] = await connection.execute('SELECT id FROM budget_item WHERE budget_item_key = ?', [itemKey])
+      const [[supplier]] = await connection.execute(
+        `SELECT supplier.id
+         FROM supplier
+         INNER JOIN user ON user.id = supplier.user_id
+         WHERE user.user_key = ?`,
+        [supplierUserKey],
+      )
+
+      const [result] = await connection.execute(
+        `INSERT INTO proposal (
+           proposal_key, budget_item_id, supplier_id, amount, description,
+           delivery_terms, payment_terms, valid_until, status
+         ) VALUES (?, ?, ?, ?, ?, ?, ?, DATE_ADD(UTC_DATE(), INTERVAL 30 DAY), ?)`,
+        [proposalKey, item.id, supplier.id, amount, 'Proposta de teste', 'Entrega combinada', 'Pagamento combinado', status],
+      )
+      return { id: result.insertId, proposalKey }
+    } finally {
+      await connection.end()
+    }
+  }
+
   // cria um link direto no banco, sem passar pela espera entre pedidos; devolve o token do link.
   // as datas usam o relógio do banco em UTC, como a API grava
   static async createPasswordResetToken(userKey, { expiresInSeconds = 3_600 } = {}) {
