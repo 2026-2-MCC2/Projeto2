@@ -262,17 +262,110 @@
 
 .detalhe-proposta__acoes {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  margin-top: 1rem;
+  flex-direction: column;
+  gap: 0.625rem;
 }
 
-/* descrições e condições digitadas em várias linhas */
-.detalhe-proposta__texto {
+.detalhe-proposta__acoes .botao {
+  width: 100%;
+}
+
+.detalhe-proposta__voltar {
+  padding: 0.75rem;
+  color: var(--texto-secundario);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-align: center;
+  text-decoration: none;
+}
+
+.detalhe-proposta__voltar:hover {
+  color: var(--texto-marca);
+}
+
+.detalhe-proposta__situacao {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.625rem;
+  margin-bottom: 0.875rem;
+}
+
+.detalhe-proposta__situacao p {
+  margin: 0;
+  color: var(--texto-secundario);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.detalhe-proposta__textos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.detalhe-proposta__textos h3 {
+  margin: 0 0 0.25rem;
+  color: var(--texto-secundario);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.detalhe-proposta__textos p {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
   white-space: pre-line;
 }
 
+.linhas-de-dados {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.linhas-de-dados > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.8125rem;
+}
+
+.linhas-de-dados dt {
+  color: var(--texto-secundario);
+}
+
+.linhas-de-dados dd {
+  margin: 0;
+  font-weight: 500;
+  text-align: right;
+}
+
+.aviso--sucesso {
+  background: var(--status-sucesso-fundo);
+  color: var(--status-sucesso-texto);
+}
+
+.aviso--alerta {
+  background: var(--status-alerta-fundo);
+  color: var(--status-alerta-texto);
+}
+
+.aviso--perigo {
+  background: var(--status-perigo-fundo);
+  color: var(--status-perigo-texto);
+}
+
+@media (max-width: 900px) {
+  .detalhe-proposta .colunas__lateral {
+    order: -1;
+  }
+}
+
+/* descrições e condições digitadas em várias linhas */
 .minhas-propostas__data {
   text-align: right;
 }

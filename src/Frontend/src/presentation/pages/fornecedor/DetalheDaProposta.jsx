@@ -11,6 +11,7 @@ import { formatarData } from '../../../domain/formatacao.js'
 import { Carregando, ErroNaTela, Vazio } from '../../components/comum/EstadoDaTela.jsx'
 import { Modal } from '../../components/comum/Modal.jsx'
 import { EtiquetaDaProposta } from '../../components/fornecedor/EtiquetaDaProposta.jsx'
+import { Cartao } from '../../components/organizador/Cartao.jsx'
 import { Botao } from '../../components/organizador/Formulario.jsx'
 import { OrganizadorLayout } from '../../components/organizador/OrganizadorLayout.jsx'
 import { toast } from '../../toasts.js'
@@ -20,16 +21,22 @@ import '../../styles/fornecedor.css'
 
 const VOLTAR_PARA = '/fornecedor/propostas'
 
-// campos de texto da proposta, na ordem em que o fornecedor preenche nas etapas
-const CAMPOS_DE_TEXTO = [
-  { campo: 'description', rotulo: 'Descrição do serviço' },
+// textos livres da proposta, na ordem em que o fornecedor preenche nas etapas
+const TEXTOS_DA_DESCRICAO = [
+  { campo: 'description', rotulo: 'O que está incluído' },
   { campo: 'not_included', rotulo: 'O que não está incluído' },
-  { campo: 'delivery_terms', rotulo: 'Prazo de entrega ou montagem' },
-  { campo: 'payment_terms', rotulo: 'Condição de pagamento' },
   { campo: 'team', rotulo: 'Equipe envolvida' },
   { campo: 'warranty', rotulo: 'Garantia ou substituição' },
   { campo: 'notes', rotulo: 'Observações' },
 ]
+
+const EXPLICACAO_DA_SITUACAO = {
+  sent: 'O organizador ainda não decidiu sobre as propostas deste item.',
+  under_review: 'O organizador está comparando as propostas recebidas para este item.',
+  accepted: 'O organizador escolheu a sua proposta para este item.',
+  rejected: 'O organizador escolheu outra proposta para este item.',
+  canceled: 'O organizador cancelou o evento e as propostas dele foram encerradas.',
+}
 
 function ModalRetirar({ proposta, retirando, aoConfirmar, aoFechar }) {
   return (
@@ -133,104 +140,79 @@ export function DetalheDaProposta() {
       perfil="fornecedor"
       titulo={proposta.item.description}
       sobreTitulo={`Minhas propostas · ${proposta.event.name}`}
+      apoio={`Proposta enviada em ${formatarData(proposta.sent_at)}`}
       voltarPara={VOLTAR_PARA}
     >
-      <div className="fornecedor-evento-detalhe">
-        <section className="painel" aria-labelledby="proposta-resumo-titulo">
-          <div className="painel__titulo">
-            <h2 id="proposta-resumo-titulo">Sua proposta</h2>
-            <EtiquetaDaProposta status={proposta.status} />
-          </div>
-          <dl className="fornecedor-evento-detalhe__dados">
-            <div>
-              <dt>Valor</dt>
-              <dd>{formatarMoeda(proposta.amount)}</dd>
-            </div>
-            <div>
-              <dt>Válida até</dt>
-              <dd>{formatarValidade(proposta.valid_until)}</dd>
-            </div>
-            <div>
-              <dt>Enviada em</dt>
-              <dd>{formatarData(proposta.sent_at)}</dd>
-            </div>
-            <div>
-              <dt>Escolhida pelo organizador</dt>
-              <dd>{proposta.selected ? 'Sim' : 'Não'}</dd>
-            </div>
-          </dl>
+      <div className="colunas detalhe-proposta">
+        <div className="colunas__principal">
+          <Cartao titulo="Valores e prazos">
+            <LinhasDeDados linhas={valoresEPrazos(proposta)} />
+          </Cartao>
 
-          {podeAlterar ? (
-            <div className="detalhe-proposta__acoes">
-              <Botao type="button" perigo onClick={() => setConfirmandoRetirada(true)}>
-                Retirar proposta
-              </Botao>
-              <Link to={rotaDeEdicao} state={ENTRAR_NA_EDICAO} className="botao">
-                Editar
-              </Link>
+          <Cartao titulo="Descrição enviada">
+            <div className="detalhe-proposta__textos">
+              {TEXTOS_DA_DESCRICAO.filter(({ campo }) => proposta[campo]).map(
+                ({ campo, rotulo }) => (
+                  <div key={campo}>
+                    <h3>{rotulo}</h3>
+                    <p>{proposta[campo]}</p>
+                  </div>
+                ),
+              )}
             </div>
-          ) : (
-            <p className="aviso" role="note">
-              {avisoDaPropostaTravada(proposta)}
-            </p>
-          )}
-        </section>
+          </Cartao>
 
-        <section className="painel" aria-labelledby="proposta-item-titulo">
-          <div className="painel__titulo">
-            <h2 id="proposta-item-titulo">Item e evento</h2>
-          </div>
-          <dl className="fornecedor-evento-detalhe__dados">
-            <div>
-              <dt>Item</dt>
-              <dd>
-                {proposta.item.description} · {proposta.item.category} ·{' '}
-                {proposta.item.type === 'product' ? 'Produto' : 'Serviço'}, quantidade{' '}
-                {proposta.item.quantity}
-              </dd>
-            </div>
-            <div>
-              <dt>Evento</dt>
-              <dd>{proposta.event.name}</dd>
-            </div>
-            <div>
-              <dt>Fim do evento</dt>
-              <dd>{formatarPeriodo(proposta.event.end_date, proposta.event.end_date)}</dd>
-            </div>
-          </dl>
-        </section>
-
-        <section className="painel" aria-labelledby="proposta-detalhes-titulo">
-          <div className="painel__titulo">
-            <h2 id="proposta-detalhes-titulo">Detalhes</h2>
-          </div>
-          <dl className="fornecedor-evento-detalhe__dados">
-            {CAMPOS_DE_TEXTO.filter(({ campo }) => proposta[campo]).map(({ campo, rotulo }) => (
-              <div key={campo}>
-                <dt>{rotulo}</dt>
-                <dd className="detalhe-proposta__texto">{proposta[campo]}</dd>
+          {proposta.photos?.length > 0 && (
+            <Cartao titulo="Fotos enviadas">
+              <div className="proposta-detalhes__galeria">
+                {proposta.photos.map((foto, indice) => (
+                  <img
+                    key={foto.photo_key}
+                    src={foto.url}
+                    alt={`Foto ${indice + 1} do serviço`}
+                    className="proposta-detalhes__foto"
+                  />
+                ))}
               </div>
-            ))}
-          </dl>
-        </section>
+            </Cartao>
+          )}
+        </div>
 
-        {proposta.photos?.length > 0 && (
-          <section className="painel" aria-labelledby="proposta-fotos-titulo">
-            <div className="painel__titulo">
-              <h2 id="proposta-fotos-titulo">Fotos do serviço</h2>
+        <aside className="colunas__lateral">
+          <Cartao titulo="Situação">
+            <div className="detalhe-proposta__situacao">
+              <EtiquetaDaProposta status={proposta.status} />
+              <p>{EXPLICACAO_DA_SITUACAO[proposta.status]}</p>
             </div>
-            <div className="proposta-detalhes__galeria">
-              {proposta.photos.map((foto, indice) => (
-                <img
-                  key={foto.photo_key}
-                  src={foto.url}
-                  alt={`Foto ${indice + 1} do serviço`}
-                  className="proposta-detalhes__foto"
-                />
-              ))}
-            </div>
-          </section>
-        )}
+            <LinhasDeDados
+              linhas={[
+                { rotulo: 'Enviada em', valor: formatarData(proposta.sent_at) },
+                {
+                  rotulo: 'Fim do evento',
+                  valor: formatarPeriodo(proposta.event.end_date, proposta.event.end_date),
+                },
+              ]}
+            />
+          </Cartao>
+
+          <div className="detalhe-proposta__acoes">
+            {podeAlterar && (
+              <>
+                <Link to={rotaDeEdicao} state={ENTRAR_NA_EDICAO} className="botao">
+                  Editar proposta
+                </Link>
+                <Botao type="button" secundario onClick={() => setConfirmandoRetirada(true)}>
+                  Retirar proposta
+                </Botao>
+              </>
+            )}
+            <Link to={VOLTAR_PARA} className="detalhe-proposta__voltar">
+              Voltar para a lista
+            </Link>
+          </div>
+
+          <AvisoDaProposta proposta={proposta} podeAlterar={podeAlterar} />
+        </aside>
       </div>
 
       {confirmandoRetirada && (
@@ -245,12 +227,70 @@ export function DetalheDaProposta() {
   )
 }
 
-function avisoDaPropostaTravada(proposta) {
+function valoresEPrazos(proposta) {
+  return [
+    { rotulo: 'Valor da proposta', valor: formatarMoeda(proposta.amount) },
+    proposta.item.estimated_value != null && {
+      rotulo: 'Orçamento previsto pelo organizador',
+      valor: formatarMoeda(proposta.item.estimated_value),
+    },
+    { rotulo: 'Validade da proposta', valor: formatarValidade(proposta.valid_until) },
+    { rotulo: 'Prazo de entrega ou montagem', valor: proposta.delivery_terms },
+    { rotulo: 'Condição de pagamento', valor: proposta.payment_terms },
+  ].filter(Boolean)
+}
+
+function LinhasDeDados({ linhas }) {
+  return (
+    <dl className="linhas-de-dados">
+      {linhas.map(({ rotulo, valor }) => (
+        <div key={rotulo}>
+          <dt>{rotulo}</dt>
+          <dd>{valor}</dd>
+        </div>
+      ))}
+    </dl>
+  )
+}
+
+function contatoDoOrganizador({ name, email, phone }) {
+  return [name, email, phone].filter(Boolean).join(' · ')
+}
+
+function AvisoDaProposta({ proposta, podeAlterar }) {
+  const contato = proposta.organizer_contact && contatoDoOrganizador(proposta.organizer_contact)
+
   if (proposta.status === 'canceled') {
     const motivo = proposta.event.cancellation_reason
-    return `O organizador cancelou o evento${motivo ? `. Motivo: ${motivo}` : '.'}`
+    return (
+      <p className="aviso aviso--perigo" role="note">
+        {motivo ? `Motivo: ${motivo.replace(/[.!]+$/, '')}. ` : ''}
+        {contato
+          ? `Se você já teve custos com este evento, fale com o organizador: ${contato}`
+          : 'O organizador cancelou o evento.'}
+      </p>
+    )
   }
-  return proposta.status === 'sent'
-    ? 'O evento não está mais em cotação: a proposta não pode ser editada nem retirada.'
-    : 'O organizador já analisou esta proposta: ela fica disponível só para consulta.'
+  if (proposta.status === 'accepted') {
+    return (
+      <p className="aviso aviso--sucesso" role="note">
+        Combine a entrega com o organizador{contato ? `: ${contato}` : '.'}
+      </p>
+    )
+  }
+  if (podeAlterar) {
+    return (
+      <p className="aviso aviso--alerta" role="note">
+        A edição e a retirada ficam disponíveis enquanto o organizador não decidir e o evento
+        estiver em cotação.
+      </p>
+    )
+  }
+  return (
+    <p className="aviso" role="note">
+      {proposta.status === 'sent'
+        ? 'O evento não está mais em cotação: a proposta não pode ser editada nem retirada.'
+        : 'Esta proposta fica disponível só para consulta.'}
+    </p>
+  )
 }
