@@ -1,4 +1,4 @@
-import { normalizarCnpj } from './formatacao.js'
+import { diaEmBrasilia, normalizarCnpj } from './formatacao.js'
 
 // Regras de validação dos campos de formulário.
 // Cada regra recebe o texto digitado e devolve a mensagem de erro, ou '' quando o valor é válido.
@@ -112,7 +112,7 @@ export function validarValidadeDaProposta(validade, fimDoEventoIso) {
   const data = paraData(validade)
   if (!data || !fimDoEventoIso) return ''
 
-  const fim = new Date(fimDoEventoIso).toISOString().slice(0, 10)
+  const fim = diaEmBrasilia(fimDoEventoIso)
   if (paraDataIso(data) <= fim) return ''
 
   const [ano, mes, dia] = fim.split('-')

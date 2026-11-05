@@ -1,5 +1,6 @@
 import { formatarMoeda } from '../../../application/eventos.js'
 import { formatarValidade } from '../../../application/propostas.js'
+import { diaEmBrasilia } from '../../../domain/formatacao.js'
 import { paraData, paraNumero } from '../../../domain/validacao.js'
 
 const AVISO_PROPOSTA =
@@ -35,9 +36,9 @@ export function ResumoProposta({ rascunho, item }) {
   )
 }
 
-// A validade não pode passar do fim do evento (mesma regra da API, que compara o dia em UTC).
+// A validade não pode passar do fim do evento (mesma regra da API, que compara o dia de Brasília).
 export function ResumoItemCotacao({ item, evento }) {
-  const fimDoEvento = new Date(evento.end_date).toISOString().slice(0, 10)
+  const fimDoEvento = diaEmBrasilia(evento.end_date)
 
   return (
     <section className="resumo-item-cotacao" aria-labelledby="titulo-item-cotacao">
