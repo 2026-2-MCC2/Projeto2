@@ -120,6 +120,28 @@ describe('POST /supplier/proposals/:proposal_key/photos', () => {
     assert.equal(detail.photos.length, 3)
   })
 
+  test('caminho com maiúscula ou barra no fim não prende conexão do banco', async () => {
+    const scenario = await createScenario()
+    const grafias = ['Photos', 'photos/', 'PHOTOS/', 'Photos/', 'photos/', 'Photos']
+
+    // mais envios do que conexões no pool: se cada um deixasse uma transação aberta, os últimos travariam
+    for (let rodada = 0; rodada < 3; rodada++) {
+      for (const path of grafias) {
+        const [status] = await RequestGenerator.POST_supplier_proposal_photo(
+          scenario.proposal.proposal_key,
+          PNG_PHOTO,
+          scenario.supplier.headers,
+          { path },
+        )
+        assert.ok([201, 409].includes(status), `${path}: ${status}`)
+      }
+    }
+    const [status, detail] = await RequestGenerator.GET_supplier_proposal_by_key(scenario.proposal.proposal_key, scenario.supplier.headers)
+
+    assert.equal(status, 200)
+    assert.equal(detail.photos.length, 5)
+  })
+
   test('até 5 fotos por proposta: a sexta responde 409', async () => {
     const scenario = await createScenario()
     for (let index = 0; index < 5; index++) {

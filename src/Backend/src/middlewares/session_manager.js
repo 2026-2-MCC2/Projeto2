@@ -15,8 +15,9 @@
 import { DatabaseConnector } from '../connectors/database_connector.js'
 import { API_PREFIX, BYPASS_ENDPOINTS } from '../constants.js'
 
-// só o envio de foto abre a transação depois de receber o arquivo (openSessionAfterUpload)
-const PHOTO_UPLOAD_PATH = new RegExp(`^${API_PREFIX}/supplier/proposals/[^/]+/photos$`)
+// só o envio de foto abre a transação depois de receber o arquivo (openSessionAfterUpload).
+// Igual ao roteamento do Express: sem diferença de maiúscula e com barra no fim opcional
+const PHOTO_UPLOAD_PATH = new RegExp(`^${API_PREFIX}/supplier/proposals/[^/]+/photos/?$`, 'i')
 
 const isPhotoUpload = (req) => req.method === 'POST' && PHOTO_UPLOAD_PATH.test(req.path)
 
@@ -57,6 +58,9 @@ export class SessionManager {
 }
 
 export async function openSessionAfterUpload(req) {
+  // se o SessionManager já abriu a transação, ela segue valendo: abrir outra deixaria a primeira presa
+  if (req.context.dbSession !== null) return
+
   const dbSession = await DatabaseConnector.openSession()
 
   // o cliente desistiu durante o upload: o processResponse já rodou e não desfaria esta transação

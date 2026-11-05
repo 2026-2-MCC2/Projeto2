@@ -187,12 +187,13 @@ export class RequestGenerator {
 
   // file: { buffer, filename, contentType } vai no campo "photo" (ou em outro, com fieldName);
   // null manda o formulário sem arquivo. O fetch monta o multipart/form-data sozinho.
-  static async POST_supplier_proposal_photo(proposalKey, file, headers = {}, { fieldName = 'photo' } = {}) {
+  // path: outra grafia do mesmo caminho (ex.: 'Photos/'), aceita pelo roteamento do Express
+  static async POST_supplier_proposal_photo(proposalKey, file, headers = {}, { fieldName = 'photo', path = 'photos' } = {}) {
     const form = new FormData()
     if (file) {
       form.append(fieldName, new Blob([file.buffer], { type: file.contentType }), file.filename)
     }
-    const response = await ClientRequisition.send('POST', `/event_planning/supplier/proposals/${proposalKey}/photos`, {
+    const response = await ClientRequisition.send('POST', `/event_planning/supplier/proposals/${proposalKey}/${path}`, {
       data: form,
       headers,
     })
