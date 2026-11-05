@@ -621,11 +621,20 @@ button.calendario__titulo:focus-visible {
   z-index: 50;
   display: flex;
   flex-direction: column;
+  pointer-events: none;
+}
+
+.toaster__lista {
+  display: flex;
+  flex-direction: column;
   gap: 0.5rem;
   margin: 0;
   padding: 0;
   list-style: none;
-  pointer-events: none;
+}
+
+.toaster__lista:not(:empty) + .toaster__lista:not(:empty) {
+  margin-top: 0.5rem;
 }
 
 @media (min-width: 901px) {

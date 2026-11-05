@@ -19,7 +19,6 @@ function CartaoDeToast({ toast }) {
   return (
     <li
       className={`toast toast--${toast.tom}`}
-      role={toast.tom === 'erro' ? 'alert' : 'status'}
       onPointerEnter={() => setPausado(true)}
       onPointerLeave={() => setPausado(false)}
       onFocus={() => setPausado(true)}
@@ -59,14 +58,25 @@ function CartaoDeToast({ toast }) {
   )
 }
 
+// uma região viva por urgência, sempre na página (região criada junto com o aviso não é lida);
+// os itens não têm papel próprio, para não aninhar uma região dentro da outra
 export function Toaster() {
   const toasts = useSyncExternalStore(filaDeToasts.inscrever, filaDeToasts.atuais)
+  const avisos = toasts.filter((toast) => toast.tom !== 'erro')
+  const erros = toasts.filter((toast) => toast.tom === 'erro')
 
   return (
-    <ol className="toaster" aria-live="polite">
-      {toasts.map((toast) => (
-        <CartaoDeToast key={toast.id} toast={toast} />
-      ))}
-    </ol>
+    <div className="toaster">
+      <ol className="toaster__lista" aria-live="polite">
+        {avisos.map((toast) => (
+          <CartaoDeToast key={toast.id} toast={toast} />
+        ))}
+      </ol>
+      <ol className="toaster__lista" aria-live="assertive">
+        {erros.map((toast) => (
+          <CartaoDeToast key={toast.id} toast={toast} />
+        ))}
+      </ol>
+    </div>
   )
 }
