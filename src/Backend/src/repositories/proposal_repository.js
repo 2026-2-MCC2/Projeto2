@@ -213,7 +213,7 @@ export class ProposalRepository {
   // propostas ainda em jogo (enviada, em análise ou aceita), com o fornecedor que precisa saber do cancelamento
   async getOpenProposalsOfEventForUpdate(eventId) {
     return sequelize.query(
-      `SELECT proposal.id, proposal.status, proposal.amount, budget_item.description AS item_description,
+      `SELECT proposal.id, proposal.proposal_key, proposal.status, proposal.amount, budget_item.description AS item_description,
               supplier_user.name AS supplier_name, supplier_user.email AS supplier_email
        FROM proposal
        INNER JOIN budget_item ON budget_item.id = proposal.budget_item_id

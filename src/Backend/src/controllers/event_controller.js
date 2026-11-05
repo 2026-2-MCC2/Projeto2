@@ -1,5 +1,12 @@
 import { BaseController } from './base_controller.js'
-import { EVENT_STATUS_TRANSITIONS, EVENT_STATUSES, REFERENCE_SCENARIOS, isFinalEventStatus } from '../constants.js'
+import {
+  EVENT_STATUS_TRANSITIONS,
+  EVENT_STATUSES,
+  FRONT_URL,
+  PROPOSAL_STATUSES,
+  REFERENCE_SCENARIOS,
+  isFinalEventStatus,
+} from '../constants.js'
 import { EventDto } from '../dtos/event_dto.js'
 import {
   EventCannotBeModified,
@@ -24,6 +31,7 @@ import { OrganizerRepository } from '../repositories/organizer_repository.js'
 import { ProposalRepository } from '../repositories/proposal_repository.js'
 import { UserRepository } from '../repositories/user_repository.js'
 import { ProposalComparisonDTO } from '../dtos/proposal_comparison_dto.js'
+import { EmailTemplates } from '../utils/email_templates.js'
 import { toPhotoResponses } from '../utils/proposal_photo_tools.js'
 import { TextTools } from '../utils/text_tools.js'
 
@@ -342,10 +350,17 @@ export class EventController extends BaseController {
     const isCanceling = newStatus === EVENT_STATUSES.CANCELED
     const reason = isCanceling ? cancellationReason.trim() : null
     const canceledProposals = isCanceling ? await this.#cancelOpenProposals(event.id) : []
+    const organizerContact = canceledProposals.length > 0 ? await this.#getOrganizerContact(userKey, organizer) : null
     const updatedEvent = await this.eventRepository.updateStatus(event, newStatus, reason)
     await this.session.commit()
 
-    return { event: EventDto.fromModel(updatedEvent), canceledProposals }
+    const emails = canceledProposals.map((proposal) => canceledProposalEmail(proposal, updatedEvent, organizerContact))
+    return { event: EventDto.fromModel(updatedEvent), emails }
+  }
+
+  async #getOrganizerContact(userKey, organizer) {
+    const user = await this.userRepository.getByKey(userKey)
+    return { name: user.name, contact: `${user.email} · ${organizer.phone}` }
   }
 
   async #cancelOpenProposals(eventId) {
@@ -404,4 +419,22 @@ export class EventController extends BaseController {
     await this.session.commit()
     return EventDto.fromModel(event)
   }
+}
+
+function canceledProposalEmail(proposal, event, organizer) {
+  const wasAccepted = proposal.status === PROPOSAL_STATUSES.ACCEPTED
+  const content = EmailTemplates.render('event_canceled', {
+    nome: proposal.supplier_name,
+    evento: event.name,
+    organizador: organizer.name,
+    situacao: wasAccepted
+      ? 'Sua proposta tinha sido aceita e foi cancelada junto com o evento.'
+      : 'Sua proposta ainda aguardava a decisão do organizador e foi cancelada junto com o evento.',
+    item: proposal.item_description,
+    valor: Number(proposal.amount).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+    motivo: event.cancellation_reason,
+    contato: organizer.contact,
+    link: `${FRONT_URL}/fornecedor/propostas/${proposal.proposal_key}`,
+  })
+  return { to: proposal.supplier_email, ...content }
 }

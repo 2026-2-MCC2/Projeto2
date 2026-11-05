@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { afterEach, describe, test } from 'node:test'
 
 import { DbUtils } from '../../utils/db_utils.js'
+import { Mailpit } from '../../utils/mailpit.js'
 import { ObjectGenerator } from '../../utils/object_generator.js'
 import { PayloadGenerator } from '../../utils/payload_generator.js'
 import { RequestGenerator } from '../../utils/request_generator.js'
@@ -270,5 +271,14 @@ describe('PATCH /events/:event_key/status (RF08 - Publicação para cotação)',
     assert.deepEqual(await DbUtils.getProposalStatus(accepted.proposalKey), { status: 'canceled', selected: true })
     assert.deepEqual(await DbUtils.getProposalStatus(sent.proposalKey), { status: 'canceled', selected: false })
     assert.deepEqual(await DbUtils.getProposalStatus(rejected.proposalKey), { status: 'rejected', selected: false })
+
+    const acceptedEmail = await Mailpit.waitForEmailTo(suppliers[0].email)
+    const sentEmail = await Mailpit.waitForEmailTo(suppliers[2].email)
+    assert.equal(acceptedEmail.subject, `O evento ${created.name} foi cancelado`)
+    assert.match(acceptedEmail.text, /tinha sido aceita/)
+    assert.match(acceptedEmail.text, /Motivo do cancelamento: Patrocinador desistiu\./)
+    assert.match(acceptedEmail.text, new RegExp(`/fornecedor/propostas/${accepted.proposalKey}`))
+    assert.match(sentEmail.text, /aguardava a decisão do organizador/)
+    assert.equal(await Mailpit.countEmailsAfterWaiting(suppliers[1].email, 500), 0)
   })
 })
