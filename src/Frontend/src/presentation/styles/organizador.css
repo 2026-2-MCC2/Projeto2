@@ -1721,93 +1721,6 @@
   font-weight: 600;
 }
 
-/* ---------- propostas ---------- */
-
-.comparacao {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1rem;
-}
-
-.proposta {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 1rem;
-  padding: 1.375rem;
-  border: 1px solid var(--borda-padrao);
-  border-radius: 14px;
-  background: var(--fundo-superficie);
-}
-
-.proposta:hover {
-  border-color: var(--texto-marca);
-  background: var(--fundo-marca-suave);
-}
-
-.proposta:hover .botao {
-  border-color: var(--acao-primaria);
-  background: var(--acao-primaria);
-  color: var(--acao-sobre-primaria);
-}
-
-.proposta__fornecedor {
-  font-size: 0.9375rem;
-  font-weight: 600;
-}
-
-.proposta__valor {
-  color: var(--texto-marca);
-  font-size: 1.625rem;
-  font-weight: 600;
-}
-
-.proposta__dados {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  width: 100%;
-}
-
-.proposta__dados div {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.75rem;
-  font-size: 0.75rem;
-}
-
-.proposta__dados span {
-  color: var(--texto-secundario);
-}
-
-.proposta__dados strong {
-  font-weight: 500;
-}
-
-.proposta__observacoes {
-  width: 100%;
-}
-
-.proposta__observacoes span {
-  color: var(--texto-secundario);
-  font-size: 0.75rem;
-}
-
-.proposta__observacoes p {
-  margin: 0.375rem 0 0;
-  font-size: 0.875rem;
-  overflow-wrap: anywhere;
-}
-
-.proposta .botao {
-  width: 100%;
-  margin-top: auto;
-  transition:
-    background 0.15s ease,
-    border-color 0.15s ease,
-    color 0.15s ease;
-}
-
 /* ---------- cálculo do ticket ---------- */
 
 .cartao__apoio--acima {
@@ -2035,14 +1948,6 @@
   font-weight: 500;
 }
 
-.proposta__cabecalho {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 1rem;
-  width: 100%;
-}
-
 .destaque-total {
   display: flex;
   flex-direction: column;
@@ -2220,13 +2125,6 @@
 
 /* ---------- proposta recebida ---------- */
 
-.propostas-topo {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
 .itens-em-cotacao {
   display: flex;
   flex-wrap: wrap;
@@ -2286,17 +2184,6 @@
   font-size: 0.6875rem;
 }
 
-.proposta--vencida .proposta__valor,
-.proposta--vencida .proposta__fornecedor {
-  color: var(--texto-terciario);
-}
-
-.proposta__etiquetas {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.375rem;
-}
-
 .proposta-recebida__origem {
   display: flex;
   align-items: center;
@@ -2307,18 +2194,6 @@
 .proposta-recebida__origem .etiqueta {
   padding: 0.1875rem 0.5rem;
   font-size: 0.6875rem;
-}
-
-.grupo-propostas {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.painel-propostas {
-  display: flex;
-  flex-direction: column;
-  gap: 1.75rem;
 }
 
 .visao {
@@ -2356,12 +2231,6 @@
 .visao__botao .icone {
   width: 16px;
   height: 16px;
-}
-
-.lista-proposta__nome {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
 }
 
 .tabela__linha--abre {
@@ -2451,12 +2320,6 @@
 
 .cartao > .etiqueta {
   align-self: flex-start;
-}
-
-.decisao__valor {
-  color: var(--texto-marca);
-  font-size: 1.625rem;
-  font-weight: 700;
 }
 
 @media (max-width: 900px) {
@@ -2615,32 +2478,6 @@
     gap: 0.3125rem;
   }
 
-  .proposta {
-    gap: 0.875rem;
-    padding: 1.125rem;
-  }
-
-  .proposta__cabecalho {
-    flex-direction: row;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 0.75rem;
-  }
-
-  .proposta__fornecedor {
-    font-size: 0.875rem;
-  }
-
-  .proposta__valor {
-    font-size: 1.125rem;
-  }
-
-  .proposta .botao {
-    border-color: var(--acao-primaria);
-    background: var(--acao-primaria);
-    color: var(--acao-sobre-primaria);
-  }
-
   .colunas {
     align-items: stretch;
     flex-direction: column;
@@ -2652,7 +2489,6 @@
   }
 
   .cenarios-grade,
-  .comparacao,
   .indicadores-cartao {
     grid-template-columns: 1fr;
   }
