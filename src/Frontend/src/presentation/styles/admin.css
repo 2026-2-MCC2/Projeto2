@@ -303,16 +303,6 @@
   color: var(--status-perigo-texto);
 }
 
-.visao-geral__vazio {
-  margin: 0;
-  padding: 1.5rem;
-  border: 1px solid var(--borda-padrao);
-  border-radius: 14px;
-  background: var(--fundo-superficie);
-  color: var(--texto-secundario);
-  text-align: center;
-}
-
 /* ---------- aprovações ---------- */
 
 .aprovacoes__barra {
