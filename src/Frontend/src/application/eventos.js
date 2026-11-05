@@ -341,7 +341,10 @@ export function formatarEventoParaExibicao(evento, itensDeCotacao = evento.budge
     nome: item.description,
     categoria: item.category,
     situacao: item.accepted_proposal ? 'aceita' : 'cotacao',
-    valor: formatarMoeda(item.accepted_proposal?.amount ?? item.estimated_value),
+    valor:
+      item.accepted_proposal || item.estimated_value != null
+        ? formatarMoeda(item.accepted_proposal?.amount ?? item.estimated_value)
+        : 'A definir',
     propostasCount: Number(item.proposals_count) || 0,
   }))
   const itens = [...itensDeFornecedores, ...itensProprios]
