@@ -85,6 +85,20 @@ describe('POST /events/:event_key/items', () => {
     assert.equal(items.length, 0)
   })
 
+  test('descrição só com espaços e categoria fora da lista respondem 400', async () => {
+    const headers = await createOrganizer()
+    const event = await createEvent(headers)
+
+    for (const overrides of [{ description: '    ' }, { category: 'Categoria Inexistente' }]) {
+      const [status, response] = await createBudgetItem(event.event_key, headers, PayloadGenerator.createBudgetItemPayload(overrides))
+      assert.equal(status, 400, JSON.stringify(overrides))
+      assert.equal(response.code, 'APP000001')
+    }
+
+    const [, items] = await RequestGenerator.GET_event_items(event.event_key, headers)
+    assert.equal(items.length, 0)
+  })
+
   test('fornecedor recebe 403 e requisição sem token recebe 401', async () => {
     const organizerHeaders = await createOrganizer()
     const event = await createEvent(organizerHeaders)
