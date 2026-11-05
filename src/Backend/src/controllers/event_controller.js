@@ -224,8 +224,17 @@ export class EventController extends BaseController {
 
   // comparação das propostas do evento, com as fotos de cada uma (URL de leitura assinada)
   async #getProposalComparison(event) {
+    return this.#buildProposalComparison(event, await this.#readProposalComparison(event))
+  }
+
+  // a leitura do banco fica separada de gerar as URLs, que pode ser lento (uma chamada por foto no GCS)
+  async #readProposalComparison(event) {
     const rows = await this.proposalRepository.getByEventId(event.id)
     const photos = await this.proposalRepository.getPhotosByEventId(event.id)
+    return { rows, photos }
+  }
+
+  async #buildProposalComparison(event, { rows, photos }) {
     const photoResponses = await toPhotoResponses(photos)
 
     const photosByProposalKey = {}
@@ -260,9 +269,10 @@ export class EventController extends BaseController {
       throw new NotFoundProposal(proposalKey)
     }
 
-    const comparison = await this.#getProposalComparison(event)
+    // as URLs das fotos são geradas depois do commit, para não segurar o evento travado
+    const comparisonData = await this.#readProposalComparison(event)
     await this.session.commit()
-    return comparison
+    return this.#buildProposalComparison(event, comparisonData)
   }
 
   /**
