@@ -25,6 +25,15 @@ export function paraNumero(texto) {
   return Number(decimal ? limpo : semSimbolos.replace(/[.,]/g, ''))
 }
 
+// os valores em reais são guardados como DECIMAL(12,2)
+const VALOR_MAXIMO = 9_999_999_999.99
+
+function casasDecimais(texto) {
+  const semSimbolos = texto.replace(/[R$\s%]/g, '')
+  const decimal = separadorDecimal(semSimbolos)
+  return decimal ? semSimbolos.length - semSimbolos.lastIndexOf(decimal) - 1 : 0
+}
+
 // porcentagem não tem milhar (a margem vai de 0 a 99): a vírgula ou o ponto é sempre o decimal,
 // então "2,125" vale 2,125% e não 2125%
 export function paraPercentual(texto) {
@@ -115,8 +124,12 @@ export const REGRAS = {
     ESTADOS.includes(texto.toUpperCase()) ? '' : 'Informe a sigla do estado, como SP.',
   inteiro: (texto) => (inteiroPositivo(texto) ? '' : 'Informe um número inteiro maior que zero.'),
   valor: (texto) => (paraNumero(texto) >= 0 ? '' : 'Informe um valor em reais, como R$ 1.500,00.'),
-  valorPositivo: (texto) =>
-    paraNumero(texto) > 0 ? '' : 'Informe um valor em reais maior que zero.',
+  valorPositivo: (texto) => {
+    const numero = paraNumero(texto)
+    if (!(numero > 0)) return 'Informe um valor em reais maior que zero.'
+    if (numero > VALOR_MAXIMO) return 'Informe um valor de até R$ 9.999.999.999,99.'
+    return casasDecimais(texto) > 2 ? 'Use até 2 casas decimais, como R$ 1.500,50.' : ''
+  },
   // a margem é guardada com 4 casas da fração (DECIMAL(5,4)), ou seja, até 2 casas na porcentagem
   percentual: (texto) => {
     const numero = paraPercentual(texto)
