@@ -390,23 +390,23 @@
   white-space: nowrap;
 }
 
-.minhas-propostas__situacao--aceita {
+.minhas-propostas__situacao--accepted {
   background: var(--status-sucesso-fundo);
   color: var(--status-sucesso-texto);
 }
-.minhas-propostas__situacao--em-análise {
+.minhas-propostas__situacao--under_review {
   background: var(--fundo-marca-suave);
   color: var(--texto-marca);
 }
-.minhas-propostas__situacao--enviada {
+.minhas-propostas__situacao--sent {
   background: var(--fundo-sutil);
   color: var(--texto-secundario);
 }
-.minhas-propostas__situacao--recusada {
+.minhas-propostas__situacao--rejected {
   background: var(--status-perigo-fundo);
   color: var(--status-perigo-texto);
 }
-.minhas-propostas__situacao--evento-cancelado {
+.minhas-propostas__situacao--canceled {
   background: var(--fundo-sutil);
   color: var(--status-perigo-texto);
 }
