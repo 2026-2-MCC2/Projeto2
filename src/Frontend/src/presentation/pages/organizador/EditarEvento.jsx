@@ -50,6 +50,7 @@ export function EditarEvento() {
       valorInicial={valorInicial}
       permiteDataPassada
       comCustosProprios={false}
+      custoJaCadastrado={evento.raw.total_cost}
       avisoDaRevisao="Os custos próprios continuam na aba Itens de custo e não mudam por aqui."
       textoDoBotaoFinal="Salvar alterações"
       textoAoSalvar="Salvando..."

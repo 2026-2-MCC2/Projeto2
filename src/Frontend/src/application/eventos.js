@@ -445,12 +445,8 @@ function periodoDoEvento(dados) {
   return { startDate: inicio.toISOString(), endDate: termino.toISOString() }
 }
 
-/**
- * Transforma dados do formulário de NovoEvento no payload esperado pelo POST/PUT /events da API.
- */
-export function montarPayloadEvento(dados) {
-  const { startDate, endDate } = periodoDoEvento(dados)
-
+// público, margem e cenário de referência: o que entra no cálculo do ticket
+function parametrosDoTicket(dados) {
   const minAudience = Math.round(paraNumero(dados.publicoMinimo)) || 1
   const expectedAudience = Math.round(paraNumero(dados.publicoEsperado)) || minAudience
   const maxAudience = Math.round(paraNumero(dados.publicoMaximo)) || expectedAudience
@@ -460,40 +456,41 @@ export function montarPayloadEvento(dados) {
     ? 0.2
     : Math.min(Math.max(Number((margemNumero / 100).toFixed(4)), 0), 0.9999)
 
+  return {
+    min_audience: minAudience,
+    expected_audience: expectedAudience,
+    max_audience: maxAudience,
+    profit_margin: profitMargin,
+    reference_scenario: CENARIOS_MAPA[dados.cenarioReferencia] || 'expected',
+  }
+}
+
+const CUSTOS_PROPRIOS_DO_FORMULARIO = [
+  { campo: 'custosFiscais', type: 'tax', description: 'Custos fiscais e alvarás' },
+  { campo: 'equipeProducao', type: 'operational', description: 'Equipe de produção' },
+  { campo: 'outrosCustos', type: 'other', description: 'Outros custos variáveis' },
+]
+
+function custosProprios(dados) {
+  return CUSTOS_PROPRIOS_DO_FORMULARIO.map(({ campo, type, description }) => ({
+    type,
+    description,
+    amount: paraNumero(dados[campo] ?? ''),
+  })).filter((custo) => custo.amount > 0)
+}
+
+/**
+ * Transforma dados do formulário de NovoEvento no payload esperado pelo POST/PUT /events da API.
+ */
+export function montarPayloadEvento(dados) {
+  const { startDate, endDate } = periodoDoEvento(dados)
+
   const teto = paraNumero(dados.tetoDeGastos ?? '')
   const budgetLimit = teto > 0 ? Number(teto.toFixed(2)) : null
 
   const venueCapacity = dados.capacidadeEspaco
     ? Math.round(paraNumero(dados.capacidadeEspaco))
     : null
-
-  const internalCosts = []
-  const valorFiscais = paraNumero(dados.custosFiscais)
-  if (!Number.isNaN(valorFiscais) && valorFiscais > 0) {
-    internalCosts.push({
-      type: 'tax',
-      description: 'Custos fiscais e alvarás',
-      amount: valorFiscais,
-    })
-  }
-
-  const valorProducao = paraNumero(dados.equipeProducao)
-  if (!Number.isNaN(valorProducao) && valorProducao > 0) {
-    internalCosts.push({
-      type: 'operational',
-      description: 'Equipe de produção',
-      amount: valorProducao,
-    })
-  }
-
-  const valorOutros = paraNumero(dados.outrosCustos)
-  if (!Number.isNaN(valorOutros) && valorOutros > 0) {
-    internalCosts.push({
-      type: 'other',
-      description: 'Outros custos variáveis',
-      amount: valorOutros,
-    })
-  }
 
   return {
     name: dados.nome.trim(),
@@ -507,14 +504,18 @@ export function montarPayloadEvento(dados) {
     state: (dados.estado || 'SP').toUpperCase().trim(),
     zip_code: dados.cep ? digitos(dados.cep) : null,
     venue_capacity: venueCapacity || null,
-    min_audience: minAudience,
-    expected_audience: expectedAudience,
-    max_audience: maxAudience,
-    profit_margin: profitMargin,
+    ...parametrosDoTicket(dados),
     budget_limit: budgetLimit,
-    reference_scenario: CENARIOS_MAPA[dados.cenarioReferencia] || 'expected',
-    internal_costs: internalCosts,
+    internal_costs: custosProprios(dados),
   }
+}
+
+// Prévia da revisão do formulário: o mesmo cálculo do ticket, com os parâmetros digitados e o custo
+// que o evento já tem (na edição) somado aos custos próprios informados (na criação).
+export function previaDoTicket(dados, custoJaCadastrado = 0) {
+  const custoDoFormulario = custosProprios(dados).reduce((total, custo) => total + custo.amount, 0)
+  const custoTotal = (Number(custoJaCadastrado) || 0) + custoDoFormulario
+  return calcularDadosTicket(parametrosDoTicket(dados), custoTotal).ticketEstimado
 }
 
 // máximo aceito pelo backend
