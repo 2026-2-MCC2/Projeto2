@@ -219,4 +219,18 @@ describe('POST /supplier/events/:event_key/items/:item_key/proposals', () => {
     assert.equal(anonymousStatus, 401)
     assert.equal(anonymousError.code, 'APP000401')
   })
+
+  test('validade de hoje, no dia de Brasília, é aceita a qualquer hora', async () => {
+    const { supplier, event, items } = await createScenario()
+    const payload = PayloadGenerator.createSupplierProposalPayload({ valid_until: PayloadGenerator.dateFromToday(0) })
+
+    const [status, response] = await RequestGenerator.POST_supplier_item_proposal(
+      event.event_key,
+      items[0].item_key,
+      payload,
+      supplier.headers,
+    )
+
+    assert.equal(status, 201, JSON.stringify(response))
+  })
 })

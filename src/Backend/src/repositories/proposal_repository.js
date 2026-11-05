@@ -8,6 +8,9 @@ import { sequelize } from '../connectors/database_connector.js'
 import { ProposalDecisionConflict, ProposalExpired } from '../errors/index.js'
 import { Proposal, ProposalPhoto } from '../models/index.js'
 
+// "hoje" no horário de Brasília (sem horário de verão desde 2019), o mesmo dia que o fornecedor vê na tela
+export const TODAY_IN_BRAZIL = "DATE(CONVERT_TZ(UTC_TIMESTAMP(), '+00:00', '-03:00'))"
+
 // colunas e junções das propostas vistas pelo próprio fornecedor (histórico e detalhe)
 const SUPPLIER_PROPOSAL_COLUMNS = `proposal.proposal_key, proposal.amount,
        DATE_FORMAT(proposal.valid_until, '%Y-%m-%d') AS valid_until, proposal.status, proposal.selected, proposal.sent_at,
@@ -30,7 +33,7 @@ export class ProposalRepository {
       `SELECT budget_item.budget_item_key, budget_item.description AS item_description,
               proposal.proposal_key, supplier_user.name AS supplier_name, proposal.amount,
               DATE_FORMAT(proposal.valid_until, '%Y-%m-%d') AS valid_until, proposal.notes, proposal.status,
-              CASE WHEN proposal.valid_until < UTC_DATE() THEN TRUE ELSE FALSE END AS is_expired,
+              CASE WHEN proposal.valid_until < ${TODAY_IN_BRAZIL} THEN TRUE ELSE FALSE END AS is_expired,
               (SELECT COALESCE(SUM(internal_cost.amount), 0)
                FROM internal_cost WHERE internal_cost.event_id = event.id) +
               (SELECT COALESCE(SUM(accepted_proposal.amount), 0)
@@ -188,7 +191,7 @@ export class ProposalRepository {
 
     const proposals = await sequelize.query(
       `SELECT proposal_key, status,
-              CASE WHEN valid_until < UTC_DATE() THEN TRUE ELSE FALSE END AS is_expired
+              CASE WHEN valid_until < ${TODAY_IN_BRAZIL} THEN TRUE ELSE FALSE END AS is_expired
        FROM proposal
        WHERE budget_item_id = :budgetItemId
        ORDER BY id ASC

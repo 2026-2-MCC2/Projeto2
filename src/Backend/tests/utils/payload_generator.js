@@ -73,7 +73,7 @@ export class PayloadGenerator {
     }
   }
 
-  // proposta válida para um evento que termina depois de valid_until (padrão: daqui a 7 dias, em UTC)
+  // proposta válida para um evento que termina depois de valid_until (padrão: daqui a 7 dias)
   static createSupplierProposalPayload(overrides = {}) {
     return {
       amount: 1500,
@@ -90,8 +90,10 @@ export class PayloadGenerator {
   }
 
   // AAAA-MM-DD em UTC, a mesma referência de "hoje" que a API usa para a validade das propostas
+  // conta a partir do dia de Brasília, o mesmo que a API usa para a validade das propostas
   static dateFromToday(days) {
-    const date = new Date()
+    const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date())
+    const date = new Date(`${today}T12:00:00.000Z`)
     date.setUTCDate(date.getUTCDate() + days)
     return date.toISOString().slice(0, 10)
   }

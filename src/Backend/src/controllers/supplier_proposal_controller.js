@@ -239,7 +239,8 @@ function toProposalFields(payload) {
   }
 }
 
-// As datas são comparadas em UTC, como a validade das propostas no ProposalRepository (UTC_DATE()).
+// "Hoje" é o dia de Brasília, como a validade vencida no ProposalRepository (TODAY_IN_BRAZIL) e como
+// o fornecedor vê na tela; em UTC, das 21h à meia-noite a validade de hoje seria recusada.
 function ensureValidUntilInsideEvent(validUntil, eventEndDate) {
   // o schema só confere o formato: 2026-02-31 passa por ele, mas não existe no calendário
   const validUntilDate = new Date(`${validUntil}T00:00:00.000Z`)
@@ -247,10 +248,10 @@ function ensureValidUntilInsideEvent(validUntil, eventEndDate) {
     throw new InvalidParameter(`The valid_until ${validUntil} is not a date that exists in the calendar.`)
   }
 
-  if (validUntil < toUtcDateString(new Date())) {
+  if (validUntil < toBrazilDateString(new Date())) {
     throw new ProposalValidUntilInPast()
   }
-  if (validUntil > toUtcDateString(new Date(eventEndDate))) {
+  if (validUntil > toBrazilDateString(new Date(eventEndDate))) {
     throw new ProposalValidUntilAfterEvent()
   }
 }
@@ -263,3 +264,10 @@ function toUtcDateString(date) {
 function optionalText(value) {
   return value?.trim() || null
 }
+// en-CA formata a data como AAAA-MM-DD
+const BRAZIL_DATE_FORMAT = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' })
+
+function toBrazilDateString(date) {
+  return BRAZIL_DATE_FORMAT.format(date)
+}
+
