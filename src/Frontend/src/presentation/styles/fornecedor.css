@@ -304,6 +304,10 @@
   background: var(--status-perigo-fundo);
   color: var(--status-perigo-texto);
 }
+.minhas-propostas__situacao--evento-cancelado {
+  background: var(--fundo-sutil);
+  color: var(--status-perigo-texto);
+}
 
 .minhas-propostas__cartoes {
   display: none;

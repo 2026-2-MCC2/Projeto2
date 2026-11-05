@@ -171,9 +171,7 @@ export function DetalheDaProposta() {
             </div>
           ) : (
             <p className="aviso" role="note">
-              {proposta.status === 'sent'
-                ? 'O evento não está mais em cotação: a proposta não pode ser editada nem retirada.'
-                : 'O organizador já analisou esta proposta: ela fica disponível só para consulta.'}
+              {avisoDaPropostaTravada(proposta)}
             </p>
           )}
         </section>
@@ -245,4 +243,14 @@ export function DetalheDaProposta() {
       )}
     </OrganizadorLayout>
   )
+}
+
+function avisoDaPropostaTravada(proposta) {
+  if (proposta.status === 'canceled') {
+    const motivo = proposta.event.cancellation_reason
+    return `O organizador cancelou o evento${motivo ? `. Motivo: ${motivo}` : '.'}`
+  }
+  return proposta.status === 'sent'
+    ? 'O evento não está mais em cotação: a proposta não pode ser editada nem retirada.'
+    : 'O organizador já analisou esta proposta: ela fica disponível só para consulta.'
 }

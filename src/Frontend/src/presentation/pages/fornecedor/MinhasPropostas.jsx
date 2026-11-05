@@ -15,9 +15,9 @@ const POR_PAGINA = 20
 // cartões do topo: rótulo e a chave em counts, que vem junto com a lista
 const INDICADORES = [
   { chave: 'all', rotulo: 'Enviadas', somenteDesktop: true },
-  { chave: 'under_review', rotulo: 'Em análise' },
   { chave: 'accepted', rotulo: 'Aceitas' },
   { chave: 'rejected', rotulo: 'Recusadas' },
+  { chave: 'canceled', rotulo: 'Canceladas' },
 ]
 
 const linkDaProposta = (proposta) => `/fornecedor/propostas/${proposta.proposal_key}`

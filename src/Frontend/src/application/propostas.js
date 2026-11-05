@@ -23,6 +23,7 @@ const STATUS_DA_PROPOSTA = {
   under_review: 'Em análise',
   accepted: 'Aceita',
   rejected: 'Recusada',
+  canceled: 'Evento cancelado',
 }
 
 export function traduzirStatusDaProposta(status) {
