@@ -158,7 +158,7 @@ export function CadastroPendente() {
         )}
       </dl>
 
-      <Link to="/entrar" className="acesso__botao">
+      <Link to="/" className="acesso__botao">
         Voltar para o login
       </Link>
     </AcessoLayout>

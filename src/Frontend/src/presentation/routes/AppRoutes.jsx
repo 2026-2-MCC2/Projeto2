@@ -47,8 +47,10 @@ export function AppRoutes() {
     <BrowserRouter>
       <Suspense fallback={<Carregando telaInteira />}>
         <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/entrar" element={<Login />} />
+          <Route path="/" element={<Login />} />
+          <Route path="/conheca" element={<Landing />} />
+          {/* endereço antigo do login, que chegou a existir: leva para o login de verdade */}
+          <Route path="/entrar" element={<Navigate to="/" replace />} />
           <Route path="/cadastro" element={<Cadastro />} />
           <Route path="/recuperar-senha" element={<RecuperarSenha />} />
           <Route path="/redefinir-senha" element={<RedefinirSenha />} />

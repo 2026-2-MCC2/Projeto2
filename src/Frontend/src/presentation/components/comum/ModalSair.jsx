@@ -11,7 +11,7 @@ export function ModalSair({ aoFechar }) {
   function aoConfirmar() {
     leitura.parar()
     sair()
-    navigate('/entrar', { replace: true })
+    navigate('/', { replace: true })
   }
 
   return (

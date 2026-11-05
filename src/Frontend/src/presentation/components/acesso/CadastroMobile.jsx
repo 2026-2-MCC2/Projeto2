@@ -32,7 +32,7 @@ export function CadastroMobile({ formulario }) {
 
   function voltar() {
     if (etapa === 1) {
-      navegar('/entrar')
+      navegar('/')
       return
     }
     voltarEtapa()

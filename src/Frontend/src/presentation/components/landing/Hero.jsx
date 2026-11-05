@@ -49,7 +49,7 @@ export function Hero() {
 
         <div className="hero__acoes">
           <BotaoLanding para="/cadastro">Criar cadastro</BotaoLanding>
-          <BotaoLanding tipo="contorno-claro" para="/entrar">
+          <BotaoLanding tipo="contorno-claro" para="/">
             Já tenho conta
           </BotaoLanding>
         </div>

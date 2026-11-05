@@ -36,7 +36,7 @@ export function RecuperarSenha() {
             <p>Enviamos o link de recuperação para o seu e-mail. Válido por 1 hora.</p>
           </header>
 
-          <Link to="/entrar" className="acesso__botao">
+          <Link to="/" className="acesso__botao">
             Voltar para o login
           </Link>
         </>
@@ -68,7 +68,7 @@ export function RecuperarSenha() {
             </button>
           </form>
 
-          <Link to="/entrar" className="acesso__link acesso__link--centro">
+          <Link to="/" className="acesso__link acesso__link--centro">
             Voltar para o login
           </Link>
         </>

@@ -28,7 +28,7 @@ export function RedefinirSenha() {
     try {
       await redefinirSenha({ token, senha })
       toast.sucesso('Senha alterada', { descricao: 'Entre com a senha nova.' })
-      navegar('/entrar', { replace: true })
+      navegar('/', { replace: true })
     } catch (falha) {
       setErro(falha.message)
       setEnviando(false)
