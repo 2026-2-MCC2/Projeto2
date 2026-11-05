@@ -56,6 +56,10 @@ export function EventoDisponivel() {
       </div>
       <aside className="colunas__lateral">
         <SobreOEvento evento={evento} />
+        <p className="aviso aviso--neutro" role="note">
+          Você envia uma proposta por item. Enquanto o organizador não decidir, dá para editar ou
+          retirar a proposta.
+        </p>
       </aside>
     </div>
   )
@@ -98,21 +102,21 @@ function ItensParaCotar({ eventKey, itens }) {
   const comProposta = itens.filter((item) => item.my_proposal).length
 
   return (
-    <Cartao titulo="Itens para cotar">
+    <Cartao
+      titulo="Itens para cotar"
+      complemento={
+        itens.length > 0 &&
+        `Você enviou proposta para ${comProposta} de ${itens.length} ${itens.length === 1 ? 'item' : 'itens'}`
+      }
+    >
       {itens.length === 0 ? (
         <Vazio icone="eventos" titulo="Nenhum item nas suas categorias" />
       ) : (
-        <>
-          <p className="itens-para-cotar__progresso">
-            Você enviou proposta para {comProposta} de {itens.length}{' '}
-            {itens.length === 1 ? 'item' : 'itens'}.
-          </p>
-          <ul className="itens-para-cotar">
-            {itens.map((item) => (
-              <ItemParaCotar key={item.item_key} eventKey={eventKey} item={item} />
-            ))}
-          </ul>
-        </>
+        <ul className="itens-para-cotar">
+          {itens.map((item) => (
+            <ItemParaCotar key={item.item_key} eventKey={eventKey} item={item} />
+          ))}
+        </ul>
       )}
     </Cartao>
   )

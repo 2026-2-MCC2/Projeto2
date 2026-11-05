@@ -348,6 +348,11 @@
   text-align: right;
 }
 
+.aviso--neutro {
+  background: var(--fundo-sutil);
+  color: var(--texto-secundario);
+}
+
 .aviso--sucesso {
   background: var(--status-sucesso-fundo);
   color: var(--status-sucesso-texto);
@@ -1042,7 +1047,6 @@
   min-width: 0;
 }
 
-
 .fornecedor-evento-detalhe {
   display: grid;
   gap: 16px;
@@ -1071,12 +1075,6 @@
 .fornecedor-evento-detalhe__dados dd {
   margin: 0;
   font-size: 0.875rem;
-}
-
-.itens-para-cotar__progresso {
-  margin: 0 0 0.25rem;
-  color: var(--texto-secundario);
-  font-size: 0.8125rem;
 }
 
 .itens-para-cotar {

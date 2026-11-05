@@ -288,7 +288,7 @@ function AvisoDaProposta({ proposta, podeAlterar }) {
     )
   }
   return (
-    <p className="aviso" role="note">
+    <p className="aviso aviso--neutro" role="note">
       {proposta.status === 'sent'
         ? 'O evento não está mais em cotação: a proposta não pode ser editada nem retirada.'
         : 'Esta proposta fica disponível só para consulta.'}

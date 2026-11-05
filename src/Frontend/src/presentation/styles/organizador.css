@@ -1375,6 +1375,12 @@
   white-space: nowrap;
 }
 
+.cartao__complemento {
+  color: var(--texto-secundario);
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
 .cartao__link .icone {
   width: 14px;
   height: 14px;
