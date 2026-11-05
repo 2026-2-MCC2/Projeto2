@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { validarConfirmacaoSenha } from '../../domain/validacao.js'
 import { useEnvioCadastro } from './useEnvioCadastro.js'
+import { usePerfilInicialDoCadastro } from './usePerfilInicialDoCadastro.js'
 import { useVerificacaoDeCnpj } from './useVerificacaoDeCnpj.js'
 
 export const ETAPAS_DO_CADASTRO = ['Perfil', 'Dados da empresa', 'Acesso']
@@ -37,7 +38,8 @@ const DADOS_INICIAIS = {
 // acima das versões desktop e mobile: girar o tablet troca a tela sem apagar o que foi preenchido
 export function useFormularioDeCadastro() {
   const [etapa, setEtapa] = useState(1)
-  const [dados, setDados] = useState(DADOS_INICIAIS)
+  const perfilInicial = usePerfilInicialDoCadastro()
+  const [dados, setDados] = useState({ ...DADOS_INICIAIS, perfil: perfilInicial })
   const { enviar, enviando, erro } = useEnvioCadastro()
   const { verificando, erroDoCnpj, cnpjEstaLivre, limparErroDoCnpj } = useVerificacaoDeCnpj()
 

@@ -737,3 +737,155 @@
     gap: 16px;
   }
 }
+
+/* ---------- para quem é (perfis) ---------- */
+
+.landing__secao--sutil {
+  background: var(--fundo-pagina);
+}
+
+.perfis-landing {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  width: 100%;
+}
+
+/* o cartão é um Ingresso vertical: o picote separa o conteúdo do botão (o canhoto) */
+.perfil-landing {
+  --ingresso-raio: 20px;
+  --ingresso-recorte: 13px;
+  --ingresso-picote-recuo: 40px;
+  /* drop-shadow não tem espalhamento: menos opacidade imita o -8px do Figma */
+  --ingresso-sombra: drop-shadow(0 16px 20px rgb(15 23 41 / 6%));
+}
+
+.perfil-landing .ingresso__parte {
+  border: 1px solid var(--borda-padrao);
+}
+
+.perfil-landing .ingresso__corpo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+  padding: 40px 40px 24px;
+  border-bottom: 0;
+}
+
+.perfil-landing .ingresso__canhoto {
+  padding: 24px 40px 40px;
+  border-top: 0;
+}
+
+.perfil-landing--organizador {
+  --_destaque: var(--texto-marca);
+  --_destaque-fundo: var(--fundo-marca-suave);
+}
+
+.perfil-landing--fornecedor {
+  --_destaque: var(--texto-destaque);
+  --_destaque-fundo: var(--status-alerta-fundo);
+}
+
+.perfil-landing__topo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.perfil-landing__icone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: var(--_destaque-fundo);
+}
+
+.perfil-landing__rotulo {
+  margin: 0;
+  color: var(--_destaque);
+  font-size: 0.7647rem; /* 13px */
+  font-weight: 600;
+  letter-spacing: 0.1em;
+}
+
+.perfil-landing__titulo {
+  margin: 0;
+  color: var(--texto-primario);
+  font-size: 1.6471rem; /* 28px */
+  font-weight: 700;
+  line-height: 1.2857; /* 36px */
+  letter-spacing: -0.01em;
+}
+
+.perfil-landing__descricao {
+  margin: 0;
+  color: var(--texto-secundario);
+  font-size: 1rem; /* 17px */
+  line-height: 1.5294; /* 26px */
+}
+
+.perfil-landing__lista {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* o check acompanha a primeira linha quando o texto quebra */
+.perfil-landing__lista li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  color: var(--texto-primario);
+  font-size: 0.9412rem; /* 16px */
+  font-weight: 500;
+  line-height: 1.5; /* 24px */
+}
+
+.perfil-landing__lista .icone {
+  margin-top: 2px;
+}
+
+.perfil-landing--fornecedor .perfil-landing__lista .icone {
+  --icone-cor: var(--marca-laranja);
+}
+
+@media (max-width: 900px) {
+  .perfis-landing {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .perfil-landing {
+    --ingresso-picote-recuo: 24px;
+  }
+
+  .perfil-landing .ingresso__corpo {
+    gap: 20px;
+    padding: 28px 24px 20px;
+  }
+
+  .perfil-landing .ingresso__canhoto {
+    padding: 20px 24px 28px;
+  }
+
+  .perfil-landing .botao-landing {
+    width: 100%;
+  }
+
+  .perfil-landing__titulo {
+    font-size: 1.2941rem; /* 22px */
+    line-height: 1.5455; /* 34px */
+  }
+
+  .perfil-landing__descricao {
+    font-size: 0.9412rem; /* 16px */
+    line-height: 1.5625; /* 25px */
+  }
+}

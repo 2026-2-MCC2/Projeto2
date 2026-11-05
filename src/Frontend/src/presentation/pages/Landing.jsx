@@ -4,6 +4,7 @@ import { TituloDaPagina } from '../components/comum/TituloDaPagina.jsx'
 import { Hero } from '../components/landing/Hero.jsx'
 import { ComoFunciona } from '../components/landing/ComoFunciona.jsx'
 import { NavbarLanding } from '../components/landing/NavbarLanding.jsx'
+import { Perfis } from '../components/landing/Perfis.jsx'
 import '../styles/landing.css'
 
 // Página pública de apresentação. Os ids das seções são as âncoras do menu e do rodapé.
@@ -21,10 +22,7 @@ export function Landing() {
 
         <ComoFunciona />
 
-        <section className="landing__secao landing__perfis">
-          <article id="organizadores">{/* perfil organizador */}</article>
-          <article id="fornecedores">{/* perfil fornecedor */}</article>
-        </section>
+        <Perfis />
 
         <section id="calculo-do-ticket" className="landing__secao">
           {/* cálculo do ticket */}
