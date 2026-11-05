@@ -64,6 +64,15 @@ export function EtapaLocal({ campo, definir, atualizarCampos, isMobile }) {
 
   const propsCep = campo('cep')
 
+  const campoCapacidade = (
+    <Campo
+      rotulo="Capacidade do espaço"
+      placeholder="20.000 pessoas"
+      data-validar="inteiro"
+      {...campo('capacidadeEspaco')}
+    />
+  )
+
   return (
     <>
       <Grupo isMobile={isMobile} titulo="Local">
@@ -106,15 +115,11 @@ export function EtapaLocal({ campo, definir, atualizarCampos, isMobile }) {
             required
             {...campo('estado')}
           />
-          {!isMobile && (
-            <Campo
-              rotulo="Capacidade do espaço"
-              placeholder="20.000 pessoas"
-              data-validar="inteiro"
-              {...campo('capacidadeEspaco')}
-            />
-          )}
+          {!isMobile && campoCapacidade}
         </Linha>
+
+        {/* no celular também: o público máximo é conferido contra a capacidade */}
+        {isMobile && campoCapacidade}
       </Grupo>
 
       <Grupo isMobile={isMobile} titulo="Público estimado">

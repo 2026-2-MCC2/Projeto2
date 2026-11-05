@@ -58,27 +58,26 @@ export function EtapaIdentificacao({ campo, isMobile, dados, permiteDataPassada 
           </Campo>
         </Linha>
 
-        {!isMobile && (
-          <Linha>
-            <Campo
-              rotulo="Horário de abertura"
-              placeholder="14:00"
-              data-validar="horario"
-              {...campo('horarioAbertura')}
-            />
-            <Campo
-              rotulo="Horário de encerramento"
-              placeholder="23:00"
-              data-validar="horario"
-              ajuda={
-                passaDaMeiaNoite(dados)
-                  ? 'Antes da abertura: o evento termina no dia seguinte.'
-                  : undefined
-              }
-              {...campo('horarioEncerramento')}
-            />
-          </Linha>
-        )}
+        {/* no celular também: o horário salvo muda o período, e ninguém confere o que não vê */}
+        <Linha>
+          <Campo
+            rotulo={isMobile ? 'Abertura' : 'Horário de abertura'}
+            placeholder="14:00"
+            data-validar="horario"
+            {...campo('horarioAbertura')}
+          />
+          <Campo
+            rotulo={isMobile ? 'Encerramento' : 'Horário de encerramento'}
+            placeholder="23:00"
+            data-validar="horario"
+            ajuda={
+              passaDaMeiaNoite(dados)
+                ? 'Antes da abertura: o evento termina no dia seguinte.'
+                : undefined
+            }
+            {...campo('horarioEncerramento')}
+          />
+        </Linha>
       </Grupo>
     </>
   )
