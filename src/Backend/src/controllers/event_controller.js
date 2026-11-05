@@ -231,9 +231,12 @@ export class EventController extends BaseController {
     return this.#getProposalComparison(event)
   }
 
-  // comparação das propostas do evento, com as fotos de cada uma (URL de leitura assinada)
+  // comparação das propostas do evento, com as fotos de cada uma (URL de leitura assinada). A leitura
+  // termina antes de assinar as URLs, para a conexão do banco voltar ao pool enquanto o GCS responde
   async #getProposalComparison(event) {
-    return this.#buildProposalComparison(event, await this.#readProposalComparison(event))
+    const comparisonData = await this.#readProposalComparison(event)
+    await this.session.commit()
+    return this.#buildProposalComparison(event, comparisonData)
   }
 
   // a leitura do banco fica separada de gerar as URLs, que pode ser lento (uma chamada por foto no GCS)

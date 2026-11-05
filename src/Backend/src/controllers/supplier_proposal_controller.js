@@ -231,8 +231,11 @@ export class SupplierProposalController extends BaseController {
     }
   }
 
+  // a leitura termina antes de assinar as URLs, para a conexão do banco voltar ao pool enquanto o GCS responde
   async #getProposalDetail(supplierId, proposalKey) {
-    return this.#buildProposalDetail(await this.#readProposalDetail(supplierId, proposalKey))
+    const detail = await this.#readProposalDetail(supplierId, proposalKey)
+    await this.session.commit()
+    return this.#buildProposalDetail(detail)
   }
 
   // a leitura do banco fica separada de assinar as URLs, que pode ser lento (uma chamada por foto no GCS)
