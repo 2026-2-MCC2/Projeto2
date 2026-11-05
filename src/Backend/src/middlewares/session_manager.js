@@ -13,16 +13,20 @@
 // Ou seja: se der erro no meio da requisição e o controller não chegar no commit, nada é gravado.
 
 import { DatabaseConnector } from '../connectors/database_connector.js'
-import { BYPASS_ENDPOINTS } from '../constants.js'
+import { API_PREFIX, BYPASS_ENDPOINTS } from '../constants.js'
+
+// só o envio de foto abre a transação depois de receber o arquivo (openSessionAfterUpload)
+const PHOTO_UPLOAD_PATH = new RegExp(`^${API_PREFIX}/supplier/proposals/[^/]+/photos$`)
+
+const isPhotoUpload = (req) => req.method === 'POST' && PHOTO_UPLOAD_PATH.test(req.path)
 
 export class SessionManager {
   async processRequest(req, res) {
     if (req.method === 'OPTIONS' || BYPASS_ENDPOINTS.includes(req.path)) {
       return
     }
-    // envio de arquivo: a transação só abre depois que o arquivo chega (openSessionAfterUpload),
-    // para um upload lento não segurar uma conexão do banco
-    if (req.is('multipart/form-data')) {
+    // um upload lento não pode segurar uma conexão do banco
+    if (isPhotoUpload(req)) {
       return
     }
 
@@ -53,5 +57,13 @@ export class SessionManager {
 }
 
 export async function openSessionAfterUpload(req) {
-  req.context.addSession(await DatabaseConnector.openSession())
+  const dbSession = await DatabaseConnector.openSession()
+
+  // o cliente desistiu durante o upload: o processResponse já rodou e não desfaria esta transação
+  if (req.context.isRequestFinished) {
+    await dbSession.rollback()
+    throw new Error('The client disconnected before the photo upload finished')
+  }
+
+  req.context.addSession(dbSession)
 }

@@ -349,4 +349,15 @@ describe('DELETE /supplier/proposals/:proposal_key', () => {
     const [detailStatus] = await RequestGenerator.GET_supplier_proposal_by_key(proposal.proposal_key, supplier.headers)
     assert.equal(detailStatus, 200)
   })
+
+  test('requisição comum mandada como multipart continua dentro da transação', async () => {
+    const { supplier, proposal } = await createScenario()
+    const headers = { ...supplier.headers, 'Content-Type': 'multipart/form-data; boundary=sem-arquivo' }
+
+    const [status] = await RequestGenerator.DELETE_supplier_proposal(proposal.proposal_key, headers)
+
+    assert.equal(status, 204)
+    const [detailStatus] = await RequestGenerator.GET_supplier_proposal_by_key(proposal.proposal_key, supplier.headers)
+    assert.equal(detailStatus, 404)
+  })
 })
