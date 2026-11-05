@@ -46,17 +46,27 @@ export class EventRepository {
 
     if (!event) return null
 
-    const [totals] = await sequelize.query(
-      `SELECT (SELECT COALESCE(SUM(accepted_proposal.amount), 0)
-              FROM budget_item AS accepted_item
-              INNER JOIN proposal AS accepted_proposal ON accepted_proposal.budget_item_id = accepted_item.id
-              WHERE accepted_item.event_id = event.id AND accepted_proposal.status = 'accepted') AS total_accepted_proposals
-       FROM event WHERE event.id = :eventId`,
-      { replacements: { eventId: event.id }, transaction: this.session, type: QueryTypes.SELECT },
-    )
-
-    event.setDataValue('total_accepted_proposals', Number(totals.total_accepted_proposals))
+    await this.#setAcceptedProposalTotals([event])
     return event
+  }
+
+  // total_accepted_proposals entra no total_cost do EventDto; lista e detalhe precisam do mesmo valor
+  async #setAcceptedProposalTotals(events) {
+    if (events.length === 0) return
+
+    const totals = await sequelize.query(
+      `SELECT budget_item.event_id, SUM(proposal.amount) AS total_accepted_proposals
+       FROM budget_item
+       INNER JOIN proposal ON proposal.budget_item_id = budget_item.id
+       WHERE budget_item.event_id IN (:eventIds) AND proposal.status = 'accepted'
+       GROUP BY budget_item.event_id`,
+      { replacements: { eventIds: events.map((event) => event.id) }, transaction: this.session, type: QueryTypes.SELECT },
+    )
+    const totalByEventId = new Map(totals.map((row) => [row.event_id, Number(row.total_accepted_proposals)]))
+
+    for (const event of events) {
+      event.setDataValue('total_accepted_proposals', totalByEventId.get(event.id) ?? 0)
+    }
   }
 
   async getByKeyForUpdate(eventKey) {
@@ -92,6 +102,7 @@ export class EventRepository {
       transaction: this.session,
     })
 
+    await this.#setAcceptedProposalTotals(rows)
     return { events: rows, count }
   }
 
