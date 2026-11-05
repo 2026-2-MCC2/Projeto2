@@ -42,6 +42,9 @@ export function GaleriaDeFotos({ proposalKey, eventKey, itemKey }) {
   )
 }
 
+// o navegador não diz se dois File são o mesmo arquivo do disco: nome, tamanho e data bastam aqui
+const identidadeDoArquivo = (arquivo) => `${arquivo.name}|${arquivo.size}|${arquivo.lastModified}`
+
 function FotosPendentes({ eventKey, itemKey }) {
   const [arquivos, setArquivos] = useState(() => lerFotosPendentes(eventKey, itemKey))
 
@@ -59,12 +62,17 @@ function FotosPendentes({ eventKey, itemKey }) {
       toast.erro('Esta foto não pode ser usada', { descricao: problema })
       return
     }
+    const identidade = identidadeDoArquivo(arquivo)
+    if (arquivos.some((escolhido) => identidadeDoArquivo(escolhido) === identidade)) {
+      toast.info('Esta foto já foi escolhida')
+      return
+    }
     guardar([...arquivos, arquivo])
   }
 
   return (
     <Galeria
-      fotos={arquivos.map((arquivo, indice) => ({ chave: `${arquivo.name}-${indice}`, arquivo }))}
+      fotos={arquivos.map((arquivo) => ({ chave: identidadeDoArquivo(arquivo), arquivo }))}
       aoAdicionar={adicionar}
       aoRemover={(indice) => guardar(arquivos.filter((_, posicao) => posicao !== indice))}
     />
