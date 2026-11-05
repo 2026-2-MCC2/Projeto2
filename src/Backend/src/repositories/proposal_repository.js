@@ -221,7 +221,8 @@ export class ProposalRepository {
     await proposal.destroy({ transaction: this.session })
   }
 
-  // propostas ainda em jogo (enviada, em análise ou aceita), com o fornecedor que precisa saber do cancelamento
+  // propostas ainda em jogo (enviada, em análise ou aceita), com o fornecedor que precisa saber do cancelamento.
+  // trava só as propostas: as linhas de item, fornecedor e usuário da junção ficam livres
   async getOpenProposalsOfEventForUpdate(eventId) {
     return sequelize.query(
       `SELECT proposal.id, proposal.proposal_key, proposal.status, proposal.amount, budget_item.description AS item_description,
@@ -232,7 +233,7 @@ export class ProposalRepository {
        INNER JOIN user AS supplier_user ON supplier_user.id = supplier.user_id
        WHERE budget_item.event_id = :eventId AND proposal.status IN ('sent', 'under_review', 'accepted')
        ORDER BY proposal.id
-       FOR UPDATE`,
+       FOR UPDATE OF proposal`,
       { replacements: { eventId }, transaction: this.session, type: QueryTypes.SELECT },
     )
   }
