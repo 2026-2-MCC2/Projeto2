@@ -195,8 +195,18 @@ export class SupplierProposalController extends BaseController {
       throw error
     }
 
-    // depois do commit a foto já está salva: a URL é assinada sem o evento travado
-    return { photo_key: photoKey, url: await StorageConnector.getUrl(path) }
+    // depois do commit a foto já está salva: a URL é assinada sem o evento travado. Se a assinatura
+    // falhar, a resposta continua 201 (sem url) para o fornecedor não reenviar e duplicar a foto
+    return { photo_key: photoKey, url: await this.#signedUrlOrNull(path) }
+  }
+
+  async #signedUrlOrNull(path) {
+    try {
+      return await StorageConnector.getUrl(path)
+    } catch (error) {
+      this.logger.error(`Could not sign the URL of the saved photo ${path}`, { error: error.message })
+      return null
+    }
   }
 
   // O registro sai primeiro (com commit) e o arquivo depois: se a remoção do arquivo falhar, sobra só

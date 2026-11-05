@@ -44,7 +44,9 @@ export function GaleriaDeFotos({ proposalKey }) {
     setEnviando(true)
     try {
       const foto = await enviarFotoDaProposta(proposalKey, arquivo)
-      setFotos((atuais) => [...atuais, foto])
+      // a foto foi salva, mas a API não conseguiu gerar o link: busca a lista de novo
+      if (foto.url) setFotos((atuais) => [...atuais, foto])
+      else setFotos((await buscarMinhaProposta(proposalKey)).photos ?? [])
     } catch (falha) {
       toast.erro('Não foi possível enviar a foto', { descricao: falha.message })
     } finally {
