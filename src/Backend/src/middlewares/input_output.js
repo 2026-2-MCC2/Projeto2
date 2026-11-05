@@ -43,6 +43,14 @@ export class InputOutputMiddleware {
   }
 
   async deserializeRequest(req) {
+    // upload de arquivo: o corpo fica para o multer ler no resource, já com o limite de tamanho
+    // (ler aqui guardaria o arquivo inteiro na memória e deixaria o multer sem nada para ler)
+    if (req.is('multipart/form-data')) {
+      req.context.binaryBody = null
+      req.context.media = null
+      return
+    }
+
     const binaryBody = await buffer(req)
     req.context.binaryBody = binaryBody
 

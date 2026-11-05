@@ -57,11 +57,12 @@ export class SupplierEventDto {
   }
 }
 
-function toIsoString(value) {
+// também usadas pelo SupplierProposalDto (dtos/supplier_proposal_dto.js)
+export function toIsoString(value) {
   return value instanceof Date ? value.toISOString() : new Date(value).toISOString()
 }
 
-function toDateString(value) {
+export function toDateString(value) {
   if (value instanceof Date) return value.toISOString().slice(0, 10)
   return value ? String(value).slice(0, 10) : null
 }

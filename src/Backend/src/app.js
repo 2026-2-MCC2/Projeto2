@@ -1,6 +1,7 @@
 import express from 'express'
 
-import { API_PREFIX } from './constants.js'
+import { API_PREFIX, STORAGE_DRIVER } from './constants.js'
+import { STORAGE_DRIVERS } from './connectors/storage/index.js'
 import { APIErrorHandler } from './errors/index.js'
 import {
   ContextCreator,
@@ -19,9 +20,11 @@ import {
   EventResource,
   HealthCheckResource,
   HomeResource,
+  LocalFileResource,
   MeResource,
   SinkResource,
   SupplierEventResource,
+  SupplierProposalResource,
 } from './resources/index.js'
 import { addRoute, addSink, useMiddlewares } from './utils/routing.js'
 
@@ -31,6 +34,13 @@ export function create() {
   app.disable('x-powered-by')
   // no cloud run há um load balancer na frente; assim req.ip é o ip real do cliente
   app.set('trust proxy', true)
+
+  // arquivos do armazenamento local (só em desenvolvimento e testes): antes dos middlewares, porque
+  // uma tag <img> não manda o token de login; quem protege o arquivo é a URL assinada
+  if (STORAGE_DRIVER === STORAGE_DRIVERS.LOCAL) {
+    const localFileResource = new LocalFileResource()
+    app.get(`${API_PREFIX}/files/*path`, (req, res) => localFileResource.onGet(req, res))
+  }
 
   // cors antes de tudo para que respostas de erro também levem os headers (senão o navegador esconde o erro);
   // sessão do banco só depois do login, para não gastar conexão com requisição recusada
@@ -86,6 +96,13 @@ export function create() {
   const supplierEventResource = new SupplierEventResource()
   addRoute(app, `${API_PREFIX}/supplier/events`, supplierEventResource, 'List')
   addRoute(app, `${API_PREFIX}/supplier/events/:event_key`, supplierEventResource, 'ByKey')
+  addRoute(app, `${API_PREFIX}/supplier/events/:event_key/items/:item_key/proposals`, supplierEventResource, 'ItemProposals')
+
+  const supplierProposalResource = new SupplierProposalResource()
+  addRoute(app, `${API_PREFIX}/supplier/proposals`, supplierProposalResource, 'List')
+  addRoute(app, `${API_PREFIX}/supplier/proposals/:proposal_key`, supplierProposalResource, 'ByKey')
+  addRoute(app, `${API_PREFIX}/supplier/proposals/:proposal_key/photos`, supplierProposalResource, 'Photos')
+  addRoute(app, `${API_PREFIX}/supplier/proposals/:proposal_key/photos/:photo_key`, supplierProposalResource, 'PhotosByKey')
 
   const sinkResource = new SinkResource()
   addSink(app, sinkResource)

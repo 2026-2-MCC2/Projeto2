@@ -1,4 +1,4 @@
-import { normalizarCnpj } from './formatacao.js'
+import { diaEmBrasilia, normalizarCnpj } from './formatacao.js'
 
 // Regras de validação dos campos de formulário.
 // Cada regra recebe o texto digitado e devolve a mensagem de erro, ou '' quando o valor é válido.
@@ -12,9 +12,29 @@ const ESTADOS = [
 const digitos = (texto) => texto.replace(/\D/g, '')
 
 // "R$ 49.800,00" → 49800 · "20%" → 20 · texto que não é número → NaN
+// Com ponto e vírgula, o que vem por último é o decimal ("1.500,50" e "1,500.50" valem 1500,5).
+// Com um só tipo, ele é milhar quando se repete ou vem seguido de exatamente 3 dígitos ("1,500" e
+// "20.000"), e decimal quando vem seguido de 1 ou 2 dígitos ("1,5" e "12.5").
 export function paraNumero(texto) {
-  const limpo = texto.replace(/[R$\s%.]/g, '').replace(',', '.')
-  return limpo === '' ? NaN : Number(limpo)
+  const semSimbolos = texto.replace(/[R$\s%]/g, '')
+  if (semSimbolos === '') return NaN
+
+  const decimal = separadorDecimal(semSimbolos)
+  const milhar = decimal === ',' ? '.' : ','
+  const limpo = semSimbolos.split(milhar).join('').replace(decimal, '.')
+  return Number(decimal ? limpo : semSimbolos.replace(/[.,]/g, ''))
+}
+
+function separadorDecimal(texto) {
+  const ultimoPonto = texto.lastIndexOf('.')
+  const ultimaVirgula = texto.lastIndexOf(',')
+  if (ultimoPonto !== -1 && ultimaVirgula !== -1) return ultimoPonto > ultimaVirgula ? '.' : ','
+
+  const separador = ultimoPonto !== -1 ? '.' : ultimaVirgula !== -1 ? ',' : null
+  if (!separador) return null
+  const repetido = texto.indexOf(separador) !== texto.lastIndexOf(separador)
+  const tresDigitosDepois = new RegExp(`\\${separador}\\d{3}$`).test(texto)
+  return repetido || tresDigitosDepois ? null : separador
 }
 
 // "18/10/2026" → Date · data inexistente (31/02) ou fora do formato → null
@@ -25,6 +45,12 @@ export function paraData(texto) {
   const [, dia, mes, ano] = partes.map(Number)
   const data = new Date(ano, mes - 1, dia)
   return data.getDate() === dia && data.getMonth() === mes - 1 ? data : null
+}
+
+// Date → "2026-10-18", o formato de data (sem horário) que a API recebe; usa o dia local da Date
+export function paraDataIso(data) {
+  const doisDigitos = (numero) => String(numero).padStart(2, '0')
+  return `${data.getFullYear()}-${doisDigitos(data.getMonth() + 1)}-${doisDigitos(data.getDate())}`
 }
 
 // Os dois últimos números do CNPJ são calculados a partir dos 12 primeiros caracteres, que podem
@@ -90,6 +116,19 @@ export const REGRAS = {
 }
 
 // Regras que comparam dois campos.
+
+// Validade de uma proposta: até o dia em que o evento termina. O dia do fim é o da data em UTC,
+// porque é assim que a API confere; o "a partir de hoje" fica com a regra dataFutura.
+export function validarValidadeDaProposta(validade, fimDoEventoIso) {
+  const data = paraData(validade)
+  if (!data || !fimDoEventoIso) return ''
+
+  const fim = diaEmBrasilia(fimDoEventoIso)
+  if (paraDataIso(data) <= fim) return ''
+
+  const [ano, mes, dia] = fim.split('-')
+  return `A validade não pode passar do fim do evento (${dia}/${mes}/${ano}).`
+}
 
 export const validarConfirmacaoSenha = (confirmacao, senha) =>
   confirmacao === senha ? '' : 'As senhas não conferem.'

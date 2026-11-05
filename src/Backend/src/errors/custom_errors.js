@@ -338,3 +338,122 @@ export class CurrentPasswordIncorrect extends ApiException {
     super(title, CurrentPasswordIncorrect.code, httpStatus, description, translation)
   }
 }
+
+export class ProposalAlreadySent extends ApiException {
+  static code = 'EVP000038'
+
+  constructor() {
+    const title = 'Proposal already sent'
+    const httpStatus = 409
+    const description = 'The supplier already sent a proposal for this budget item.'
+    const translation = 'Você já enviou uma proposta para este item.'
+    super(title, ProposalAlreadySent.code, httpStatus, description, translation)
+  }
+}
+
+export class ProposalValidUntilInPast extends ApiException {
+  static code = 'EVP000039'
+
+  constructor() {
+    const title = 'Proposal validity in the past'
+    const httpStatus = 400
+    const description = 'valid_until must be today or a later date.'
+    const translation = 'A validade da proposta precisa ser a partir de hoje.'
+    super(title, ProposalValidUntilInPast.code, httpStatus, description, translation)
+  }
+}
+
+export class ProposalValidUntilAfterEvent extends ApiException {
+  static code = 'EVP000040'
+
+  constructor() {
+    const title = 'Proposal validity after the event'
+    const httpStatus = 400
+    const description = 'valid_until cannot be later than the event end date.'
+    const translation = 'A validade da proposta não pode passar da data de término do evento.'
+    super(title, ProposalValidUntilAfterEvent.code, httpStatus, description, translation)
+  }
+}
+
+export class ProposalCannotBeChanged extends ApiException {
+  static code = 'EVP000041'
+
+  constructor(status = '') {
+    const title = 'Proposal cannot be changed'
+    const httpStatus = 409
+    const description = `A proposal with status ${status} can no longer be edited or withdrawn.`
+    const translation = 'Esta proposta já foi analisada pelo organizador e não pode mais ser alterada nem retirada.'
+    super(title, ProposalCannotBeChanged.code, httpStatus, description, translation)
+  }
+}
+
+export class ProposalEventNotOpen extends ApiException {
+  static code = 'EVP000042'
+
+  constructor() {
+    const title = 'Event is not open for quotes'
+    const httpStatus = 409
+    const description = 'Proposals can only be edited or withdrawn while the event is open for quotes.'
+    const translation = 'O evento não está mais em cotação: a proposta não pode ser alterada nem retirada.'
+    super(title, ProposalEventNotOpen.code, httpStatus, description, translation)
+  }
+}
+
+export class ProposalPhotoLimitReached extends ApiException {
+  static code = 'EVP000043'
+
+  constructor(maxPhotos) {
+    const title = 'Proposal photo limit reached'
+    const httpStatus = 409
+    const description = `A proposal can have at most ${maxPhotos} photos.`
+    const translation = `Esta proposta já tem ${maxPhotos} fotos. Retire uma para enviar outra.`
+    super(title, ProposalPhotoLimitReached.code, httpStatus, description, translation)
+  }
+}
+
+export class InvalidProposalPhoto extends ApiException {
+  static code = 'EVP000044'
+
+  constructor(description = 'The photo must be a JPG, PNG or WebP image sent in the "photo" field.') {
+    const title = 'Invalid proposal photo'
+    const httpStatus = 400
+    const translation = 'Envie uma foto em JPG, PNG ou WebP.'
+    super(title, InvalidProposalPhoto.code, httpStatus, description, translation)
+  }
+}
+
+export class ProposalPhotoTooLarge extends ApiException {
+  static code = 'EVP000045'
+
+  constructor(maxMegabytes) {
+    const title = 'Proposal photo too large'
+    const httpStatus = 413
+    const description = `The photo must have at most ${maxMegabytes} MB.`
+    const translation = `A foto pode ter até ${maxMegabytes} MB.`
+    super(title, ProposalPhotoTooLarge.code, httpStatus, description, translation)
+  }
+}
+
+export class NotFoundProposalPhoto extends ApiException {
+  static code = 'EVP000046'
+
+  constructor(photoKey = '') {
+    const title = 'Proposal photo not Found'
+    const httpStatus = 404
+    const description = `Photo ${photoKey} was not found in this proposal.`
+    const translation = 'A foto não foi encontrada.'
+    super(title, NotFoundProposalPhoto.code, httpStatus, description, translation)
+  }
+}
+
+export class ProposalItemAlreadyDecided extends ApiException {
+  static code = 'EVP000047'
+
+  constructor() {
+    const title = 'Budget item already has an accepted proposal'
+    const httpStatus = 409
+    const description = 'The organizer already accepted a proposal for this budget item.'
+    const translation = 'O organizador já escolheu uma proposta para este item.'
+    super(title, ProposalItemAlreadyDecided.code, httpStatus, description, translation)
+  }
+}

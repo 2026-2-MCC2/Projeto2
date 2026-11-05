@@ -49,3 +49,10 @@ export function iniciais(nome) {
     .map((palavra) => palavra[0]?.toUpperCase() ?? '')
     .join('')
 }
+
+// dia (AAAA-MM-DD) no horário de Brasília, o mesmo que a API usa para a validade das propostas
+const FORMATO_DO_DIA_EM_BRASILIA = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'America/Sao_Paulo',
+})
+
+export const diaEmBrasilia = (dataIso) => FORMATO_DO_DIA_EM_BRASILIA.format(new Date(dataIso))

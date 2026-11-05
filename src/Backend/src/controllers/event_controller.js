@@ -24,6 +24,7 @@ import { OrganizerRepository } from '../repositories/organizer_repository.js'
 import { ProposalRepository } from '../repositories/proposal_repository.js'
 import { UserRepository } from '../repositories/user_repository.js'
 import { ProposalComparisonDTO } from '../dtos/proposal_comparison_dto.js'
+import { toPhotoResponses } from '../utils/proposal_photo_tools.js'
 import { TextTools } from '../utils/text_tools.js'
 
 const STATUS_CONFLICT_MESSAGES = {
@@ -218,8 +219,31 @@ export class EventController extends BaseController {
       throw new NotFoundEvent(eventKey)
     }
 
+    return this.#getProposalComparison(event)
+  }
+
+  // comparação das propostas do evento, com as fotos de cada uma (URL de leitura assinada)
+  async #getProposalComparison(event) {
+    return this.#buildProposalComparison(event, await this.#readProposalComparison(event))
+  }
+
+  // a leitura do banco fica separada de gerar as URLs, que pode ser lento (uma chamada por foto no GCS)
+  async #readProposalComparison(event) {
     const rows = await this.proposalRepository.getByEventId(event.id)
-    return ProposalComparisonDTO.fromRows(eventKey, rows)
+    const photos = await this.proposalRepository.getPhotosByEventId(event.id)
+    return { rows, photos }
+  }
+
+  async #buildProposalComparison(event, { rows, photos }) {
+    const photoResponses = await toPhotoResponses(photos)
+
+    const photosByProposalKey = {}
+    photos.forEach((photo, index) => {
+      photosByProposalKey[photo.proposal_key] ??= []
+      photosByProposalKey[photo.proposal_key].push(photoResponses[index])
+    })
+
+    return ProposalComparisonDTO.fromRows(event.event_key, rows, photosByProposalKey)
   }
 
   /**
@@ -245,9 +269,10 @@ export class EventController extends BaseController {
       throw new NotFoundProposal(proposalKey)
     }
 
-    const rows = await this.proposalRepository.getByEventId(event.id)
+    // as URLs das fotos são geradas depois do commit, para não segurar o evento travado
+    const comparisonData = await this.#readProposalComparison(event)
     await this.session.commit()
-    return ProposalComparisonDTO.fromRows(eventKey, rows)
+    return this.#buildProposalComparison(event, comparisonData)
   }
 
   /**

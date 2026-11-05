@@ -1,35 +1,17 @@
 // Detalhes seguros de um evento aberto para cotação pelo fornecedor.
 
-import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
-import { buscarEventoDisponivel } from '../../../application/eventosDisponiveis.js'
+import { Link, useParams } from 'react-router-dom'
 import { formatarMoeda, formatarPeriodo } from '../../../application/eventos.js'
+import { traduzirStatusDaProposta } from '../../../application/propostas.js'
 import { Carregando, ErroNaTela, Vazio } from '../../components/comum/EstadoDaTela.jsx'
 import { OrganizadorLayout } from '../../components/organizador/OrganizadorLayout.jsx'
+import { useEventoDisponivel } from '../../hooks/useEventoDisponivel.js'
+import { ENTRAR_NA_EDICAO } from '../../hooks/usePropostaEmEdicao.js'
 import '../../styles/fornecedor.css'
 
 export function EventoDisponivel() {
   const { id } = useParams()
-  const [tentativa, setTentativa] = useState(0)
-  const [resultado, setResultado] = useState({ chave: null, evento: null, erro: null })
-  const carregando = resultado.chave !== id
-
-  useEffect(() => {
-    let telaAberta = true
-    buscarEventoDisponivel(id)
-      .then((evento) => {
-        if (telaAberta) setResultado({ chave: id, evento, erro: null })
-      })
-      .catch((erro) => {
-        if (telaAberta) setResultado({ chave: id, evento: null, erro })
-      })
-
-    return () => {
-      telaAberta = false
-    }
-  }, [id, tentativa])
-
-  const evento = carregando ? null : resultado.evento
+  const { carregando, evento, erro, tentarDeNovo } = useEventoDisponivel(id)
   const titulo = carregando ? 'Carregando evento…' : (evento?.name ?? 'Evento indisponível')
   const voltarPara = '/fornecedor/eventos'
 
@@ -37,17 +19,14 @@ export function EventoDisponivel() {
     <OrganizadorLayout perfil="fornecedor" titulo={titulo} voltarPara={voltarPara}>
       {carregando ? (
         <Carregando mensagem="Carregando os itens disponíveis…" />
-      ) : resultado.erro ? (
-        resultado.erro.status === 404 ? (
+      ) : erro ? (
+        erro.status === 404 ? (
           <Vazio
             titulo="Este evento não está disponível"
             mensagem="Ele pode ter sido encerrado ou não ter itens nas suas categorias."
           />
         ) : (
-          <ErroNaTela
-            erro={resultado.erro}
-            aoTentarDeNovo={() => setTentativa((valor) => valor + 1)}
-          />
+          <ErroNaTela erro={erro} aoTentarDeNovo={tentarDeNovo} />
         )
       ) : (
         <div className="fornecedor-evento-detalhe">
@@ -101,11 +80,27 @@ export function EventoDisponivel() {
                           ? 'Não informado'
                           : formatarMoeda(item.estimated_value)}
                       </strong>
-                      {item.my_proposal && (
-                        <small>
-                          Sua proposta: {item.my_proposal.status} ·{' '}
-                          {formatarMoeda(item.my_proposal.amount)}
-                        </small>
+                      {item.my_proposal ? (
+                        <>
+                          <small>
+                            Sua proposta: {traduzirStatusDaProposta(item.my_proposal.status)} ·{' '}
+                            {formatarMoeda(item.my_proposal.amount)}
+                          </small>
+                          <Link
+                            to={`/fornecedor/propostas/${item.my_proposal.proposal_key}`}
+                            className="botao botao--secundario"
+                          >
+                            Ver proposta
+                          </Link>
+                        </>
+                      ) : (
+                        <Link
+                          to={`/fornecedor/eventos/${id}/itens/${item.item_key}/propostas/etapa-1`}
+                          state={ENTRAR_NA_EDICAO}
+                          className="botao"
+                        >
+                          Enviar proposta
+                        </Link>
                       )}
                     </div>
                   </article>
