@@ -99,8 +99,10 @@ export class SupplierEventRepository {
     return events[0] ?? null
   }
 
-  // item do evento numa categoria que o fornecedor atende; travado (FOR SHARE) para o organizador
-  // não editar ou apagar o item enquanto a proposta é gravada
+  // item do evento numa categoria que o fornecedor atende. O item fica travado (FOR UPDATE) para o
+  // organizador não editar, apagar ou aceitar proposta nele enquanto a proposta é gravada, e para os
+  // envios no mesmo item passarem um de cada vez: com FOR SHARE, dois envios juntos seguravam a trava
+  // de leitura do hasAcceptedProposal e travavam um ao outro (deadlock) no INSERT da proposta
   async getAvailableItem(eventId, supplierId, itemKey) {
     const items = await sequelize.query(
       `SELECT budget_item.id, budget_item.budget_item_key AS item_key
@@ -109,7 +111,7 @@ export class SupplierEventRepository {
        WHERE budget_item.budget_item_key = :itemKey
          AND budget_item.event_id = :eventId
          AND supplier_category.supplier_id = :supplierId
-       FOR SHARE`,
+       FOR UPDATE OF budget_item FOR SHARE OF supplier_category`,
       { replacements: { itemKey, eventId, supplierId }, transaction: this.session, type: QueryTypes.SELECT },
     )
     return items[0] ?? null
