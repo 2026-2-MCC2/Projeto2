@@ -5,9 +5,10 @@ import { ClientRequisition } from '../utils/requisition.js'
 import { TokenGenerator } from '../utils/token_generator.js'
 
 describe('HealthCheck', () => {
-  test('home responde 200 sem login', async () => {
+  test('home responde 200 sem login, só com o commit no ar (sem pid nem branch)', async () => {
     const response = await ClientRequisition.send('GET', '/event_planning/')
     assert.equal(response.responseStatus, 200)
+    assert.deepEqual(Object.keys(response.responseJson), ['trocaticket-event-planning-api'])
   })
 
   test('health check responde 204 sem login', async () => {

@@ -5,7 +5,6 @@ export const SCHEMA_PATH = fileURLToPath(new URL('./schemas/', import.meta.url))
 export const API_PREFIX = '/event_planning'
 
 export const GIT_COMMIT = process.env.GIT_COMMIT ?? '$$GIT_COMMIT'
-export const GIT_BRANCH = process.env.GIT_BRANCH ?? '$$GIT_BRANCH'
 
 // o cloud run define PORT sozinho
 export const PORT = Number(process.env.PORT ?? 3300)

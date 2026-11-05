@@ -83,6 +83,6 @@ jobs:
             --max-instances 3 \
             --memory 512Mi \
             --service-account "${{ vars.API_SERVICE_ACCOUNT }}" \
-            --set-env-vars "^|^APP_ENV=production|SERVICE_NAME=$SERVICE_NAME|GCP_PROJECT_ID=$GCP_PROJECT_ID|DB_NAME=event_planning|DB_CREDENTIALS_SECRET_NAME=trocaticket-event-planning-db-credentials|JWT_SECRET_NAME=trocaticket-event-planning-jwt-secret|CORS_ALLOWED_ORIGINS=${{ vars.CORS_ALLOWED_ORIGINS }}|SMTP_HOST=smtp.gmail.com|SMTP_PORT=587|SMTP_CREDENTIALS_SECRET_NAME=trocaticket-event-planning-smtp-credentials|EMAIL_FROM=Gestão Troca Ticket <gestaotrocaticket@gmail.com>|FRONT_URL=https://gestaotrocaticket.com.br|STORAGE_DRIVER=gcs|GCS_BUCKET=trocaticket-event-planning-fotos|GIT_COMMIT=${{ github.sha }}|GIT_BRANCH=${{ github.ref_name }}" \
+            --set-env-vars "^|^APP_ENV=production|SERVICE_NAME=$SERVICE_NAME|GCP_PROJECT_ID=$GCP_PROJECT_ID|DB_NAME=event_planning|DB_CREDENTIALS_SECRET_NAME=trocaticket-event-planning-db-credentials|JWT_SECRET_NAME=trocaticket-event-planning-jwt-secret|CORS_ALLOWED_ORIGINS=${{ vars.CORS_ALLOWED_ORIGINS }}|SMTP_HOST=smtp.gmail.com|SMTP_PORT=587|SMTP_CREDENTIALS_SECRET_NAME=trocaticket-event-planning-smtp-credentials|EMAIL_FROM=Gestão Troca Ticket <gestaotrocaticket@gmail.com>|FRONT_URL=https://gestaotrocaticket.com.br|STORAGE_DRIVER=gcs|GCS_BUCKET=trocaticket-event-planning-fotos|GIT_COMMIT=${{ github.sha }}" \
             --format='value(status.url)')
           echo "### API no ar: $URL/event_planning/" >> $GITHUB_STEP_SUMMARY
