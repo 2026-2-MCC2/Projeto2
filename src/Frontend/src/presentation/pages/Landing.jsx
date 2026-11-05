@@ -1,6 +1,7 @@
 import { BotaoAcessibilidade } from '../components/comum/BotaoAcessibilidade.jsx'
 import { PularParaConteudo } from '../components/comum/PularParaConteudo.jsx'
 import { TituloDaPagina } from '../components/comum/TituloDaPagina.jsx'
+import { Hero } from '../components/landing/Hero.jsx'
 import { Ingresso } from '../components/landing/Ingresso.jsx'
 import { NavbarLanding } from '../components/landing/NavbarLanding.jsx'
 import '../styles/landing.css'
@@ -75,10 +76,10 @@ export function Landing() {
       <NavbarLanding />
 
       <main id="conteudo" tabIndex={-1}>
+        <Hero />
+
         {/* TEMPORÁRIO: vitrine do componente Ingresso, sai quando as seções entrarem */}
         <DemonstracaoDoIngresso />
-
-        <section className="landing__secao landing__hero">{/* hero */}</section>
 
         <section id="como-funciona" className="landing__secao">
           {/* como funciona */}

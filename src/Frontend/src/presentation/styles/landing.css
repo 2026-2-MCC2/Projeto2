@@ -1,6 +1,13 @@
 /* Landing page (pages/Landing.jsx). */
 
 .landing {
+  /* coleção "Marca TrocaTicket" do Figma: cores fixas, iguais nos dois temas */
+  --marca-azul: #0a50ae;
+  --marca-laranja: #fe7524;
+  --marca-ciano: #04a5ed;
+  --marca-rosa: #f91788;
+  --marca-preto: #0c0c0c;
+
   min-height: 100vh;
   background: var(--fundo-superficie);
 }
@@ -200,6 +207,387 @@
   }
 }
 
+/* ---------- hero ---------- */
+
+.hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 56px;
+  padding: 128px max(32px, calc((100% - 1200px) / 2)) 152px;
+  overflow: hidden;
+  color: var(--acao-sobre-primaria);
+}
+
+/* a foto e o gradiente são iguais nos dois temas: o hero é sempre escuro */
+.hero__fundo {
+  position: absolute;
+  inset: 0;
+  background: var(--marca-preto); /* enquanto a foto carrega */
+}
+
+.hero__foto {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero__fundo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgb(0 0 0 / 0%) 0%, rgb(5 5 10 / 55%) 100%),
+    linear-gradient(90deg, rgb(10 8 15 / 92%) 0%, rgb(13 8 13 / 72%) 55%, rgb(15 8 5 / 35%) 100%);
+}
+
+.hero__chamada,
+.hero__visual {
+  position: relative;
+  z-index: 1;
+}
+
+.hero__chamada {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 28px;
+  min-width: 0;
+}
+
+.hero__selo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 7px 14px 7px 12px;
+  border: 1px solid rgb(255 255 255 / 25%);
+  border-radius: 99px;
+  background: rgb(255 255 255 / 14%);
+  font-size: 0.7647rem; /* 13px */
+  font-weight: 500;
+}
+
+.hero__titulo {
+  margin: 0;
+  font-size: 3.4118rem; /* 58px */
+  font-weight: 700;
+  line-height: 1.1034; /* 64px */
+  letter-spacing: -0.025em;
+}
+
+.hero__destaque {
+  color: var(--marca-laranja);
+}
+
+.hero__subtitulo {
+  margin: 0;
+  font-size: 1.1176rem; /* 19px */
+  line-height: 1.579; /* 30px */
+  opacity: 0.88;
+}
+
+.hero__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.hero__aviso {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 0.7647rem; /* 13px */
+  color: rgb(255 255 255 / 70%);
+}
+
+/* ilustração: desenhada em 660 × 500 px e encolhida por inteiro (hooks/useEscalaParaCaber.js) */
+.hero__visual {
+  flex: 0 1 660px;
+  min-width: 0;
+}
+
+.hero__ingressos {
+  position: relative;
+  aspect-ratio: 660 / 500;
+}
+
+.hero__palco {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 660px;
+  height: 500px;
+  transform: scale(var(--escala, 1));
+  transform-origin: 0 0;
+}
+
+/* os ingressos imitam papel impresso: cores fixas, iguais nos dois temas */
+.hero__ingresso {
+  --ingresso-raio: 22px;
+  --ingresso-fundo-canhoto: #fff;
+  --ingresso-picote-cor: #cbd5e1;
+  --ingresso-picote-espessura: 2px;
+  --ingresso-picote-traco: 7px;
+  --ingresso-picote-espaco: 4px;
+  --ingresso-sombra: drop-shadow(0 28px 25px rgb(10 31 77 / 22%));
+
+  position: absolute;
+  color: #fff;
+}
+
+.hero__ingresso .ingresso__corpo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 30px 32px;
+}
+
+.hero__ingresso .ingresso__canhoto {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero__ingresso--summit {
+  --ingresso-recorte: 16px;
+  --ingresso-picote-recuo: 22px;
+  --ingresso-fundo: linear-gradient(90deg, var(--marca-laranja), var(--marca-rosa));
+
+  top: 44px;
+  left: 132px;
+  width: 540px;
+  height: 230px;
+  opacity: 0.95;
+  transform: rotate(-7deg);
+}
+
+.hero__ingresso--summit .ingresso__corpo {
+  gap: 8px;
+}
+
+.hero__ingresso--summit .ingresso__canhoto {
+  width: 160px;
+}
+
+.hero__ingresso--festival {
+  --ingresso-recorte: 18px;
+  --ingresso-picote-recuo: 24px;
+  --ingresso-fundo: linear-gradient(90deg, var(--marca-azul), var(--marca-ciano));
+
+  top: 170px;
+  left: 14px;
+  width: 580px;
+  height: 260px;
+  transform: rotate(4deg);
+}
+
+.hero__ingresso--festival .ingresso__corpo {
+  gap: 14px;
+}
+
+.hero__ingresso--festival .ingresso__canhoto {
+  gap: 6px;
+  width: 180px;
+}
+
+.hero__rotulo {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+}
+
+.hero__rotulo--pilula {
+  padding: 4px 10px;
+  border-radius: 99px;
+  background: rgb(255 255 255 / 18%);
+  letter-spacing: 0.12em;
+}
+
+.hero__evento {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.hero__ingresso--festival .hero__evento {
+  font-size: 26px;
+  line-height: 31px;
+}
+
+.hero__dados {
+  display: flex;
+  gap: 24px;
+  margin: 0;
+  padding-top: 6px;
+  font-weight: 600;
+}
+
+.hero__dados div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.hero__dados dt {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  opacity: 0.7;
+}
+
+.hero__dados dd {
+  margin: 0;
+  font-size: 14px;
+}
+
+/* no canhoto branco valem as cores do tema claro, mesmo no escuro */
+.hero__valor-rotulo {
+  color: #5f6b7d;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+}
+
+.hero__valor {
+  color: var(--marca-azul);
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+.hero__valor-apoio {
+  color: #4b5563;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.hero__etiquetas {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hero__etiqueta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px 10px 14px;
+  border: 1px solid var(--borda-padrao);
+  border-radius: 99px;
+  background: var(--fundo-superficie);
+  box-shadow: 0 10px 24px -6px rgb(15 23 41 / 10%);
+  color: var(--texto-secundario);
+  font-size: 0.7647rem; /* 13px */
+  white-space: nowrap;
+}
+
+.hero__etiqueta strong {
+  color: var(--texto-primario);
+  font-weight: 600;
+}
+
+.hero__etiqueta::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--_ponto);
+}
+
+.hero__etiqueta--custo {
+  --_ponto: var(--marca-laranja);
+}
+
+.hero__etiqueta--margem {
+  --_ponto: var(--status-sucesso-forte);
+}
+
+.hero__etiqueta--equilibrio {
+  --_ponto: var(--acao-primaria);
+}
+
+/* no desktop as etiquetas flutuam sobre os ingressos, nas posições do Figma (em % de 660 × 500) */
+@media (min-width: 901px) {
+  .hero__visual {
+    position: relative;
+  }
+
+  .hero__etiqueta {
+    position: absolute;
+  }
+
+  .hero__etiqueta--custo {
+    top: 8%;
+    left: 0;
+  }
+
+  .hero__etiqueta--margem {
+    top: 4.8%;
+    left: 71.2%;
+  }
+
+  .hero__etiqueta--equilibrio {
+    top: 88%;
+    left: 50%;
+  }
+}
+
+@media (max-width: 900px) {
+  .hero {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 36px;
+    padding: 40px 20px 56px;
+  }
+
+  .hero__chamada {
+    gap: 20px;
+  }
+
+  .hero__selo {
+    font-size: 0.7059rem; /* 12px */
+  }
+
+  .hero__titulo {
+    font-size: 2.2353rem; /* 38px */
+    line-height: 1.1579; /* 44px */
+    letter-spacing: -0.02em;
+  }
+
+  .hero__subtitulo {
+    font-size: 0.9412rem; /* 16px */
+    line-height: 1.5625; /* 25px */
+  }
+
+  .hero__acoes {
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .hero__visual {
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    gap: 36px;
+  }
+
+  /* no mobile o desenho corta o espaço que as etiquetas ocupavam embaixo */
+  .hero__ingressos {
+    aspect-ratio: 660 / 460;
+  }
+
+  .hero__etiquetas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}
+
 /* ---------- TEMPORÁRIO: vitrine do Ingresso (sai junto com DemonstracaoDoIngresso) ---------- */
 
 .demo-ingresso {
@@ -281,13 +669,13 @@
 .demo-ingresso__fundo-escuro {
   padding: 48px 24px;
   border-radius: 16px;
-  background: #0c0c0c;
+  background: var(--marca-preto);
 }
 
 .demo-ingresso__chamada {
   --ingresso-raio: 24px;
   --ingresso-recorte: 20px;
-  --ingresso-fundo-canhoto: #fe7524;
+  --ingresso-fundo-canhoto: var(--marca-laranja);
   --ingresso-picote-cor: #fff;
   --ingresso-picote-espessura: 2px;
   --ingresso-picote-recuo: 28px;

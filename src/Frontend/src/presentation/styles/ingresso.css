@@ -8,6 +8,8 @@
      --ingresso-fundo-canhoto    fundo do canhoto (o mesmo do corpo)
      --ingresso-picote-cor       cor do tracejado (--borda-forte)
      --ingresso-picote-espessura 1.5px
+     --ingresso-picote-traco     comprimento de cada traço (6px)
+     --ingresso-picote-espaco    espaço entre os traços (5px)
      --ingresso-picote-recuo     distância entre as pontas do tracejado e as bordas (0)
      --ingresso-sombra           filtro de sombra, ex.: drop-shadow(0 30px 60px rgb(0 0 0 / 35%))
    A sombra usa filter (e não box-shadow) porque a máscara cortaria o box-shadow. */
@@ -15,8 +17,8 @@
 .ingresso {
   --_raio: var(--ingresso-raio, 16px);
   --_recorte: var(--ingresso-recorte, 11px);
-  --_traco: 6px;
-  --_espaco: 5px;
+  --_traco: var(--ingresso-picote-traco, 6px);
+  --_espaco: var(--ingresso-picote-espaco, 5px);
 
   display: flex;
   flex-direction: var(--_direcao);
