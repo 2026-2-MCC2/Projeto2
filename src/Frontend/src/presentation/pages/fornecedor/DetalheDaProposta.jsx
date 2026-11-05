@@ -288,10 +288,10 @@ function AvisoDaProposta({ proposta, podeAlterar }) {
     const motivo = proposta.event.cancellation_reason
     return (
       <p className="aviso aviso--perigo" role="note">
-        {motivo ? `Motivo: ${motivo.replace(/[.!]+$/, '')}. ` : ''}
-        {contato
-          ? `Se você já teve custos com este evento, fale com o organizador: ${contato}`
-          : 'O organizador cancelou o evento.'}
+        O organizador cancelou o evento.
+        {motivo && ` Motivo: ${motivo.replace(/[.!]+$/, '')}.`}
+        {/* o contato só vem para quem estava com a proposta aceita e pode ter tido custo */}
+        {contato && ` Se você já teve custos com este evento, fale com o organizador: ${contato}`}
       </p>
     )
   }

@@ -63,11 +63,12 @@ export class SupplierProposalDto {
 }
 
 // o contato do organizador só aparece quando o fornecedor precisa falar com ele: para combinar a
-// entrega da proposta aceita ou os custos de um evento cancelado
-const STATUSES_WITH_ORGANIZER_CONTACT = new Set([PROPOSAL_STATUSES.ACCEPTED, PROPOSAL_STATUSES.CANCELED])
-
+// entrega da proposta aceita, ou os custos de uma proposta que estava aceita quando o evento foi
+// cancelado (o cancelamento mantém o selected). Proposta só enviada não teve nada combinado.
 function organizerContactOf(proposal) {
-  if (!STATUSES_WITH_ORGANIZER_CONTACT.has(proposal.status)) return null
+  const wasChosen =
+    proposal.status === PROPOSAL_STATUSES.ACCEPTED || (proposal.status === PROPOSAL_STATUSES.CANCELED && Boolean(proposal.selected))
+  if (!wasChosen) return null
   return { name: proposal.organizer_name, email: proposal.organizer_email, phone: proposal.organizer_phone }
 }
 

@@ -8,7 +8,7 @@ Valor da proposta: {{valor}}
 
 Motivo do cancelamento: {{motivo}}
 
-Para combinar qualquer custo que você já teve, fale com o organizador: {{contato}}
+{{orientacao}}
 
 Veja a proposta: {{link}}
 

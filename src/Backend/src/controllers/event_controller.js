@@ -435,7 +435,10 @@ function canceledProposalEmail(proposal, event, organizer) {
     item: proposal.item_description,
     valor: TextTools.formatCurrency(proposal.amount),
     motivo: event.cancellation_reason,
-    contato: organizer.contact,
+    // só quem estava com a proposta aceita pode ter tido custo combinado com o organizador
+    orientacao: wasAccepted
+      ? `Para combinar qualquer custo que você já teve com este evento, fale com o organizador: ${organizer.contact}`
+      : 'Como a proposta ainda não tinha sido aceita, você não precisa fazer nada.',
     link: `${FRONT_URL}/fornecedor/propostas/${proposal.proposal_key}`,
   })
   return { to: proposal.supplier_email, ...content }
