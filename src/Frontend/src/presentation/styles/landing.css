@@ -1,0 +1,131 @@
+/* Landing page (pages/Landing.jsx). */
+
+.landing {
+  min-height: 100vh;
+  background: var(--fundo-superficie);
+}
+
+/* rolagem suave até as âncoras do menu, menos para quem pediu menos movimento */
+@media (prefers-reduced-motion: no-preference) {
+  html:has(.landing):not(.sem-movimento) {
+    scroll-behavior: smooth;
+  }
+}
+
+/* ---------- TEMPORÁRIO: vitrine do Ingresso (sai junto com DemonstracaoDoIngresso) ---------- */
+
+.demo-ingresso {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 48px 16px;
+}
+
+.demo-ingresso h2 {
+  margin: 0;
+}
+
+.demo-ingresso__linha {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px;
+  align-items: flex-start;
+}
+
+.demo-ingresso__passo {
+  --ingresso-fundo: var(--fundo-pagina);
+  --ingresso-fundo-canhoto: var(--fundo-marca-suave);
+  width: 270px;
+}
+
+.demo-ingresso__painel {
+  padding: 32px;
+  border-radius: 16px;
+  background: var(--fundo-pagina);
+}
+
+.demo-ingresso__cenario {
+  --ingresso-raio: 12px;
+  --ingresso-recorte: 9px;
+  width: 200px;
+}
+
+.demo-ingresso__etapa {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 72px;
+  padding: 0 28px;
+  color: var(--texto-marca);
+}
+
+.demo-ingresso__etapa span {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+}
+
+.demo-ingresso__etapa strong {
+  font-size: 1.75rem;
+}
+
+.demo-ingresso__texto {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 20px 24px;
+}
+
+.demo-ingresso__texto span {
+  color: var(--texto-secundario);
+  font-size: 0.875rem;
+}
+
+.demo-ingresso__valor {
+  display: block;
+  padding: 14px 20px 18px;
+  color: var(--status-sucesso-texto);
+  font-size: 1.375rem;
+}
+
+.demo-ingresso__fundo-escuro {
+  padding: 48px 24px;
+  border-radius: 16px;
+  background: #0c0c0c;
+}
+
+.demo-ingresso__chamada {
+  --ingresso-raio: 24px;
+  --ingresso-recorte: 20px;
+  --ingresso-fundo-canhoto: #fe7524;
+  --ingresso-picote-cor: #fff;
+  --ingresso-picote-espessura: 2px;
+  --ingresso-picote-recuo: 28px;
+  --ingresso-sombra: drop-shadow(0 30px 60px rgb(0 0 0 / 35%));
+}
+
+.demo-ingresso__texto--grande {
+  padding: 56px;
+}
+
+.demo-ingresso__texto--grande strong {
+  font-size: 2rem;
+}
+
+.demo-ingresso__entrada {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  height: 100%;
+  min-width: 280px;
+  padding: 40px;
+  color: #fff;
+}
+
+.demo-ingresso__entrada strong {
+  font-size: 2.5rem;
+}

@@ -6,7 +6,7 @@ export function AreaDoPerfil({ perfil }) {
   const usuario = usuarioAtual()
 
   if (!usuario) {
-    return <Navigate to="/" replace />
+    return <Navigate to="/entrar" replace />
   }
   if (usuario.perfil !== perfil) {
     return <Navigate to={rotaInicialDoPerfil(usuario.perfil)} replace />

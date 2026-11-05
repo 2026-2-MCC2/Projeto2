@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Carregando } from '../components/comum/EstadoDaTela.jsx'
 import { NaoEncontrada } from '../pages/NaoEncontrada.jsx'
+import { Landing } from '../pages/Landing.jsx'
 import { Login } from '../pages/acesso/Login.jsx'
 import { Cadastro } from '../pages/acesso/Cadastro.jsx'
 import { RecuperarSenha } from '../pages/acesso/RecuperarSenha.jsx'
@@ -47,7 +48,8 @@ export function AppRoutes() {
     <BrowserRouter>
       <Suspense fallback={<Carregando telaInteira />}>
         <Routes>
-          <Route path="/" element={<Login />} />
+          <Route path="/" element={<Landing />} />
+          <Route path="/entrar" element={<Login />} />
           <Route path="/cadastro" element={<Cadastro />} />
           <Route path="/recuperar-senha" element={<RecuperarSenha />} />
           <Route path="/redefinir-senha" element={<RedefinirSenha />} />

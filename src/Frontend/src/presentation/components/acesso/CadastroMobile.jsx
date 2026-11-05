@@ -73,7 +73,7 @@ export function CadastroMobile() {
 
   function voltar() {
     if (etapa === 1) {
-      navegar('/')
+      navegar('/entrar')
       return
     }
     setEtapa(etapa - 1)

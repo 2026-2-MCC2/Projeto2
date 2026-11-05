@@ -289,7 +289,7 @@ export function Cadastro() {
         )}
       </form>
 
-      <Link to="/" className="acesso__link acesso__link--centro">
+      <Link to="/entrar" className="acesso__link acesso__link--centro">
         Já tem conta? Entrar
       </Link>
     </AcessoLayout>

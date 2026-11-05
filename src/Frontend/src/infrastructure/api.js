@@ -55,8 +55,8 @@ function sessaoPerdeuValidade(erro) {
 // o recarregamento completo descarta qualquer dado da área logada que estivesse na tela
 function encerrarSessaoVencida() {
   limparSessao()
-  if (window.location.pathname !== '/') {
-    window.location.assign('/')
+  if (window.location.pathname !== '/entrar') {
+    window.location.assign('/entrar')
   }
 }
 
