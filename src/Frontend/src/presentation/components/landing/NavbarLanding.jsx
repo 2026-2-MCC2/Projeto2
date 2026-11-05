@@ -2,8 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Icone } from '../comum/Icone.jsx'
 import { BotaoLanding } from './BotaoLanding.jsx'
-import logotipo from '../../assets/landing/logotipo-trocaticket.png'
-import logotipoNegativo from '../../assets/acesso/logotipo-trocaticket-negativo.png'
+import { LogotipoLanding } from './LogotipoLanding.jsx'
 import iconeMenu from '../../assets/landing/icone-menu.svg'
 import iconeFechar from '../../assets/comum/icone-fechar.svg'
 
@@ -56,11 +55,7 @@ export function NavbarLanding() {
   return (
     <header className="landing-topo" ref={topo}>
       <Link to="/" className="landing-topo__marca">
-        {/* mesmas classes do Logotipo: no escuro entra a versão negativa */}
-        <span className="logotipo landing-topo__logo" role="img" aria-label="TrocaTicket">
-          <img src={logotipo} alt="" className="logotipo__claro" />
-          <img src={logotipoNegativo} alt="" className="logotipo__negativo" />
-        </span>
+        <LogotipoLanding className="landing-topo__logo" />
       </Link>
 
       <button

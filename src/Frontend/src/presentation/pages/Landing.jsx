@@ -8,10 +8,11 @@ import { ComoFunciona } from '../components/landing/ComoFunciona.jsx'
 import { DuvidasFrequentes } from '../components/landing/DuvidasFrequentes.jsx'
 import { NavbarLanding } from '../components/landing/NavbarLanding.jsx'
 import { Perfis } from '../components/landing/Perfis.jsx'
+import { RodapeLanding } from '../components/landing/RodapeLanding.jsx'
 import '../styles/landing.css'
 
-// Página pública de apresentação. Os ids das seções são as âncoras do menu e do rodapé.
-// As seções entram uma a uma; por enquanto só a estrutura.
+// Página principal do site ("/"): apresentação da TrocaTicket. Os ids das seções são as âncoras
+// do menu e do rodapé. Os botões flutuantes de tema e acessibilidade são os mesmos das outras telas.
 export function Landing() {
   return (
     <div className="landing">
@@ -34,7 +35,7 @@ export function Landing() {
         <ChamadaFinal />
       </main>
 
-      <footer className="landing__rodape">{/* rodapé */}</footer>
+      <RodapeLanding />
 
       <BotaoAcessibilidade />
     </div>

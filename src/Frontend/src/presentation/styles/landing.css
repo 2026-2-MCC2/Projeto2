@@ -103,11 +103,11 @@
 }
 
 /* o PNG do Figma já traz a margem do desenho; o negativo é mais justo e ganha o mesmo recuo */
-.landing-topo__logo .logotipo__claro {
+.logotipo-landing .logotipo__claro {
   margin-left: 0;
 }
 
-.landing-topo__logo .logotipo__negativo {
+.logotipo-landing .logotipo__negativo {
   margin-left: 0.1em;
 }
 
@@ -1385,5 +1385,129 @@
   .chamada-landing__barras {
     width: 140px;
     height: 32px;
+  }
+}
+
+/* ---------- rodapé ---------- */
+
+.rodape-landing {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+  padding: 64px max(32px, calc((100% - 1200px) / 2)) 40px;
+  border-top: 1px solid var(--borda-padrao);
+  background: var(--fundo-superficie);
+}
+
+.rodape-landing__topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 48px;
+}
+
+.rodape-landing__marca {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.rodape-landing__logo {
+  --logo-altura: 54px;
+}
+
+.rodape-landing__marca p {
+  margin: 0;
+  color: var(--texto-secundario);
+  font-size: 0.8235rem; /* 14px */
+}
+
+.rodape-landing__colunas {
+  display: flex;
+  gap: 80px;
+}
+
+.rodape-landing__coluna {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rodape-landing__titulo {
+  margin: 0;
+  color: var(--texto-primario);
+  font-size: 0.7647rem; /* 13px */
+  font-weight: 600;
+}
+
+.rodape-landing__coluna ul {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rodape-landing__coluna a {
+  border-radius: 4px;
+  color: var(--texto-secundario);
+  font-size: 0.8235rem; /* 14px */
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+@media (hover: hover) {
+  .rodape-landing__coluna a:hover {
+    color: var(--texto-primario);
+    text-decoration: underline;
+  }
+}
+
+.rodape-landing__base {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--borda-padrao);
+  color: var(--texto-terciario);
+  font-size: 0.7647rem; /* 13px */
+}
+
+.rodape-landing__base p {
+  margin: 0;
+}
+
+.rodape-landing__assinatura {
+  font-weight: 500;
+}
+
+/* nas telas em que a margem lateral fica pequena, os botões flutuantes (fixos no canto) cairiam
+   em cima da linha de base: o rodapé ganha espaço embaixo para eles */
+@media (max-width: 1264px) {
+  .rodape-landing {
+    padding-bottom: 104px;
+  }
+}
+
+@media (max-width: 900px) {
+  .rodape-landing {
+    gap: 32px;
+    padding: 48px 20px 104px;
+  }
+
+  .rodape-landing__topo {
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  .rodape-landing__colunas {
+    flex-wrap: wrap;
+    gap: 28px 40px;
+  }
+
+  .rodape-landing__base {
+    flex-direction: column;
   }
 }
