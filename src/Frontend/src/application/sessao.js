@@ -19,6 +19,7 @@ export async function entrar({ email, senha }) {
     nome: resposta.user.name,
     perfil: resposta.user.profile,
   }
+  esquecerDadosDaConta()
   guardarSessao({ token: resposta.token, usuario: usuario })
   return usuario
 }
@@ -47,10 +48,15 @@ export function acompanhamentoDoCadastro(falhaNoLogin) {
   }
 }
 
-export function sair() {
-  limparSessao()
+// o que ficou em memória de uma conta não pode aparecer para a próxima pessoa que usar a aba
+function esquecerDadosDaConta() {
   esquecerEventosDaSessao()
   esquecerRascunhosDePropostas()
+}
+
+export function sair() {
+  limparSessao()
+  esquecerDadosDaConta()
 }
 
 export function usuarioAtual() {
