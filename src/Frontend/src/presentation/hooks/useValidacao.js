@@ -2,7 +2,7 @@ import { REGRAS } from '../../domain/validacao.js'
 
 // Liga as regras de domain/validacao.js à validação nativa do navegador.
 // Espalhe o retorno no <form>: <form {...useValidacao()}>. Nos campos:
-//   required                  campo obrigatório
+//   required                  campo obrigatório (só espaços não preenche, exceto na senha)
 //   data-validar="email"      regra de REGRAS (email, cnpj, telefone, data...)
 // Regras que comparam campos vão no parâmetro, pelo name do campo:
 //   useValidacao({ confirmacaoSenha: (valor, valores) => validarConfirmacaoSenha(valor, valores.senha) })
@@ -17,7 +17,12 @@ export function useValidacao(regrasEntreCampos = {}) {
       const valor = campo.value.trim()
       const regra = REGRAS[campo.dataset.validar]
       const entreCampos = regrasEntreCampos[campo.name]
-      const erro = valor ? regra?.(valor) || entreCampos?.(valor, valores) || '' : ''
+      const soEspacos = campo.required && campo.value !== '' && !valor && !ehSenha(campo)
+      const erro = soEspacos
+        ? 'Preencha este campo.'
+        : valor
+          ? regra?.(valor) || entreCampos?.(valor, valores) || ''
+          : ''
       campo.setCustomValidity(erro)
       if (campo.dataset.mostrarErro) atualizarMensagem(campo)
     }
@@ -64,6 +69,10 @@ export function useValidacao(regrasEntreCampos = {}) {
 
   return { ref: ligar }
 }
+
+// espaços valem como caractere de senha, então só nela um campo obrigatório só com espaços passa
+// (o campo de senha alterna entre password e text ao mostrar, por isso a classe e não o type)
+const ehSenha = (campo) => Boolean(campo.closest('.entrada-de-senha'))
 
 function camposDo(formulario) {
   return [...formulario.elements].filter((campo) => 'value' in campo && 'validity' in campo)

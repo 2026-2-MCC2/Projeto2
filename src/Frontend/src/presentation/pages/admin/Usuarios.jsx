@@ -107,7 +107,7 @@ function ModalAcesso({ acao, usuario, enviando, aoConfirmar, aoFechar }) {
       acao={{
         cancelar: 'Cancelar',
         confirmar: enviando ? 'Bloqueando...' : 'Bloquear acesso',
-        aoConfirmar: () => aoConfirmar(motivo),
+        aoConfirmar: () => aoConfirmar(motivo.trim()),
         ocupado: enviando,
       }}
       aoFechar={aoFechar}

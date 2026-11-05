@@ -58,7 +58,10 @@ function Indicadores({ summary }) {
   const fornecedores = contar(summary.registration_statuses, 'pending', 'fornecedor')
   const eventos = summary.event_statuses.reduce((total, item) => total + item.total, 0)
   const emCotacao = contar(summary.event_statuses, 'open_for_quotes')
-  const propostas = summary.proposal_statuses.reduce((total, item) => total + item.total, 0)
+  // proposta cancelada foi retirada pelo fornecedor: não conta como recebida
+  const propostas = summary.proposal_statuses
+    .filter((item) => item.status !== 'canceled')
+    .reduce((total, item) => total + item.total, 0)
 
   const indicadores = [
     {
@@ -190,6 +193,8 @@ export function VisaoGeral() {
   }
 
   const todosEventos = relatorio ? mapearEventos(relatorio.data) : []
+  // página vazia depois da primeira também é resultado de busca, não falta de eventos
+  const buscaFiltrada = Object.values(filtros).some(Boolean) || page > 0
 
   function aplicarFiltros(event) {
     event.preventDefault()
@@ -295,24 +300,28 @@ export function VisaoGeral() {
 
       {situacao === 'erro' && <ErroNaTela erro={erro} aoTentarDeNovo={tentarDeNovo} />}
 
-      {situacao === 'pronto' && todosEventos.length === 0 && (
-        <Vazio
-          titulo="Nenhum evento cadastrado"
-          mensagem="Os eventos aparecerão aqui quando forem cadastrados."
-        />
-      )}
+      {situacao === 'pronto' &&
+        todosEventos.length === 0 &&
+        (buscaFiltrada ? (
+          <Vazio
+            titulo="Nenhum evento encontrado"
+            mensagem={
+              page > 0
+                ? 'Não há mais eventos depois da página anterior.'
+                : 'Confira os filtros informados.'
+            }
+          />
+        ) : (
+          <Vazio
+            titulo="Nenhum evento cadastrado"
+            mensagem="Os eventos aparecerão aqui quando forem cadastrados."
+          />
+        ))}
 
-      {situacao === 'pronto' && relatorio.data.length > 0 ? (
+      {situacao === 'pronto' && todosEventos.length > 0 && (
         <section className="visao-geral__painel" aria-label="Eventos da plataforma">
           <TabelaEventos eventos={todosEventos} />
         </section>
-      ) : (
-        situacao === 'pronto' &&
-        relatorio.data.length === 0 && (
-          <p className="visao-geral__vazio" role="status">
-            Nenhum evento encontrado com os filtros informados.
-          </p>
-        )
       )}
 
       {situacao === 'pronto' && (relatorio.data.length > 0 || page > 0) && (

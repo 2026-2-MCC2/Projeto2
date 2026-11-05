@@ -2,12 +2,6 @@
 
 export const digitos = (texto) => String(texto ?? '').replace(/\D/g, '')
 
-export function formatarCep(cep) {
-  const numeros = digitos(cep)
-  if (numeros.length !== 8) return cep ?? ''
-  return numeros.replace(/^(\d{5})(\d{3})$/, '$1-$2')
-}
-
 export function mascararCep(texto) {
   const limpo = digitos(texto).slice(0, 8)
   if (limpo.length > 5) {
@@ -38,7 +32,12 @@ export function formatarTelefone(telefone) {
 export function formatarData(dataIso) {
   const data = new Date(dataIso)
   if (Number.isNaN(data.getTime())) return ''
-  return data.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
+  return data.toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'America/Sao_Paulo',
+  })
 }
 
 export function iniciais(nome) {

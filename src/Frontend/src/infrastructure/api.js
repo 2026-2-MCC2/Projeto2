@@ -52,7 +52,8 @@ function sessaoPerdeuValidade(erro) {
   return erro.status === 401 || (erro.status === 403 && erro.codigo === CODIGO_DE_ACESSO_NEGADO)
 }
 
-// o recarregamento completo descarta qualquer dado da área logada que estivesse na tela
+// limparSessao já esquece os dados da conta guardados em memória; fora do login, o recarregamento
+// completo descarta também o que estivesse na tela
 function encerrarSessaoVencida() {
   limparSessao()
   if (window.location.pathname !== '/') {

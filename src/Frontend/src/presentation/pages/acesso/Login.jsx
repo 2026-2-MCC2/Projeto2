@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
 import {
   acompanhamentoDoCadastro,
   entrar,
   rotaInicialDoPerfil,
+  usuarioAtual,
 } from '../../../application/sessao.js'
 import { AcessoLayout } from '../../components/acesso/AcessoLayout.jsx'
 import { RetornoDoEnvio } from '../../components/acesso/RetornoDoEnvio.jsx'
@@ -17,6 +18,12 @@ export function Login() {
   const [enviando, setEnviando] = useState(false)
   const [erro, setErro] = useState('')
   const validacao = useValidacao()
+
+  // perfil desconhecido cai em '/': sem a comparação, a tela redirecionaria para ela mesma sem parar
+  const areaDoUsuarioLogado = rotaInicialDoPerfil(usuarioAtual()?.perfil)
+  if (areaDoUsuarioLogado !== '/') {
+    return <Navigate to={areaDoUsuarioLogado} replace />
+  }
 
   async function aoEnviar(evento) {
     evento.preventDefault()

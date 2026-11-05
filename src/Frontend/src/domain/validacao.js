@@ -1,4 +1,4 @@
-import { diaEmBrasilia, normalizarCnpj } from './formatacao.js'
+import { diaEmBrasilia, digitos, normalizarCnpj } from './formatacao.js'
 
 // Regras de validação dos campos de formulário.
 // Cada regra recebe o texto digitado e devolve a mensagem de erro, ou '' quando o valor é válido.
@@ -9,12 +9,11 @@ const ESTADOS = [
   'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO',
 ] // prettier-ignore
 
-const digitos = (texto) => texto.replace(/\D/g, '')
-
 // "R$ 49.800,00" → 49800 · "20%" → 20 · texto que não é número → NaN
 // Com ponto e vírgula, o que vem por último é o decimal ("1.500,50" e "1,500.50" valem 1500,5).
 // Com um só tipo, ele é milhar quando se repete ou vem seguido de exatamente 3 dígitos ("1,500" e
-// "20.000"), e decimal quando vem seguido de 1 ou 2 dígitos ("1,5" e "12.5").
+// "20.000"), e decimal quando vem seguido de 1 ou 2 dígitos ("1,5" e "12.5"). Com parte inteira 0
+// não há milhar: "0,500" vale 0,5.
 export function paraNumero(texto) {
   const semSimbolos = texto.replace(/[R$\s%]/g, '')
   if (semSimbolos === '') return NaN
@@ -51,15 +50,18 @@ function separadorDecimal(texto) {
   if (!separador) return null
   const repetido = texto.indexOf(separador) !== texto.lastIndexOf(separador)
   const tresDigitosDepois = new RegExp(`\\${separador}\\d{3}$`).test(texto)
-  return repetido || tresDigitosDepois ? null : separador
+  const parteInteiraZero = Number(texto.slice(0, texto.indexOf(separador))) === 0
+  return repetido || (tresDigitosDepois && !parteInteiraZero) ? null : separador
 }
 
-// "18/10/2026" → Date · data inexistente (31/02) ou fora do formato → null
+// "18/10/2026" → Date · data inexistente (31/02), fora do formato ou antes de 1900 → null
+// (o Date leva os anos 0 a 99 para 1900 a 1999: "01/01/0026" viraria 1926)
 export function paraData(texto) {
   const partes = texto.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
   if (!partes) return null
 
   const [, dia, mes, ano] = partes.map(Number)
+  if (ano < 1900) return null
   const data = new Date(ano, mes - 1, dia)
   return data.getDate() === dia && data.getMonth() === mes - 1 ? data : null
 }
@@ -103,19 +105,19 @@ export const REGRAS = {
       ? ''
       : 'Informe um e-mail válido, como nome@empresa.com.',
   cnpj: (texto) => (cnpjValido(normalizarCnpj(texto)) ? '' : 'Informe um CNPJ válido.'),
+  // as mesmas regras da API: só números, espaço, parênteses, + e -, até 20 caracteres e 10 ou 11 dígitos
   telefone: (texto) =>
-    [10, 11].includes(digitos(texto).length)
+    /^[\d\s()+-]{10,20}$/.test(texto) && [10, 11].includes(digitos(texto).length)
       ? ''
       : 'Informe o telefone com DDD, como (11) 90000-0000.',
   senha: (texto) => (texto.length >= 8 ? '' : 'A senha precisa ter pelo menos 8 caracteres.'),
   data: (texto) => (paraData(texto) ? '' : 'Informe a data no formato dd/mm/aaaa.'),
+  // "hoje" é o dia de Brasília, o mesmo que a API usa, e não o do relógio de quem está digitando
   dataFutura: (texto) => {
     const data = paraData(texto)
     if (!data) return 'Informe a data no formato dd/mm/aaaa.'
 
-    const hoje = new Date()
-    hoje.setHours(0, 0, 0, 0)
-    return data >= hoje ? '' : 'A data não pode estar no passado.'
+    return paraDataIso(data) >= diaEmBrasilia(Date.now()) ? '' : 'A data não pode estar no passado.'
   },
   horario: (texto) =>
     /^([01]\d|2[0-3]):[0-5]\d$/.test(texto) ? '' : 'Informe o horário no formato hh:mm.',
