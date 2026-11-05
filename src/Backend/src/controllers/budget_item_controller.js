@@ -1,6 +1,6 @@
 // Regras de negócio para cadastrar itens de custo nos eventos do Organizador.
 
-import { EVENT_STATUSES, isFinalEventStatus } from '../constants.js'
+import { EVENT_STATUSES } from '../constants.js'
 import { BudgetItemDTO } from '../dtos/budget_item_dto.js'
 import {
   BudgetItemLocked,
@@ -122,7 +122,7 @@ export class BudgetItemController extends BaseController {
 
   #ensureEventAllowsItemChanges(status) {
     const isEditableStatus = [EVENT_STATUSES.DRAFT, EVENT_STATUSES.OPEN_FOR_QUOTES].includes(status)
-    if (isFinalEventStatus(status) || !isEditableStatus) {
+    if (!isEditableStatus) {
       throw new EventCannotBeModified(status)
     }
   }
