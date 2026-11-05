@@ -53,10 +53,12 @@ export class ProposalRepository {
     )
   }
 
-  // depois do aceite o item para de receber propostas; o organizador ainda troca entre as recebidas
+  // depois do aceite o item para de receber propostas; o organizador ainda troca entre as recebidas.
+  // FOR SHARE lê o que já foi confirmado: a leitura comum usa a foto do banco do começo da transação
+  // e não veria um aceite gravado enquanto o envio esperava a trava do item
   async hasAcceptedProposal(budgetItemId) {
     const [row] = await sequelize.query(
-      `SELECT COUNT(*) AS accepted FROM proposal WHERE budget_item_id = :budgetItemId AND status = 'accepted'`,
+      `SELECT COUNT(*) AS accepted FROM proposal WHERE budget_item_id = :budgetItemId AND status = 'accepted' FOR SHARE`,
       { replacements: { budgetItemId }, transaction: this.session, type: QueryTypes.SELECT },
     )
     return Number(row.accepted) > 0
