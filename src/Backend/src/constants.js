@@ -12,6 +12,7 @@ export const PORT = Number(process.env.PORT ?? 3300)
 // local | test | production
 export const APP_ENV = process.env.APP_ENV ?? ''
 export const IS_LOCAL = ['LOCAL', 'TEST'].includes(APP_ENV.toUpperCase())
+export const IS_PRODUCTION = APP_ENV.toUpperCase() === 'PRODUCTION'
 
 export const SERVICE_NAME = process.env.SERVICE_NAME ?? ''
 
