@@ -4,6 +4,7 @@ import { setTimeout as sleep } from 'node:timers/promises'
 
 import { SecurityTools } from '../../src/utils/security_tools.js'
 import { DbUtils } from '../utils/db_utils.js'
+import { Mailpit } from '../utils/mailpit.js'
 import { ObjectGenerator } from '../utils/object_generator.js'
 import { RequestGenerator } from '../utils/request_generator.js'
 import { TokenGenerator } from '../utils/token_generator.js'
@@ -135,6 +136,27 @@ describe('PUT /me/senha', () => {
 
     const [newPasswordLogin] = await RequestGenerator.POST_auth_login({ email: organizer.email, password: 'novaSenha456' })
     assert.equal(newPasswordLogin, 200)
+  })
+
+  test('trocar a senha invalida o link de redefinição que estava aberto', async () => {
+    const organizer = await createLoggedUser('organizador')
+    const [resetStatus] = await RequestGenerator.POST_auth_esqueci_senha({ email: organizer.email })
+    assert.equal(resetStatus, 202)
+    const resetToken = Mailpit.extractResetToken(await Mailpit.waitForEmailTo(organizer.email))
+
+    const [status] = await RequestGenerator.PUT_me_senha({ current_password: PASSWORD, new_password: 'novaSenha456' }, organizer.headers)
+    assert.equal(status, 200)
+
+    const [storedToken] = await DbUtils.getPasswordResetTokens(organizer.userKey)
+    assert.notEqual(storedToken.used_at, null)
+    const [redefineStatus, redefineResponse] = await RequestGenerator.POST_auth_redefinir_senha({
+      token: resetToken,
+      password: 'outraSenha789',
+    })
+    assert.equal(redefineStatus, 400)
+    assert.equal(redefineResponse.code, 'EVP000012')
+    const [loginStatus] = await RequestGenerator.POST_auth_login({ email: organizer.email, password: 'novaSenha456' })
+    assert.equal(loginStatus, 200)
   })
 
   test('senha atual errada responde 400 com EVP000037 e não troca nada', async () => {
