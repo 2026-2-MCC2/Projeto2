@@ -1,4 +1,4 @@
-import { diaEmBrasilia, normalizarCnpj } from './formatacao.js'
+import { diaEmBrasilia, digitos, normalizarCnpj } from './formatacao.js'
 
 // Regras de validação dos campos de formulário.
 // Cada regra recebe o texto digitado e devolve a mensagem de erro, ou '' quando o valor é válido.
@@ -8,8 +8,6 @@ const ESTADOS = [
   'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA',
   'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO',
 ] // prettier-ignore
-
-const digitos = (texto) => texto.replace(/\D/g, '')
 
 // "R$ 49.800,00" → 49800 · "20%" → 20 · texto que não é número → NaN
 // Com ponto e vírgula, o que vem por último é o decimal ("1.500,50" e "1,500.50" valem 1500,5).
