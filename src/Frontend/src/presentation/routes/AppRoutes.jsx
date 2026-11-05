@@ -48,8 +48,9 @@ export function AppRoutes() {
       <Suspense fallback={<Carregando telaInteira />}>
         <Routes>
           <Route path="/" element={<Login />} />
-          <Route path="/conheca" element={<Landing />} />
-          {/* endereço antigo do login, que chegou a existir: leva para o login de verdade */}
+          <Route path="/inicio" element={<Landing />} />
+          {/* endereços antigos, que chegaram a existir: levam para o lugar certo */}
+          <Route path="/conheca" element={<Navigate to="/inicio" replace />} />
           <Route path="/entrar" element={<Navigate to="/" replace />} />
           <Route path="/cadastro" element={<Cadastro />} />
           <Route path="/recuperar-senha" element={<RecuperarSenha />} />
