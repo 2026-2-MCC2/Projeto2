@@ -102,12 +102,13 @@ export class RegistrationRejected extends ApiException {
 export class AccountBlocked extends ApiException {
   static code = 'EVP000011'
 
-  constructor() {
+  // details: resumo do cadastro com o motivo do bloqueio, mostrado só a quem acertou a senha
+  constructor(details) {
     const title = 'Account blocked'
     const httpStatus = 403
     const description = 'The account was blocked by the administrator.'
     const translation = 'Seu acesso foi bloqueado. Fale com o administrador da plataforma.'
-    super(title, AccountBlocked.code, httpStatus, description, translation)
+    super(title, AccountBlocked.code, httpStatus, description, translation, details)
   }
 }
 
