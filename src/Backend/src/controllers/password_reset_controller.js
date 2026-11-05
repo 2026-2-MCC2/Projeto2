@@ -71,13 +71,20 @@ export class PasswordResetController extends BaseController {
     return { to: user.email, ...content }
   }
 
+  // Trava a conta antes do token, na mesma ordem da troca de senha logada e do pedido de link novo:
+  // na ordem inversa, as duas transações podiam esperar uma pela outra (deadlock). Por isso o token
+  // é lido sem trava só para achar a conta, e conferido de novo depois, já travado
   async resetPassword({ token, password }) {
-    const resetToken = await this.tokenRepository.getUsableByHashForUpdate(hashToken(token))
-    if (resetToken === null || resetToken.user.status !== USER_STATUSES.APPROVED) {
+    const tokenHash = hashToken(token)
+    const candidate = await this.tokenRepository.getUsableByHash(tokenHash)
+    if (candidate === null) throw new InvalidPasswordResetToken()
+
+    const user = await this.userRepository.getByIdForUpdate(candidate.user_id)
+    const resetToken = await this.tokenRepository.getUsableByHashForUpdate(tokenHash)
+    if (resetToken === null || user === null || user.status !== USER_STATUSES.APPROVED) {
       throw new InvalidPasswordResetToken()
     }
 
-    const user = resetToken.user
     user.password_hash = await SecurityTools.hashPassword(password)
     user.password_changed_at = new Date()
     await user.save({ transaction: this.session })

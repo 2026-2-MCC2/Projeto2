@@ -25,11 +25,17 @@ export class PasswordResetTokenRepository {
     )
   }
 
+  async getUsableByHash(tokenHash) {
+    return PasswordResetToken.findOne({
+      where: usableByHash(tokenHash),
+      transaction: this.session,
+    })
+  }
+
   // trava a linha: dois envios do mesmo link ao mesmo tempo não conseguem usar o token duas vezes
   async getUsableByHashForUpdate(tokenHash) {
     return PasswordResetToken.findOne({
-      where: { token_hash: tokenHash, used_at: null, expires_at: { [Op.gt]: new Date() } },
-      include: ['user'],
+      where: usableByHash(tokenHash),
       lock: this.session.LOCK.UPDATE,
       transaction: this.session,
     })
@@ -39,4 +45,8 @@ export class PasswordResetTokenRepository {
   async markAllAsUsed(userId) {
     await PasswordResetToken.update({ used_at: new Date() }, { where: { user_id: userId, used_at: null }, transaction: this.session })
   }
+}
+
+function usableByHash(tokenHash) {
+  return { token_hash: tokenHash, used_at: null, expires_at: { [Op.gt]: new Date() } }
 }

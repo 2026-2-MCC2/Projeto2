@@ -17,6 +17,14 @@ export class UserRepository {
     })
   }
 
+  async getByIdForUpdate(id) {
+    return User.findOne({
+      where: { id },
+      lock: this.session.LOCK.UPDATE,
+      transaction: this.session,
+    })
+  }
+
   async getByKey(userKey) {
     return User.findOne({
       where: { user_key: userKey },
