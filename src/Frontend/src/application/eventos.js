@@ -632,6 +632,16 @@ export function carregarEvento(eventKey) {
   return carregamentosEmAndamento.get(eventKey)
 }
 
+// depois de uma mudança cuja resposta não traz o evento (aceite de proposta, itens de cotação),
+// a cópia em memória fica velha: a busca começa já, e a próxima tela que abrir não espera os 15 s
+export function atualizarEventoEmMemoria(eventKey) {
+  ultimaBuscaPorChave.delete(eventKey)
+  return buscarEventoPorChave(eventKey).then((evento) => {
+    ultimaBuscaPorChave.set(eventKey, Date.now())
+    return evento
+  })
+}
+
 /**
  * Cria um novo evento no backend.
  */

@@ -1,6 +1,7 @@
 // Propostas: comparação e aceite pelo organizador, e envio pelo fornecedor.
 
 import { api } from '../infrastructure/api.js'
+import { atualizarEventoEmMemoria } from './eventos.js'
 import { formatarMoeda } from '../domain/formatacao.js'
 import { paraData, paraDataIso, paraNumero } from '../domain/validacao.js'
 
@@ -8,8 +9,12 @@ export function buscarComparacaoDePropostas(eventKey) {
   return api.get(`/events/${eventKey}/proposals`)
 }
 
-export function aceitarPropostaDoEvento(eventKey, proposalKey) {
-  return api.post(`/events/${eventKey}/proposals/${proposalKey}/accept`, {})
+// o aceite muda o custo e o ticket do evento; uma falha ao atualizar a cópia em memória não
+// desfaz o aceite, e a próxima tela do evento busca de novo
+export async function aceitarPropostaDoEvento(eventKey, proposalKey) {
+  const comparacao = await api.post(`/events/${eventKey}/proposals/${proposalKey}/accept`, {})
+  atualizarEventoEmMemoria(eventKey).catch(() => {})
+  return comparacao
 }
 
 // propostas que ainda esperam a decisão do organizador
