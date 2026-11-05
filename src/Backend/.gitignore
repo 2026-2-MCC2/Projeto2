@@ -4,4 +4,4 @@ coverage/
 .env
 .vscode
 .idea
-storage/
+/storage/
