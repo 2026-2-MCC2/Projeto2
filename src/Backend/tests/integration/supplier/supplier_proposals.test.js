@@ -196,6 +196,7 @@ describe('GET /supplier/proposals/:proposal_key', () => {
       category: 'Estrutura',
       type: 'service',
       quantity: 1,
+      estimated_value: 2500,
     })
     for (const field of [
       'amount',
@@ -213,6 +214,7 @@ describe('GET /supplier/proposals/:proposal_key', () => {
     assert.equal(response.status, 'sent')
     assert.equal(response.selected, false)
     assert.deepEqual(response.photos, [])
+    assert.equal(response.organizer_contact, null)
     assert.equal('id' in response, false)
   })
 
@@ -224,6 +226,33 @@ describe('GET /supplier/proposals/:proposal_key', () => {
 
     assert.equal(status, 404)
     assert.equal(response.code, 'EVP000033')
+  })
+
+  test('contato do organizador aparece só na proposta aceita e na de evento cancelado', async () => {
+    const accepted = await createScenario()
+    await decideByOrganizer(accepted, accepted.proposal.proposal_key)
+    const canceled = await createScenario()
+    await RequestGenerator.PATCH_event_status(
+      canceled.event.event_key,
+      { status: 'canceled', reason: 'Chuva.' },
+      canceled.organizer.headers,
+    )
+    const rejected = await createScenario()
+    const winner = await createUser('fornecedor', 'Fornecedor vencedor')
+    const winnerProposal = await ObjectGenerator.sendProposal(rejected.event.event_key, rejected.items[0].item_key, winner.headers)
+    await decideByOrganizer(rejected, winnerProposal.proposal_key)
+
+    const contacts = []
+    for (const scenario of [accepted, canceled, rejected]) {
+      const [, detail] = await RequestGenerator.GET_supplier_proposal_by_key(scenario.proposal.proposal_key, scenario.supplier.headers)
+      contacts.push([detail.status, detail.organizer_contact])
+    }
+
+    assert.deepEqual(contacts, [
+      ['accepted', { name: 'RF10 Test User', email: accepted.organizer.user.email, phone: '11999999999' }],
+      ['canceled', { name: 'RF10 Test User', email: canceled.organizer.user.email, phone: '11999999999' }],
+      ['rejected', null],
+    ])
   })
 })
 

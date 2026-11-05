@@ -143,8 +143,11 @@ export class ProposalRepository {
               proposal.id, event.id AS event_id, event.end_date AS event_end_date,
               budget_item.type AS item_type, budget_item.quantity AS item_quantity,
               proposal.description, proposal.not_included, proposal.delivery_terms, proposal.payment_terms,
-              proposal.team, proposal.warranty, proposal.notes
+              proposal.team, proposal.warranty, proposal.notes, budget_item.estimated_value AS item_estimated_value,
+              organizer_user.name AS organizer_name, organizer_user.email AS organizer_email, organizer.phone AS organizer_phone
        ${SUPPLIER_PROPOSAL_JOINS}
+       INNER JOIN organizer ON organizer.id = event.organizer_id
+       INNER JOIN user AS organizer_user ON organizer_user.id = organizer.user_id
        WHERE proposal.supplier_id = :supplierId AND proposal.proposal_key = :proposalKey`,
       { replacements: { supplierId, proposalKey }, transaction: this.session, type: QueryTypes.SELECT },
     )
