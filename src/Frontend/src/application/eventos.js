@@ -372,7 +372,7 @@ export function formatarEventoParaExibicao(evento, itensDeCotacao = evento.budge
       orcamento: situacaoDoOrcamento(totalCustos, evento.budget_limit),
       itens,
       totalDeItens: itens.length,
-      propostas: [],
+      propostasRecebidas: itensDeFornecedores.filter((item) => item.propostasCount > 0),
       ticketEstimado,
       calculo,
       andamento,
