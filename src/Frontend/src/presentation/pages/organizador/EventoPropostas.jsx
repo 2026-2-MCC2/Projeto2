@@ -246,7 +246,7 @@ function PropostasDoItem({
           <h2 id="item-das-propostas">{item.description}</h2>
           <p>{apoio}</p>
         </div>
-        {!isMobile && item.proposals.length > 0 && (
+        {!isMobile && (
           <div className="visao" role="group" aria-label="Forma de ver as propostas">
             {VISOES.map((opcao) => (
               <button
