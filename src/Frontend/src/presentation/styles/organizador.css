@@ -2975,6 +2975,10 @@
 }
 
 .propostas-do-item__cabecalho {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
   margin-bottom: 0.875rem;
 }
 
@@ -3226,4 +3230,96 @@
 
 .linhas-de-dados a:hover {
   color: var(--texto-marca);
+}
+
+.lista-propostas {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--borda-padrao);
+  border-radius: 14px;
+  background: var(--fundo-superficie);
+  overflow: hidden;
+}
+
+.lista-propostas__linha {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1.4fr) minmax(0, 1fr) 11rem;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.875rem 1.25rem;
+  border-top: 1px solid var(--borda-padrao);
+  color: var(--texto-secundario);
+  font-size: 0.8125rem;
+}
+
+.lista-propostas__linha strong {
+  color: var(--texto-marca);
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+
+.lista-propostas__linha--destaque {
+  box-shadow: inset 3px 0 0 var(--acao-primaria);
+}
+
+.lista-propostas__linha--cabecalho {
+  border-top: 0;
+  background: var(--fundo-sutil);
+  color: var(--texto-terciario);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.lista-propostas__fornecedor {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.lista-propostas__fornecedor a {
+  color: var(--texto-primario);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.lista-propostas__fornecedor a:hover {
+  color: var(--texto-marca);
+}
+
+.lista-propostas__linha .botao {
+  padding: 0.5rem 0.75rem;
+}
+
+/* visão geral sem teto de gastos: barra vazia e o convite para definir */
+.progresso-orcamento--vazio {
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--fundo-sutil),
+    var(--fundo-sutil) 6px,
+    var(--fundo-superficie) 6px,
+    var(--fundo-superficie) 12px
+  );
+  border: 1px dashed var(--borda-padrao);
+}
+
+.orcamento-sem-teto {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.orcamento-sem-teto p {
+  margin: 0;
+  color: var(--texto-secundario);
+  font-size: 0.75rem;
+}
+
+.orcamento-sem-teto__botao {
+  flex-shrink: 0;
+  padding: 0.5rem 0.875rem;
+  font-size: 0.75rem;
 }
