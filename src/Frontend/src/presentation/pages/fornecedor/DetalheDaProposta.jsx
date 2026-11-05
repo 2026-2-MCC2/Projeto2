@@ -7,6 +7,7 @@ import {
   propostaPodeSerAlterada,
   retirarProposta,
 } from '../../../application/propostas.js'
+import { descartarRascunho } from '../../../application/rascunhosDePropostas.js'
 import { formatarData } from '../../../domain/formatacao.js'
 import { Carregando, ErroNaTela, Vazio } from '../../components/comum/EstadoDaTela.jsx'
 import { Modal } from '../../components/comum/Modal.jsx'
@@ -103,7 +104,10 @@ export function DetalheDaProposta() {
     setRetirando(true)
     try {
       await retirarProposta(proposalKey)
-      toast.sucesso('Proposta retirada', { descricao: resultado.proposta.item.description })
+      const { event, item } = resultado.proposta
+      // a edição deixada pela metade não pode virar o começo da proposta nova para o item
+      descartarRascunho(event.event_key, item.item_key)
+      toast.sucesso('Proposta retirada', { descricao: item.description })
       navigate(VOLTAR_PARA, { replace: true })
     } catch (falha) {
       // ex.: o organizador aceitou ou recusou no meio tempo ("…não pode mais ser alterada nem retirada.")
