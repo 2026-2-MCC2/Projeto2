@@ -143,17 +143,46 @@ const VISOES = [
   { valor: 'lista', nome: 'Ver em lista', icone: iconeLista },
 ]
 
+const idDaAba = (item) => `aba-item-${item.item_key}`
+
+const TECLAS_DAS_ABAS = {
+  ArrowRight: (indice, total) => (indice + 1) % total,
+  ArrowLeft: (indice, total) => (indice - 1 + total) % total,
+  Home: () => 0,
+  End: (_, total) => total - 1,
+}
+
+// abas da WAI-ARIA: só a aba ativa entra no Tab; as setas, Home e End trocam de item
 function AbasDosItens({ itens, itemAtual, aoEscolher }) {
+  function aoTeclar(evento) {
+    const proximo = TECLAS_DAS_ABAS[evento.key]
+    if (!proximo) return
+    evento.preventDefault()
+    const atual = itens.findIndex((item) => item.item_key === itemAtual.item_key)
+    const destino = itens[proximo(atual, itens.length)]
+    aoEscolher(destino.item_key)
+    document.getElementById(idDaAba(destino))?.focus()
+  }
+
   return (
-    <div className="itens-em-cotacao" role="group" aria-label="Itens em cotação">
+    <div
+      className="itens-em-cotacao"
+      role="tablist"
+      aria-label="Itens em cotação"
+      onKeyDown={aoTeclar}
+    >
       {itens.map((item) => {
         const atual = item.item_key === itemAtual.item_key
         return (
           <button
             key={item.item_key}
+            id={idDaAba(item)}
             type="button"
+            role="tab"
             className={`aba-item${atual ? ' aba-item--ativa' : ''}`}
-            aria-pressed={atual}
+            aria-selected={atual}
+            aria-controls="painel-das-propostas"
+            tabIndex={atual ? 0 : -1}
             onClick={() => aoEscolher(item.item_key)}
           >
             {item.description}
@@ -194,7 +223,11 @@ function PropostasDoItem({
     .join(' · ')
 
   return (
-    <section aria-labelledby="item-das-propostas">
+    <section
+      id="painel-das-propostas"
+      role={emLista ? undefined : 'tabpanel'}
+      aria-labelledby={emLista ? 'item-das-propostas' : idDaAba(item)}
+    >
       <header className="propostas-do-item__cabecalho">
         <div>
           <h2 id="item-das-propostas">{item.description}</h2>
