@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
 import { useFolhaArrastavel } from '../../hooks/useFolhaArrastavel.js'
 import { useValidacao } from '../../hooks/useValidacao.js'
@@ -26,6 +26,8 @@ export function Modal({
   const validacao = useValidacao()
   const caixa = useFocoPreso()
   const confirmar = acao?.aoConfirmar ?? aoFechar
+  // arrastar uma seleção de texto até o fundo dispara click nele: só fecha se o clique começou ali
+  const pressionouNoFundo = useRef(false)
 
   const Caixa = children ? 'form' : 'div'
   const propsDoFormulario = children
@@ -47,7 +49,16 @@ export function Modal({
   }, [aoFechar])
 
   return (
-    <div className="fundo-modal" ref={caixa} onClick={aoFechar}>
+    <div
+      className="fundo-modal"
+      ref={caixa}
+      onPointerDown={(evento) => {
+        pressionouNoFundo.current = evento.target === evento.currentTarget
+      }}
+      onClick={(evento) => {
+        if (pressionouNoFundo.current && evento.target === evento.currentTarget) aoFechar()
+      }}
+    >
       <Caixa
         className={`modal${largo ? ' modal--largo' : ''}${folha.expandida ? ' modal--expandida' : ''}${folha.arrasto ? ' modal--arrastando' : ''}`}
         role="dialog"
