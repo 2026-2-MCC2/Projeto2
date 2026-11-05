@@ -12,8 +12,17 @@ const ESTADOS = [
 const digitos = (texto) => texto.replace(/\D/g, '')
 
 // "R$ 49.800,00" → 49800 · "20%" → 20 · texto que não é número → NaN
+// "1.500,50", "1500.50" e "1,500.50" valem 1500,5; "20.000" vale 20000. Com vírgula e ponto, o que
+// vem por último é o decimal; só com ponto, ele é decimal quando vem seguido de 1 ou 2 dígitos no fim.
 export function paraNumero(texto) {
-  const limpo = texto.replace(/[R$\s%.]/g, '').replace(',', '.')
+  const semSimbolos = texto.replace(/[R$\s%]/g, '')
+  const ultimoPonto = semSimbolos.lastIndexOf('.')
+  const ultimaVirgula = semSimbolos.lastIndexOf(',')
+  const pontoDecimal =
+    ultimaVirgula === -1 ? /^\d+\.\d{1,2}$/.test(semSimbolos) : ultimoPonto > ultimaVirgula
+  const limpo = pontoDecimal
+    ? semSimbolos.replace(/,/g, '')
+    : semSimbolos.replace(/\./g, '').replace(',', '.')
   return limpo === '' ? NaN : Number(limpo)
 }
 
