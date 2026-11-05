@@ -9,6 +9,10 @@ const SORT_COLUMNS = Object.freeze({
   created_at: 'e.created_at',
 })
 
+// a proposta cancelada continua com selected = TRUE (é o que libera o contato do organizador para o
+// fornecedor que estava aceito), mas não é mais gasto do evento
+const IS_SELECTED_PROPOSAL = "(proposal.selected = TRUE OR proposal.status = 'accepted') AND proposal.status <> 'canceled'"
+
 export class AdminReportRepository {
   constructor(context) {
     this.session = context.dbSession
@@ -60,7 +64,7 @@ export class AdminReportRepository {
                 SUM(proposal.status = 'under_review') AS review_count,
                 SUM(proposal.status = 'accepted') AS accepted_count,
                 SUM(proposal.status = 'rejected') AS rejected_count,
-                SUM(CASE WHEN (proposal.selected = TRUE OR proposal.status = 'accepted')
+                SUM(CASE WHEN ${IS_SELECTED_PROPOSAL}
                          THEN proposal.amount ELSE 0 END) AS selected_total
          FROM budget_item
          INNER JOIN proposal ON proposal.budget_item_id = budget_item.id
@@ -78,7 +82,7 @@ export class AdminReportRepository {
          LEFT JOIN (
            SELECT proposal.budget_item_id, SUM(proposal.amount) AS selected_amount
            FROM proposal
-           WHERE (proposal.selected = TRUE OR proposal.status = 'accepted')
+           WHERE ${IS_SELECTED_PROPOSAL}
            GROUP BY proposal.budget_item_id
          ) AS selected_for_item ON selected_for_item.budget_item_id = budget_item.id
          GROUP BY budget_item.event_id
@@ -163,7 +167,7 @@ export class AdminReportRepository {
           INNER JOIN event AS e ON e.id = budget_item.event_id
           INNER JOIN organizer ON organizer.id = e.organizer_id
           INNER JOIN user AS organizer_user ON organizer_user.id = organizer.user_id
-          WHERE (proposal.selected = TRUE OR proposal.status = 'accepted') AND ${where.slice('WHERE '.length)}) AS selected_proposals_total`,
+          WHERE ${IS_SELECTED_PROPOSAL} AND ${where.slice('WHERE '.length)}) AS selected_proposals_total`,
       { replacements: replacements, type: QueryTypes.SELECT, transaction: this.session },
     )
 
@@ -191,21 +195,15 @@ function eventFilter(params) {
     conditions.push('LOCATE(LOWER(:organizerName), LOWER(organizer_user.name)) > 0')
     replacements.organizerName = params.organizerName
   }
+  // start_date fica em UTC; o período escolhido pelo admin é em dias de Brasília (sem horário de verão desde 2019)
   if (params.from !== undefined) {
-    conditions.push('e.start_date >= :fromDate')
-    conditions.push('e.start_date < :toExclusive')
-    replacements.fromDate = `${params.from} 00:00:00`
-    replacements.toExclusive = nextDate(params.to)
+    conditions.push("DATE(CONVERT_TZ(e.start_date, '+00:00', '-03:00')) BETWEEN :fromDate AND :toDate")
+    replacements.fromDate = params.from
+    replacements.toDate = params.to
   }
 
   return {
     where: `WHERE 1 = 1${conditions.length ? ` AND ${conditions.join(' AND ')}` : ''}`,
     replacements: replacements,
   }
-}
-
-function nextDate(dateString) {
-  const date = new Date(`${dateString}T00:00:00.000Z`)
-  date.setUTCDate(date.getUTCDate() + 1)
-  return `${date.toISOString().slice(0, 10)} 00:00:00`
 }

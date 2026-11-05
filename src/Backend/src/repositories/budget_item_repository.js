@@ -43,8 +43,10 @@ export class BudgetItemRepository {
     return BudgetItem.findOne(options)
   }
 
+  // FOR SHARE enxerga a proposta confirmada enquanto a edição esperava a trava do item; com a leitura
+  // comum, o item seria apagado e o ON DELETE CASCADE levaria a proposta junto
   async hasProposals(itemId) {
-    const proposals = await sequelize.query('SELECT 1 FROM proposal WHERE budget_item_id = ? LIMIT 1', {
+    const proposals = await sequelize.query('SELECT 1 FROM proposal WHERE budget_item_id = ? LIMIT 1 FOR SHARE', {
       replacements: [itemId],
       transaction: this.session,
       type: QueryTypes.SELECT,

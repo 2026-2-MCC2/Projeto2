@@ -38,13 +38,16 @@ export class ProposalRepository {
               proposal.description, proposal.not_included, proposal.delivery_terms, proposal.payment_terms,
               proposal.team, proposal.warranty,
               CASE WHEN proposal.valid_until < ${TODAY_IN_BRAZIL} THEN TRUE ELSE FALSE END AS is_expired,
-              (SELECT COALESCE(SUM(internal_cost.amount), 0)
-               FROM internal_cost WHERE internal_cost.event_id = event.id) +
-              (SELECT COALESCE(SUM(accepted_proposal.amount), 0)
-               FROM budget_item AS accepted_item
-               INNER JOIN proposal AS accepted_proposal ON accepted_proposal.budget_item_id = accepted_item.id
-               WHERE accepted_item.event_id = event.id AND accepted_proposal.status = 'accepted') AS total_cost
+              event_total.total_cost
        FROM event
+       CROSS JOIN (
+         SELECT (SELECT COALESCE(SUM(internal_cost.amount), 0)
+                 FROM internal_cost WHERE internal_cost.event_id = :eventId) +
+                (SELECT COALESCE(SUM(accepted_proposal.amount), 0)
+                 FROM budget_item AS accepted_item
+                 INNER JOIN proposal AS accepted_proposal ON accepted_proposal.budget_item_id = accepted_item.id
+                 WHERE accepted_item.event_id = :eventId AND accepted_proposal.status = 'accepted') AS total_cost
+       ) AS event_total
        LEFT JOIN budget_item ON budget_item.event_id = event.id
        LEFT JOIN item_category ON item_category.id = budget_item.category_id
        LEFT JOIN proposal ON proposal.budget_item_id = budget_item.id
@@ -57,10 +60,12 @@ export class ProposalRepository {
     )
   }
 
-  // depois do aceite o item para de receber propostas; o organizador ainda troca entre as recebidas
+  // depois do aceite o item para de receber propostas; o organizador ainda troca entre as recebidas.
+  // FOR SHARE lê o que já foi confirmado: a leitura comum usa a foto do banco do começo da transação
+  // e não veria um aceite gravado enquanto o envio esperava a trava do item
   async hasAcceptedProposal(budgetItemId) {
     const [row] = await sequelize.query(
-      `SELECT COUNT(*) AS accepted FROM proposal WHERE budget_item_id = :budgetItemId AND status = 'accepted'`,
+      `SELECT COUNT(*) AS accepted FROM proposal WHERE budget_item_id = :budgetItemId AND status = 'accepted' FOR SHARE`,
       { replacements: { budgetItemId }, transaction: this.session, type: QueryTypes.SELECT },
     )
     return Number(row.accepted) > 0
@@ -223,7 +228,8 @@ export class ProposalRepository {
     await proposal.destroy({ transaction: this.session })
   }
 
-  // propostas ainda em jogo (enviada, em análise ou aceita), com o fornecedor que precisa saber do cancelamento
+  // propostas ainda em jogo (enviada, em análise ou aceita), com o fornecedor que precisa saber do cancelamento.
+  // trava só as propostas: as linhas de item, fornecedor e usuário da junção ficam livres
   async getOpenProposalsOfEventForUpdate(eventId) {
     return sequelize.query(
       `SELECT proposal.id, proposal.proposal_key, proposal.status, proposal.amount, budget_item.description AS item_description,
@@ -234,7 +240,7 @@ export class ProposalRepository {
        INNER JOIN user AS supplier_user ON supplier_user.id = supplier.user_id
        WHERE budget_item.event_id = :eventId AND proposal.status IN ('sent', 'under_review', 'accepted')
        ORDER BY proposal.id
-       FOR UPDATE`,
+       FOR UPDATE OF proposal`,
       { replacements: { eventId }, transaction: this.session, type: QueryTypes.SELECT },
     )
   }

@@ -54,7 +54,9 @@ export class SupplierEventRepository {
     return { events, total: Number(countResult.total) }
   }
 
-  // lock: trava o evento (FOR SHARE) até o commit, para ele não sair de cotação no meio do envio da proposta
+  // lock: trava só a linha do evento (FOR SHARE) até o commit, para ele não sair de cotação no meio do
+  // envio da proposta. O EXISTS das categorias não é travado; quem trava o item e a categoria do
+  // fornecedor é o getAvailableItem
   async getAvailableEvent(supplierId, eventKey, { lock = false } = {}) {
     const events = await sequelize.query(
       `SELECT event.id, event.event_key, event.name, event.category, event.description,
