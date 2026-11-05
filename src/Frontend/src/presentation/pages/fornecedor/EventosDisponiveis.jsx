@@ -48,6 +48,8 @@ export function EventosDisponiveis() {
   const [filtro, setFiltro] = useState('Minhas categorias')
   const [tentativa, setTentativa] = useState(0)
   const [carregandoMais, setCarregandoMais] = useState(false)
+  // guardado com o termo: o erro de uma busca anterior não aparece na lista de outra
+  const [erroAoCarregarMais, setErroAoCarregarMais] = useState({ termo: null, mensagem: '' })
   const [resultado, setResultado] = useState({ termo: null, data: [], erro: null })
   const termo = busca.trim()
   const carregando = resultado.termo !== termo
@@ -75,6 +77,7 @@ export function EventosDisponiveis() {
 
   async function carregarMais() {
     setCarregandoMais(true)
+    setErroAoCarregarMais({ termo: null, mensagem: '' })
     try {
       const pagina = resultado.pagina + 1
       const resposta = await listarEventosDisponiveis({
@@ -84,11 +87,11 @@ export function EventosDisponiveis() {
       })
       setResultado((atual) =>
         atual.termo === termo
-          ? { ...resposta, termo, pagina, data: [...atual.data, ...resposta.data], erro: null }
+          ? { ...resposta, termo, pagina, data: [...atual.data, ...resposta.data] }
           : atual,
       )
-    } catch (erro) {
-      setResultado((atual) => (atual.termo === termo ? { ...atual, erro } : atual))
+    } catch (falha) {
+      setErroAoCarregarMais({ termo, mensagem: falha.message })
     } finally {
       setCarregandoMais(false)
     }
@@ -148,6 +151,11 @@ export function EventosDisponiveis() {
                 <CartaoEvento key={evento.event_key} evento={evento} />
               ))}
             </section>
+            {erroAoCarregarMais.termo === termo && (
+              <p className="mensagem-erro" role="alert">
+                {erroAoCarregarMais.mensagem}
+              </p>
+            )}
             {!dados.is_last_page && (
               <button
                 type="button"
