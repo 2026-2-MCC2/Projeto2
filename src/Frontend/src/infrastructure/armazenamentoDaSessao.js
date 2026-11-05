@@ -3,6 +3,7 @@
 const CHAVE = 'trocaticket.sessao'
 
 let sessaoEmMemoria = null
+const ouvintesDoFimDaSessao = new Set()
 
 export function lerSessao() {
   if (sessaoEmMemoria) return sessaoEmMemoria
@@ -32,4 +33,10 @@ export function limparSessao() {
   } catch {
     // nada guardado para limpar
   }
+  ouvintesDoFimDaSessao.forEach((ouvinte) => ouvinte())
+}
+
+// avisa quem guarda dados da conta em memória, inclusive quando é a API que encerra a sessão vencida
+export function aoLimparSessao(ouvinte) {
+  ouvintesDoFimDaSessao.add(ouvinte)
 }

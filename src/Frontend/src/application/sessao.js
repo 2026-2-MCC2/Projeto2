@@ -1,7 +1,12 @@
 import { api } from '../infrastructure/api.js'
 import { esquecerEventosDaSessao } from './eventos.js'
 import { esquecerRascunhosDePropostas } from './rascunhosDePropostas.js'
-import { guardarSessao, lerSessao, limparSessao } from '../infrastructure/armazenamentoDaSessao.js'
+import {
+  aoLimparSessao,
+  guardarSessao,
+  lerSessao,
+  limparSessao,
+} from '../infrastructure/armazenamentoDaSessao.js'
 import { obterDadosDoUsuarioAtual } from '../infrastructure/usuarios.js'
 
 // também usada quando alguém tenta abrir a área de outro perfil
@@ -19,7 +24,7 @@ export async function entrar({ email, senha }) {
     nome: resposta.user.name,
     perfil: resposta.user.profile,
   }
-  esquecerDadosDaConta()
+  limparSessao()
   guardarSessao({ token: resposta.token, usuario: usuario })
   return usuario
 }
@@ -49,14 +54,13 @@ export function acompanhamentoDoCadastro(falhaNoLogin) {
 }
 
 // o que ficou em memória de uma conta não pode aparecer para a próxima pessoa que usar a aba
-function esquecerDadosDaConta() {
+aoLimparSessao(() => {
   esquecerEventosDaSessao()
   esquecerRascunhosDePropostas()
-}
+})
 
 export function sair() {
   limparSessao()
-  esquecerDadosDaConta()
 }
 
 export function usuarioAtual() {
