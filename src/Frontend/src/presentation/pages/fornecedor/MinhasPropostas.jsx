@@ -92,13 +92,12 @@ export function MinhasPropostas() {
 
   useEffect(() => {
     let telaAberta = true
-    listarMinhasPropostas({ limit: POR_PAGINA, page: 0 })
+    listarMinhasPropostas({ limit: POR_PAGINA })
       .then((pagina) => {
         if (!telaAberta) return
         setEstado({
           situacao: 'pronto',
           propostas: pagina.data,
-          pagina: 0,
           temMais: !pagina.is_last_page,
           totais: pagina.counts,
         })
@@ -121,12 +120,14 @@ export function MinhasPropostas() {
     setCarregandoMais(true)
     setErroAoCarregarMais('')
     try {
-      const proximaPagina = estado.pagina + 1
-      const pagina = await listarMinhasPropostas({ limit: POR_PAGINA, page: proximaPagina })
+      const ultimaMostrada = estado.propostas.at(-1)
+      const pagina = await listarMinhasPropostas({
+        limit: POR_PAGINA,
+        depoisDe: ultimaMostrada.proposal_key,
+      })
       setEstado((atual) => ({
         ...atual,
         propostas: [...atual.propostas, ...pagina.data],
-        pagina: proximaPagina,
         temMais: !pagina.is_last_page,
       }))
     } catch (falha) {

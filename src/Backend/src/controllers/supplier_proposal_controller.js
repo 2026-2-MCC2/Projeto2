@@ -83,21 +83,41 @@ export class SupplierProposalController extends BaseController {
     return SupplierProposalDto.fromCreated(proposal)
   }
 
-  async getProposals(userKey, { status, limit, page }) {
+  async getProposals(userKey, { status, limit, page, after }) {
     if (status !== undefined && !Object.values(PROPOSAL_STATUSES).includes(status)) {
       throw new InvalidParameter(`The "status" parameter is invalid. Status ${status} does not exist.`)
     }
 
     const supplier = await getSupplierOfUser(this.userRepository, userKey)
+    const counts = await this.proposalRepository.getSupplierProposalCounts(supplier.id)
+
+    if (after !== undefined) {
+      return this.#getProposalsAfter(supplier.id, { status, limit, after }, counts)
+    }
+
     const offset = page * limit
     const { proposals, total } = await this.proposalRepository.getSupplierProposals(supplier.id, { status, limit, offset })
-    const counts = await this.proposalRepository.getSupplierProposalCounts(supplier.id)
 
     return {
       data: SupplierProposalDto.fromList(proposals),
       total,
       is_last_page: offset + proposals.length >= total,
       counts: toStatusCounts(counts),
+    }
+  }
+
+  async #getProposalsAfter(supplierId, { status, limit, after }, counts) {
+    if (!(await this.proposalRepository.getSupplierProposalByKey(supplierId, after))) {
+      throw new InvalidParameter(`The "after" parameter is invalid. Proposal ${after} does not exist.`)
+    }
+
+    const rows = await this.proposalRepository.getSupplierProposalsAfter(supplierId, { status, limit, afterProposalKey: after })
+    const statusCounts = toStatusCounts(counts)
+    return {
+      data: SupplierProposalDto.fromList(rows.slice(0, limit)),
+      total: status ? statusCounts[status] : statusCounts.all,
+      is_last_page: rows.length <= limit,
+      counts: statusCounts,
     }
   }
 

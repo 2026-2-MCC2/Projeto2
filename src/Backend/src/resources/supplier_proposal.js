@@ -25,6 +25,7 @@ export class SupplierProposalResource {
       status: getParam(req, 'status'),
       limit: getParamAsInt(req, 'limit', { minValue: 1, maxValue: 100, default: 20 }),
       page: getParamAsInt(req, 'page', { minValue: 0, maxValue: 10000, default: 0 }),
+      after: getParam(req, 'after'),
     })
 
     res.status(200).json(proposals)

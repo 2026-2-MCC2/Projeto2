@@ -122,6 +122,40 @@ describe('GET /supplier/proposals', () => {
     assert.equal(response.total, 1)
     assert.deepEqual(response.counts, { all: 2, sent: 1, under_review: 0, accepted: 1, rejected: 0 })
   })
+
+  test('a próxima página parte da última proposta mostrada, sem repetir nem pular com proposta nova', async () => {
+    const scenario = await createScenario()
+    const { supplier, event, items, proposal } = scenario
+    const second = await ObjectGenerator.sendProposal(event.event_key, items[1].item_key, supplier.headers)
+
+    const [, firstPage] = await RequestGenerator.GET_supplier_proposals({ limit: 1 }, supplier.headers)
+    assert.equal(firstPage.data[0].proposal_key, second.proposal_key)
+
+    // uma proposta nova entre as páginas deslocaria a página 1 por número
+    const { event: otherEvent, items: otherItems } = await ObjectGenerator.createEventWithItems(scenario.organizer.headers)
+    await ObjectGenerator.sendProposal(otherEvent.event_key, otherItems[0].item_key, supplier.headers)
+
+    const [status, nextPage] = await RequestGenerator.GET_supplier_proposals({ limit: 1, after: second.proposal_key }, supplier.headers)
+
+    assert.equal(status, 200)
+    assert.deepEqual(
+      nextPage.data.map((item) => item.proposal_key),
+      [proposal.proposal_key],
+    )
+    assert.equal(nextPage.is_last_page, true)
+  })
+
+  test('after com proposta que não é do fornecedor responde 400', async () => {
+    const { supplier } = await createScenario()
+
+    const [status, response] = await RequestGenerator.GET_supplier_proposals(
+      { after: '00000000-0000-4000-8000-000000000000' },
+      supplier.headers,
+    )
+
+    assert.equal(status, 400)
+    assert.equal(response.code, 'APP000010')
+  })
 })
 
 describe('GET /supplier/proposals/:proposal_key', () => {

@@ -107,6 +107,25 @@ export class ProposalRepository {
     return { proposals, total: Number(countResult.total) }
   }
 
+  // próxima página a partir da última proposta mostrada: proposta nova ou retirada no meio não desloca
+  // a lista. Busca uma a mais para saber se ainda há página depois.
+  async getSupplierProposalsAfter(supplierId, { status, limit, afterProposalKey }) {
+    return sequelize.query(
+      `SELECT ${SUPPLIER_PROPOSAL_COLUMNS}
+       ${SUPPLIER_PROPOSAL_JOINS}
+       INNER JOIN proposal AS last_shown ON last_shown.proposal_key = :afterProposalKey AND last_shown.supplier_id = :supplierId
+       WHERE proposal.supplier_id = :supplierId AND (:status IS NULL OR proposal.status = :status)
+         AND (proposal.sent_at < last_shown.sent_at OR (proposal.sent_at = last_shown.sent_at AND proposal.id < last_shown.id))
+       ORDER BY proposal.sent_at DESC, proposal.id DESC
+       LIMIT :limitPlusOne`,
+      {
+        replacements: { supplierId, status: status ?? null, afterProposalKey, limitPlusOne: limit + 1 },
+        transaction: this.session,
+        type: QueryTypes.SELECT,
+      },
+    )
+  }
+
   // quantas propostas o fornecedor tem em cada status, sem o filtro da lista (os cartões do topo)
   async getSupplierProposalCounts(supplierId) {
     return sequelize.query(`SELECT status, COUNT(*) AS total FROM proposal WHERE supplier_id = :supplierId GROUP BY status`, {
