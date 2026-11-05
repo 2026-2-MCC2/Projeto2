@@ -2,6 +2,7 @@ import { BotaoAcessibilidade } from '../components/comum/BotaoAcessibilidade.jsx
 import { PularParaConteudo } from '../components/comum/PularParaConteudo.jsx'
 import { TituloDaPagina } from '../components/comum/TituloDaPagina.jsx'
 import { Ingresso } from '../components/landing/Ingresso.jsx'
+import { NavbarLanding } from '../components/landing/NavbarLanding.jsx'
 import '../styles/landing.css'
 
 // TEMPORÁRIO: as três referências do Figma (passo 607-528, cenário 607-538, chamada 609-416)
@@ -71,7 +72,7 @@ export function Landing() {
       <TituloDaPagina titulo="Planejamento e precificação de eventos" />
       <PularParaConteudo />
 
-      <header className="landing__topo">{/* navbar */}</header>
+      <NavbarLanding />
 
       <main id="conteudo" tabIndex={-1}>
         {/* TEMPORÁRIO: vitrine do componente Ingresso, sai quando as seções entrarem */}

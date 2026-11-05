@@ -12,6 +12,194 @@
   }
 }
 
+/* ---------- botão (LP · Botão) ---------- */
+
+.botao-landing {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 13px 22px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.8824rem; /* 15px */
+  font-weight: 600;
+  line-height: normal;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.botao-landing--primario {
+  background: var(--acao-primaria);
+  color: var(--acao-sobre-primaria);
+}
+
+.botao-landing--secundario {
+  border-color: var(--borda-forte);
+  background: var(--fundo-superficie);
+  color: var(--texto-primario);
+}
+
+.botao-landing--contorno-claro {
+  border-color: var(--acao-sobre-primaria);
+  background: transparent;
+  color: var(--acao-sobre-primaria);
+}
+
+@media (hover: hover) {
+  .botao-landing--primario:hover {
+    background: color-mix(in srgb, var(--acao-primaria) 88%, #000);
+  }
+
+  .botao-landing--secundario:hover {
+    background: var(--fundo-sutil);
+  }
+
+  .botao-landing--contorno-claro:hover {
+    background: rgb(255 255 255 / 10%);
+  }
+}
+
+/* ---------- navbar ---------- */
+
+.landing-topo {
+  position: relative;
+  z-index: 10; /* o menu aberto passa por cima do conteúdo, mas fica sob os botões flutuantes */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  /* conteúdo de 1200px centralizado: 120px de cada lado na tela de 1440px do Figma */
+  padding: 18px max(32px, calc((100% - 1200px) / 2));
+  border-bottom: 1px solid var(--borda-padrao);
+  background: var(--fundo-superficie);
+}
+
+.landing-topo__marca {
+  display: flex;
+  border-radius: 8px;
+}
+
+.landing-topo__logo {
+  --logo-altura: 54px;
+}
+
+/* o PNG do Figma já traz a margem do desenho; o negativo é mais justo e ganha o mesmo recuo */
+.landing-topo__logo .logotipo__claro {
+  margin-left: 0;
+}
+
+.landing-topo__logo .logotipo__negativo {
+  margin-left: 0.1em;
+}
+
+.landing-topo__alternar {
+  display: none;
+}
+
+.landing-topo__menu {
+  display: flex;
+  flex: 1;
+  align-items: center;
+}
+
+.landing-topo__links {
+  display: flex;
+  gap: clamp(24px, 2.5vw, 36px);
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+}
+
+.landing-topo__link {
+  border-radius: 4px;
+  color: var(--texto-secundario);
+  font-size: 0.8824rem; /* 15px */
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.landing-topo__acoes {
+  display: flex;
+  gap: 12px;
+}
+
+@media (hover: hover) {
+  .landing-topo__link:hover {
+    color: var(--texto-primario);
+  }
+}
+
+/* abaixo disso os links e os botões não cabem numa linha (o mesmo valor do NavbarLanding.jsx) */
+@media (max-width: 1100px) {
+  .landing-topo {
+    padding: 12px 16px 12px 20px;
+  }
+
+  .landing-topo__logo {
+    --logo-altura: 44px;
+  }
+
+  .landing-topo__alternar {
+    --icone-cor: var(--texto-primario);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    border: 1px solid var(--borda-padrao);
+    border-radius: 10px;
+    background: var(--fundo-superficie);
+    cursor: pointer;
+  }
+
+  /* o X reaproveitado tem 15px; aqui ocupa o mesmo espaço do ícone de menu */
+  .landing-topo__alternar .icone {
+    width: 24px;
+    height: 24px;
+  }
+
+  .landing-topo__menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    left: 0;
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 20px;
+    padding: 8px 20px 24px;
+    border-bottom: 1px solid var(--borda-padrao);
+    background: var(--fundo-superficie);
+    box-shadow: 0 12px 24px rgb(15 23 42 / 8%);
+  }
+
+  .landing-topo__menu--aberto {
+    display: flex;
+  }
+
+  .landing-topo__links {
+    flex-direction: column;
+    gap: 0;
+    margin: 0;
+  }
+
+  .landing-topo__link {
+    display: block;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--borda-padrao);
+    font-size: 1rem;
+  }
+
+  .landing-topo__acoes {
+    flex-direction: column;
+  }
+}
+
 /* ---------- TEMPORÁRIO: vitrine do Ingresso (sai junto com DemonstracaoDoIngresso) ---------- */
 
 .demo-ingresso {
