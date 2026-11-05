@@ -47,8 +47,10 @@ export const PASSWORD_RESET_COOLDOWN_SECONDS = Number(process.env.PASSWORD_RESET
 // Limite de tentativas nas rotas de login, cadastro e senha (ver middlewares/rate_limit.js).
 // Fica na memória de cada instância: com até 3 instâncias no Cloud Run, o limite real pode chegar ao triplo.
 export const RATE_LIMIT_WINDOW_SECONDS = Number(process.env.RATE_LIMIT_WINDOW_SECONDS ?? 900)
-// requisições por IP em cada rota limitada, dentro da janela
-export const RATE_LIMIT_MAX_REQUESTS_PER_IP = Number(process.env.RATE_LIMIT_MAX_REQUESTS_PER_IP ?? 30)
+// requisições por IP em cada rota limitada, dentro da janela. Folgado de propósito: numa rede com um IP
+// público só (Wi-Fi da faculdade, empresa, CGNAT da operadora) todo mundo divide a mesma cota; quem
+// segura a adivinhação de senha de uma conta é o limite por IP e e-mail, bem mais apertado
+export const RATE_LIMIT_MAX_REQUESTS_PER_IP = Number(process.env.RATE_LIMIT_MAX_REQUESTS_PER_IP ?? 300)
 // logins com senha errada para o mesmo e-mail vindos do mesmo IP; um login certo zera a contagem
 export const RATE_LIMIT_MAX_FAILED_LOGINS_PER_EMAIL = Number(process.env.RATE_LIMIT_MAX_FAILED_LOGINS_PER_EMAIL ?? 10)
 
