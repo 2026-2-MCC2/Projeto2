@@ -478,6 +478,12 @@ button.calendario__titulo:focus-visible {
 }
 
 .calendario__grade {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.calendario__semana {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 3px;

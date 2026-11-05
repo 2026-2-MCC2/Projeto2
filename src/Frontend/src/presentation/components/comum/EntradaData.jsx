@@ -59,6 +59,8 @@ export function EntradaData({ onChange, semPassado = false, periodo = null, ...p
         type="button"
         className="entrada-data__calendario"
         aria-label="Abrir calendário"
+        aria-haspopup="dialog"
+        aria-expanded={aberto}
         onClick={alternarCalendario}
         onMouseDown={ignorarCliqueForaDoCalendario}
       >
