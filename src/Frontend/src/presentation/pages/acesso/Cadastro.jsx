@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AcessoLayout } from '../../components/acesso/AcessoLayout.jsx'
 import { CadastroMobile } from '../../components/acesso/CadastroMobile.jsx'
@@ -6,30 +5,17 @@ import { CampoCategoriasDeAtuacao } from '../../components/acesso/CampoCategoria
 import { RetornoDoEnvio } from '../../components/acesso/RetornoDoEnvio.jsx'
 import { Icone } from '../../components/comum/Icone.jsx'
 import { ProgressoEtapas } from '../../components/comum/ProgressoEtapas.jsx'
-import { useEnvioCadastro } from '../../hooks/useEnvioCadastro.js'
-import { useVerificacaoDeCnpj } from '../../hooks/useVerificacaoDeCnpj.js'
+import {
+  ETAPAS_DO_CADASTRO,
+  PERFIS_DO_CADASTRO,
+  REGRAS_ENTRE_CAMPOS,
+  useFormularioDeCadastro,
+} from '../../hooks/useFormularioDeCadastro.js'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
 import { useValidacao } from '../../hooks/useValidacao.js'
-import { validarConfirmacaoSenha } from '../../../domain/validacao.js'
 import fotoMusica from '../../assets/acesso/foto-musica.jpg'
 import perfilSelecionado from '../../assets/acesso/perfil-selecionado.svg'
 import { EntradaDeSenha } from '../../components/comum/EntradaDeSenha.jsx'
-
-const ETAPAS = ['Perfil', 'Dados da empresa', 'Acesso']
-const ETAPA_DO_CNPJ = 2
-
-const PERFIS = [
-  {
-    id: 'organizador',
-    nome: 'Organizador',
-    resumo: 'Cria eventos, cadastra itens de custo, recebe e compara propostas.',
-  },
-  {
-    id: 'fornecedor',
-    nome: 'Fornecedor',
-    resumo: 'Consulta eventos abertos e envia propostas para os itens de custo.',
-  },
-]
 
 const TITULOS_DAS_ETAPAS = {
   1: {
@@ -46,62 +32,18 @@ const TITULOS_DAS_ETAPAS = {
   },
 }
 
-const DADOS_INICIAIS = {
-  nome: '',
-  categorias: [],
-  cnpj: '',
-  telefone: '',
-  email: '',
-  senha: '',
-  confirmacaoSenha: '',
-}
-
 export function Cadastro() {
   const isMobile = useIsMobile()
-  const [etapa, setEtapa] = useState(1)
-  const [perfil, setPerfil] = useState('organizador')
-  const [dados, setDados] = useState(DADOS_INICIAIS)
-  const validacao = useValidacao({
-    confirmacaoSenha: (valor, valores) => validarConfirmacaoSenha(valor, valores.senha),
-  })
-  const { enviar, enviando, erro } = useEnvioCadastro()
-  const { verificando, erroDoCnpj, cnpjEstaLivre, limparErroDoCnpj } = useVerificacaoDeCnpj()
-
-  function preencher(campo) {
-    return (evento) => {
-      if (campo === 'cnpj') limparErroDoCnpj()
-      setDados({ ...dados, [campo]: evento.target.value })
-    }
-  }
-
-  // categorias são só do fornecedor: recomeçam vazias ao trocar de perfil
-  function escolherPerfil(novoPerfil) {
-    setPerfil(novoPerfil)
-    setDados({ ...dados, categorias: [] })
-  }
-
-  function voltar() {
-    if (etapa > 1) {
-      setEtapa(etapa - 1)
-    }
-  }
-
-  async function aoEnviar(evento) {
-    evento.preventDefault()
-
-    if (etapa === ETAPA_DO_CNPJ && !(await cnpjEstaLivre(dados.cnpj))) return
-
-    if (etapa < ETAPAS.length) {
-      setEtapa(etapa + 1)
-      return
-    }
-
-    enviar({ ...dados, perfil })
-  }
+  const formulario = useFormularioDeCadastro()
+  const validacao = useValidacao(REGRAS_ENTRE_CAMPOS)
 
   if (isMobile) {
-    return <CadastroMobile />
+    return <CadastroMobile formulario={formulario} />
   }
+
+  const { etapa, dados, preencher, escolherPerfil, escolherCategorias, voltarEtapa, avancar } =
+    formulario
+  const { enviando, erro, verificando, erroDoCnpj } = formulario
 
   return (
     <AcessoLayout
@@ -117,28 +59,28 @@ export function Cadastro() {
       }
       descricao="Cadastre-se para planejar custos, receber propostas de fornecedores e descobrir o preço justo do ingresso."
     >
-      <ProgressoEtapas etapas={ETAPAS} etapaAtual={etapa} />
+      <ProgressoEtapas etapas={ETAPAS_DO_CADASTRO} etapaAtual={etapa} />
 
       <header className="acesso__cabecalho">
         <h1>{TITULOS_DAS_ETAPAS[etapa].titulo}</h1>
         <p>{TITULOS_DAS_ETAPAS[etapa].subtitulo}</p>
       </header>
 
-      <form className="acesso__campos" onSubmit={aoEnviar} {...validacao}>
+      <form className="acesso__campos" onSubmit={avancar} {...validacao}>
         {etapa === 1 && (
           <>
             <div className="acesso__perfis">
-              {PERFIS.map((opcao) => (
+              {PERFIS_DO_CADASTRO.map((opcao) => (
                 <button
                   key={opcao.id}
                   type="button"
-                  aria-pressed={perfil === opcao.id}
-                  className={`etapas__perfil${perfil === opcao.id ? ' etapas__perfil--ativo' : ''}`}
+                  aria-pressed={dados.perfil === opcao.id}
+                  className={`etapas__perfil${dados.perfil === opcao.id ? ' etapas__perfil--ativo' : ''}`}
                   onClick={() => escolherPerfil(opcao.id)}
                 >
                   <span className="etapas__perfil-nome">
                     <strong>{opcao.nome}</strong>
-                    {perfil === opcao.id && <Icone src={perfilSelecionado} />}
+                    {dados.perfil === opcao.id && <Icone src={perfilSelecionado} />}
                   </span>
                   <span className="etapas__perfil-resumo">{opcao.resumo}</span>
                 </button>
@@ -201,10 +143,10 @@ export function Cadastro() {
               </label>
             </div>
 
-            {perfil === 'fornecedor' && (
+            {dados.perfil === 'fornecedor' && (
               <CampoCategoriasDeAtuacao
                 selecionadas={dados.categorias}
-                aoMudar={(categorias) => setDados({ ...dados, categorias })}
+                aoMudar={escolherCategorias}
               />
             )}
 
@@ -214,7 +156,7 @@ export function Cadastro() {
               <button
                 type="button"
                 className="acesso__botao acesso__botao--secundario"
-                onClick={voltar}
+                onClick={voltarEtapa}
               >
                 Voltar
               </button>
@@ -279,7 +221,7 @@ export function Cadastro() {
               <button
                 type="button"
                 className="acesso__botao acesso__botao--secundario"
-                onClick={voltar}
+                onClick={voltarEtapa}
               >
                 Voltar
               </button>

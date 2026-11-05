@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { BotaoAcessibilidade } from '../comum/BotaoAcessibilidade.jsx'
 import { Logotipo } from '../comum/Logotipo.jsx'
 import { useNavigate } from 'react-router-dom'
@@ -7,89 +6,37 @@ import { ProgressoEtapas } from '../comum/ProgressoEtapas.jsx'
 import { TituloDaPagina } from '../comum/TituloDaPagina.jsx'
 import { CampoCategoriasDeAtuacao } from './CampoCategoriasDeAtuacao.jsx'
 import { RetornoDoEnvio } from './RetornoDoEnvio.jsx'
-import { useEnvioCadastro } from '../../hooks/useEnvioCadastro.js'
-import { useVerificacaoDeCnpj } from '../../hooks/useVerificacaoDeCnpj.js'
+import {
+  ETAPAS_DO_CADASTRO,
+  PERFIS_DO_CADASTRO,
+  REGRAS_ENTRE_CAMPOS,
+} from '../../hooks/useFormularioDeCadastro.js'
 import { useValidacao } from '../../hooks/useValidacao.js'
-import { validarConfirmacaoSenha } from '../../../domain/validacao.js'
 import setaVoltar from '../../assets/acesso/seta-voltar.svg'
 import perfilSelecionado from '../../assets/acesso/perfil-selecionado.svg'
 import '../../styles/acesso.css'
 import { EntradaDeSenha } from '../comum/EntradaDeSenha.jsx'
 
-const ETAPAS = ['Perfil', 'Dados da empresa', 'Acesso']
-const ETAPA_DO_CNPJ = 2
-
-const PERFIS = [
-  {
-    id: 'organizador',
-    nome: 'Organizador',
-    resumo: 'Cria eventos, cadastra itens de custo, recebe e compara propostas.',
-  },
-  {
-    id: 'fornecedor',
-    nome: 'Fornecedor',
-    resumo: 'Consulta eventos abertos e envia propostas para os itens de custo.',
-  },
-]
-
-const DADOS_INICIAIS = {
-  perfil: 'organizador',
-  razaoSocial: '',
-  cnpj: '',
-  telefone: '',
-  categorias: [],
-  email: '',
-  senha: '',
-  confirmacaoSenha: '',
-}
-
-function textoDoBotao({ etapa, enviando, verificando }) {
+function textoDoBotao({ naUltimaEtapa, enviando, verificando }) {
   if (verificando) return 'Verificando...'
-  if (etapa < ETAPAS.length) return 'Continuar'
+  if (!naUltimaEtapa) return 'Continuar'
   return enviando ? 'Enviando...' : 'Enviar cadastro'
 }
 
-export function CadastroMobile() {
+// o estado vem da página Cadastro (useFormularioDeCadastro), que alterna entre esta tela e a desktop
+export function CadastroMobile({ formulario }) {
   const navegar = useNavigate()
-  const [etapa, setEtapa] = useState(1)
-  const [dados, setDados] = useState(DADOS_INICIAIS)
-  const validacao = useValidacao({
-    confirmacaoSenha: (valor, valores) => validarConfirmacaoSenha(valor, valores.senha),
-  })
-  const { enviar, enviando, erro } = useEnvioCadastro()
-  const { verificando, erroDoCnpj, cnpjEstaLivre, limparErroDoCnpj } = useVerificacaoDeCnpj()
-
-  function preencher(campo) {
-    return (evento) => {
-      if (campo === 'cnpj') limparErroDoCnpj()
-      setDados({ ...dados, [campo]: evento.target.value })
-    }
-  }
-
-  // categorias são só do fornecedor: recomeçam vazias ao trocar de perfil
-  function escolherPerfil(perfil) {
-    setDados({ ...dados, perfil: perfil, categorias: [] })
-  }
+  const validacao = useValidacao(REGRAS_ENTRE_CAMPOS)
+  const { etapa, dados, naEtapaDoCnpj, naUltimaEtapa, enviando, erro, verificando, erroDoCnpj } =
+    formulario
+  const { preencher, escolherPerfil, escolherCategorias, voltarEtapa, avancar } = formulario
 
   function voltar() {
     if (etapa === 1) {
       navegar('/')
       return
     }
-    setEtapa(etapa - 1)
-  }
-
-  async function aoEnviar(evento) {
-    evento.preventDefault()
-
-    if (etapa === ETAPA_DO_CNPJ && !(await cnpjEstaLivre(dados.cnpj))) return
-
-    if (etapa < ETAPAS.length) {
-      setEtapa(etapa + 1)
-      return
-    }
-
-    enviar({ ...dados, nome: dados.razaoSocial })
+    voltarEtapa()
   }
 
   return (
@@ -104,10 +51,10 @@ export function CadastroMobile() {
           <BotaoAcessibilidade posicao="topo" />
         </div>
 
-        <ProgressoEtapas etapas={ETAPAS} etapaAtual={etapa} />
+        <ProgressoEtapas etapas={ETAPAS_DO_CADASTRO} etapaAtual={etapa} />
       </header>
 
-      <form className="etapas__form" onSubmit={aoEnviar} {...validacao}>
+      <form className="etapas__form" onSubmit={avancar} {...validacao}>
         <div className="etapas__conteudo">
           {etapa === 1 && (
             <>
@@ -116,7 +63,7 @@ export function CadastroMobile() {
                 <p>Isso define o que você faz na plataforma.</p>
               </div>
 
-              {PERFIS.map((opcao) => (
+              {PERFIS_DO_CADASTRO.map((opcao) => (
                 <button
                   key={opcao.id}
                   type="button"
@@ -151,8 +98,8 @@ export function CadastroMobile() {
                   type="text"
                   autoComplete="organization"
                   placeholder="TrocaTicket Produções Ltda."
-                  value={dados.razaoSocial}
-                  onChange={preencher('razaoSocial')}
+                  value={dados.nome}
+                  onChange={preencher('nome')}
                   required
                 />
               </label>
@@ -187,7 +134,7 @@ export function CadastroMobile() {
               {dados.perfil === 'fornecedor' && (
                 <CampoCategoriasDeAtuacao
                   selecionadas={dados.categorias}
-                  aoMudar={(categorias) => setDados({ ...dados, categorias })}
+                  aoMudar={escolherCategorias}
                 />
               )}
             </>
@@ -249,11 +196,11 @@ export function CadastroMobile() {
         </div>
 
         <div className="etapas__acoes">
-          {etapa === ETAPA_DO_CNPJ && <RetornoDoEnvio erro={erroDoCnpj} />}
-          {etapa === ETAPAS.length && <RetornoDoEnvio erro={erro} />}
+          {naEtapaDoCnpj && <RetornoDoEnvio erro={erroDoCnpj} />}
+          {naUltimaEtapa && <RetornoDoEnvio erro={erro} />}
 
           <button type="submit" className="acesso__botao" disabled={enviando || verificando}>
-            {textoDoBotao({ etapa, enviando, verificando })}
+            {textoDoBotao({ naUltimaEtapa, enviando, verificando })}
           </button>
         </div>
       </form>
