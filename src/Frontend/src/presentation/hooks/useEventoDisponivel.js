@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { buscarEventoDisponivel } from '../../application/eventosDisponiveis.js'
 
 // Evento aberto para cotação, como o fornecedor vê (GET /supplier/events/:event_key).
@@ -8,6 +8,8 @@ export function useEventoDisponivel(eventKey) {
   const [tentativa, setTentativa] = useState(0)
   const [resultado, setResultado] = useState({ chave: null, evento: null, erro: null })
   const carregando = resultado.chave !== eventKey
+  // estável entre renders, para poder entrar nas dependências de um efeito
+  const tentarDeNovo = useCallback(() => setTentativa((valor) => valor + 1), [])
 
   useEffect(() => {
     let telaAberta = true
@@ -28,6 +30,6 @@ export function useEventoDisponivel(eventKey) {
     carregando,
     evento: carregando ? null : resultado.evento,
     erro: carregando ? null : resultado.erro,
-    tentarDeNovo: () => setTentativa((valor) => valor + 1),
+    tentarDeNovo,
   }
 }

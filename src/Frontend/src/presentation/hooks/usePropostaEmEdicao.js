@@ -7,6 +7,7 @@ import {
   lerRascunho,
 } from '../../application/rascunhosDePropostas.js'
 import { useEventoDisponivel } from './useEventoDisponivel.js'
+import { toast } from '../toasts.js'
 
 // Evento, item e rascunho da proposta das rotas /fornecedor/eventos/:id/itens/:itemKey/propostas/etapa-N.
 // O rascunho é o mesmo nas 3 etapas (application/rascunhosDePropostas.js).
@@ -17,6 +18,7 @@ import { useEventoDisponivel } from './useEventoDisponivel.js'
 export function usePropostaEmEdicao() {
   const { id, itemKey } = useParams()
   const evento = useEventoDisponivel(id)
+  const recarregarEvento = evento.tentarDeNovo
   const [rascunho, setRascunho] = useState(() => lerRascunho(id, itemKey))
   const [erroDaEdicao, setErroDaEdicao] = useState(null)
   const [tentativaDaEdicao, setTentativaDaEdicao] = useState(0)
@@ -42,13 +44,22 @@ export function usePropostaEmEdicao() {
         )
       })
       .catch((erro) => {
-        if (telaAberta) setErroDaEdicao(erro)
+        if (!telaAberta) return
+        // retirada em outra aba: recarrega o evento, a proposta some do item e a tela vira um envio novo
+        if (erro.status === 404) {
+          toast.info('Esta proposta foi retirada', {
+            descricao: 'Você pode enviar uma proposta nova para o item.',
+          })
+          recarregarEvento()
+          return
+        }
+        setErroDaEdicao(erro)
       })
 
     return () => {
       telaAberta = false
     }
-  }, [precisaCarregarProposta, proposalKey, id, itemKey, tentativaDaEdicao])
+  }, [precisaCarregarProposta, proposalKey, id, itemKey, tentativaDaEdicao, recarregarEvento])
 
   function preencher(campo) {
     return (evento) => setRascunho(atualizarRascunho(id, itemKey, { [campo]: evento.target.value }))
