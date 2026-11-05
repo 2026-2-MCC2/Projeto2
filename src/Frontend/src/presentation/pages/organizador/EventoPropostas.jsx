@@ -107,8 +107,14 @@ export function EventoPropostas() {
     }
   }
 
+  const custoConsolidado = (
+    <p className="propostas-consolidado">
+      Custo consolidado do evento <strong>{formatarMoeda(resultado.total_cost)}</strong>
+    </p>
+  )
+
   return (
-    <EventoLayout>
+    <EventoLayout acoes={custoConsolidado}>
       <div className="propostas-do-item">
         {!emLista && <AbasDosItens itens={itens} itemAtual={item} aoEscolher={setItemEscolhido} />}
         <PropostasDoItem
