@@ -71,7 +71,18 @@ export function DetalheDaProposta() {
   const [confirmandoRetirada, setConfirmandoRetirada] = useState(false)
   const [retirando, setRetirando] = useState(false)
   const carregando = resultado.chave !== proposalKey
-  const aoFalharFoto = useRenovarFotosVencidas(() => setTentativa((valor) => valor + 1))
+  // só as fotos são trocadas: se o pedido falhar, a página continua como estava
+  const aoFalharFoto = useRenovarFotosVencidas(() =>
+    buscarMinhaProposta(proposalKey)
+      .then((atualizada) =>
+        setResultado((atual) =>
+          atual.chave === proposalKey && atual.proposta
+            ? { ...atual, proposta: { ...atual.proposta, photos: atualizada.photos } }
+            : atual,
+        ),
+      )
+      .catch(() => {}),
+  )
 
   useEffect(() => {
     let telaAberta = true
@@ -168,15 +179,24 @@ export function DetalheDaProposta() {
           {proposta.photos?.length > 0 && (
             <Cartao titulo="Fotos enviadas">
               <div className="proposta-detalhes__galeria">
-                {proposta.photos.map((foto, indice) => (
-                  <img
-                    key={foto.photo_key}
-                    src={foto.url}
-                    alt={`Foto ${indice + 1} do serviço`}
-                    className="proposta-detalhes__foto"
-                    onError={aoFalharFoto}
-                  />
-                ))}
+                {proposta.photos.map((foto, indice) =>
+                  foto.url ? (
+                    <img
+                      key={foto.photo_key}
+                      src={foto.url}
+                      alt={`Foto ${indice + 1} do serviço`}
+                      className="proposta-detalhes__foto"
+                      onError={aoFalharFoto}
+                    />
+                  ) : (
+                    <span
+                      key={foto.photo_key}
+                      className="proposta-detalhes__foto proposta-detalhes__foto--sem-link"
+                    >
+                      Foto indisponível agora
+                    </span>
+                  ),
+                )}
               </div>
             </Cartao>
           )}

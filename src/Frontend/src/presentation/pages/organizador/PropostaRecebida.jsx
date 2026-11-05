@@ -123,15 +123,17 @@ export function PropostaRecebida() {
           {proposta.photos?.length > 0 && (
             <Cartao titulo="Fotos do serviço">
               <div className="proposta-recebida__fotos">
-                {proposta.photos.map((foto, indice) => (
-                  <a key={foto.photo_key} href={foto.url} target="_blank" rel="noreferrer">
-                    <img
-                      src={foto.url}
-                      alt={`Foto ${indice + 1} enviada pelo fornecedor`}
-                      onError={aoFalharFoto}
-                    />
-                  </a>
-                ))}
+                {proposta.photos
+                  .filter((foto) => foto.url)
+                  .map((foto, indice) => (
+                    <a key={foto.photo_key} href={foto.url} target="_blank" rel="noreferrer">
+                      <img
+                        src={foto.url}
+                        alt={`Foto ${indice + 1} enviada pelo fornecedor`}
+                        onError={aoFalharFoto}
+                      />
+                    </a>
+                  ))}
               </div>
             </Cartao>
           )}
