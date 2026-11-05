@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { atualizarProposta, enviarPropostaComFotos } from '../../../application/propostas.js'
 import { lerFotosPendentes } from '../../../application/rascunhosDePropostas.js'
@@ -34,6 +34,15 @@ export function EnviarPropostaEtapa3() {
   const [enviando, setEnviando] = useState(false)
   const [erro, setErro] = useState('')
   const voltar = () => navigate(proposta.rotaDaEtapa(2))
+  // o envio com fotos pode demorar: se o fornecedor sair no meio, ele termina sem levar para outra tela
+  const telaAberta = useRef(true)
+
+  useEffect(() => {
+    telaAberta.current = true
+    return () => {
+      telaAberta.current = false
+    }
+  }, [])
 
   async function aoEnviar(envio) {
     envio.preventDefault()
@@ -44,6 +53,7 @@ export function EnviarPropostaEtapa3() {
       if (proposta.editando) {
         await atualizarProposta(proposta.proposalKey, rascunho)
         proposta.descartar()
+        if (!telaAberta.current) return
         toast.sucesso('Proposta atualizada', { descricao: item.description })
         navigate(`/fornecedor/propostas/${proposta.proposalKey}`)
         return
@@ -57,6 +67,7 @@ export function EnviarPropostaEtapa3() {
         fotos,
       )
       proposta.descartar()
+      if (!telaAberta.current) return
       if (fotosQueFalharam > 0) {
         // a proposta já foi enviada: a tela dela mostra o que entrou, e Editar tenta as fotos de novo
         toast.erro('Proposta enviada, mas algumas fotos não foram anexadas', {
@@ -72,6 +83,7 @@ export function EnviarPropostaEtapa3() {
       })
       navigate('/fornecedor/propostas')
     } catch (falha) {
+      if (!telaAberta.current) return
       // ex.: "Você já enviou uma proposta para este item." ou validade fora do evento
       setErro(falha.message)
       setEnviando(false)
