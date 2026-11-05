@@ -68,19 +68,23 @@
         "integer",
         "null"
       ],
-      "minimum": 1
+      "minimum": 1,
+      "maximum": 1000000
     },
     "min_audience": {
       "type": "integer",
-      "minimum": 1
+      "minimum": 1,
+      "maximum": 1000000
     },
     "expected_audience": {
       "type": "integer",
-      "minimum": 1
+      "minimum": 1,
+      "maximum": 1000000
     },
     "max_audience": {
       "type": "integer",
-      "minimum": 1
+      "minimum": 1,
+      "maximum": 1000000
     },
     "profit_margin": {
       "type": "number",
@@ -105,6 +109,7 @@
     },
     "internal_costs": {
       "type": "array",
+      "maxItems": 50,
       "items": {
         "type": "object",
         "properties": {
