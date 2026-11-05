@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useLocation, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { buscarMinhaProposta, paraRascunho } from '../../application/propostas.js'
 import {
   atualizarRascunho,
@@ -22,6 +22,7 @@ export const ENTRAR_NA_EDICAO = { recarregarProposta: true }
 export function usePropostaEmEdicao() {
   const { id, itemKey } = useParams()
   const location = useLocation()
+  const navigate = useNavigate()
   const [recarregarAoEntrar, setRecarregarAoEntrar] = useState(
     () => location.state?.recarregarProposta === true,
   )
@@ -37,6 +38,13 @@ export function usePropostaEmEdicao() {
   const proposalKey = propostaEnviada?.proposal_key ?? null
   const precisaCarregarProposta =
     proposalKey !== null && (recarregarAoEntrar || rascunho.chaveDaProposta !== proposalKey)
+
+  // O pedido de recarga já ficou em recarregarAoEntrar. Ele sai da entrada do histórico para o voltar
+  // do navegador até esta etapa não recarregar a proposta salva por cima do que foi editado.
+  useEffect(() => {
+    if (location.state?.recarregarProposta !== true) return
+    navigate(`${location.pathname}${location.search}`, { replace: true, state: null })
+  }, [location, navigate])
 
   useEffect(() => {
     if (!precisaCarregarProposta) return
