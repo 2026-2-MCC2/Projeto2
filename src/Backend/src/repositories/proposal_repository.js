@@ -32,8 +32,11 @@ export class ProposalRepository {
   async getByEventId(eventId) {
     return sequelize.query(
       `SELECT budget_item.budget_item_key, budget_item.description AS item_description,
-              proposal.proposal_key, supplier_user.name AS supplier_name, proposal.amount,
+              item_category.name AS item_category, budget_item.estimated_value AS item_estimated_value,
+              proposal.proposal_key, supplier_user.name AS supplier_name, supplier.cnpj AS supplier_cnpj, proposal.amount,
               DATE_FORMAT(proposal.valid_until, '%Y-%m-%d') AS valid_until, proposal.notes, proposal.status,
+              proposal.description, proposal.not_included, proposal.delivery_terms, proposal.payment_terms,
+              proposal.team, proposal.warranty,
               CASE WHEN proposal.valid_until < ${TODAY_IN_BRAZIL} THEN TRUE ELSE FALSE END AS is_expired,
               (SELECT COALESCE(SUM(internal_cost.amount), 0)
                FROM internal_cost WHERE internal_cost.event_id = event.id) +
@@ -43,6 +46,7 @@ export class ProposalRepository {
                WHERE accepted_item.event_id = event.id AND accepted_proposal.status = 'accepted') AS total_cost
        FROM event
        LEFT JOIN budget_item ON budget_item.event_id = event.id
+       LEFT JOIN item_category ON item_category.id = budget_item.category_id
        LEFT JOIN proposal ON proposal.budget_item_id = budget_item.id
        LEFT JOIN supplier ON supplier.id = proposal.supplier_id
        LEFT JOIN user AS supplier_user ON supplier_user.id = supplier.user_id

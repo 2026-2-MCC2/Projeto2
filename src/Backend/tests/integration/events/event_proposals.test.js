@@ -52,10 +52,15 @@ describe('GET /events/:event_key/proposals', () => {
       notes: 'Validade encerrada.',
     })
 
+    const { cnpj: firstSupplierCnpj } = await DbUtils.getSupplierByUserKey(firstSupplier.userKey)
+    const { cnpj: secondSupplierCnpj } = await DbUtils.getSupplierByUserKey(secondSupplier.userKey)
+
     const [status, response] = await RequestGenerator.GET_event_proposals(event.event_key, organizerHeaders)
 
     assert.equal(status, 200)
     assert.equal(response.event_key, event.event_key)
+    assert.equal(response.items[0].category, 'Alimentação')
+    assert.equal(response.items[0].estimated_value, null)
     assert.equal(response.items.length, 1)
     assert.equal(response.items[0].item_key, item.itemKey)
     assert.equal(response.items[0].description, 'Sistema de som')
@@ -63,8 +68,15 @@ describe('GET /events/:event_key/proposals', () => {
       {
         proposal_key: expiredProposal.proposalKey,
         supplier_name: 'Fornecedor B',
+        supplier_cnpj: secondSupplierCnpj,
         amount: 980,
         valid_until: '2000-01-01',
+        description: 'Descrição da proposta',
+        not_included: null,
+        delivery_terms: 'Entrega combinada',
+        payment_terms: 'Pagamento combinado',
+        team: null,
+        warranty: null,
         notes: 'Validade encerrada.',
         status: 'sent',
         is_expired: true,
@@ -74,8 +86,15 @@ describe('GET /events/:event_key/proposals', () => {
       {
         proposal_key: currentProposal.proposalKey,
         supplier_name: 'Fornecedor A',
+        supplier_cnpj: firstSupplierCnpj,
         amount: 1250,
         valid_until: '2099-01-01',
+        description: 'Descrição da proposta',
+        not_included: null,
+        delivery_terms: 'Entrega combinada',
+        payment_terms: 'Pagamento combinado',
+        team: null,
+        warranty: null,
         notes: 'Inclui montagem e desmontagem.',
         status: 'sent',
         is_expired: false,
@@ -92,7 +111,9 @@ describe('GET /events/:event_key/proposals', () => {
     const [status, response] = await RequestGenerator.GET_event_proposals(event.event_key, organizerHeaders)
 
     assert.equal(status, 200)
-    assert.deepEqual(response.items, [{ item_key: item.itemKey, description: 'Item de teste', proposals: [] }])
+    assert.deepEqual(response.items, [
+      { item_key: item.itemKey, description: 'Item de teste', category: 'Alimentação', estimated_value: null, proposals: [] },
+    ])
   })
 
   test('exige perfil organizador e oculta evento de outro organizador', async () => {
