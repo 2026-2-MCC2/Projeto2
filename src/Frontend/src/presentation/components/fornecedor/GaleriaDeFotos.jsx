@@ -13,9 +13,11 @@ import {
 } from '../../../application/rascunhosDePropostas.js'
 import { ErroNaTela } from '../comum/EstadoDaTela.jsx'
 import { Icone } from '../comum/Icone.jsx'
+import { Modal } from '../comum/Modal.jsx'
 import { FotoDoServico } from './FotoDoServico.jsx'
 import { toast } from '../../toasts.js'
 import iconeAdicionar from '../../assets/organizador/icone-adicionar.svg'
+import iconeApagar from '../../assets/admin/icone-modal-rejeitar.svg'
 import { useRenovarFotosVencidas } from '../../hooks/useRenovarFotosVencidas.js'
 
 const TIPOS_ACEITOS = TIPOS_DE_FOTO.join(',')
@@ -93,6 +95,8 @@ function FotosDaProposta({ proposalKey }) {
   const [carga, setCarga] = useState({ carregando: true, erro: null })
   const [tentativa, setTentativa] = useState(0)
   const [enviando, setEnviando] = useState(false)
+  const [fotoParaApagar, setFotoParaApagar] = useState(null)
+  const [apagando, setApagando] = useState(false)
   // muda a cada envio ou remoção: uma renovação que começou antes não sobrescreve a lista mais nova
   const versaoDaLista = useRef(0)
   const aoFalharFoto = useRenovarFotosVencidas(() => {
@@ -138,15 +142,25 @@ function FotosDaProposta({ proposalKey }) {
     }
   }
 
-  async function remover(indice) {
-    const { photo_key: photoKey } = fotos[indice]
+  async function confirmarRemocao() {
+    const { photo_key: photoKey } = fotoParaApagar
+    setApagando(true)
     try {
       await apagarFotoDaProposta(proposalKey, photoKey)
-      versaoDaLista.current += 1
-      setFotos((atuais) => atuais.filter((foto) => foto.photo_key !== photoKey))
+      tirarDaLista(photoKey)
     } catch (falha) {
-      toast.erro('Não foi possível apagar a foto', { descricao: falha.message })
+      // 404: já tinha sido apagada (em outra aba, por exemplo), então o resultado é o mesmo
+      if (falha.status === 404) tirarDaLista(photoKey)
+      else toast.erro('Não foi possível apagar a foto', { descricao: falha.message })
+    } finally {
+      setApagando(false)
+      setFotoParaApagar(null)
     }
+  }
+
+  function tirarDaLista(photoKey) {
+    versaoDaLista.current += 1
+    setFotos((atuais) => atuais.filter((foto) => foto.photo_key !== photoKey))
   }
 
   if (carga.erro) {
@@ -162,13 +176,30 @@ function FotosDaProposta({ proposalKey }) {
   }
 
   return (
-    <Galeria
-      fotos={fotos.map((foto) => ({ chave: foto.photo_key, url: foto.url }))}
-      ocupadoCom={carga.carregando ? 'Carregando...' : enviando ? 'Enviando...' : null}
-      aoAdicionar={adicionar}
-      aoRemover={remover}
-      aoFalharFoto={aoFalharFoto}
-    />
+    <>
+      <Galeria
+        fotos={fotos.map((foto) => ({ chave: foto.photo_key, url: foto.url }))}
+        ocupadoCom={carga.carregando ? 'Carregando...' : enviando ? 'Enviando...' : null}
+        aoAdicionar={adicionar}
+        aoRemover={(indice) => setFotoParaApagar(fotos[indice])}
+        aoFalharFoto={aoFalharFoto}
+      />
+      {fotoParaApagar && (
+        <Modal
+          icone={iconeApagar}
+          corDoIcone="vermelho"
+          titulo="Apagar esta foto?"
+          mensagem="Ela sai da proposta na hora, sem precisar salvar as alterações."
+          acao={{
+            cancelar: 'Cancelar',
+            confirmar: apagando ? 'Apagando...' : 'Apagar foto',
+            aoConfirmar: confirmarRemocao,
+            ocupado: apagando,
+          }}
+          aoFechar={() => !apagando && setFotoParaApagar(null)}
+        />
+      )}
+    </>
   )
 }
 
