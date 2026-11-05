@@ -81,6 +81,16 @@
   }
 }
 
+/* fica aqui, e não na folha de cada área, para valer também nas telas de acesso */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;

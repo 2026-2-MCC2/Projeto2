@@ -2901,15 +2901,6 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
 ::view-transition-old(root) {
   animation: sair-suave 0.16s ease both;
 }
