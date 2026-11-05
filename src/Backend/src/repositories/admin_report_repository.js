@@ -195,21 +195,15 @@ function eventFilter(params) {
     conditions.push('LOCATE(LOWER(:organizerName), LOWER(organizer_user.name)) > 0')
     replacements.organizerName = params.organizerName
   }
+  // start_date fica em UTC; o período escolhido pelo admin é em dias de Brasília (sem horário de verão desde 2019)
   if (params.from !== undefined) {
-    conditions.push('e.start_date >= :fromDate')
-    conditions.push('e.start_date < :toExclusive')
-    replacements.fromDate = `${params.from} 00:00:00`
-    replacements.toExclusive = nextDate(params.to)
+    conditions.push("DATE(CONVERT_TZ(e.start_date, '+00:00', '-03:00')) BETWEEN :fromDate AND :toDate")
+    replacements.fromDate = params.from
+    replacements.toDate = params.to
   }
 
   return {
     where: `WHERE 1 = 1${conditions.length ? ` AND ${conditions.join(' AND ')}` : ''}`,
     replacements: replacements,
   }
-}
-
-function nextDate(dateString) {
-  const date = new Date(`${dateString}T00:00:00.000Z`)
-  date.setUTCDate(date.getUTCDate() + 1)
-  return `${date.toISOString().slice(0, 10)} 00:00:00`
 }
