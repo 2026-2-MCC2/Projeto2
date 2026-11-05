@@ -28,6 +28,12 @@ export class RateLimiter {
     window.hits++
   }
 
+  // desfaz uma tentativa contada antes de saber o resultado
+  undo(key) {
+    const window = this.currentWindow(key)
+    if (window !== null && window.hits > 0) window.hits--
+  }
+
   reset(key) {
     this.windowsByKey.delete(key)
   }

@@ -68,19 +68,25 @@ export class RateLimitMiddleware {
     throwIfBlocked(res, requestsPerIp, ipKey)
     requestsPerIp.hit(ipKey)
 
+    // a tentativa conta já na chegada, antes do bcrypt: senão vários pedidos juntos passariam todos
+    // pela conferência antes de o primeiro erro ser contado. Na resposta, só a senha errada fica
     if (path === LOGIN_PATH) {
       const key = loginKey(req)
-      if (key !== null) throwIfBlocked(res, failedLoginsPerEmail, key)
+      if (key !== null) {
+        throwIfBlocked(res, failedLoginsPerEmail, key)
+        failedLoginsPerEmail.hit(key)
+        res.locals.countedLoginKey = key
+      }
     }
   }
 
   processResponse(req, res) {
-    if (req.method === 'OPTIONS' || normalizePath(req.path) !== LOGIN_PATH) return
+    // cliente que desconecta antes da resposta não tem resultado (e o statusCode ainda vale o 200
+    // padrão): a tentativa continua contada, senão desconectar zeraria a contagem
+    const key = res.locals.countedLoginKey
+    if (key === undefined || !res.headersSent) return
 
-    const key = loginKey(req)
-    if (key === null) return
-
-    if (res.statusCode === 401) failedLoginsPerEmail.hit(key)
     if (res.statusCode === 200) failedLoginsPerEmail.reset(key)
+    else if (res.statusCode !== 401) failedLoginsPerEmail.undo(key)
   }
 }
