@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   apagarFotoDaProposta,
   buscarMinhaProposta,
@@ -44,9 +44,6 @@ export function GaleriaDeFotos({ proposalKey, eventKey, itemKey }) {
 
 function FotosPendentes({ eventKey, itemKey }) {
   const [arquivos, setArquivos] = useState(() => lerFotosPendentes(eventKey, itemKey))
-  const previas = useMemo(() => arquivos.map((arquivo) => URL.createObjectURL(arquivo)), [arquivos])
-
-  useEffect(() => () => previas.forEach((previa) => URL.revokeObjectURL(previa)), [previas])
 
   function guardar(novos) {
     definirFotosPendentes(eventKey, itemKey, novos)
@@ -67,10 +64,7 @@ function FotosPendentes({ eventKey, itemKey }) {
 
   return (
     <Galeria
-      fotos={arquivos.map((arquivo, indice) => ({
-        chave: `${arquivo.name}-${indice}`,
-        url: previas[indice],
-      }))}
+      fotos={arquivos.map((arquivo, indice) => ({ chave: `${arquivo.name}-${indice}`, arquivo }))}
       aoAdicionar={adicionar}
       aoRemover={(indice) => guardar(arquivos.filter((_, posicao) => posicao !== indice))}
     />
@@ -150,13 +144,34 @@ function FotosDaProposta({ proposalKey }) {
   )
 }
 
-// fotos: [{ chave, url }]; url null é foto salva cujo link não pôde ser gerado agora
+// Prévia de um arquivo ainda não enviado. A URL nasce e é revogada no mesmo ref callback: no StrictMode
+// ele roda duas vezes, e uma URL criada fora dele seria revogada na primeira limpeza e ficaria quebrada.
+function PreviaDoArquivo({ arquivo, ...props }) {
+  const mostrarArquivo = useCallback(
+    (imagem) => {
+      const url = URL.createObjectURL(arquivo)
+      imagem.src = url
+      return () => URL.revokeObjectURL(url)
+    },
+    [arquivo],
+  )
+  return <img ref={mostrarArquivo} {...props} />
+}
+
+// fotos: [{ chave, url }] das já enviadas (url null é foto salva cujo link não pôde ser gerado agora)
+// ou [{ chave, arquivo }] das escolhidas que ainda vão com a proposta
 function Galeria({ fotos, enviando = false, aoAdicionar, aoRemover, aoFalharFoto }) {
   return (
     <div className="proposta-detalhes__galeria">
       {fotos.map((foto, indice) => (
         <div key={foto.chave} className="proposta-detalhes__foto-item">
-          {foto.url ? (
+          {foto.arquivo ? (
+            <PreviaDoArquivo
+              arquivo={foto.arquivo}
+              alt={`Foto ${indice + 1} do serviço`}
+              className="proposta-detalhes__foto"
+            />
+          ) : foto.url ? (
             <img
               onError={aoFalharFoto}
               src={foto.url}
