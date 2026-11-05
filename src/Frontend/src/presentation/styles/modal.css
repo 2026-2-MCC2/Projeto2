@@ -2,7 +2,7 @@
   animation: escurecer 0.15s ease;
   position: fixed;
   inset: 0;
-  z-index: 10;
+  z-index: 30; /* acima do botão flutuante de acessibilidade (20) e abaixo dos avisos (50) */
   display: flex;
   align-items: center;
   justify-content: center;
