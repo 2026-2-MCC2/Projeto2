@@ -12,18 +12,29 @@ const ESTADOS = [
 const digitos = (texto) => texto.replace(/\D/g, '')
 
 // "R$ 49.800,00" → 49800 · "20%" → 20 · texto que não é número → NaN
-// "1.500,50", "1500.50" e "1,500.50" valem 1500,5; "20.000" vale 20000. Com vírgula e ponto, o que
-// vem por último é o decimal; só com ponto, ele é decimal quando vem seguido de 1 ou 2 dígitos no fim.
+// Com ponto e vírgula, o que vem por último é o decimal ("1.500,50" e "1,500.50" valem 1500,5).
+// Com um só tipo, ele é milhar quando se repete ou vem seguido de exatamente 3 dígitos ("1,500" e
+// "20.000"), e decimal quando vem seguido de 1 ou 2 dígitos ("1,5" e "12.5").
 export function paraNumero(texto) {
   const semSimbolos = texto.replace(/[R$\s%]/g, '')
-  const ultimoPonto = semSimbolos.lastIndexOf('.')
-  const ultimaVirgula = semSimbolos.lastIndexOf(',')
-  const pontoDecimal =
-    ultimaVirgula === -1 ? /^\d+\.\d{1,2}$/.test(semSimbolos) : ultimoPonto > ultimaVirgula
-  const limpo = pontoDecimal
-    ? semSimbolos.replace(/,/g, '')
-    : semSimbolos.replace(/\./g, '').replace(',', '.')
-  return limpo === '' ? NaN : Number(limpo)
+  if (semSimbolos === '') return NaN
+
+  const decimal = separadorDecimal(semSimbolos)
+  const milhar = decimal === ',' ? '.' : ','
+  const limpo = semSimbolos.split(milhar).join('').replace(decimal, '.')
+  return Number(decimal ? limpo : semSimbolos.replace(/[.,]/g, ''))
+}
+
+function separadorDecimal(texto) {
+  const ultimoPonto = texto.lastIndexOf('.')
+  const ultimaVirgula = texto.lastIndexOf(',')
+  if (ultimoPonto !== -1 && ultimaVirgula !== -1) return ultimoPonto > ultimaVirgula ? '.' : ','
+
+  const separador = ultimoPonto !== -1 ? '.' : ultimaVirgula !== -1 ? ',' : null
+  if (!separador) return null
+  const repetido = texto.indexOf(separador) !== texto.lastIndexOf(separador)
+  const tresDigitosDepois = new RegExp(`\\${separador}\\d{3}$`).test(texto)
+  return repetido || tresDigitosDepois ? null : separador
 }
 
 // "18/10/2026" → Date · data inexistente (31/02) ou fora do formato → null
