@@ -514,6 +514,16 @@ button.calendario__titulo:focus-visible {
   border-color: var(--texto-marca);
 }
 
+.calendario__dia--no-periodo {
+  background: var(--fundo-sutil);
+}
+
+.calendario__dia--outra-ponta {
+  background: var(--fundo-marca-suave);
+  color: var(--texto-marca);
+  font-weight: 700;
+}
+
 .calendario__dia--selecionado {
   background: var(--texto-marca) !important;
   color: #ffffff !important;

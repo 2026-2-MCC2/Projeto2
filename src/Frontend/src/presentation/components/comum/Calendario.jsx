@@ -15,15 +15,25 @@ import iconeAvancar from '../../assets/organizador/icone-avancar.svg'
 const ANOS_POR_PAGINA = 12
 
 // clicar no título sobe de nível: dias → meses → anos; escolher um mês ou ano desce de volta
-export function Calendario({ valor, aoSelecionar, aoFechar, semPassado = false, minData = null }) {
+export function Calendario({
+  valor,
+  aoSelecionar,
+  aoFechar,
+  semPassado = false,
+  minData = null,
+  periodo = null,
+}) {
   const containerRef = useRef(null)
   const dataSelecionada = paraDataLocal(valor)
   const hoje = new Date()
   hoje.setHours(0, 0, 0, 0)
   const dataLimite = semPassado ? hoje : minData
 
-  const [dataVisualizada, setDataVisualizada] = useState(() =>
-    dataSelecionada ? new Date(dataSelecionada) : new Date(hoje),
+  const outraPonta = paraDataLocal(periodo?.outraPonta)
+
+  // campo vazio abre no mês da outra ponta do período (o término abre no mês do início)
+  const [dataVisualizada, setDataVisualizada] = useState(
+    () => new Date(dataSelecionada ?? outraPonta ?? hoje),
   )
   const [visao, setVisao] = useState('dias')
   const [abreParaCima, setAbreParaCima] = useState(false)
@@ -162,6 +172,8 @@ export function Calendario({ valor, aoSelecionar, aoFechar, semPassado = false, 
             mes={mes}
             hoje={hoje}
             dataSelecionada={dataSelecionada}
+            ponta={periodo?.ponta}
+            outraPonta={outraPonta}
             dataLimite={dataLimite}
             aoEscolher={selecionarData}
           />
@@ -223,7 +235,27 @@ export function Calendario({ valor, aoSelecionar, aoFechar, semPassado = false, 
   )
 }
 
-function GradeDeDias({ ano, mes, hoje, dataSelecionada, dataLimite, aoEscolher }) {
+// [início, fim] do período; com o mouse sobre um dia, ele ocupa a ponta deste campo
+function limitesDoPeriodo(ponta, outraPonta, pontaDesteCampo) {
+  if (!ponta || !outraPonta || !pontaDesteCampo) return null
+  const [inicio, fim] =
+    ponta === 'inicio' ? [pontaDesteCampo, outraPonta] : [outraPonta, pontaDesteCampo]
+  return inicio < fim ? { inicio, fim } : null
+}
+
+function GradeDeDias({
+  ano,
+  mes,
+  hoje,
+  dataSelecionada,
+  ponta,
+  outraPonta,
+  dataLimite,
+  aoEscolher,
+}) {
+  const [diaSobOMouse, setDiaSobOMouse] = useState(null)
+  const intervalo = limitesDoPeriodo(ponta, outraPonta, diaSobOMouse ?? dataSelecionada)
+
   return (
     <>
       <div className="calendario__dias-semana" aria-hidden="true">
@@ -244,6 +276,10 @@ function GradeDeDias({ ano, mes, hoje, dataSelecionada, dataLimite, aoEscolher }
           if (saoMesmoDia(diaObj.data, hoje)) classes += ' calendario__dia--hoje'
           if (selecionado) classes += ' calendario__dia--selecionado'
           if (desabilitado) classes += ' calendario__dia--desabilitado'
+          if (saoMesmoDia(diaObj.data, outraPonta)) classes += ' calendario__dia--outra-ponta'
+          if (intervalo && diaObj.data > intervalo.inicio && diaObj.data < intervalo.fim) {
+            classes += ' calendario__dia--no-periodo'
+          }
 
           return (
             <button
@@ -254,6 +290,8 @@ function GradeDeDias({ ano, mes, hoje, dataSelecionada, dataLimite, aoEscolher }
               aria-label={`${diaObj.dia} de ${NOMES_DOS_MESES[diaObj.mes]} de ${diaObj.ano}`}
               aria-selected={selecionado}
               onClick={() => aoEscolher(diaObj.data)}
+              onMouseEnter={() => !desabilitado && setDiaSobOMouse(diaObj.data)}
+              onMouseLeave={() => setDiaSobOMouse(null)}
             >
               {diaObj.dia}
             </button>
