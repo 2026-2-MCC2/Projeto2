@@ -3154,6 +3154,10 @@
   color: var(--texto-marca);
 }
 
+.itens-cotacao__situacao--neutro {
+  color: var(--texto-secundario);
+}
+
 .propostas-consolidado {
   margin: 0;
   color: var(--texto-secundario);

@@ -29,8 +29,10 @@ export function menorPropostaDisponivel(item) {
     )
 }
 
-export const itemJaDecidido = (item) =>
-  item.proposals.some((proposta) => proposta.status === 'accepted')
+export const propostaEscolhida = (item) =>
+  item.proposals.find((proposta) => proposta.status === 'accepted')
+
+export const itemJaDecidido = (item) => Boolean(propostaEscolhida(item))
 
 // O organizador escolhe enquanto o evento está em cotação e a validade não passou. Com o item já
 // decidido ele ainda pode trocar a escolha por outra, inclusive uma recusada na escolha anterior.
