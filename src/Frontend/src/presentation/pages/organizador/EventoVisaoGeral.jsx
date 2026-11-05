@@ -134,15 +134,23 @@ export function EventoVisaoGeral() {
     />
   )
 
+  const itensComProposta = detalhe.itens.filter((item) => item.propostasCount > 0).length
+  const propostasAceitas = detalhe.itens.filter((item) => item.situacao === 'aceita').length
+  const avisoAosFornecedores =
+    itensComProposta > 0
+      ? ' As propostas em aberto e as aceitas serão canceladas, e cada fornecedor recebe um e-mail com o motivo.'
+      : ''
+
   const modalDeCancelamento = confirmandoCancelamento && (
     <Modal
       icone={iconeCancelar}
       corDoIcone="vermelho"
       titulo="Cancelar este evento?"
-      mensagem="O evento sai da cotação e não pode mais ser editado nem publicado. Não dá para desfazer."
+      mensagem={`O evento sai da cotação e não pode mais ser editado nem publicado. Não dá para desfazer.${avisoAosFornecedores}`}
       dados={[
         { rotulo: 'Evento', valor: evento.nome },
         { rotulo: 'Período', valor: evento.periodo },
+        ...(propostasAceitas > 0 ? [{ rotulo: 'Propostas aceitas', valor: propostasAceitas }] : []),
       ]}
       acao={{
         cancelar: 'Voltar',
