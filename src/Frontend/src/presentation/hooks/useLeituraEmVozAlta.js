@@ -81,7 +81,8 @@ function ler() {
 
 function parar() {
   leituraAtual++
-  sintese.cancel()
+  // o logout chama parar mesmo em navegador sem leitura em voz alta
+  sintese?.cancel()
   mudarEstado(false)
 }
 

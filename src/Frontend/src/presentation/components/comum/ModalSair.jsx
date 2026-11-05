@@ -1,12 +1,15 @@
 import { useNavigate } from 'react-router-dom'
 import { sair } from '../../../application/sessao.js'
+import { useLeituraEmVozAlta } from '../../hooks/useLeituraEmVozAlta.js'
 import { Modal } from './Modal.jsx'
 import icone from '../../assets/comum/icone-enviar.svg'
 
 export function ModalSair({ aoFechar }) {
   const navigate = useNavigate()
+  const leitura = useLeituraEmVozAlta()
 
   function aoConfirmar() {
+    leitura.parar()
     sair()
     navigate('/', { replace: true })
   }
