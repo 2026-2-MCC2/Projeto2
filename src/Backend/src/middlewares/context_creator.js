@@ -28,5 +28,11 @@ export class ContextCreator {
     }
 
     req.context = new Context(globalTraceId, cloudTraceId)
+
+    // registrado logo no começo: se o cliente desistir antes de a sessão do banco abrir, o
+    // SessionManager ainda fica sabendo e desfaz a transação em vez de deixá-la presa
+    res.once('close', () => {
+      req.context.isRequestFinished = true
+    })
   }
 }

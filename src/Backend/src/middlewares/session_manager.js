@@ -33,7 +33,7 @@ export class SessionManager {
 
     const dbSession = await DatabaseConnector.openSession()
 
-    // o cliente desistiu da requisição enquanto esperava a conexão: desfaz na hora
+    // a requisição terminou (ou o cliente desistiu) antes de a conexão chegar: desfaz na hora
     if (req.context.isRequestFinished) {
       await dbSession.rollback()
       return
@@ -46,8 +46,6 @@ export class SessionManager {
     if (req.method === 'OPTIONS' || BYPASS_ENDPOINTS.includes(req.path)) {
       return
     }
-
-    req.context.isRequestFinished = true
 
     const dbSession = req.context.dbSession
     // "finished" fica preenchido depois de um commit ou rollback

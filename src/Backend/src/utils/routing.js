@@ -42,8 +42,8 @@ export function useMiddlewares(app, middlewares) {
         await middleware.processRequest(req, res)
       }
 
-      // o middleware já respondeu (ex.: preflight do cors)
-      if (res.headersSent) {
+      // o middleware já respondeu (ex.: preflight do cors) ou o cliente já desconectou
+      if (res.headersSent || req.context?.isRequestFinished) {
         return
       }
 

@@ -11,6 +11,7 @@
 //   media           body da requisição convertido de JSON (null se não veio body)
 //   binaryBody      body da requisição do jeito que chegou (bytes); útil para validar assinatura de webhook
 //   responseMedia   body da resposta, guardado para o log de saída
+//   isRequestFinished  vira true quando a resposta fecha (enviada ou cliente desconectado)
 
 export class Context {
   constructor(globalTraceId, cloudTraceId) {
