@@ -11,6 +11,7 @@ import {
   definirFotosPendentes,
   lerFotosPendentes,
 } from '../../../application/rascunhosDePropostas.js'
+import { ErroNaTela } from '../comum/EstadoDaTela.jsx'
 import { Icone } from '../comum/Icone.jsx'
 import { FotoDoServico } from './FotoDoServico.jsx'
 import { toast } from '../../toasts.js'
@@ -30,7 +31,7 @@ export function GaleriaDeFotos({ proposalKey, eventKey, itemKey }) {
       </div>
 
       {proposalKey ? (
-        <FotosDaProposta proposalKey={proposalKey} />
+        <FotosDaProposta key={proposalKey} proposalKey={proposalKey} />
       ) : (
         <FotosPendentes eventKey={eventKey} itemKey={itemKey} />
       )}
@@ -89,6 +90,8 @@ function FotosPendentes({ eventKey, itemKey }) {
 
 function FotosDaProposta({ proposalKey }) {
   const [fotos, setFotos] = useState([])
+  const [carga, setCarga] = useState({ carregando: true, erro: null })
+  const [tentativa, setTentativa] = useState(0)
   const [enviando, setEnviando] = useState(false)
   // muda a cada envio ou remoção: uma renovação que começou antes não sobrescreve a lista mais nova
   const versaoDaLista = useRef(0)
@@ -103,17 +106,20 @@ function FotosDaProposta({ proposalKey }) {
 
   useEffect(() => {
     let telaAberta = true
+    const versao = versaoDaLista.current
     buscarMinhaProposta(proposalKey)
       .then((detalhe) => {
-        if (telaAberta) setFotos(detalhe.photos ?? [])
+        if (!telaAberta) return
+        if (versaoDaLista.current === versao) setFotos(detalhe.photos ?? [])
+        setCarga({ carregando: false, erro: null })
       })
-      .catch((falha) =>
-        toast.erro('Não foi possível carregar as fotos', { descricao: falha.message }),
-      )
+      .catch((erro) => {
+        if (telaAberta) setCarga({ carregando: false, erro })
+      })
     return () => {
       telaAberta = false
     }
-  }, [proposalKey])
+  }, [proposalKey, tentativa])
 
   async function adicionar(evento) {
     const arquivo = fotoEscolhida(evento)
@@ -143,10 +149,22 @@ function FotosDaProposta({ proposalKey }) {
     }
   }
 
+  if (carga.erro) {
+    return (
+      <ErroNaTela
+        erro={carga.erro}
+        aoTentarDeNovo={() => {
+          setCarga({ carregando: true, erro: null })
+          setTentativa((valor) => valor + 1)
+        }}
+      />
+    )
+  }
+
   return (
     <Galeria
       fotos={fotos.map((foto) => ({ chave: foto.photo_key, url: foto.url }))}
-      enviando={enviando}
+      ocupadoCom={carga.carregando ? 'Carregando...' : enviando ? 'Enviando...' : null}
       aoAdicionar={adicionar}
       aoRemover={remover}
       aoFalharFoto={aoFalharFoto}
@@ -155,7 +173,8 @@ function FotosDaProposta({ proposalKey }) {
 }
 
 // fotos: [{ chave, url }] das já enviadas ou [{ chave, arquivo }] das escolhidas (ver FotoDoServico)
-function Galeria({ fotos, enviando = false, aoAdicionar, aoRemover, aoFalharFoto }) {
+// ocupadoCom: texto que troca o Adicionar enquanto a lista carrega ou uma foto é enviada
+function Galeria({ fotos, ocupadoCom = null, aoAdicionar, aoRemover, aoFalharFoto }) {
   return (
     <div className="proposta-detalhes__galeria">
       {fotos.map((foto, indice) => (
@@ -175,12 +194,12 @@ function Galeria({ fotos, enviando = false, aoAdicionar, aoRemover, aoFalharFoto
       {fotos.length < LIMITE_DE_FOTOS && (
         <label className="proposta-detalhes__adicionar">
           <Icone src={iconeAdicionar} />
-          {enviando ? 'Enviando...' : 'Adicionar'}
+          <span role="status">{ocupadoCom ?? 'Adicionar'}</span>
           <input
             type="file"
             aria-label="Adicionar foto"
             accept={TIPOS_ACEITOS}
-            disabled={enviando}
+            disabled={ocupadoCom !== null}
             onChange={aoAdicionar}
           />
         </label>
