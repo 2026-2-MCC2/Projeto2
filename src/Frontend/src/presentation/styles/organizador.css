@@ -3238,11 +3238,11 @@
   font-weight: 700;
 }
 
-.colunas__lateral .cartao > .etiqueta {
+.proposta-recebida .colunas__lateral .cartao > .etiqueta {
   align-self: flex-start;
 }
 
-.colunas__lateral .cartao .botao {
+.proposta-recebida .colunas__lateral .cartao .botao {
   width: 100%;
 }
 

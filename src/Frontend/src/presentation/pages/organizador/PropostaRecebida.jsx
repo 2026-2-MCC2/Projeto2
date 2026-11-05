@@ -128,7 +128,7 @@ export function PropostaRecebida() {
     <EventoLayout voltar={{ para: `/organizador/eventos/${id}/propostas`, nome: 'Propostas' }}>
       <p className="proposta-recebida__origem">Propostas · {item.description}</p>
 
-      <div className="colunas">
+      <div className="colunas proposta-recebida">
         <div className="colunas__principal">
           <section className="cartao proposta-recebida__fornecedor">
             <span className="proposta-recebida__avatar" aria-hidden="true">
