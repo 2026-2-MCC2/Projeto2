@@ -1,3 +1,6 @@
+// Com aoClicarNaLinha, a linha inteira abre no clique e a primeira célula vira um botão, para a
+// linha também abrir pelo teclado (Tab, Enter ou Espaço); o clique do botão sobe até a linha.
+// Linha com bloqueada: true não abre.
 export function Tabela({ colunas, linhas, rodape, aoClicarNaLinha }) {
   return (
     <table className="tabela">
@@ -10,18 +13,28 @@ export function Tabela({ colunas, linhas, rodape, aoClicarNaLinha }) {
       </thead>
 
       <tbody>
-        {linhas.map((linha, indice) => (
-          <tr
-            key={linha.chave ?? indice}
-            onClick={aoClicarNaLinha ? () => aoClicarNaLinha(linha.chave) : undefined}
-          >
-            {(linha.celulas ?? linha).map((celula, coluna) => (
-              <td key={colunas[coluna]} className={coluna === 0 ? 'tabela__destaque' : undefined}>
-                {celula}
-              </td>
-            ))}
-          </tr>
-        ))}
+        {linhas.map((linha, indice) => {
+          const abre = Boolean(aoClicarNaLinha) && !linha.bloqueada
+          return (
+            <tr
+              key={linha.chave ?? indice}
+              className={abre ? 'tabela__linha--abre' : undefined}
+              onClick={abre ? () => aoClicarNaLinha(linha.chave) : undefined}
+            >
+              {(linha.celulas ?? linha).map((celula, coluna) => (
+                <td key={colunas[coluna]} className={coluna === 0 ? 'tabela__destaque' : undefined}>
+                  {coluna === 0 && abre ? (
+                    <button type="button" className="tabela__abrir">
+                      {celula}
+                    </button>
+                  ) : (
+                    celula
+                  )}
+                </td>
+              ))}
+            </tr>
+          )
+        })}
       </tbody>
 
       {rodape && (

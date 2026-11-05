@@ -177,6 +177,7 @@ export function EventoItens() {
             colunas={['ITEM', 'CATEGORIA', 'TIPO / PROPOSTAS', 'VALOR']}
             linhas={itensDeCotacao.map((item) => ({
               chave: item.item_key,
+              bloqueada: Number(item.proposals_count) > 0,
               celulas: [
                 item.description,
                 item.category,

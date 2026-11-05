@@ -2364,16 +2364,32 @@
   gap: 0.5rem;
 }
 
-.tabela tbody tr {
+.tabela__linha--abre {
   cursor: pointer;
 }
 
-.tabela tbody tr:hover td {
+.tabela__linha--abre:hover td {
   background: var(--fundo-marca-suave);
 }
 
-.tabela tbody tr:hover .tabela__destaque {
+.tabela__linha--abre:hover .tabela__destaque {
   color: var(--texto-marca);
+}
+
+.tabela__abrir {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: inherit;
+  cursor: pointer;
+}
+
+.tabela__abrir:focus-visible {
+  border-radius: 4px;
+  outline: 2px solid var(--texto-marca);
+  outline-offset: 2px;
 }
 
 .proposta-recebida__origem {
