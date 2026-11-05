@@ -68,6 +68,15 @@ export function formatarPeriodo(dataInicioIso, dataTerminoIso) {
   return `${inicio.dia} ${inicio.mes} a ${termino.dia} ${termino.mes} ${termino.ano}`
 }
 
+export function formatarDataEHora(dataIso) {
+  const { dia, mes, ano } = partesDaData(dataIso)
+  const horario = new Date(dataIso).toLocaleTimeString('pt-BR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+  return `${dia} ${mes} ${ano}, ${horario}`
+}
+
 export function formatarPeriodoCurto(dataInicioIso, dataTerminoIso) {
   if (!dataInicioIso) return ''
   const inicio = partesDaData(dataInicioIso)
