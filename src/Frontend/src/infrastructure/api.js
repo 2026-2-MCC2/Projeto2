@@ -35,7 +35,7 @@ async function enviar(caminho, opcoes) {
     return await fetch(`${URL_BASE}${caminho}`, {
       ...opcoes,
       headers: {
-        'Content-Type': 'application/json',
+        ...(!(opcoes.body instanceof FormData) && { 'Content-Type': 'application/json' }),
         ...(token && { Authorization: `Bearer ${token}` }),
       },
     })
@@ -108,5 +108,11 @@ export const api = {
 
   delete(caminho) {
     return requisitar(caminho, { method: 'DELETE' })
+  },
+
+  enviarArquivo(caminho, campo, arquivo) {
+    const formulario = new FormData()
+    formulario.append(campo, arquivo)
+    return requisitar(caminho, { method: 'POST', body: formulario })
   },
 }

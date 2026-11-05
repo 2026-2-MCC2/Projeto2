@@ -16,15 +16,31 @@ const TEXTOS = {
     titulo: 'Seu cadastro está em análise',
     explicacao:
       'O administrador da TrocaTicket precisa aprovar o cadastro antes do primeiro acesso. Tente entrar mais tarde com o e-mail e a senha cadastrados.',
+    chamada: ['Enquanto isso,', 'o palco vai sendo', 'montado.'],
+    apoio:
+      'Assim que o acesso for liberado, você já começa a cadastrar eventos e receber propostas.',
   },
   rejeitado: {
     tituloDaPagina: 'Cadastro não aprovado',
     selo: 'Cadastro não aprovado',
     titulo: 'Seu cadastro não foi aprovado',
     explicacao:
-      'O administrador analisou os dados e não aprovou o cadastro. Veja o motivo na análise abaixo.',
+      'O administrador analisou os dados e não aprovou o cadastro. Veja o motivo na análise abaixo e, se for o caso, faça um cadastro novo com os dados corrigidos.',
+    chamada: ['Confira os dados', 'e tente de', 'novo.'],
+    apoio: 'Se tiver dúvidas sobre o motivo, fale com a equipe do TrocaTicket.',
+  },
+  bloqueado: {
+    tituloDaPagina: 'Acesso bloqueado',
+    selo: 'Acesso bloqueado',
+    titulo: 'Seu acesso foi bloqueado',
+    explicacao:
+      'O administrador bloqueou esta conta. Enquanto durar o bloqueio, não é possível entrar nem movimentar eventos ou propostas.',
+    chamada: ['Fale com a', 'equipe do', 'TrocaTicket.'],
+    apoio: 'Para pedir a revisão do bloqueio, entre em contato com a equipe da plataforma.',
   },
 }
+
+const SITUACOES = Object.keys(TEXTOS)
 
 function etapasDoCadastro({ situacao, enviadoEm, decididoEm, motivo }) {
   const analise =
@@ -68,9 +84,12 @@ const NAO_INFORMADO = 'Não informado'
 export function CadastroPendente() {
   const acompanhamento = useLocation().state ?? {}
   const { perfil, nome, cnpj, categorias } = acompanhamento
-  const situacao = acompanhamento.situacao === 'rejeitado' ? 'rejeitado' : 'pendente'
+  const situacao = SITUACOES.includes(acompanhamento.situacao)
+    ? acompanhamento.situacao
+    : 'pendente'
   const textos = TEXTOS[situacao]
-  const etapas = etapasDoCadastro({ ...acompanhamento, situacao })
+  const bloqueado = situacao === 'bloqueado'
+  const etapas = bloqueado ? [] : etapasDoCadastro({ ...acompanhamento, situacao })
 
   return (
     <AcessoLayout
@@ -78,18 +97,15 @@ export function CadastroPendente() {
       foto={fotoMicrofone}
       tom="azul"
       fotoNoMobile={false}
-      titulo={
-        <>
-          Enquanto isso,
-          <br />
-          o palco vai sendo
-          <br />
-          montado.
-        </>
-      }
-      descricao="Assim que o acesso for liberado, você já começa a cadastrar eventos e receber propostas."
+      titulo={textos.chamada.map((linha, indice) => (
+        <span key={linha}>
+          {indice > 0 && <br />}
+          {linha}
+        </span>
+      ))}
+      descricao={textos.apoio}
     >
-      <span className={`acesso__situacao acesso__situacao--${situacao}`}>
+      <span className={`acesso__situacao acesso__situacao--${bloqueado ? 'rejeitado' : situacao}`}>
         <Icone src={marcadorAguardando} />
         {textos.selo}
       </span>
@@ -99,18 +115,27 @@ export function CadastroPendente() {
         <p>{textos.explicacao}</p>
       </header>
 
-      <ol className="acesso__linha-do-tempo">
-        {etapas.map((etapa) => (
-          <li key={etapa.id} className={`acesso__etapa acesso__etapa--${etapa.estado}`}>
-            <Icone src={etapa.marcador} className="acesso__etapa-marcador" />
-            <div>
-              <strong>{etapa.titulo}</strong>
-              <span>{etapa.descricao}</span>
-              {etapa.motivo && <p className="acesso__etapa-motivo">Motivo: {etapa.motivo}</p>}
-            </div>
-          </li>
-        ))}
-      </ol>
+      {bloqueado && (
+        <div className="acesso__motivo" role="note">
+          <span>Motivo informado pelo administrador</span>
+          <p>{acompanhamento.motivo || 'O administrador não informou o motivo.'}</p>
+        </div>
+      )}
+
+      {etapas.length > 0 && (
+        <ol className="acesso__linha-do-tempo">
+          {etapas.map((etapa) => (
+            <li key={etapa.id} className={`acesso__etapa acesso__etapa--${etapa.estado}`}>
+              <Icone src={etapa.marcador} className="acesso__etapa-marcador" />
+              <div>
+                <strong>{etapa.titulo}</strong>
+                <span>{etapa.descricao}</span>
+                {etapa.motivo && <p className="acesso__etapa-motivo">Motivo: {etapa.motivo}</p>}
+              </div>
+            </li>
+          ))}
+        </ol>
+      )}
 
       <dl className="acesso__resumo">
         <div>

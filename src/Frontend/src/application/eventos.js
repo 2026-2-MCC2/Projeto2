@@ -68,6 +68,15 @@ export function formatarPeriodo(dataInicioIso, dataTerminoIso) {
   return `${inicio.dia} ${inicio.mes} a ${termino.dia} ${termino.mes} ${termino.ano}`
 }
 
+export function formatarDataEHora(dataIso) {
+  const { dia, mes, ano } = partesDaData(dataIso)
+  const horario = new Date(dataIso).toLocaleTimeString('pt-BR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+  return `${dia} ${mes} ${ano}, ${horario}`
+}
+
 export function formatarPeriodoCurto(dataInicioIso, dataTerminoIso) {
   if (!dataInicioIso) return ''
   const inicio = partesDaData(dataInicioIso)
@@ -80,6 +89,21 @@ export function formatarPeriodoCurto(dataInicioIso, dataTerminoIso) {
   return inicio.dia === termino.dia
     ? `${inicio.dia} ${inicio.mes}`
     : `${inicio.dia}–${termino.dia} ${inicio.mes}`
+}
+
+// o consolidado (custos próprios + propostas aceitas) comparado com o teto de gastos do organizador
+function situacaoDoOrcamento(totalCustos, tetoDeGastos) {
+  const teto = Number(tetoDeGastos) || null
+  if (!teto) return { consolidado: formatarMoeda(totalCustos), teto: null }
+
+  const saldo = teto - totalCustos
+  return {
+    consolidado: formatarMoeda(totalCustos),
+    teto: formatarMoeda(teto),
+    saldo: formatarMoeda(Math.abs(saldo)),
+    acimaDoTeto: saldo < 0,
+    comprometido: Math.round((totalCustos / teto) * 100),
+  }
 }
 
 function calcularDadosTicket(evento, totalCustos) {
@@ -347,12 +371,7 @@ export function formatarEventoParaExibicao(evento, itensDeCotacao = evento.budge
       resumoMobile: `${periodo} · ${STATUS_FRONTEND[statusFront]?.nome ?? 'Em planejamento'}`,
       dados: dadosExibicao,
       dadosMobile: dadosExibicao,
-      orcamento: {
-        consolidado: formatarMoeda(totalCustos),
-        previsto: formatarMoeda(totalCustos),
-        economia: 'R$ 0,00',
-        comprometido: totalCustos > 0 ? 100 : 0,
-      },
+      orcamento: situacaoDoOrcamento(totalCustos, evento.budget_limit),
       itens,
       totalDeItens: itens.length,
       propostas: [],
@@ -433,6 +452,9 @@ export function montarPayloadEvento(dados) {
     ? 0.2
     : Math.min(Math.max(Number((margemNumero / 100).toFixed(4)), 0), 0.9999)
 
+  const teto = paraNumero(dados.tetoDeGastos ?? '')
+  const budgetLimit = teto > 0 ? Number(teto.toFixed(2)) : null
+
   const venueCapacity = dados.capacidadeEspaco
     ? Math.round(paraNumero(dados.capacidadeEspaco))
     : null
@@ -481,6 +503,7 @@ export function montarPayloadEvento(dados) {
     expected_audience: expectedAudience,
     max_audience: maxAudience,
     profit_margin: profitMargin,
+    budget_limit: budgetLimit,
     reference_scenario: CENARIOS_MAPA[dados.cenarioReferencia] || 'expected',
     internal_costs: internalCosts,
   }
@@ -651,6 +674,7 @@ export function eventoParaFormulario(eventoDaApi) {
     publicoEsperado: numero(eventoDaApi.expected_audience),
     publicoMaximo: numero(eventoDaApi.max_audience),
     margemLucro: margemDoFormulario(eventoDaApi.profit_margin),
+    tetoDeGastos: eventoDaApi.budget_limit ? formatarMoeda(eventoDaApi.budget_limit) : '',
     custosFiscais: '',
     equipeProducao: '',
     outrosCustos: '',

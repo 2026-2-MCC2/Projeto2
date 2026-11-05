@@ -42,6 +42,7 @@ export function EtapaIdentificacao({ campo, isMobile, dados, permiteDataPassada 
               data-validar={permiteDataPassada ? 'data' : 'dataFutura'}
               required
               semPassado={!permiteDataPassada}
+              periodo={{ ponta: 'inicio', outraPonta: campo('dataTermino').value }}
               {...campo('dataInicio')}
             />
           </Campo>
@@ -51,6 +52,7 @@ export function EtapaIdentificacao({ campo, isMobile, dados, permiteDataPassada 
               data-validar="data"
               required
               semPassado={!permiteDataPassada}
+              periodo={{ ponta: 'fim', outraPonta: campo('dataInicio').value }}
               {...campo('dataTermino')}
             />
           </Campo>

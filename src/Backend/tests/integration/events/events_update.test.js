@@ -70,4 +70,25 @@ describe('PUT /events/:event_key (RF05)', () => {
     assert.equal(status, 404)
     assert.equal(response.code, 'EVP000013')
   })
+
+  test('edição define, troca e remove o teto de gastos', async () => {
+    const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
+    fixtureUserKeys.push(organizer.userKey)
+    const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
+    const [, created] = await RequestGenerator.POST_events(PayloadGenerator.createEventPayload({ budget_limit: 100000 }), headers)
+
+    const [, trocado] = await RequestGenerator.PUT_event_by_key(
+      created.event_key,
+      PayloadGenerator.createEventUpdatePayload({ budget_limit: 80000 }),
+      headers,
+    )
+    const [, removido] = await RequestGenerator.PUT_event_by_key(
+      created.event_key,
+      PayloadGenerator.createEventUpdatePayload({ budget_limit: null }),
+      headers,
+    )
+
+    assert.equal(trocado.budget_limit, 80000)
+    assert.equal(removido.budget_limit, null)
+  })
 })

@@ -16,7 +16,8 @@ function preencher(campo, valor) {
 }
 
 // semPassado: o calendário não deixa escolher datas antes de hoje
-export function EntradaData({ onChange, semPassado = false, ...props }) {
+// periodo: { ponta: 'inicio' | 'fim', outraPonta: 'dd/mm/aaaa' } pinta os dias entre as duas datas
+export function EntradaData({ onChange, semPassado = false, periodo = null, ...props }) {
   const texto = useRef(null)
   // a data digitada é lida ao abrir o calendário, fora da renderização (null = fechado)
   const [dataAoAbrir, setDataAoAbrir] = useState(null)
@@ -68,6 +69,7 @@ export function EntradaData({ onChange, semPassado = false, ...props }) {
         <Calendario
           valor={props.value ?? dataAoAbrir}
           semPassado={semPassado}
+          periodo={periodo}
           aoSelecionar={aoSelecionarData}
           aoFechar={() => setDataAoAbrir(null)}
         />

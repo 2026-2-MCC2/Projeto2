@@ -87,6 +87,10 @@
 
 .fornecedor-evento__categorias {
   flex: 0 1 auto;
+  align-self: flex-start;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
   padding: 5px 10px;
   border-radius: 999px;
   background: var(--fundo-marca-suave);
@@ -248,6 +252,129 @@
   font-weight: 500;
 }
 
+/* item da lista que abre o detalhe da proposta (pages/fornecedor/DetalheDaProposta.jsx) */
+.minhas-propostas__link {
+  color: var(--texto-marca);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.minhas-propostas__link:hover,
+.minhas-propostas__link:focus-visible {
+  text-decoration: underline;
+}
+
+.detalhe-proposta__acoes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.detalhe-proposta__acoes .botao {
+  width: 100%;
+}
+
+.detalhe-proposta__voltar {
+  padding: 0.75rem;
+  color: var(--texto-secundario);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-align: center;
+  text-decoration: none;
+}
+
+.detalhe-proposta__voltar:hover {
+  color: var(--texto-marca);
+}
+
+.detalhe-proposta__situacao {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.625rem;
+  margin-bottom: 0.875rem;
+}
+
+.detalhe-proposta__situacao p {
+  margin: 0;
+  color: var(--texto-secundario);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.detalhe-proposta__textos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.detalhe-proposta__textos h3 {
+  margin: 0 0 0.25rem;
+  color: var(--texto-secundario);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.detalhe-proposta__textos p {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+.linhas-de-dados {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.linhas-de-dados > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.8125rem;
+}
+
+.linhas-de-dados dt {
+  color: var(--texto-secundario);
+}
+
+.linhas-de-dados dd {
+  margin: 0;
+  font-weight: 500;
+  text-align: right;
+}
+
+.aviso--neutro {
+  background: var(--fundo-sutil);
+  color: var(--texto-secundario);
+}
+
+.aviso--sucesso {
+  background: var(--status-sucesso-fundo);
+  color: var(--status-sucesso-texto);
+}
+
+.aviso--alerta {
+  background: var(--status-alerta-fundo);
+  color: var(--status-alerta-texto);
+}
+
+.aviso--perigo {
+  background: var(--status-perigo-fundo);
+  color: var(--status-perigo-texto);
+}
+
+@media (max-width: 900px) {
+  .detalhe-proposta .colunas__lateral {
+    order: -1;
+  }
+}
+
+/* descrições e condições digitadas em várias linhas */
 .minhas-propostas__data {
   text-align: right;
 }
@@ -277,6 +404,10 @@
 }
 .minhas-propostas__situacao--recusada {
   background: var(--status-perigo-fundo);
+  color: var(--status-perigo-texto);
+}
+.minhas-propostas__situacao--evento-cancelado {
+  background: var(--fundo-sutil);
   color: var(--status-perigo-texto);
 }
 
@@ -824,6 +955,26 @@
   object-fit: cover;
 }
 
+.proposta-detalhes__foto-item {
+  position: relative;
+  flex: 0 0 96px;
+}
+
+.proposta-detalhes__remover-foto {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 60%);
+  color: #fff;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
 .proposta-detalhes__adicionar {
   display: flex;
   flex-direction: column;
@@ -896,17 +1047,6 @@
   min-width: 0;
 }
 
-.fornecedor__vazio {
-  margin: 0;
-  padding: 24px;
-  border: 1px solid var(--borda-padrao);
-  border-radius: 12px;
-  background: var(--fundo-superficie);
-  color: var(--texto-secundario);
-  font-size: 0.8125rem;
-  text-align: center;
-}
-
 .fornecedor-evento-detalhe {
   display: grid;
   gap: 16px;
@@ -919,15 +1059,13 @@
   margin: 0;
 }
 
-.fornecedor-evento-detalhe__dados > div,
-.fornecedor-evento-detalhe__valor {
+.fornecedor-evento-detalhe__dados > div {
   display: flex;
   flex-direction: column;
   gap: 5px;
 }
 
-.fornecedor-evento-detalhe__dados dt,
-.fornecedor-evento-detalhe__valor span {
+.fornecedor-evento-detalhe__dados dt {
   color: var(--texto-secundario);
   font-size: 0.6875rem;
   font-weight: 600;
@@ -939,43 +1077,75 @@
   font-size: 0.875rem;
 }
 
-.fornecedor-evento-detalhe__itens {
-  display: grid;
-  gap: 12px;
-}
-
-.fornecedor-evento-detalhe__item {
+.itens-para-cotar {
   display: flex;
-  align-items: flex-start;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item-para-cotar {
+  display: flex;
+  align-items: center;
   justify-content: space-between;
-  gap: 20px;
-  padding: 16px;
-  border: 1px solid var(--borda-padrao);
-  border-radius: 12px;
+  gap: 1.25rem;
+  padding: 1rem 0;
+  border-top: 1px solid var(--borda-padrao);
 }
 
-.fornecedor-evento-detalhe__item h3 {
-  margin: 10px 0 4px;
-  font-size: 1rem;
+.item-para-cotar:first-child {
+  border-top: 0;
 }
 
-.fornecedor-evento-detalhe__item p {
-  margin: 4px 0;
+.item-para-cotar__texto {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.item-para-cotar__texto h3 {
+  margin: 0.375rem 0 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.item-para-cotar__texto p {
+  margin: 0;
   color: var(--texto-secundario);
   font-size: 0.8125rem;
 }
 
-.fornecedor-evento-detalhe__valor {
-  min-width: 155px;
-  text-align: right;
+.item-para-cotar__observacao {
+  font-style: italic;
 }
 
-.fornecedor-evento-detalhe__valor strong {
-  color: var(--texto-marca);
+.item-para-cotar__acao {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
 }
 
-.fornecedor-evento-detalhe__valor small {
+.item-para-cotar__proposta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.sobre-o-evento__descricao {
+  margin: 0 0 1rem;
   color: var(--texto-secundario);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.ficha--empilhada .ficha__dado {
+  width: 100%;
 }
 
 @media (max-width: 1100px) {
@@ -1264,12 +1434,16 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .fornecedor-evento-detalhe__item {
+  .item-para-cotar {
+    align-items: stretch;
     flex-direction: column;
   }
 
-  .fornecedor-evento-detalhe__valor {
-    min-width: 0;
-    text-align: left;
+  .item-para-cotar__acao {
+    align-items: stretch;
+  }
+
+  .item-para-cotar__proposta {
+    justify-content: space-between;
   }
 }

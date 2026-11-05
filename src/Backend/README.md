@@ -35,6 +35,20 @@ Ele já nasce aprovado e entra pelo `POST /event_planning/auth/login`. Se o e-ma
 | `npm test`                                   | roda os testes (com o Docker no ar) |
 | `npm run format`                             | formata o código                    |
 
+## Armazenamento de arquivos
+
+As fotos das propostas ficam fora do banco: a tabela `proposal_photo` guarda só o caminho do objeto (coluna `url`), e a URL de leitura é gerada na hora, com validade curta. O módulo fica em [`src/connectors/storage/`](src/connectors/storage/index.js), com a mesma interface nos dois drivers (`save`, `remove` e `getUrl`).
+
+| Variável                         | Para quê                                                                                     |
+| -------------------------------- | -------------------------------------------------------------------------------------------- |
+| `STORAGE_DRIVER`                 | `local` (desenvolvimento e testes) ou `gcs` (produção)                                       |
+| `STORAGE_LOCAL_DIR`              | pasta dos arquivos no driver `local` (no Docker, `/tmp/trocaticket-storage`)                 |
+| `STORAGE_LOCAL_PUBLIC_URL`       | endereço da rota que serve os arquivos locais (`http://localhost:3300/event_planning/files`) |
+| `GCS_BUCKET`                     | nome do bucket privado no driver `gcs`                                                       |
+| `STORAGE_URL_EXPIRATION_SECONDS` | validade das URLs de leitura, em segundos (padrão 900 = 15 minutos)                          |
+
+No driver `gcs` a API usa as credenciais padrão do ambiente: no Cloud Run, a service account do serviço. Não há chave JSON no código nem no repositório. Essa service account precisa de acesso aos objetos do bucket e de permissão para assinar em nome de si mesma (é assim que a URL assinada é gerada sem chave privada).
+
 ## Estrutura
 
 ```

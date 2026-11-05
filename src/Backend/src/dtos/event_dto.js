@@ -33,6 +33,7 @@ export class EventDto {
       expected_audience: Number(event.expected_audience),
       max_audience: Number(event.max_audience),
       profit_margin: Number(event.profit_margin),
+      budget_limit: event.budget_limit === null || event.budget_limit === undefined ? null : Number(event.budget_limit),
       reference_scenario: event.reference_scenario,
       status: event.status,
       cancellation_reason: event.cancellation_reason ?? null,

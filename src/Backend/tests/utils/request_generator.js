@@ -162,6 +162,55 @@ export class RequestGenerator {
     return [response.responseStatus, response.responseJson]
   }
 
+  static async POST_supplier_item_proposal(eventKey, itemKey, payload, headers = {}) {
+    const response = await ClientRequisition.send('POST', `/event_planning/supplier/events/${eventKey}/items/${itemKey}/proposals`, {
+      payload,
+      headers,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async GET_supplier_proposals(params = {}, headers = {}) {
+    const response = await ClientRequisition.send('GET', '/event_planning/supplier/proposals', { headers, queryParams: params })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async GET_supplier_proposal_by_key(proposalKey, headers = {}) {
+    const response = await ClientRequisition.send('GET', `/event_planning/supplier/proposals/${proposalKey}`, { headers })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async PUT_supplier_proposal(proposalKey, payload, headers = {}) {
+    const response = await ClientRequisition.send('PUT', `/event_planning/supplier/proposals/${proposalKey}`, { payload, headers })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  // file: { buffer, filename, contentType } vai no campo "photo" (ou em outro, com fieldName);
+  // null manda o formulário sem arquivo. O fetch monta o multipart/form-data sozinho.
+  static async POST_supplier_proposal_photo(proposalKey, file, headers = {}, { fieldName = 'photo' } = {}) {
+    const form = new FormData()
+    if (file) {
+      form.append(fieldName, new Blob([file.buffer], { type: file.contentType }), file.filename)
+    }
+    const response = await ClientRequisition.send('POST', `/event_planning/supplier/proposals/${proposalKey}/photos`, {
+      data: form,
+      headers,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async DELETE_supplier_proposal_photo(proposalKey, photoKey, headers = {}) {
+    const response = await ClientRequisition.send('DELETE', `/event_planning/supplier/proposals/${proposalKey}/photos/${photoKey}`, {
+      headers,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async DELETE_supplier_proposal(proposalKey, headers = {}) {
+    const response = await ClientRequisition.send('DELETE', `/event_planning/supplier/proposals/${proposalKey}`, { headers })
+    return [response.responseStatus, response.responseJson]
+  }
+
   static async PUT_event_item(eventKey, itemKey, payload, headers = {}) {
     const response = await ClientRequisition.send('PUT', `/event_planning/events/${eventKey}/items/${itemKey}`, {
       payload,

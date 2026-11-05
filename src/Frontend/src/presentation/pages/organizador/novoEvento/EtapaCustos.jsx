@@ -14,16 +14,26 @@ const CAMPO_VALOR = { inputMode: 'decimal', 'data-validar': 'valor' }
 export function EtapaCustos({ campo, dados, definir, comCustosProprios, isMobile }) {
   return (
     <>
-      <Grupo isMobile={isMobile} titulo="Margem de lucro">
-        <Campo
-          rotulo="Margem de lucro"
-          placeholder="20%"
-          ajuda={isMobile ? undefined : 'Aplicada sobre a receita do evento.'}
-          inputMode="decimal"
-          data-validar="percentual"
-          required
-          {...campo('margemLucro')}
-        />
+      <Grupo isMobile={isMobile} titulo="Margem e teto de gastos">
+        <SeDesktop isMobile={isMobile} envolver={Linha}>
+          <Campo
+            rotulo="Margem de lucro"
+            placeholder="20%"
+            ajuda={isMobile ? undefined : 'Aplicada sobre a receita do evento.'}
+            inputMode="decimal"
+            data-validar="percentual"
+            required
+            {...campo('margemLucro')}
+          />
+          <Campo
+            rotulo="Teto de gastos (opcional)"
+            placeholder="R$ 150.000"
+            ajuda="Quanto você pode gastar. A visão geral mostra quanto dele já foi usado."
+            inputMode="decimal"
+            data-validar="valorPositivo"
+            {...campo('tetoDeGastos')}
+          />
+        </SeDesktop>
       </Grupo>
 
       {comCustosProprios && (

@@ -46,6 +46,19 @@ export const PASSWORD_RESET_COOLDOWN_SECONDS = Number(process.env.PASSWORD_RESET
 
 export const SECRET_MANAGER_EMULATOR_HOST = process.env.SECRET_MANAGER_EMULATOR_HOST ?? ''
 
+// Armazenamento de arquivos (fotos das propostas), ver connectors/storage/:
+//   local  pasta do servidor (desenvolvimento e testes); a própria API serve os arquivos
+//   gcs    bucket privado do Google Cloud Storage (produção), com URL assinada de leitura
+// Não entram no checkVariables: o deploy atual não as define, e só quem grava ou lê arquivo
+// precisa delas (o módulo confere na primeira vez que é usado).
+export const STORAGE_DRIVER = process.env.STORAGE_DRIVER ?? ''
+export const GCS_BUCKET = process.env.GCS_BUCKET ?? ''
+export const STORAGE_LOCAL_DIR = process.env.STORAGE_LOCAL_DIR ?? ''
+// endereço público da rota que serve os arquivos locais, ex.: http://localhost:3300/event_planning/files
+export const STORAGE_LOCAL_PUBLIC_URL = process.env.STORAGE_LOCAL_PUBLIC_URL ?? ''
+// validade das URLs de leitura (assinadas no GCS, com assinatura da API no local)
+export const STORAGE_URL_EXPIRATION_SECONDS = Number(process.env.STORAGE_URL_EXPIRATION_SECONDS ?? 900)
+
 export const USER_PROFILES = Object.freeze({
   ADMIN: 'admin',
   ORGANIZER: 'organizador',
@@ -87,6 +100,15 @@ export const INTERNAL_COST_TYPES = Object.freeze({
   TAX: 'tax',
   OPERATIONAL: 'operational',
   OTHER: 'other',
+})
+
+// status da proposta (ENUM proposal.status do banco); só a enviada ainda pode ser editada ou retirada
+export const PROPOSAL_STATUSES = Object.freeze({
+  SENT: 'sent',
+  UNDER_REVIEW: 'under_review',
+  ACCEPTED: 'accepted',
+  REJECTED: 'rejected',
+  CANCELED: 'canceled',
 })
 
 // rotas de infraestrutura: não passam pelos middlewares de log, login e banco

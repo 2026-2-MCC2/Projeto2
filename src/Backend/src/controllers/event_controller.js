@@ -1,5 +1,12 @@
 import { BaseController } from './base_controller.js'
-import { EVENT_STATUS_TRANSITIONS, EVENT_STATUSES, REFERENCE_SCENARIOS, isFinalEventStatus } from '../constants.js'
+import {
+  EVENT_STATUS_TRANSITIONS,
+  EVENT_STATUSES,
+  FRONT_URL,
+  PROPOSAL_STATUSES,
+  REFERENCE_SCENARIOS,
+  isFinalEventStatus,
+} from '../constants.js'
 import { EventDto } from '../dtos/event_dto.js'
 import {
   EventCannotBeModified,
@@ -24,6 +31,8 @@ import { OrganizerRepository } from '../repositories/organizer_repository.js'
 import { ProposalRepository } from '../repositories/proposal_repository.js'
 import { UserRepository } from '../repositories/user_repository.js'
 import { ProposalComparisonDTO } from '../dtos/proposal_comparison_dto.js'
+import { EmailTemplates } from '../utils/email_templates.js'
+import { toPhotoResponses } from '../utils/proposal_photo_tools.js'
 import { TextTools } from '../utils/text_tools.js'
 
 const STATUS_CONFLICT_MESSAGES = {
@@ -125,6 +134,7 @@ export class EventController extends BaseController {
       expected_audience: payload.expected_audience,
       max_audience: payload.max_audience,
       profit_margin: payload.profit_margin,
+      budget_limit: payload.budget_limit ?? null,
     }
   }
 
@@ -218,8 +228,31 @@ export class EventController extends BaseController {
       throw new NotFoundEvent(eventKey)
     }
 
+    return this.#getProposalComparison(event)
+  }
+
+  // comparação das propostas do evento, com as fotos de cada uma (URL de leitura assinada)
+  async #getProposalComparison(event) {
+    return this.#buildProposalComparison(event, await this.#readProposalComparison(event))
+  }
+
+  // a leitura do banco fica separada de gerar as URLs, que pode ser lento (uma chamada por foto no GCS)
+  async #readProposalComparison(event) {
     const rows = await this.proposalRepository.getByEventId(event.id)
-    return ProposalComparisonDTO.fromRows(eventKey, rows)
+    const photos = await this.proposalRepository.getPhotosByEventId(event.id)
+    return { rows, photos }
+  }
+
+  async #buildProposalComparison(event, { rows, photos }) {
+    const photoResponses = await toPhotoResponses(photos)
+
+    const photosByProposalKey = {}
+    photos.forEach((photo, index) => {
+      photosByProposalKey[photo.proposal_key] ??= []
+      photosByProposalKey[photo.proposal_key].push(photoResponses[index])
+    })
+
+    return ProposalComparisonDTO.fromRows(event.event_key, rows, photosByProposalKey)
   }
 
   /**
@@ -245,9 +278,10 @@ export class EventController extends BaseController {
       throw new NotFoundProposal(proposalKey)
     }
 
-    const rows = await this.proposalRepository.getByEventId(event.id)
+    // as URLs das fotos são geradas depois do commit, para não segurar o evento travado
+    const comparisonData = await this.#readProposalComparison(event)
     await this.session.commit()
-    return ProposalComparisonDTO.fromRows(eventKey, rows)
+    return this.#buildProposalComparison(event, comparisonData)
   }
 
   /**
@@ -314,11 +348,26 @@ export class EventController extends BaseController {
       throw new EventStatusConflict(STATUS_CONFLICT_MESSAGES[event.status] ?? 'O status do evento não pode ser alterado.')
     }
 
-    const reason = newStatus === EVENT_STATUSES.CANCELED ? cancellationReason.trim() : null
+    const isCanceling = newStatus === EVENT_STATUSES.CANCELED
+    const reason = isCanceling ? cancellationReason.trim() : null
+    const canceledProposals = isCanceling ? await this.#cancelOpenProposals(event.id) : []
+    const organizerContact = canceledProposals.length > 0 ? await this.#getOrganizerContact(userKey, organizer) : null
     const updatedEvent = await this.eventRepository.updateStatus(event, newStatus, reason)
     await this.session.commit()
 
-    return EventDto.fromModel(updatedEvent)
+    const emails = canceledProposals.map((proposal) => canceledProposalEmail(proposal, updatedEvent, organizerContact))
+    return { event: EventDto.fromModel(updatedEvent), emails }
+  }
+
+  async #getOrganizerContact(userKey, organizer) {
+    const user = await this.userRepository.getByKey(userKey)
+    return { name: user.name, contact: `${user.email} · ${organizer.phone}` }
+  }
+
+  async #cancelOpenProposals(eventId) {
+    const proposals = await this.proposalRepository.getOpenProposalsOfEventForUpdate(eventId)
+    await this.proposalRepository.cancelProposals(proposals.map((proposal) => proposal.id))
+    return proposals
   }
 
   /**
@@ -371,4 +420,22 @@ export class EventController extends BaseController {
     await this.session.commit()
     return EventDto.fromModel(event)
   }
+}
+
+function canceledProposalEmail(proposal, event, organizer) {
+  const wasAccepted = proposal.status === PROPOSAL_STATUSES.ACCEPTED
+  const content = EmailTemplates.render('event_canceled', {
+    nome: proposal.supplier_name,
+    evento: event.name,
+    organizador: organizer.name,
+    situacao: wasAccepted
+      ? 'Sua proposta tinha sido aceita e foi cancelada junto com o evento.'
+      : 'Sua proposta ainda aguardava a decisão do organizador e foi cancelada junto com o evento.',
+    item: proposal.item_description,
+    valor: Number(proposal.amount).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+    motivo: event.cancellation_reason,
+    contato: organizer.contact,
+    link: `${FRONT_URL}/fornecedor/propostas/${proposal.proposal_key}`,
+  })
+  return { to: proposal.supplier_email, ...content }
 }

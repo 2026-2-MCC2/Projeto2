@@ -1,5 +1,6 @@
 import { api } from '../infrastructure/api.js'
 import { esquecerEventosDaSessao } from './eventos.js'
+import { esquecerRascunhosDePropostas } from './rascunhosDePropostas.js'
 import { guardarSessao, lerSessao, limparSessao } from '../infrastructure/armazenamentoDaSessao.js'
 import { obterDadosDoUsuarioAtual } from '../infrastructure/usuarios.js'
 
@@ -22,7 +23,11 @@ export async function entrar({ email, senha }) {
   return usuario
 }
 
-const SITUACOES_POR_CODIGO = { EVP000009: 'pendente', EVP000010: 'rejeitado' }
+const SITUACOES_POR_CODIGO = {
+  EVP000009: 'pendente',
+  EVP000010: 'rejeitado',
+  EVP000011: 'bloqueado',
+}
 
 // login barrado por cadastro pendente ou rejeitado: dados para a tela de acompanhamento, ou null
 export function acompanhamentoDoCadastro(falhaNoLogin) {
@@ -45,6 +50,7 @@ export function acompanhamentoDoCadastro(falhaNoLogin) {
 export function sair() {
   limparSessao()
   esquecerEventosDaSessao()
+  esquecerRascunhosDePropostas()
 }
 
 export function usuarioAtual() {

@@ -68,6 +68,8 @@ describe('GET /events/:event_key/proposals', () => {
         notes: 'Validade encerrada.',
         status: 'sent',
         is_expired: true,
+        // sem fotos enviadas (as fotos têm teste próprio em supplier_proposal_photos.test.js)
+        photos: [],
       },
       {
         proposal_key: currentProposal.proposalKey,
@@ -77,6 +79,7 @@ describe('GET /events/:event_key/proposals', () => {
         notes: 'Inclui montagem e desmontagem.',
         status: 'sent',
         is_expired: false,
+        photos: [],
       },
     ])
   })

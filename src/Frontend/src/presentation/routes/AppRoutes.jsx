@@ -36,6 +36,7 @@ const EnviarProposta = doFornecedor('EnviarProposta')
 const EnviarPropostaEtapa2 = doFornecedor('EnviarPropostaEtapa2')
 const EnviarPropostaEtapa3 = doFornecedor('EnviarPropostaEtapa3')
 const MinhasPropostas = doFornecedor('MinhasPropostas')
+const DetalheDaProposta = doFornecedor('DetalheDaProposta')
 const Aprovacoes = doAdmin('Aprovacoes')
 const Historico = doAdmin('Historico')
 const Usuarios = doAdmin('Usuarios')
@@ -76,18 +77,23 @@ export function AppRoutes() {
             <Route path="/fornecedor/eventos" element={<EventosDisponiveis />} />
             <Route path="/fornecedor/eventos/:id" element={<EventoDisponivel />} />
             <Route path="/fornecedor/propostas" element={<MinhasPropostas />} />
+            <Route path="/fornecedor/propostas/:proposalKey" element={<DetalheDaProposta />} />
             <Route
               path="/fornecedor/configuracoes"
               element={<Configuracoes perfil="fornecedor" />}
             />
             <Route path="/fornecedor/duvidas" element={<Duvidas perfil="fornecedor" />} />
-            <Route path="/fornecedor/eventos/:id/propostas/etapa-1" element={<EnviarProposta />} />
+            {/* envio de proposta para um item do evento, em 3 etapas */}
             <Route
-              path="/fornecedor/eventos/:id/propostas/etapa-2"
+              path="/fornecedor/eventos/:id/itens/:itemKey/propostas/etapa-1"
+              element={<EnviarProposta />}
+            />
+            <Route
+              path="/fornecedor/eventos/:id/itens/:itemKey/propostas/etapa-2"
               element={<EnviarPropostaEtapa2 />}
             />
             <Route
-              path="/fornecedor/eventos/:id/propostas/etapa-3"
+              path="/fornecedor/eventos/:id/itens/:itemKey/propostas/etapa-3"
               element={<EnviarPropostaEtapa3 />}
             />
           </Route>

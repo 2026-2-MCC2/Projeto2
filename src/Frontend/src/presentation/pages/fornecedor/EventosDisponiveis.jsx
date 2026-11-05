@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { listarEventosDisponiveis } from '../../../application/eventosDisponiveis.js'
 import { formatarPeriodo } from '../../../application/eventos.js'
 import { OrganizadorLayout } from '../../components/organizador/OrganizadorLayout.jsx'
-import { Carregando, ErroNaTela } from '../../components/comum/EstadoDaTela.jsx'
+import { Carregando, ErroNaTela, Vazio } from '../../components/comum/EstadoDaTela.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
 import { Icone } from '../../components/comum/Icone.jsx'
 import iconeBuscar from '../../assets/organizador/icone-buscar.svg'
@@ -160,11 +160,32 @@ export function EventosDisponiveis() {
             )}
           </>
         ) : (
-          <p className="fornecedor__vazio" role="status">
-            Nenhum evento encontrado para essa busca e categoria.
-          </p>
+          <SemEventos filtrando={termo !== '' || filtro !== 'Minhas categorias'} />
         )}
       </>
     </OrganizadorLayout>
+  )
+}
+
+function SemEventos({ filtrando }) {
+  if (filtrando) {
+    return (
+      <Vazio
+        icone="eventos"
+        titulo="Nenhum evento para essa busca"
+        mensagem="Tente outro nome, local ou categoria."
+      />
+    )
+  }
+  return (
+    <Vazio
+      icone="eventos"
+      titulo="Nenhum evento aberto nas suas categorias"
+      mensagem="Quando um organizador publicar um evento com itens nas suas categorias, ele aparece aqui. Você pode incluir mais categorias em Configurações."
+    >
+      <Link to="/fornecedor/configuracoes" className="botao botao--secundario">
+        Ajustar categorias
+      </Link>
+    </Vazio>
   )
 }

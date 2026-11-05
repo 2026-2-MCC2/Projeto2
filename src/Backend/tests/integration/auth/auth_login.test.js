@@ -131,6 +131,26 @@ describe('POST /auth/login', () => {
     assert.equal(response.translation, 'Seu acesso foi bloqueado. Fale com o administrador da plataforma.')
   })
 
+  test('conta bloqueada pelo admin recebe o motivo do bloqueio junto com o 403', async () => {
+    const admin = await createFixture({ profile: 'admin', status: 'approved' })
+    const user = await createFixture({ profile: 'fornecedor', status: 'approved' })
+    const adminHeaders = TokenGenerator.authorizationHeader('admin', { userKey: admin.userKey })
+    const [blockStatus] = await RequestGenerator.PUT_admin_user_status(
+      user.userKey,
+      { status: 'blocked', reason: 'Dados de contato falsos.' },
+      adminHeaders,
+    )
+    assert.equal(blockStatus, 202)
+
+    const [status, response] = await RequestGenerator.POST_auth_login({ email: user.email, password: PASSWORD })
+
+    assert.equal(status, 403)
+    assert.equal(response.code, 'EVP000011')
+    assert.equal(response.details.profile, 'fornecedor')
+    assert.equal(response.details.reason, 'Dados de contato falsos.')
+    assert.ok(response.details.decided_at)
+  })
+
   test('cadastro pendente com senha errada recebe 401, sem revelar o status', async () => {
     const user = await createFixture({ profile: 'organizador', status: 'pending' })
 
