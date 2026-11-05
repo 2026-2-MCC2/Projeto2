@@ -282,9 +282,7 @@ export class EventController extends BaseController {
     }
 
     // as URLs das fotos são geradas depois do commit, para não segurar o evento travado
-    const comparisonData = await this.#readProposalComparison(event)
-    await this.session.commit()
-    return this.#buildProposalComparison(event, comparisonData)
+    return this.#getProposalComparison(event)
   }
 
   /**

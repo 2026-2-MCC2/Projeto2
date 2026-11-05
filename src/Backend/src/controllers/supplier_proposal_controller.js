@@ -137,9 +137,7 @@ export class SupplierProposalController extends BaseController {
     await this.proposalRepository.update(proposal, toProposalFields(payload))
 
     // a URL das fotos é assinada depois do commit, para não segurar o evento travado
-    const detail = await this.#readProposalDetail(supplier.id, proposalKey)
-    await this.session.commit()
-    return this.#buildProposalDetail(detail)
+    return this.#getProposalDetail(supplier.id, proposalKey)
   }
 
   // O banco não tem status "retirada": a retirada apaga a proposta, e o fornecedor pode enviar outra
