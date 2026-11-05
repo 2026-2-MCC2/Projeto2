@@ -25,6 +25,14 @@ export function paraNumero(texto) {
   return Number(decimal ? limpo : semSimbolos.replace(/[.,]/g, ''))
 }
 
+// porcentagem não tem milhar (a margem vai de 0 a 99): a vírgula ou o ponto é sempre o decimal,
+// então "2,125" vale 2,125% e não 2125%
+export function paraPercentual(texto) {
+  const semSimbolos = texto.replace(/[\s%]/g, '')
+  if (!/^\d+([.,]\d+)?$/.test(semSimbolos)) return NaN
+  return Number(semSimbolos.replace(',', '.'))
+}
+
 function separadorDecimal(texto) {
   const ultimoPonto = texto.lastIndexOf('.')
   const ultimaVirgula = texto.lastIndexOf(',')
@@ -110,7 +118,7 @@ export const REGRAS = {
   valorPositivo: (texto) =>
     paraNumero(texto) > 0 ? '' : 'Informe um valor em reais maior que zero.',
   percentual: (texto) => {
-    const numero = paraNumero(texto)
+    const numero = paraPercentual(texto)
     return numero >= 0 && numero < 100 ? '' : 'Informe uma porcentagem de 0 a 99.'
   },
 }

@@ -1,5 +1,5 @@
 import { api } from '../infrastructure/api.js'
-import { paraData, paraNumero } from '../domain/validacao.js'
+import { paraData, paraNumero, paraPercentual } from '../domain/validacao.js'
 import { digitos, mascararCep } from '../domain/formatacao.js'
 import {
   buscarEventoEmMemoria,
@@ -447,7 +447,7 @@ export function montarPayloadEvento(dados) {
   const expectedAudience = Math.round(paraNumero(dados.publicoEsperado)) || minAudience
   const maxAudience = Math.round(paraNumero(dados.publicoMaximo)) || expectedAudience
 
-  const margemNumero = paraNumero(dados.margemLucro)
+  const margemNumero = paraPercentual(dados.margemLucro)
   const profitMargin = Number.isNaN(margemNumero)
     ? 0.2
     : Math.min(Math.max(Number((margemNumero / 100).toFixed(4)), 0), 0.9999)
