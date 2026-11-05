@@ -32,7 +32,12 @@ export function formatarTelefone(telefone) {
 export function formatarData(dataIso) {
   const data = new Date(dataIso)
   if (Number.isNaN(data.getTime())) return ''
-  return data.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
+  return data.toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'America/Sao_Paulo',
+  })
 }
 
 export function iniciais(nome) {
