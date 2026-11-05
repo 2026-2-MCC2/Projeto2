@@ -45,12 +45,14 @@ function separadorDecimal(texto) {
   return repetido || (tresDigitosDepois && !parteInteiraZero) ? null : separador
 }
 
-// "18/10/2026" → Date · data inexistente (31/02) ou fora do formato → null
+// "18/10/2026" → Date · data inexistente (31/02), fora do formato ou antes de 1900 → null
+// (o Date leva os anos 0 a 99 para 1900 a 1999: "01/01/0026" viraria 1926)
 export function paraData(texto) {
   const partes = texto.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
   if (!partes) return null
 
   const [, dia, mes, ano] = partes.map(Number)
+  if (ano < 1900) return null
   const data = new Date(ano, mes - 1, dia)
   return data.getDate() === dia && data.getMonth() === mes - 1 ? data : null
 }
