@@ -117,9 +117,11 @@ export const REGRAS = {
   valor: (texto) => (paraNumero(texto) >= 0 ? '' : 'Informe um valor em reais, como R$ 1.500,00.'),
   valorPositivo: (texto) =>
     paraNumero(texto) > 0 ? '' : 'Informe um valor em reais maior que zero.',
+  // a margem é guardada com 4 casas da fração (DECIMAL(5,4)), ou seja, até 2 casas na porcentagem
   percentual: (texto) => {
     const numero = paraPercentual(texto)
-    return numero >= 0 && numero < 100 ? '' : 'Informe uma porcentagem de 0 a 99.'
+    if (!(numero >= 0 && numero < 100)) return 'Informe uma porcentagem de 0 a 99.'
+    return /[.,]\d{3,}/.test(texto) ? 'Use até 2 casas decimais, como 12,5%.' : ''
   },
 }
 
