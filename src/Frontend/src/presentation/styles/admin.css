@@ -471,7 +471,7 @@
   .visao-geral__tabela td::before {
     content: attr(data-label);
     color: var(--texto-terciario);
-    font-size: 0.5625rem;
+    font-size: 0.6875rem;
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
@@ -550,7 +550,7 @@
   .historico__rotulo {
     display: inline;
     color: var(--texto-terciario);
-    font-size: 0.5625rem;
+    font-size: 0.6875rem;
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;

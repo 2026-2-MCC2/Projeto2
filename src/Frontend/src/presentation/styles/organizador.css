@@ -99,7 +99,7 @@
 .menu__secao {
   margin: 0 0 0.375rem;
   color: var(--texto-terciario);
-  font-size: 0.5625rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.0667em;
 }
@@ -146,14 +146,14 @@
   background: var(--status-perigo-texto);
 }
 
-/* evento cancelado continua nos recentes, mas apagado: não tem mais o que planejar */
-.menu__evento--cancelado {
-  opacity: 0.55;
+/* evento cancelado continua nos recentes, mas apagado: não tem mais o que planejar.
+   O apagado vem das cores secundárias (que passam 4,5:1), não de opacidade no link inteiro */
+.menu__evento--cancelado .menu__evento-texto strong {
+  color: var(--texto-secundario);
 }
 
-.menu__evento--cancelado:hover,
-.menu__evento--cancelado.menu__evento--ativo {
-  opacity: 0.85;
+.menu__evento--cancelado .menu__evento-texto small {
+  color: var(--texto-terciario);
 }
 
 .menu__evento-texto {
@@ -1218,6 +1218,7 @@
   flex-direction: column;
   align-items: center;
   gap: 0.25rem;
+  min-width: 0; /* cinco abas em 320px com fonte maior: encolhem em vez de estourar a barra */
   padding: 0.375rem 0;
   color: var(--texto-secundario);
   font-size: 0.6875rem;
@@ -1225,8 +1226,16 @@
   text-decoration: none;
 }
 
+.aba__nome {
+  max-width: 100%;
+  text-align: center;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+
 .aba__marcador {
   display: flex;
+  max-width: 100%;
   align-items: center;
   justify-content: center;
   padding: 0.3125rem 0.75rem;
@@ -1840,7 +1849,7 @@
 }
 
 .equilibrio__destaque span {
-  font-size: 0.5625rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.05em;
   opacity: 0.75;
@@ -2372,7 +2381,7 @@
   }
 
   .ficha__dado span {
-    font-size: 0.5625rem;
+    font-size: 0.6875rem;
   }
 
   .ficha__dado strong {
@@ -2384,7 +2393,7 @@
   }
 
   .indicador span {
-    font-size: 0.5625rem;
+    font-size: 0.6875rem;
   }
 
   .indicador strong {
@@ -2750,15 +2759,6 @@
   from {
     opacity: 0;
     transform: translateY(6px);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
   }
 }
 

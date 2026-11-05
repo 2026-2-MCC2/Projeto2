@@ -81,6 +81,31 @@
   }
 }
 
+/* fica aqui, e não na folha de cada área, para valer também nas telas de acesso;
+   uma volta só para as animações infinitas (carregando, skeleton) pararem em vez de piscar */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+/* a transição entre telas não é casada pelo "*": "Reduzir animações" precisa desligá-la à parte */
+:root.sem-movimento::view-transition-group(*),
+:root.sem-movimento::view-transition-old(*),
+:root.sem-movimento::view-transition-new(*) {
+  animation: none !important;
+}
+
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
@@ -478,6 +503,12 @@ button.calendario__titulo:focus-visible {
 }
 
 .calendario__grade {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.calendario__semana {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 3px;
@@ -525,8 +556,8 @@ button.calendario__titulo:focus-visible {
 }
 
 .calendario__dia--selecionado {
-  background: var(--texto-marca) !important;
-  color: #ffffff !important;
+  background: var(--acao-primaria) !important;
+  color: var(--acao-sobre-primaria) !important;
   font-weight: 700;
 }
 
@@ -590,11 +621,20 @@ button.calendario__titulo:focus-visible {
   z-index: 50;
   display: flex;
   flex-direction: column;
+  pointer-events: none;
+}
+
+.toaster__lista {
+  display: flex;
+  flex-direction: column;
   gap: 0.5rem;
   margin: 0;
   padding: 0;
   list-style: none;
-  pointer-events: none;
+}
+
+.toaster__lista:not(:empty) + .toaster__lista:not(:empty) {
+  margin-top: 0.5rem;
 }
 
 @media (min-width: 901px) {
@@ -687,6 +727,8 @@ button.calendario__titulo:focus-visible {
 .toast__fechar {
   display: grid;
   place-items: center;
+  min-width: 24px; /* alvo de toque mínimo (WCAG 2.5.8) */
+  min-height: 24px;
   padding: 0.25rem;
 }
 

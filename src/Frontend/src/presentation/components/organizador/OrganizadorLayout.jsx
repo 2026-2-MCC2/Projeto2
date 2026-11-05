@@ -156,7 +156,7 @@ export function OrganizadorLayout({
                 <span className="aba__marcador">
                   <Icone src={aba.icone} />
                 </span>
-                {aba.nome}
+                <span className="aba__nome">{aba.nome}</span>
               </NavLink>
             ))}
           </nav>
