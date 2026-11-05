@@ -955,6 +955,19 @@
   object-fit: cover;
 }
 
+/* foto salva cujo link não pôde ser gerado agora; aparece na próxima vez que a tela carregar */
+.proposta-detalhes__foto--sem-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border: 1px dashed var(--borda-forte);
+  background: var(--fundo-sutil);
+  color: var(--texto-secundario);
+  font-size: 0.6875rem;
+  text-align: center;
+}
+
 .proposta-detalhes__foto-item {
   position: relative;
   flex: 0 0 96px;

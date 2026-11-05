@@ -49,10 +49,9 @@ export function GaleriaDeFotos({ proposalKey }) {
 
     setEnviando(true)
     try {
+      // sem url, a foto foi salva mas a API não conseguiu gerar o link agora: ela entra na lista do mesmo jeito
       const foto = await enviarFotoDaProposta(proposalKey, arquivo)
-      // a foto foi salva, mas a API não conseguiu gerar o link: busca a lista de novo
-      if (foto.url) setFotos((atuais) => [...atuais, foto])
-      else setFotos((await buscarMinhaProposta(proposalKey)).photos ?? [])
+      setFotos((atuais) => [...atuais, foto])
     } catch (falha) {
       toast.erro('Não foi possível enviar a foto', { descricao: falha.message })
     } finally {
@@ -81,12 +80,18 @@ export function GaleriaDeFotos({ proposalKey }) {
           <div className="proposta-detalhes__galeria">
             {fotos.map((foto, indice) => (
               <div key={foto.photo_key} className="proposta-detalhes__foto-item">
-                <img
-                  onError={aoFalharFoto}
-                  src={foto.url}
-                  alt={`Foto ${indice + 1} do serviço`}
-                  className="proposta-detalhes__foto"
-                />
+                {foto.url ? (
+                  <img
+                    onError={aoFalharFoto}
+                    src={foto.url}
+                    alt={`Foto ${indice + 1} do serviço`}
+                    className="proposta-detalhes__foto"
+                  />
+                ) : (
+                  <span className="proposta-detalhes__foto proposta-detalhes__foto--sem-link">
+                    Foto salva
+                  </span>
+                )}
                 <button
                   type="button"
                   className="proposta-detalhes__remover-foto"
