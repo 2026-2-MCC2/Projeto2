@@ -189,6 +189,7 @@ export function EventoItens() {
                     : formatarMoeda(item.estimated_value),
               ],
             }))}
+            acaoDaLinha="Editar o item"
             aoClicarNaLinha={
               podeEditar
                 ? (itemKey) =>
@@ -207,6 +208,7 @@ export function EventoItens() {
             celulas: [linha.nome, linha.categoria, linha.origem, linha.valor],
           }))}
           rodape={['Total de custos próprios', '', '', custos.totalProprios]}
+          acaoDaLinha="Editar o custo"
           aoClicarNaLinha={podeEditar ? abrirCusto : undefined}
         />
       ) : !carregandoItens && !erroItens && itensDeCotacao.length === 0 ? (
