@@ -12,6 +12,7 @@ import { formatarData } from '../../../domain/formatacao.js'
 import { Carregando, ErroNaTela, Vazio } from '../../components/comum/EstadoDaTela.jsx'
 import { Modal } from '../../components/comum/Modal.jsx'
 import { EtiquetaDaProposta } from '../../components/fornecedor/EtiquetaDaProposta.jsx'
+import { FotoDoServico } from '../../components/fornecedor/FotoDoServico.jsx'
 import { Cartao } from '../../components/organizador/Cartao.jsx'
 import { Botao } from '../../components/organizador/Formulario.jsx'
 import { OrganizadorLayout } from '../../components/organizador/OrganizadorLayout.jsx'
@@ -183,24 +184,14 @@ export function DetalheDaProposta() {
           {proposta.photos?.length > 0 && (
             <Cartao titulo="Fotos enviadas">
               <div className="proposta-detalhes__galeria">
-                {proposta.photos.map((foto, indice) =>
-                  foto.url ? (
-                    <img
-                      key={foto.photo_key}
-                      src={foto.url}
-                      alt={`Foto ${indice + 1} do serviço`}
-                      className="proposta-detalhes__foto"
-                      onError={aoFalharFoto}
-                    />
-                  ) : (
-                    <span
-                      key={foto.photo_key}
-                      className="proposta-detalhes__foto proposta-detalhes__foto--sem-link"
-                    >
-                      Foto indisponível agora
-                    </span>
-                  ),
-                )}
+                {proposta.photos.map((foto, indice) => (
+                  <FotoDoServico
+                    key={foto.photo_key}
+                    foto={foto}
+                    indice={indice}
+                    aoFalharFoto={aoFalharFoto}
+                  />
+                ))}
               </div>
             </Cartao>
           )}

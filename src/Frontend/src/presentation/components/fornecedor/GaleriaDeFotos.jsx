@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   apagarFotoDaProposta,
   buscarMinhaProposta,
@@ -12,6 +12,7 @@ import {
   lerFotosPendentes,
 } from '../../../application/rascunhosDePropostas.js'
 import { Icone } from '../comum/Icone.jsx'
+import { FotoDoServico } from './FotoDoServico.jsx'
 import { toast } from '../../toasts.js'
 import iconeAdicionar from '../../assets/organizador/icone-adicionar.svg'
 import { useRenovarFotosVencidas } from '../../hooks/useRenovarFotosVencidas.js'
@@ -42,6 +43,19 @@ export function GaleriaDeFotos({ proposalKey, eventKey, itemKey }) {
   )
 }
 
+// a foto do campo de arquivo, ou null quando nada foi escolhido ou ela não pode ser usada (com o aviso)
+function fotoEscolhida(evento) {
+  const arquivo = evento.target.files?.[0]
+  evento.target.value = ''
+  if (!arquivo) return null
+  const problema = problemaDaFoto(arquivo)
+  if (problema) {
+    toast.erro('Esta foto não pode ser usada', { descricao: problema })
+    return null
+  }
+  return arquivo
+}
+
 // o navegador não diz se dois File são o mesmo arquivo do disco: nome, tamanho e data bastam aqui
 const identidadeDoArquivo = (arquivo) => `${arquivo.name}|${arquivo.size}|${arquivo.lastModified}`
 
@@ -54,14 +68,8 @@ function FotosPendentes({ eventKey, itemKey }) {
   }
 
   function adicionar(evento) {
-    const arquivo = evento.target.files?.[0]
-    evento.target.value = ''
+    const arquivo = fotoEscolhida(evento)
     if (!arquivo) return
-    const problema = problemaDaFoto(arquivo)
-    if (problema) {
-      toast.erro('Esta foto não pode ser usada', { descricao: problema })
-      return
-    }
     const identidade = identidadeDoArquivo(arquivo)
     if (arquivos.some((escolhido) => identidadeDoArquivo(escolhido) === identidade)) {
       toast.info('Esta foto já foi escolhida')
@@ -108,14 +116,8 @@ function FotosDaProposta({ proposalKey }) {
   }, [proposalKey])
 
   async function adicionar(evento) {
-    const arquivo = evento.target.files?.[0]
-    evento.target.value = ''
+    const arquivo = fotoEscolhida(evento)
     if (!arquivo) return
-    const problema = problemaDaFoto(arquivo)
-    if (problema) {
-      toast.erro('Esta foto não pode ser usada', { descricao: problema })
-      return
-    }
 
     setEnviando(true)
     try {
@@ -152,45 +154,13 @@ function FotosDaProposta({ proposalKey }) {
   )
 }
 
-// Prévia de um arquivo ainda não enviado. A URL nasce e é revogada no mesmo ref callback: no StrictMode
-// ele roda duas vezes, e uma URL criada fora dele seria revogada na primeira limpeza e ficaria quebrada.
-function PreviaDoArquivo({ arquivo, ...props }) {
-  const mostrarArquivo = useCallback(
-    (imagem) => {
-      const url = URL.createObjectURL(arquivo)
-      imagem.src = url
-      return () => URL.revokeObjectURL(url)
-    },
-    [arquivo],
-  )
-  return <img ref={mostrarArquivo} {...props} />
-}
-
-// fotos: [{ chave, url }] das já enviadas (url null é foto salva cujo link não pôde ser gerado agora)
-// ou [{ chave, arquivo }] das escolhidas que ainda vão com a proposta
+// fotos: [{ chave, url }] das já enviadas ou [{ chave, arquivo }] das escolhidas (ver FotoDoServico)
 function Galeria({ fotos, enviando = false, aoAdicionar, aoRemover, aoFalharFoto }) {
   return (
     <div className="proposta-detalhes__galeria">
       {fotos.map((foto, indice) => (
         <div key={foto.chave} className="proposta-detalhes__foto-item">
-          {foto.arquivo ? (
-            <PreviaDoArquivo
-              arquivo={foto.arquivo}
-              alt={`Foto ${indice + 1} do serviço`}
-              className="proposta-detalhes__foto"
-            />
-          ) : foto.url ? (
-            <img
-              onError={aoFalharFoto}
-              src={foto.url}
-              alt={`Foto ${indice + 1} do serviço`}
-              className="proposta-detalhes__foto"
-            />
-          ) : (
-            <span className="proposta-detalhes__foto proposta-detalhes__foto--sem-link">
-              Foto salva
-            </span>
-          )}
+          <FotoDoServico foto={foto} indice={indice} aoFalharFoto={aoFalharFoto} />
           <button
             type="button"
             className="proposta-detalhes__remover-foto"
