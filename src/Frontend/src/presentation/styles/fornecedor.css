@@ -1395,6 +1395,12 @@
     display: none;
   }
 
+  .proposta-detalhes__remover-foto {
+    width: 32px;
+    height: 32px;
+    font-size: 1.25rem;
+  }
+
   .proposta-detalhes__ajuda-fotos {
     margin: 0;
   }

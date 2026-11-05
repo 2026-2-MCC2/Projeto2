@@ -176,7 +176,13 @@ function Galeria({ fotos, enviando = false, aoAdicionar, aoRemover, aoFalharFoto
         <label className="proposta-detalhes__adicionar">
           <Icone src={iconeAdicionar} />
           {enviando ? 'Enviando...' : 'Adicionar'}
-          <input type="file" accept={TIPOS_ACEITOS} disabled={enviando} onChange={aoAdicionar} />
+          <input
+            type="file"
+            aria-label="Adicionar foto"
+            accept={TIPOS_ACEITOS}
+            disabled={enviando}
+            onChange={aoAdicionar}
+          />
         </label>
       )}
     </div>
