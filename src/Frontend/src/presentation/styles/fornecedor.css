@@ -849,6 +849,26 @@
   object-fit: cover;
 }
 
+.proposta-detalhes__foto-item {
+  position: relative;
+  flex: 0 0 96px;
+}
+
+.proposta-detalhes__remover-foto {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 60%);
+  color: #fff;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
 .proposta-detalhes__adicionar {
   display: flex;
   flex-direction: column;

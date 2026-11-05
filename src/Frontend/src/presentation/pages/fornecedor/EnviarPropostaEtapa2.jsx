@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { EtapaDaProposta } from '../../components/fornecedor/EtapaDaProposta.jsx'
+import { GaleriaDeFotos } from '../../components/fornecedor/GaleriaDeFotos.jsx'
 import { ResumoItemCotacao, ResumoProposta } from '../../components/fornecedor/ResumoProposta.jsx'
 import { Botao } from '../../components/organizador/Formulario.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
@@ -23,23 +24,6 @@ function CampoDescricao({ id, rotulo, obrigatorio, placeholder, linhas, maximo, 
         onChange={onChange}
       />
     </label>
-  )
-}
-
-// O banco guarda só a URL das fotos (proposal_photo) e ainda não há onde guardar o arquivo:
-// a galeria fica sem envio até isso existir.
-function GaleriaFotos() {
-  return (
-    <section className="proposta-detalhes__fotos" aria-labelledby="titulo-fotos-servico">
-      <div className="proposta-detalhes__cabecalho-fotos">
-        <h3 id="titulo-fotos-servico">Fotos do serviço</h3>
-        <p>Imagens de trabalhos anteriores ajudam o organizador a avaliar a proposta.</p>
-      </div>
-      <p className="aviso" role="note">
-        O envio de fotos chega em uma próxima versão. Por enquanto, descreva o serviço no campo
-        acima.
-      </p>
-    </section>
   )
 }
 
@@ -105,7 +89,7 @@ export function EnviarPropostaEtapa2() {
                 onChange={preencher('naoIncluido')}
               />
             </div>
-            <GaleriaFotos />
+            <GaleriaDeFotos proposalKey={proposta.proposalKey} />
             {!isMobile && acoes}
           </form>
           {!isMobile && (

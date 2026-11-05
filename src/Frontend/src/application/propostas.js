@@ -109,3 +109,15 @@ export function listarMinhasPropostas({ status, limit = 20, page = 0 } = {}) {
   if (status) parametros.set('status', status)
   return api.get(`/supplier/proposals?${parametros}`)
 }
+
+// até 5 fotos JPG, PNG ou WebP de até 5 MB, só em proposta já enviada; a API confere o tipo real
+export const LIMITE_DE_FOTOS = 5
+export const TAMANHO_MAXIMO_DA_FOTO = 5 * 1024 * 1024
+
+export function enviarFotoDaProposta(proposalKey, arquivo) {
+  return api.enviarArquivo(`/supplier/proposals/${proposalKey}/photos`, 'photo', arquivo)
+}
+
+export function apagarFotoDaProposta(proposalKey, photoKey) {
+  return api.delete(`/supplier/proposals/${proposalKey}/photos/${photoKey}`)
+}

@@ -117,6 +117,18 @@ export function PropostaRecebida() {
           <Cartao titulo="Observações do fornecedor">
             <p>{proposta.notes || 'Nenhuma observação enviada.'}</p>
           </Cartao>
+
+          {proposta.photos?.length > 0 && (
+            <Cartao titulo="Fotos do serviço">
+              <div className="proposta-recebida__fotos">
+                {proposta.photos.map((foto, indice) => (
+                  <a key={foto.photo_key} href={foto.url} target="_blank" rel="noreferrer">
+                    <img src={foto.url} alt={`Foto ${indice + 1} enviada pelo fornecedor`} />
+                  </a>
+                ))}
+              </div>
+            </Cartao>
+          )}
         </div>
 
         <div className="colunas__lateral colunas__lateral--estreita">

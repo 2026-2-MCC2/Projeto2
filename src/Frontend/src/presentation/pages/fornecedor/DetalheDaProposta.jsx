@@ -214,6 +214,24 @@ export function DetalheDaProposta() {
             ))}
           </dl>
         </section>
+
+        {proposta.photos?.length > 0 && (
+          <section className="painel" aria-labelledby="proposta-fotos-titulo">
+            <div className="painel__titulo">
+              <h2 id="proposta-fotos-titulo">Fotos do serviço</h2>
+            </div>
+            <div className="proposta-detalhes__galeria">
+              {proposta.photos.map((foto, indice) => (
+                <img
+                  key={foto.photo_key}
+                  src={foto.url}
+                  alt={`Foto ${indice + 1} do serviço`}
+                  className="proposta-detalhes__foto"
+                />
+              ))}
+            </div>
+          </section>
+        )}
       </div>
 
       {confirmandoRetirada && (
