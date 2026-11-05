@@ -23,7 +23,11 @@ export async function entrar({ email, senha }) {
   return usuario
 }
 
-const SITUACOES_POR_CODIGO = { EVP000009: 'pendente', EVP000010: 'rejeitado' }
+const SITUACOES_POR_CODIGO = {
+  EVP000009: 'pendente',
+  EVP000010: 'rejeitado',
+  EVP000011: 'bloqueado',
+}
 
 // login barrado por cadastro pendente ou rejeitado: dados para a tela de acompanhamento, ou null
 export function acompanhamentoDoCadastro(falhaNoLogin) {
