@@ -101,9 +101,12 @@ export function PropostaRecebida() {
   async function confirmarSelecao() {
     setSalvando(true)
     try {
-      setComparacao(await aceitarPropostaDoEvento(id, proposalKey))
+      const atualizada = await aceitarPropostaDoEvento(id, proposalKey)
+      setComparacao(atualizada)
       setConfirmacaoAberta(false)
-      toast.sucesso('Proposta selecionada', { descricao: proposta.supplier_name })
+      toast.sucesso('Proposta selecionada', {
+        descricao: `${proposta.supplier_name} · custo consolidado ${formatarMoeda(atualizada.total_cost)}`,
+      })
     } catch (falha) {
       toast.erro('Não foi possível selecionar a proposta', { descricao: falha.message })
       if (falha.status === 409) setTentativa((valor) => valor + 1)
@@ -205,6 +208,10 @@ export function PropostaRecebida() {
               </span>
             )}
             <p className="cartao__apoio">{textoDaDecisao(proposta, item, eventoEmCotacao)}</p>
+            <p className="cartao__apoio">
+              Custo consolidado do evento:{' '}
+              <strong>{formatarMoeda(comparacaoDoEvento.total_cost)}</strong>
+            </p>
             {podeSelecionar && (
               <Botao type="button" disabled={salvando} onClick={() => setConfirmacaoAberta(true)}>
                 {troca ? 'Trocar para esta proposta' : 'Selecionar proposta'}

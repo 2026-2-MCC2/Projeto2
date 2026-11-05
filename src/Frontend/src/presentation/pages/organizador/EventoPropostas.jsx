@@ -95,7 +95,9 @@ export function EventoPropostas() {
       // continua no item que acabou de ser decidido, em vez de pular para o próximo sem escolha
       setItemEscolhido(item.item_key)
       setResultado({ ...atualizada, error: null })
-      toast.sucesso('Proposta selecionada', { descricao: selecionando.supplier_name })
+      toast.sucesso('Proposta selecionada', {
+        descricao: `${selecionando.supplier_name} · custo consolidado ${formatarMoeda(atualizada.total_cost)}`,
+      })
       setSelecionando(null)
     } catch (falha) {
       toast.erro('Não foi possível selecionar a proposta', { descricao: falha.message })
