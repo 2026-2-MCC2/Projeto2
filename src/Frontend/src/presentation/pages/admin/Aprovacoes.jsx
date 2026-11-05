@@ -74,7 +74,7 @@ function ModalDecisao({ decisao, cadastro, enviando, aoConfirmar, aoFechar }) {
       acao={{
         cancelar: 'Cancelar',
         confirmar: enviando ? 'Rejeitando...' : 'Rejeitar cadastro',
-        aoConfirmar: () => aoConfirmar(motivo),
+        aoConfirmar: () => aoConfirmar(motivo.trim()),
         ocupado: enviando,
       }}
       aoFechar={aoFechar}
