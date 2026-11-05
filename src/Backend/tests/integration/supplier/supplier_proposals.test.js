@@ -380,6 +380,25 @@ describe('PUT /supplier/proposals/:proposal_key', () => {
     assert.equal(anonymousStatus, 401)
     assert.equal(anonymousError.code, 'APP000401')
   })
+
+  test('proposta de evento cancelado responde 409 dizendo que o evento foi cancelado', async () => {
+    const scenario = await createScenario()
+    await RequestGenerator.PATCH_event_status(
+      scenario.event.event_key,
+      { status: 'canceled', reason: 'Chuva.' },
+      scenario.organizer.headers,
+    )
+
+    const [status, response] = await RequestGenerator.PUT_supplier_proposal(
+      scenario.proposal.proposal_key,
+      PayloadGenerator.createSupplierProposalPayload(),
+      scenario.supplier.headers,
+    )
+
+    assert.equal(status, 409)
+    assert.equal(response.code, 'EVP000041')
+    assert.equal(response.translation, 'O organizador cancelou o evento: esta proposta não pode mais ser alterada nem retirada.')
+  })
 })
 
 describe('DELETE /supplier/proposals/:proposal_key', () => {

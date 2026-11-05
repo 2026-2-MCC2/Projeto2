@@ -376,6 +376,11 @@ export class ProposalValidUntilAfterEvent extends ApiException {
   }
 }
 
+// o motivo muda com o status: o evento cancelado não foi uma decisão do organizador sobre a proposta
+const PROPOSAL_LOCKED_TRANSLATIONS = {
+  canceled: 'O organizador cancelou o evento: esta proposta não pode mais ser alterada nem retirada.',
+}
+
 export class ProposalCannotBeChanged extends ApiException {
   static code = 'EVP000041'
 
@@ -383,7 +388,8 @@ export class ProposalCannotBeChanged extends ApiException {
     const title = 'Proposal cannot be changed'
     const httpStatus = 409
     const description = `A proposal with status ${status} can no longer be edited or withdrawn.`
-    const translation = 'Esta proposta já foi analisada pelo organizador e não pode mais ser alterada nem retirada.'
+    const translation =
+      PROPOSAL_LOCKED_TRANSLATIONS[status] ?? 'Esta proposta já foi analisada pelo organizador e não pode mais ser alterada nem retirada.'
     super(title, ProposalCannotBeChanged.code, httpStatus, description, translation)
   }
 }
