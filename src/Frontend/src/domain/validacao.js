@@ -125,8 +125,8 @@ export const REGRAS = {
 
 // Regras que comparam dois campos.
 
-// Validade de uma proposta: até o dia em que o evento termina. O dia do fim é o da data em UTC,
-// porque é assim que a API confere; o "a partir de hoje" fica com a regra dataFutura.
+// Validade de uma proposta: até o dia em que o evento termina. O dia do fim é o de Brasília, o mesmo
+// que a API confere (toBrazilDateString); o "a partir de hoje" fica com a regra dataFutura.
 export function validarValidadeDaProposta(validade, fimDoEventoIso) {
   const data = paraData(validade)
   if (!data || !fimDoEventoIso) return ''
