@@ -164,12 +164,6 @@
   }
 }
 
-@keyframes subir {
-  from {
-    transform: translateY(100%);
-  }
-}
-
 @media (max-width: 900px) {
   .fundo-modal {
     align-items: flex-end;
