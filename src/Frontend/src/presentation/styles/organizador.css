@@ -142,6 +142,20 @@
   background: var(--status-sucesso-forte);
 }
 
+.menu__evento-marcador--cancelado {
+  background: var(--status-perigo-texto);
+}
+
+/* evento cancelado continua nos recentes, mas apagado: não tem mais o que planejar */
+.menu__evento--cancelado {
+  opacity: 0.55;
+}
+
+.menu__evento--cancelado:hover,
+.menu__evento--cancelado.menu__evento--ativo {
+  opacity: 0.85;
+}
+
 .menu__evento-texto {
   display: flex;
   flex-direction: column;

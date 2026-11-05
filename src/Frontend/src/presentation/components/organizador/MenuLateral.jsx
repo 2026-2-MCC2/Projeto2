@@ -132,7 +132,7 @@ export function MenuLateral({ aoSair, perfil = 'organizador' }) {
                   to={`/organizador/eventos/${evento.id}`}
                   viewTransition
                   className={({ isActive }) =>
-                    `menu__evento${isActive ? ' menu__evento--ativo' : ''}`
+                    `menu__evento${isActive ? ' menu__evento--ativo' : ''}${evento.status === 'cancelado' ? ' menu__evento--cancelado' : ''}`
                   }
                 >
                   <span
