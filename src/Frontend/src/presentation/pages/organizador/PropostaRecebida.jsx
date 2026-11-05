@@ -93,6 +93,8 @@ export function PropostaRecebida() {
   const outras = item.proposals.filter((outra) => outra.proposal_key !== proposalKey)
   const menorValor =
     !itemJaDecidido(item) && menorPropostaDisponivel(item)?.proposal_key === proposalKey
+  // valor previsto 0 não serve de referência: a diferença em % dividiria por zero
+  const temPrevisto = item.estimated_value > 0
   const troca = itemJaDecidido(item)
   const podeSelecionar = podeSerSelecionada(proposta, item, eventoEmCotacao)
 
@@ -137,7 +139,7 @@ export function PropostaRecebida() {
           <Cartao titulo="Condições da proposta">
             <dl className="linhas-de-dados">
               <Linha rotulo="Valor proposto" valor={formatarMoeda(proposta.amount)} />
-              {item.estimated_value != null && (
+              {temPrevisto && (
                 <>
                   <Linha
                     rotulo="Orçamento previsto para o item"
@@ -195,7 +197,7 @@ export function PropostaRecebida() {
         <aside className="colunas__lateral">
           <Cartao titulo="Decisão sobre a proposta">
             <strong className="proposta-recebida__valor">{formatarMoeda(proposta.amount)}</strong>
-            {item.estimated_value != null && (
+            {temPrevisto && (
               <span
                 className={`etiqueta ${proposta.amount <= item.estimated_value ? 'etiqueta--aprovado' : 'etiqueta--rejeitado'}`}
               >
