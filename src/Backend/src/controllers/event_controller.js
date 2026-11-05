@@ -161,7 +161,7 @@ export class EventController extends BaseController {
       status: EVENT_STATUSES.DRAFT,
     }
 
-    const internalCosts = payload.internal_costs ?? []
+    const internalCosts = (payload.internal_costs ?? []).map((cost) => ({ ...cost, description: cost.description.trim() }))
     const createdEvent = await this.eventRepository.create(eventData, internalCosts)
 
     await this.session.commit()

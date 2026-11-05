@@ -81,6 +81,20 @@ describe('POST /events (RF05, RF07)', () => {
     assert.equal(response.total_internal_cost, 42100)
   })
 
+  test('descrição dos custos próprios é gravada sem os espaços das pontas', async () => {
+    const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
+    fixtureUserKeys.push(organizer.userKey)
+    const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
+
+    const [status, response] = await RequestGenerator.POST_events(
+      PayloadGenerator.createEventPayload({ internal_costs: [{ type: 'tax', description: '  Alvará da prefeitura  ', amount: 1500 }] }),
+      headers,
+    )
+
+    assert.equal(status, 201)
+    assert.equal(response.internal_costs[0].description, 'Alvará da prefeitura')
+  })
+
   test('sem token responde 401', async () => {
     const eventPayload = PayloadGenerator.createEventPayload()
     const [status, response] = await RequestGenerator.POST_events(eventPayload)
