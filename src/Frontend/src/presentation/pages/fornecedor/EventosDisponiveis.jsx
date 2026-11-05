@@ -10,6 +10,8 @@ import iconeBuscar from '../../assets/organizador/icone-buscar.svg'
 import '../../styles/fornecedor.css'
 
 const TAMANHO_DA_PAGINA = 100
+// espera o fornecedor parar de digitar antes de buscar, para não pedir uma lista a cada letra
+const ESPERA_DA_BUSCA_EM_MS = 300
 
 function CartaoEvento({ evento }) {
   return (
@@ -45,13 +47,13 @@ function CartaoEvento({ evento }) {
 export function EventosDisponiveis() {
   const isMobile = useIsMobile()
   const [busca, setBusca] = useState('')
+  const [termo, setTermo] = useState('')
   const [filtro, setFiltro] = useState('Minhas categorias')
   const [tentativa, setTentativa] = useState(0)
   const [carregandoMais, setCarregandoMais] = useState(false)
   // guardado com o termo: o erro de uma busca anterior não aparece na lista de outra
   const [erroAoCarregarMais, setErroAoCarregarMais] = useState({ termo: null, mensagem: '' })
   const [resultado, setResultado] = useState({ termo: null, data: [], erro: null })
-  const termo = busca.trim()
   const carregando = resultado.termo !== termo
   const dados = carregando ? { data: [], total: 0, is_last_page: true } : resultado
   const categorias = [...new Set(dados.data.flatMap((evento) => evento.categories))].sort()
@@ -59,6 +61,11 @@ export function EventosDisponiveis() {
   const eventos = dados.data.filter(
     (evento) => filtro === 'Minhas categorias' || evento.categories.includes(filtro),
   )
+
+  useEffect(() => {
+    const espera = setTimeout(() => setTermo(busca.trim()), ESPERA_DA_BUSCA_EM_MS)
+    return () => clearTimeout(espera)
+  }, [busca])
 
   useEffect(() => {
     let telaAberta = true
