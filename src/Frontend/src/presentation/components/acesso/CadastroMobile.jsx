@@ -218,6 +218,7 @@ export function CadastroMobile() {
                 <EntradaDeSenha
                   name="senha"
                   autoComplete="new-password"
+                  maxLength={72}
                   data-validar="senha"
                   placeholder="Mínimo de 8 caracteres"
                   value={dados.senha}
@@ -232,6 +233,7 @@ export function CadastroMobile() {
                 <EntradaDeSenha
                   name="confirmacaoSenha"
                   autoComplete="new-password"
+                  maxLength={72}
                   placeholder="Repita a senha"
                   value={dados.confirmacaoSenha}
                   onChange={preencher('confirmacaoSenha')}
