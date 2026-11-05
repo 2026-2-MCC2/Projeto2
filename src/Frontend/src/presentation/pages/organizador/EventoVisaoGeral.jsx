@@ -217,7 +217,7 @@ export function EventoVisaoGeral() {
       <ListaDeLinhas
         compacta={isMobile}
         linhas={detalhe.itens.map((item) => ({
-          chave: item.nome,
+          chave: item.chave,
           titulo: item.nome,
           apoio: isMobile ? undefined : item.categoria,
           etiqueta: ETIQUETA_DA_SITUACAO[item.situacao]?.[isMobile ? 'curta' : 'longa'],
