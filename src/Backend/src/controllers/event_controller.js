@@ -435,7 +435,7 @@ function canceledProposalEmail(proposal, event, organizer) {
       ? 'Sua proposta tinha sido aceita e foi cancelada junto com o evento.'
       : 'Sua proposta ainda aguardava a decisão do organizador e foi cancelada junto com o evento.',
     item: proposal.item_description,
-    valor: Number(proposal.amount).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+    valor: TextTools.formatCurrency(proposal.amount),
     motivo: event.cancellation_reason,
     contato: organizer.contact,
     link: `${FRONT_URL}/fornecedor/propostas/${proposal.proposal_key}`,

@@ -1,6 +1,7 @@
 // Propostas: comparação e aceite pelo organizador, e envio pelo fornecedor.
 
 import { api } from '../infrastructure/api.js'
+import { formatarMoeda } from './eventos.js'
 import { paraData, paraDataIso, paraNumero } from '../domain/validacao.js'
 
 export function buscarComparacaoDePropostas(eventKey) {
@@ -57,13 +58,8 @@ export function paraPropostaDaApi(rascunho) {
 // Detalhe da API (GET /supplier/proposals/:proposal_key) → rascunho das etapas, para editar.
 // O contrário do paraPropostaDaApi: 1500 vira "R$ 1.500,00" e "2026-11-30" vira "30/11/2026".
 export function paraRascunho(proposta) {
-  const valor = Number(proposta.amount).toLocaleString('pt-BR', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })
-
   return {
-    valor: `R$ ${valor}`,
+    valor: formatarMoeda(proposta.amount),
     validade: formatarValidade(proposta.valid_until),
     descricao: proposta.description ?? '',
     naoIncluido: proposta.not_included ?? '',
