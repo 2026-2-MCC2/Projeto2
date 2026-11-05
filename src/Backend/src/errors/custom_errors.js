@@ -445,3 +445,15 @@ export class NotFoundProposalPhoto extends ApiException {
     super(title, NotFoundProposalPhoto.code, httpStatus, description, translation)
   }
 }
+
+export class ProposalItemAlreadyDecided extends ApiException {
+  static code = 'EVP000047'
+
+  constructor() {
+    const title = 'Budget item already has an accepted proposal'
+    const httpStatus = 409
+    const description = 'The organizer already accepted a proposal for this budget item.'
+    const translation = 'O organizador já escolheu uma proposta para este item.'
+    super(title, ProposalItemAlreadyDecided.code, httpStatus, description, translation)
+  }
+}

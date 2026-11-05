@@ -233,4 +233,22 @@ describe('POST /supplier/events/:event_key/items/:item_key/proposals', () => {
 
     assert.equal(status, 201, JSON.stringify(response))
   })
+
+  test('item que já tem proposta aceita não recebe proposta nova (409 EVP000047)', async () => {
+    const { organizer, supplier, event, items } = await createScenario()
+    const accepted = await ObjectGenerator.sendProposal(event.event_key, items[0].item_key, supplier.headers)
+    const [acceptStatus] = await RequestGenerator.POST_event_proposal_accept(event.event_key, accepted.proposal_key, organizer.headers)
+    assert.equal(acceptStatus, 200)
+    const otherSupplier = await createUser('fornecedor', 'Outro Palco RF10')
+
+    const [status, response] = await RequestGenerator.POST_supplier_item_proposal(
+      event.event_key,
+      items[0].item_key,
+      PayloadGenerator.createSupplierProposalPayload(),
+      otherSupplier.headers,
+    )
+
+    assert.equal(status, 409)
+    assert.equal(response.code, 'EVP000047')
+  })
 })

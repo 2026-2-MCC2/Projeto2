@@ -15,6 +15,7 @@ import {
   ProposalAlreadySent,
   ProposalCannotBeChanged,
   ProposalEventNotOpen,
+  ProposalItemAlreadyDecided,
   ProposalPhotoLimitReached,
   ProposalValidUntilAfterEvent,
   ProposalValidUntilInPast,
@@ -57,6 +58,10 @@ export class SupplierProposalController extends BaseController {
     }
 
     ensureValidUntilInsideEvent(payload.valid_until, event.end_date)
+
+    if (await this.proposalRepository.hasAcceptedProposal(item.id)) {
+      throw new ProposalItemAlreadyDecided()
+    }
 
     // um fornecedor, uma proposta por item
     if (await this.proposalRepository.getBySupplierAndItem(supplier.id, item.id)) {

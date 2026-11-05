@@ -31,6 +31,7 @@ const originals = {
   getAvailableEvent: SupplierEventRepository.prototype.getAvailableEvent,
   getAvailableItem: SupplierEventRepository.prototype.getAvailableItem,
   getBySupplierAndItem: ProposalRepository.prototype.getBySupplierAndItem,
+  hasAcceptedProposal: ProposalRepository.prototype.hasAcceptedProposal,
   create: ProposalRepository.prototype.create,
   getEventForShare: SupplierEventRepository.prototype.getEventForShare,
   getSupplierProposals: ProposalRepository.prototype.getSupplierProposals,
@@ -47,6 +48,7 @@ afterEach(() => {
   SupplierEventRepository.prototype.getAvailableEvent = originals.getAvailableEvent
   SupplierEventRepository.prototype.getAvailableItem = originals.getAvailableItem
   ProposalRepository.prototype.getBySupplierAndItem = originals.getBySupplierAndItem
+  ProposalRepository.prototype.hasAcceptedProposal = originals.hasAcceptedProposal
   ProposalRepository.prototype.create = originals.create
   SupplierEventRepository.prototype.getEventForShare = originals.getEventForShare
   ProposalRepository.prototype.getSupplierProposals = originals.getSupplierProposals
@@ -103,6 +105,7 @@ function mockAvailableItem(operations) {
     return { id: 30, item_key: itemKey }
   }
   ProposalRepository.prototype.getBySupplierAndItem = async () => null
+  ProposalRepository.prototype.hasAcceptedProposal = async () => false
   ProposalRepository.prototype.create = async (supplierId, budgetItemId, fields) => {
     calls.create = { supplierId, budgetItemId, fields }
     operations.push('create')
