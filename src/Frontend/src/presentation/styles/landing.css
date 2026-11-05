@@ -12,6 +12,8 @@
 
   min-height: 100vh;
   background: var(--fundo-superficie);
+  /* o Figma usa a entrelinha "normal" do Inter nos textos de uma linha; o body do projeto usa 1.35 */
+  line-height: normal;
 }
 
 /* no escuro o laranja da marca já tem contraste (6,2:1) */
@@ -33,7 +35,7 @@
   align-items: center;
   justify-content: center;
   padding: 13px 22px;
-  border: 1px solid transparent;
+  border: 0;
   border-radius: 8px;
   font-family: inherit;
   font-size: 0.8824rem; /* 15px */
@@ -53,13 +55,13 @@
 }
 
 .botao-landing--secundario {
-  border-color: var(--borda-forte);
+  border: 1px solid var(--borda-forte);
   background: var(--fundo-superficie);
   color: var(--texto-primario);
 }
 
 .botao-landing--contorno-claro {
-  border-color: var(--acao-sobre-primaria);
+  border: 1px solid var(--acao-sobre-primaria);
   background: transparent;
   color: var(--acao-sobre-primaria);
 }
@@ -570,12 +572,6 @@
     line-height: 1.5625; /* 25px */
   }
 
-  .hero__acoes {
-    flex-direction: column;
-    gap: 10px;
-    width: 100%;
-  }
-
   .hero__visual {
     display: flex;
     flex: none;
@@ -731,11 +727,6 @@
     font-size: 0.9412rem; /* 16px */
     line-height: 1.5625; /* 25px */
   }
-
-  .etapas-landing {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
 }
 
 /* ---------- para quem é (perfis) ---------- */
@@ -873,10 +864,6 @@
 
   .perfil-landing .ingresso__canhoto {
     padding: 20px 24px 28px;
-  }
-
-  .perfil-landing .botao-landing {
-    width: 100%;
   }
 
   .perfil-landing__titulo {
@@ -1138,26 +1125,8 @@
     padding: 24px 20px;
   }
 
-  .calculo-landing__topo {
-    flex-direction: column;
-    gap: 14px;
-  }
-
   .calculo-landing__evento {
     font-size: 0.9412rem; /* 16px */
-  }
-
-  .calculo-landing__preco {
-    align-items: flex-start;
-  }
-
-  .calculo-landing__cenarios {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-
-  .calculo-landing__rotulos {
-    flex-direction: column;
   }
 }
 
@@ -1323,10 +1292,13 @@
   letter-spacing: -0.02em;
 }
 
+/* branco sobre o laranja dá 2,7:1; a pílula escura leva o aviso a 5,4:1 (WCAG pede 4,5:1) */
 .chamada-landing__aviso {
+  padding: 4px 10px;
+  border-radius: 99px;
+  background: rgb(12 12 12 / 35%);
   font-size: 0.7059rem; /* 12px */
   font-weight: 500;
-  opacity: 0.85;
 }
 
 @media (max-width: 900px) {
@@ -1365,12 +1337,6 @@
   .chamada-landing__subtitulo {
     font-size: 0.8824rem; /* 15px */
     line-height: 1.5333; /* 23px */
-  }
-
-  .chamada-landing__acoes {
-    flex-direction: column;
-    gap: 10px;
-    width: 100%;
   }
 
   .chamada-landing__entrada {
@@ -1509,5 +1475,49 @@
 
   .rodape-landing__base {
     flex-direction: column;
+  }
+}
+
+/* ---------- celular (até 600px) ----------
+   O Figma só tem 390px e 1440px. Entre 601 e 900px (tablet) o layout já empilha, mas botões e
+   grades ainda cabem lado a lado; só no celular eles ocupam a largura toda, como no Figma mobile. */
+@media (max-width: 600px) {
+  .hero__acoes {
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .etapas-landing {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .perfil-landing .botao-landing {
+    width: 100%;
+  }
+
+  .calculo-landing__topo {
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .calculo-landing__preco {
+    align-items: flex-start;
+  }
+
+  .calculo-landing__cenarios {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .calculo-landing__rotulos {
+    flex-direction: column;
+  }
+
+  .chamada-landing__acoes {
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
   }
 }
