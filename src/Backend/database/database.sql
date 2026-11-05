@@ -75,7 +75,7 @@ CREATE TABLE supplier(
     FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
 );
 
--- Evento. profit_margin é uma fração: 0.2000 = 20%.
+-- Evento. profit_margin é uma fração: 0.2000 = 20%. budget_limit é o teto de gastos, opcional.
 CREATE TABLE event(
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     event_key                       CHAR(36) NOT NULL,
@@ -95,6 +95,7 @@ CREATE TABLE event(
     expected_audience               INT NOT NULL,
     max_audience                    INT NOT NULL,
     profit_margin                   DECIMAL(5,4) NOT NULL,
+    budget_limit                    DECIMAL(12,2) NULL,
     reference_scenario              ENUM('minimum', 'expected', 'maximum') NOT NULL DEFAULT 'expected',
     status                          ENUM('draft', 'open_for_quotes', 'closed', 'canceled') NOT NULL DEFAULT 'draft',
     cancellation_reason             VARCHAR(500) NULL,
@@ -104,7 +105,8 @@ CREATE TABLE event(
     CHECK (end_date >= start_date),
     CHECK (min_audience > 0 AND min_audience <= expected_audience AND expected_audience <= max_audience),
     CHECK (venue_capacity IS NULL OR max_audience <= venue_capacity),
-    CHECK (profit_margin >= 0 AND profit_margin < 1)
+    CHECK (profit_margin >= 0 AND profit_margin < 1),
+    CHECK (budget_limit IS NULL OR budget_limit > 0)
 );
 
 -- Custos próprios do evento, sem cotação.

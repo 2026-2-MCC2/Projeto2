@@ -87,6 +87,14 @@
       "minimum": 0,
       "maximum": 0.9999
     },
+    "budget_limit": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "exclusiveMinimum": 0,
+      "maximum": 9999999999.99
+    },
     "reference_scenario": {
       "type": "string",
       "enum": [

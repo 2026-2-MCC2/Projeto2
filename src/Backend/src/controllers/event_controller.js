@@ -134,6 +134,7 @@ export class EventController extends BaseController {
       expected_audience: payload.expected_audience,
       max_audience: payload.max_audience,
       profit_margin: payload.profit_margin,
+      budget_limit: payload.budget_limit ?? null,
     }
   }
 
