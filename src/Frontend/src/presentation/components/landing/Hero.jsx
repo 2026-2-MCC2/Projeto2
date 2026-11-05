@@ -1,4 +1,6 @@
+import { formatarMoeda, formatarMoedaSemCentavos } from '../../../domain/formatacao.js'
 import { Icone } from '../comum/Icone.jsx'
+import { EVENTO_DE_EXEMPLO as evento } from '../../data/eventoDeExemplo.js'
 import { useEscalaParaCaber } from '../../hooks/useEscalaParaCaber.js'
 import { BotaoLanding } from './BotaoLanding.jsx'
 import { Ingresso } from './Ingresso.jsx'
@@ -11,10 +13,19 @@ import codigoDeBarrasPequeno from '../../assets/landing/codigo-de-barras-pequeno
 // largura em que os ingressos foram desenhados no Figma; em telas menores eles encolhem juntos
 const LARGURA_DOS_INGRESSOS = 660
 
+// mesmos números da seção "Cálculo do ticket"
 const ETIQUETAS = [
-  { chave: 'custo', nome: 'Custo total', valor: 'R$ 228.500' },
-  { chave: 'margem', nome: 'Margem', valor: '20%' },
-  { chave: 'equilibrio', nome: 'Equilíbrio', valor: '9.600 ingressos' },
+  {
+    chave: 'custo',
+    nome: 'Custo total',
+    valor: formatarMoedaSemCentavos(evento.custoTotal),
+  },
+  { chave: 'margem', nome: 'Margem', valor: `${Math.round(evento.margem * 100)}%` },
+  {
+    chave: 'equilibrio',
+    nome: 'Equilíbrio',
+    valor: `${evento.pontoDeEquilibrio.toLocaleString('pt-BR')} ingressos`,
+  },
 ]
 
 const DADOS_DO_FESTIVAL = [
@@ -77,14 +88,14 @@ export function Hero() {
               canhoto={
                 <>
                   <span className="hero__valor-rotulo">VALOR DO INGRESSO</span>
-                  <strong className="hero__valor">R$ 23,80</strong>
+                  <strong className="hero__valor">{formatarMoeda(evento.precoSugerido)}</strong>
                   <span className="hero__valor-apoio">calculado pelo TrocaTicket</span>
                   <Icone src={codigoDeBarras} />
                 </>
               }
             >
               <span className="hero__rotulo hero__rotulo--pilula">TROCATICKET · INGRESSO</span>
-              <strong className="hero__evento">Festival Primavera Som &amp; Luz 2026</strong>
+              <strong className="hero__evento">{evento.nome}</strong>
               <dl className="hero__dados">
                 {DADOS_DO_FESTIVAL.map((dado) => (
                   <div key={dado.nome}>

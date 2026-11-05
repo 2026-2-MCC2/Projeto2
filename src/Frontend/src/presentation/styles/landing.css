@@ -889,3 +889,274 @@
     line-height: 1.5625; /* 25px */
   }
 }
+
+/* ---------- cálculo do ticket ---------- */
+
+.cabecalho-secao--esquerda {
+  align-items: flex-start;
+}
+
+.calculo-landing {
+  flex-direction: row;
+  gap: 72px;
+}
+
+.calculo-landing__texto {
+  display: flex;
+  flex: 0 0 480px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 28px;
+}
+
+.calculo-landing__formula {
+  margin: 0;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: var(--fundo-marca-suave);
+  color: var(--texto-marca);
+  font-size: 0.8824rem; /* 15px */
+  font-weight: 600;
+}
+
+.calculo-landing__premissas {
+  width: 100%;
+  margin: 0;
+  font-size: 0.8824rem; /* 15px */
+}
+
+.calculo-landing__premissas div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--borda-padrao);
+}
+
+.calculo-landing__premissas dt {
+  color: var(--texto-secundario);
+}
+
+.calculo-landing__premissas dd {
+  margin: 0;
+  color: var(--texto-primario);
+  font-weight: 600;
+}
+
+.calculo-landing__painel {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+  padding: 32px;
+  border: 1px solid var(--borda-padrao);
+  border-radius: 20px;
+  background: var(--fundo-pagina);
+}
+
+.calculo-landing__topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.calculo-landing__evento {
+  margin: 0 0 4px;
+  color: var(--texto-primario);
+  font-size: 1.0588rem; /* 18px */
+  font-weight: 600;
+}
+
+.calculo-landing__apoio {
+  margin: 0;
+  color: var(--texto-secundario);
+  font-size: 0.8235rem; /* 14px */
+}
+
+.calculo-landing__preco {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  margin: 0;
+}
+
+.calculo-landing__preco span {
+  color: var(--texto-terciario);
+  font-size: 0.6471rem; /* 11px */
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+.calculo-landing__preco strong {
+  color: var(--texto-marca);
+  font-size: 1.7647rem; /* 30px */
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.calculo-landing__cenarios {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* mini-ingresso "LP · Cenário": os recortes mostram o fundo do painel */
+.cenario-landing {
+  --ingresso-raio: 12px;
+  --ingresso-recorte: 9px;
+}
+
+.cenario-landing .ingresso__corpo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 18px 20px 16px;
+}
+
+.cenario-landing .ingresso__canhoto {
+  padding: 14px 20px 18px;
+}
+
+/* o cenário de referência (o do preço sugerido) ganha a borda azul */
+.cenario-landing--referencia .ingresso__parte {
+  border: 2px solid var(--acao-primaria);
+}
+
+.cenario-landing--referencia .ingresso__corpo {
+  border-bottom: 0;
+}
+
+.cenario-landing--referencia .ingresso__canhoto {
+  border-top: 0;
+}
+
+.cenario-landing__nome {
+  color: var(--texto-primario);
+  font-size: 0.8824rem; /* 15px */
+  font-weight: 600;
+}
+
+.cenario-landing__publico {
+  color: var(--texto-secundario);
+  font-size: 0.7647rem; /* 13px */
+}
+
+.cenario-landing__resultado {
+  display: block;
+  font-size: 1.4118rem; /* 24px */
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.cenario-landing__resultado--prejuizo {
+  color: var(--status-perigo-texto);
+}
+
+.cenario-landing__resultado--lucro {
+  color: var(--status-sucesso-texto);
+}
+
+.calculo-landing__equilibrio {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px 20px;
+  border: 1px solid var(--borda-padrao);
+  border-radius: 12px;
+  background: var(--fundo-superficie);
+}
+
+.calculo-landing__rotulos {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px 16px;
+  margin: 0;
+  font-size: 0.7647rem; /* 13px */
+}
+
+.calculo-landing__rotulos span {
+  color: var(--texto-secundario);
+  font-weight: 500;
+}
+
+.calculo-landing__rotulos strong {
+  color: var(--texto-marca);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.calculo-landing__barra {
+  height: 10px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: var(--fundo-sutil);
+}
+
+.calculo-landing__barra span {
+  display: block;
+  height: 100%;
+  border-radius: 99px;
+  background: var(--acao-primaria);
+}
+
+/* abaixo disso o texto e o painel não cabem lado a lado: o texto vai para cima */
+@media (max-width: 1100px) {
+  .calculo-landing {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .calculo-landing__texto {
+    flex: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .calculo-landing {
+    gap: 36px;
+  }
+
+  .calculo-landing__texto {
+    gap: 20px;
+  }
+
+  .calculo-landing__formula {
+    align-self: stretch;
+    font-size: 0.8235rem; /* 14px */
+  }
+
+  .calculo-landing__painel {
+    gap: 20px;
+    padding: 24px 20px;
+  }
+
+  .calculo-landing__topo {
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .calculo-landing__evento {
+    font-size: 0.9412rem; /* 16px */
+  }
+
+  .calculo-landing__preco {
+    align-items: flex-start;
+  }
+
+  .calculo-landing__cenarios {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .calculo-landing__rotulos {
+    flex-direction: column;
+  }
+}

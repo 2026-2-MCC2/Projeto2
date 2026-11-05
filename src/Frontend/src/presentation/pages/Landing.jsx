@@ -2,6 +2,7 @@ import { BotaoAcessibilidade } from '../components/comum/BotaoAcessibilidade.jsx
 import { PularParaConteudo } from '../components/comum/PularParaConteudo.jsx'
 import { TituloDaPagina } from '../components/comum/TituloDaPagina.jsx'
 import { Hero } from '../components/landing/Hero.jsx'
+import { CalculoDoTicket } from '../components/landing/CalculoDoTicket.jsx'
 import { ComoFunciona } from '../components/landing/ComoFunciona.jsx'
 import { NavbarLanding } from '../components/landing/NavbarLanding.jsx'
 import { Perfis } from '../components/landing/Perfis.jsx'
@@ -24,9 +25,7 @@ export function Landing() {
 
         <Perfis />
 
-        <section id="calculo-do-ticket" className="landing__secao">
-          {/* cálculo do ticket */}
-        </section>
+        <CalculoDoTicket />
 
         <section id="duvidas" className="landing__secao">
           {/* dúvidas frequentes */}
