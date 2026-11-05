@@ -135,7 +135,7 @@ describe('GET /supplier/proposals', () => {
     const { event: otherEvent, items: otherItems } = await ObjectGenerator.createEventWithItems(scenario.organizer.headers)
     await ObjectGenerator.sendProposal(otherEvent.event_key, otherItems[0].item_key, supplier.headers)
 
-    const [status, nextPage] = await RequestGenerator.GET_supplier_proposals({ limit: 1, after: second.proposal_key }, supplier.headers)
+    const [status, nextPage] = await RequestGenerator.GET_supplier_proposals({ limit: 1, after: firstPage.next_cursor }, supplier.headers)
 
     assert.equal(status, 200)
     assert.deepEqual(
@@ -143,15 +143,30 @@ describe('GET /supplier/proposals', () => {
       [proposal.proposal_key],
     )
     assert.equal(nextPage.is_last_page, true)
+    assert.equal(nextPage.next_cursor, null)
   })
 
-  test('after com proposta que não é do fornecedor responde 400', async () => {
+  test('a próxima página carrega mesmo se a última proposta mostrada foi retirada', async () => {
+    const { supplier, event, items, proposal } = await createScenario()
+    const second = await ObjectGenerator.sendProposal(event.event_key, items[1].item_key, supplier.headers)
+    const [, firstPage] = await RequestGenerator.GET_supplier_proposals({ limit: 1 }, supplier.headers)
+    assert.equal(firstPage.data[0].proposal_key, second.proposal_key)
+
+    const [deleteStatus] = await RequestGenerator.DELETE_supplier_proposal(second.proposal_key, supplier.headers)
+    assert.equal(deleteStatus, 204)
+    const [status, nextPage] = await RequestGenerator.GET_supplier_proposals({ limit: 1, after: firstPage.next_cursor }, supplier.headers)
+
+    assert.equal(status, 200)
+    assert.deepEqual(
+      nextPage.data.map((item) => item.proposal_key),
+      [proposal.proposal_key],
+    )
+  })
+
+  test('cursor inválido responde 400', async () => {
     const { supplier } = await createScenario()
 
-    const [status, response] = await RequestGenerator.GET_supplier_proposals(
-      { after: '00000000-0000-4000-8000-000000000000' },
-      supplier.headers,
-    )
+    const [status, response] = await RequestGenerator.GET_supplier_proposals({ after: 'nao-e-um-cursor' }, supplier.headers)
 
     assert.equal(status, 400)
     assert.equal(response.code, 'APP000010')

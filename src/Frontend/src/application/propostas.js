@@ -103,9 +103,9 @@ export function buscarMinhaProposta(proposalKey) {
   return api.get(`/supplier/proposals/${proposalKey}`)
 }
 
-// histórico do fornecedor logado: { data, total, is_last_page, counts }, da proposta mais recente para a
-// mais antiga; counts traz quantas propostas há em cada status, sem o filtro (os cartões do topo)
-// depois, a partir da última proposta mostrada (depoisDe): nova ou retirada no meio não desloca a lista
+// histórico do fornecedor logado: { data, total, is_last_page, next_cursor, counts }, da proposta mais
+// recente para a mais antiga; counts traz quantas propostas há em cada status, sem o filtro (os cartões
+// do topo). A próxima página usa o next_cursor (depoisDe): nova ou retirada no meio não desloca a lista
 export function listarMinhasPropostas({ status, limit = 20, depoisDe } = {}) {
   const parametros = new URLSearchParams({ limit: String(limit) })
   if (status) parametros.set('status', status)

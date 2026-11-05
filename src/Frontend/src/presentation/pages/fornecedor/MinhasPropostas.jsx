@@ -99,6 +99,7 @@ export function MinhasPropostas() {
           situacao: 'pronto',
           propostas: pagina.data,
           temMais: !pagina.is_last_page,
+          proximaPagina: pagina.next_cursor,
           totais: pagina.counts,
         })
       })
@@ -120,15 +121,15 @@ export function MinhasPropostas() {
     setCarregandoMais(true)
     setErroAoCarregarMais('')
     try {
-      const ultimaMostrada = estado.propostas.at(-1)
       const pagina = await listarMinhasPropostas({
         limit: POR_PAGINA,
-        depoisDe: ultimaMostrada.proposal_key,
+        depoisDe: estado.proximaPagina,
       })
       setEstado((atual) => ({
         ...atual,
         propostas: [...atual.propostas, ...pagina.data],
         temMais: !pagina.is_last_page,
+        proximaPagina: pagina.next_cursor,
       }))
     } catch (falha) {
       setErroAoCarregarMais(falha.message)

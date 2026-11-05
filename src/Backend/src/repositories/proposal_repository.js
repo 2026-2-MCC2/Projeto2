@@ -12,7 +12,7 @@ import { Proposal, ProposalPhoto } from '../models/index.js'
 export const TODAY_IN_BRAZIL = "DATE(CONVERT_TZ(UTC_TIMESTAMP(), '+00:00', '-03:00'))"
 
 // colunas e junções das propostas vistas pelo próprio fornecedor (histórico e detalhe)
-const SUPPLIER_PROPOSAL_COLUMNS = `proposal.proposal_key, proposal.amount,
+const SUPPLIER_PROPOSAL_COLUMNS = `proposal.proposal_key, proposal.id AS position_id, proposal.amount,
        DATE_FORMAT(proposal.valid_until, '%Y-%m-%d') AS valid_until, proposal.status, proposal.selected, proposal.sent_at,
        event.event_key, event.name AS event_name, event.status AS event_status,
        event.cancellation_reason AS event_cancellation_reason,
@@ -110,17 +110,23 @@ export class ProposalRepository {
 
   // próxima página a partir da última proposta mostrada: proposta nova ou retirada no meio não desloca
   // a lista. Busca uma a mais para saber se ainda há página depois.
-  async getSupplierProposalsAfter(supplierId, { status, limit, afterProposalKey }) {
+  // o cursor guarda a posição da última mostrada (data e id), então funciona mesmo se ela for retirada
+  async getSupplierProposalsAfter(supplierId, { status, limit, cursor }) {
     return sequelize.query(
       `SELECT ${SUPPLIER_PROPOSAL_COLUMNS}
        ${SUPPLIER_PROPOSAL_JOINS}
-       INNER JOIN proposal AS last_shown ON last_shown.proposal_key = :afterProposalKey AND last_shown.supplier_id = :supplierId
        WHERE proposal.supplier_id = :supplierId AND (:status IS NULL OR proposal.status = :status)
-         AND (proposal.sent_at < last_shown.sent_at OR (proposal.sent_at = last_shown.sent_at AND proposal.id < last_shown.id))
+         AND (proposal.sent_at < :sentAt OR (proposal.sent_at = :sentAt AND proposal.id < :proposalId))
        ORDER BY proposal.sent_at DESC, proposal.id DESC
        LIMIT :limitPlusOne`,
       {
-        replacements: { supplierId, status: status ?? null, afterProposalKey, limitPlusOne: limit + 1 },
+        replacements: {
+          supplierId,
+          status: status ?? null,
+          sentAt: cursor.sentAt,
+          proposalId: cursor.proposalId,
+          limitPlusOne: limit + 1,
+        },
         transaction: this.session,
         type: QueryTypes.SELECT,
       },

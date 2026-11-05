@@ -98,25 +98,27 @@ export class SupplierProposalController extends BaseController {
     const offset = page * limit
     const { proposals, total } = await this.proposalRepository.getSupplierProposals(supplier.id, { status, limit, offset })
 
+    const isLastPage = offset + proposals.length >= total
     return {
       data: SupplierProposalDto.fromList(proposals),
       total,
-      is_last_page: offset + proposals.length >= total,
+      is_last_page: isLastPage,
+      next_cursor: isLastPage ? null : toCursor(proposals.at(-1)),
       counts: toStatusCounts(counts),
     }
   }
 
   async #getProposalsAfter(supplierId, { status, limit, after }, counts) {
-    if (!(await this.proposalRepository.getSupplierProposalByKey(supplierId, after))) {
-      throw new InvalidParameter(`The "after" parameter is invalid. Proposal ${after} does not exist.`)
-    }
-
-    const rows = await this.proposalRepository.getSupplierProposalsAfter(supplierId, { status, limit, afterProposalKey: after })
+    const cursor = fromCursor(after)
+    const rows = await this.proposalRepository.getSupplierProposalsAfter(supplierId, { status, limit, cursor })
+    const page = rows.slice(0, limit)
+    const isLastPage = rows.length <= limit
     const statusCounts = toStatusCounts(counts)
     return {
-      data: SupplierProposalDto.fromList(rows.slice(0, limit)),
+      data: SupplierProposalDto.fromList(page),
       total: status ? statusCounts[status] : statusCounts.all,
-      is_last_page: rows.length <= limit,
+      is_last_page: isLastPage,
+      next_cursor: isLastPage ? null : toCursor(page.at(-1)),
       counts: statusCounts,
     }
   }
@@ -269,6 +271,23 @@ export class SupplierProposalController extends BaseController {
     }
 
     return { proposal, event }
+  }
+}
+
+// cursor da próxima página: a posição da última proposta mostrada (data de envio e o desempate de quem
+// foi enviada no mesmo segundo), em base64url. O front só repassa, não lê.
+function toCursor(proposal) {
+  return Buffer.from(JSON.stringify([new Date(proposal.sent_at).toISOString(), proposal.position_id])).toString('base64url')
+}
+
+function fromCursor(after) {
+  try {
+    const [sentAt, proposalId] = JSON.parse(Buffer.from(after, 'base64url').toString('utf8'))
+    const date = new Date(sentAt)
+    if (Number.isNaN(date.getTime()) || !Number.isInteger(proposalId)) throw new Error('invalid cursor')
+    return { sentAt: date, proposalId }
+  } catch {
+    throw new InvalidParameter('The "after" parameter is invalid. Use the next_cursor of the previous page.')
   }
 }
 
