@@ -87,6 +87,10 @@
 
 .fornecedor-evento__categorias {
   flex: 0 1 auto;
+  align-self: flex-start;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
   padding: 5px 10px;
   border-radius: 999px;
   background: var(--fundo-marca-suave);
