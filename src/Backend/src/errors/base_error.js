@@ -49,7 +49,7 @@ export class MethodNotAllowed extends ApiException {
     const title = 'Method not allowed'
     const httpStatus = 405
     const description = 'The requested method is forbidden for this resource.'
-    const translation = 'O método desejado não foi encontrado para esse recurso.'
+    const translation = 'Esta ação não é permitida neste endereço.'
     super(title, MethodNotAllowed.code, httpStatus, description, translation)
   }
 }
@@ -74,8 +74,7 @@ export class NotFoundResource extends ApiException {
     const httpStatus = 404
     const description =
       'The requested resource could not be found but may be available in the future. Subsequent requests by the client are permissible.'
-    const translation =
-      'O resource solicitado não pode ser encontrado, mas pode estar disponível no futuro. Requests subsequentes do cliente são permitidos.'
+    const translation = 'O endereço solicitado não existe.'
     super(title, NotFoundResource.code, httpStatus, description, translation)
   }
 }
@@ -87,7 +86,7 @@ export class InvalidSchema extends ApiException {
   constructor(description) {
     const title = 'Bad Request'
     const httpStatus = 400
-    const translation = 'Payload Inválido'
+    const translation = 'Alguns campos estão inválidos. Confira os dados e tente de novo.'
     super(title, InvalidSchema.code, httpStatus, description, translation)
   }
 }
