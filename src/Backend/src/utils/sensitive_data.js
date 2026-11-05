@@ -1,6 +1,13 @@
 // o que vai para o log nunca pode servir para entrar na conta de alguém nem expor dados pessoais inteiros
 
-const HIDDEN_FIELDS = new Set(['password', 'token', 'document_b64'])
+// por trecho do nome, para pegar também current_password, new_password, access_token...
+const HIDDEN_FIELD_PARTS = ['password', 'token']
+const HIDDEN_FIELDS = new Set(['document_b64'])
+
+function isHiddenField(field) {
+  const name = field.toLowerCase()
+  return HIDDEN_FIELDS.has(name) || HIDDEN_FIELD_PARTS.some((part) => name.includes(part))
+}
 
 const PARTIALLY_MASKED_FIELDS = {
   email: (value) => maskEmail(value),
@@ -24,7 +31,7 @@ export function hideSensitiveData(data) {
 
   return Object.fromEntries(
     Object.entries(data).map(([field, value]) => {
-      if (HIDDEN_FIELDS.has(field)) return [field, 'HIDDEN']
+      if (isHiddenField(field)) return [field, 'HIDDEN']
       if (field in PARTIALLY_MASKED_FIELDS && typeof value === 'string') return [field, PARTIALLY_MASKED_FIELDS[field](value)]
       return [field, hideSensitiveData(value)]
     }),
