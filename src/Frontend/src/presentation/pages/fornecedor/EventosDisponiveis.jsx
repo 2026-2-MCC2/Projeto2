@@ -13,6 +13,11 @@ const TAMANHO_DA_PAGINA = 100
 // espera o fornecedor parar de digitar antes de buscar, para não pedir uma lista a cada letra
 const ESPERA_DA_BUSCA_EM_MS = 300
 
+const TODAS_AS_CATEGORIAS = 'Minhas categorias'
+
+const categoriasDosEventos = (eventos) =>
+  [...new Set(eventos.flatMap((evento) => evento.categories))].sort()
+
 function CartaoEvento({ evento }) {
   return (
     <article className="fornecedor-evento">
@@ -48,7 +53,7 @@ export function EventosDisponiveis() {
   const isMobile = useIsMobile()
   const [busca, setBusca] = useState('')
   const [termo, setTermo] = useState('')
-  const [filtro, setFiltro] = useState('Minhas categorias')
+  const [filtro, setFiltro] = useState(TODAS_AS_CATEGORIAS)
   const [tentativa, setTentativa] = useState(0)
   const [carregandoMais, setCarregandoMais] = useState(false)
   // guardado com o termo: o erro de uma busca anterior não aparece na lista de outra
@@ -56,10 +61,10 @@ export function EventosDisponiveis() {
   const [resultado, setResultado] = useState({ termo: null, data: [], erro: null })
   const carregando = resultado.termo !== termo
   const dados = carregando ? { data: [], total: 0, is_last_page: true } : resultado
-  const categorias = [...new Set(dados.data.flatMap((evento) => evento.categories))].sort()
-  const filtros = ['Minhas categorias', ...categorias]
+  const categorias = categoriasDosEventos(dados.data)
+  const filtros = [TODAS_AS_CATEGORIAS, ...categorias]
   const eventos = dados.data.filter(
-    (evento) => filtro === 'Minhas categorias' || evento.categories.includes(filtro),
+    (evento) => filtro === TODAS_AS_CATEGORIAS || evento.categories.includes(filtro),
   )
 
   useEffect(() => {
@@ -71,7 +76,11 @@ export function EventosDisponiveis() {
     let telaAberta = true
     listarEventosDisponiveis({ search: termo, limit: TAMANHO_DA_PAGINA, page: 0 })
       .then((resposta) => {
-        if (telaAberta) setResultado({ ...resposta, termo, pagina: 0, erro: null })
+        if (!telaAberta) return
+        setResultado({ ...resposta, termo, pagina: 0, erro: null })
+        // a categoria escolhida pode não existir na lista nova: o filtro escondido continuaria valendo
+        const categoriasNovas = categoriasDosEventos(resposta.data)
+        setFiltro((atual) => (categoriasNovas.includes(atual) ? atual : TODAS_AS_CATEGORIAS))
       })
       .catch((erro) => {
         if (telaAberta) setResultado({ termo, data: [], total: 0, is_last_page: true, erro })
@@ -175,7 +184,7 @@ export function EventosDisponiveis() {
             )}
           </>
         ) : (
-          <SemEventos filtrando={termo !== '' || filtro !== 'Minhas categorias'} />
+          <SemEventos filtrando={termo !== '' || filtro !== TODAS_AS_CATEGORIAS} />
         )}
       </>
     </OrganizadorLayout>
