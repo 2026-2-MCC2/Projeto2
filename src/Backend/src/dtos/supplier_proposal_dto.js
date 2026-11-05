@@ -64,5 +64,6 @@ function eventOf(proposal) {
     event_key: proposal.event_key,
     name: proposal.event_name,
     status: proposal.event_status,
+    cancellation_reason: proposal.event_cancellation_reason ?? null,
   }
 }

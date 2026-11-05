@@ -58,7 +58,7 @@ describe('GET /supplier/proposals', () => {
     )
     assert.deepEqual(response.data[1], {
       proposal_key: proposal.proposal_key,
-      event: { event_key: event.event_key, name: event.name, status: 'open_for_quotes' },
+      event: { event_key: event.event_key, name: event.name, status: 'open_for_quotes', cancellation_reason: null },
       item: { item_key: items[0].item_key, description: 'Estrutura do evento', category: 'Estrutura' },
       amount: 1500,
       valid_until: PayloadGenerator.dateFromToday(7),
@@ -98,7 +98,7 @@ describe('GET /supplier/proposals', () => {
   test('status inválido responde 400, organizador 403 e sem token 401', async () => {
     const { organizer, supplier } = await createScenario()
 
-    const [invalidStatus, invalid] = await RequestGenerator.GET_supplier_proposals({ status: 'canceled' }, supplier.headers)
+    const [invalidStatus, invalid] = await RequestGenerator.GET_supplier_proposals({ status: 'inexistente' }, supplier.headers)
     const [organizerStatus, organizerError] = await RequestGenerator.GET_supplier_proposals({}, organizer.headers)
     const [anonymousStatus, anonymousError] = await RequestGenerator.GET_supplier_proposals()
 
@@ -120,7 +120,7 @@ describe('GET /supplier/proposals', () => {
 
     assert.equal(status, 200)
     assert.equal(response.total, 1)
-    assert.deepEqual(response.counts, { all: 2, sent: 1, under_review: 0, accepted: 1, rejected: 0 })
+    assert.deepEqual(response.counts, { all: 2, sent: 1, under_review: 0, accepted: 1, rejected: 0, canceled: 0 })
   })
 
   test('a próxima página parte da última proposta mostrada, sem repetir nem pular com proposta nova', async () => {
@@ -155,6 +155,26 @@ describe('GET /supplier/proposals', () => {
 
     assert.equal(status, 400)
     assert.equal(response.code, 'APP000010')
+  })
+  test('proposta de evento cancelado aparece como cancelada, com o motivo, e tem filtro próprio', async () => {
+    const scenario = await createScenario()
+    await RequestGenerator.PATCH_event_status(
+      scenario.event.event_key,
+      { status: 'canceled', reason: 'Patrocinador desistiu.' },
+      scenario.organizer.headers,
+    )
+
+    const [status, page] = await RequestGenerator.GET_supplier_proposals({ status: 'canceled' }, scenario.supplier.headers)
+    const [, detail] = await RequestGenerator.GET_supplier_proposal_by_key(scenario.proposal.proposal_key, scenario.supplier.headers)
+
+    assert.equal(status, 200)
+    assert.deepEqual(
+      page.data.map((proposal) => [proposal.status, proposal.event.cancellation_reason]),
+      [['canceled', 'Patrocinador desistiu.']],
+    )
+    assert.equal(page.counts.canceled, 1)
+    assert.equal(detail.status, 'canceled')
+    assert.equal(detail.event.cancellation_reason, 'Patrocinador desistiu.')
   })
 })
 

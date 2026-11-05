@@ -15,6 +15,7 @@ export const TODAY_IN_BRAZIL = "DATE(CONVERT_TZ(UTC_TIMESTAMP(), '+00:00', '-03:
 const SUPPLIER_PROPOSAL_COLUMNS = `proposal.proposal_key, proposal.amount,
        DATE_FORMAT(proposal.valid_until, '%Y-%m-%d') AS valid_until, proposal.status, proposal.selected, proposal.sent_at,
        event.event_key, event.name AS event_name, event.status AS event_status,
+       event.cancellation_reason AS event_cancellation_reason,
        budget_item.budget_item_key AS item_key, budget_item.description AS item_description,
        item_category.name AS item_category`
 
