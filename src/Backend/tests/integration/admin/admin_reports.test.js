@@ -84,6 +84,23 @@ describe('GET /admin/reports', () => {
     assert.equal(report.summary.values.selected_proposals_total, '120.00')
   })
 
+  test('proposta cancelada continua selecionada no banco, mas sai das somas de selecionadas', async () => {
+    const admin = await createFixture({ profile: 'admin', status: 'approved' })
+    const organizer = await createFixture({ profile: 'organizador', status: 'approved' })
+    const supplier = await createFixture({ profile: 'fornecedor', status: 'approved' })
+    const eventKey = await createReportEventFixture(organizer.userKey, supplier.userKey)
+    fixtureEventKeys.push(eventKey)
+    await cancelReportEventFixture(eventKey)
+
+    const [status, report] = await RequestGenerator.GET_admin_reports({ event_key: eventKey }, headersFor(admin))
+
+    assert.equal(status, 200)
+    assert.equal(report.data.length, 1)
+    assert.equal(Number(report.data[0].values.selected_proposals_total), 0)
+    assert.equal(Number(report.data[0].values.planning_cost_total), 200)
+    assert.equal(Number(report.summary.values.selected_proposals_total), 0)
+  })
+
   test('organizador e fornecedor aprovados recebem 403', async () => {
     for (const profile of ['organizador', 'fornecedor']) {
       const user = await createFixture({ profile: profile, status: 'approved' })
@@ -168,6 +185,24 @@ async function createReportEventFixture(organizerUserKey, supplierUserKey) {
   } catch (error) {
     await connection.rollback()
     throw error
+  } finally {
+    await connection.end()
+  }
+}
+
+// o mesmo que o cancelamento do evento faz: a proposta aceita vira cancelada e mantém selected = TRUE
+async function cancelReportEventFixture(eventKey) {
+  const connection = await mysql.createConnection(LOCAL_DATABASE_URL)
+  try {
+    await connection.execute(
+      `UPDATE proposal
+       INNER JOIN budget_item ON budget_item.id = proposal.budget_item_id
+       INNER JOIN event ON event.id = budget_item.event_id
+       SET proposal.status = 'canceled', proposal.selected = TRUE
+       WHERE event.event_key = ?`,
+      [eventKey],
+    )
+    await connection.execute(`UPDATE event SET status = 'canceled', cancellation_reason = 'Teste' WHERE event_key = ?`, [eventKey])
   } finally {
     await connection.end()
   }
