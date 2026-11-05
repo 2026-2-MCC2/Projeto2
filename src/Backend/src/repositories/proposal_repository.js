@@ -209,6 +209,30 @@ export class ProposalRepository {
     await proposal.destroy({ transaction: this.session })
   }
 
+  // propostas ainda em jogo (enviada, em análise ou aceita), com o fornecedor que precisa saber do cancelamento
+  async getOpenProposalsOfEventForUpdate(eventId) {
+    return sequelize.query(
+      `SELECT proposal.id, proposal.status, proposal.amount, budget_item.description AS item_description,
+              supplier_user.name AS supplier_name, supplier_user.email AS supplier_email
+       FROM proposal
+       INNER JOIN budget_item ON budget_item.id = proposal.budget_item_id
+       INNER JOIN supplier ON supplier.id = proposal.supplier_id
+       INNER JOIN user AS supplier_user ON supplier_user.id = supplier.user_id
+       WHERE budget_item.event_id = :eventId AND proposal.status IN ('sent', 'under_review', 'accepted')
+       ORDER BY proposal.id
+       FOR UPDATE`,
+      { replacements: { eventId }, transaction: this.session, type: QueryTypes.SELECT },
+    )
+  }
+
+  async cancelProposals(proposalIds) {
+    if (proposalIds.length === 0) return
+    await sequelize.query(`UPDATE proposal SET status = 'canceled' WHERE id IN (:proposalIds)`, {
+      replacements: { proposalIds },
+      transaction: this.session,
+    })
+  }
+
   async acceptByProposalKey(eventId, proposalKey) {
     const proposalReferences = await sequelize.query(
       `SELECT budget_item.id AS budget_item_id, proposal.status AS initial_status

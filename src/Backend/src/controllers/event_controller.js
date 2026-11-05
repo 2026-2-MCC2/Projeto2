@@ -339,11 +339,19 @@ export class EventController extends BaseController {
       throw new EventStatusConflict(STATUS_CONFLICT_MESSAGES[event.status] ?? 'O status do evento não pode ser alterado.')
     }
 
-    const reason = newStatus === EVENT_STATUSES.CANCELED ? cancellationReason.trim() : null
+    const isCanceling = newStatus === EVENT_STATUSES.CANCELED
+    const reason = isCanceling ? cancellationReason.trim() : null
+    const canceledProposals = isCanceling ? await this.#cancelOpenProposals(event.id) : []
     const updatedEvent = await this.eventRepository.updateStatus(event, newStatus, reason)
     await this.session.commit()
 
-    return EventDto.fromModel(updatedEvent)
+    return { event: EventDto.fromModel(updatedEvent), canceledProposals }
+  }
+
+  async #cancelOpenProposals(eventId) {
+    const proposals = await this.proposalRepository.getOpenProposalsOfEventForUpdate(eventId)
+    await this.proposalRepository.cancelProposals(proposals.map((proposal) => proposal.id))
+    return proposals
   }
 
   /**

@@ -184,7 +184,7 @@ CREATE TABLE proposal(
     warranty                        VARCHAR(255) NULL,
     valid_until                     DATE NOT NULL,
     notes                           TEXT NULL,
-    status                          ENUM('sent', 'under_review', 'accepted', 'rejected') NOT NULL DEFAULT 'sent',
+    status                          ENUM('sent', 'under_review', 'accepted', 'rejected', 'canceled') NOT NULL DEFAULT 'sent',
     selected                        BOOLEAN NOT NULL DEFAULT FALSE,
     sent_at                         TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(proposal_key),

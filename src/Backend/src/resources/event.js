@@ -81,7 +81,7 @@ export class EventResource {
 
     const controller = new EventController(req.context)
     const { status, reason } = req.context.media
-    const event = await controller.updateEventStatus(req.context.user.userKey, eventKey, status, reason)
+    const { event } = await controller.updateEventStatus(req.context.user.userKey, eventKey, status, reason)
 
     res.status(200).json(event)
   }

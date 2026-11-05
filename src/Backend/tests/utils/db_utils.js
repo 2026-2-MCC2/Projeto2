@@ -246,6 +246,16 @@ export class DbUtils {
     }
   }
 
+  static async getProposalStatus(proposalKey) {
+    const connection = await mysql.createConnection(TEST_DATABASE_URL)
+    try {
+      const [[proposal]] = await connection.execute('SELECT status, selected FROM proposal WHERE proposal_key = ?', [proposalKey])
+      return { status: proposal.status, selected: Boolean(proposal.selected) }
+    } finally {
+      await connection.end()
+    }
+  }
+
   // cria um link direto no banco, sem passar pela espera entre pedidos; devolve o token do link.
   // as datas usam o relógio do banco em UTC, como a API grava
   static async createPasswordResetToken(userKey, { expiresInSeconds = 3_600 } = {}) {
