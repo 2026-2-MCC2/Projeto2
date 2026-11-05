@@ -91,6 +91,19 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+/* a transição entre telas não é casada pelo "*": "Reduzir animações" precisa desligá-la à parte */
+:root.sem-movimento::view-transition-group(*),
+:root.sem-movimento::view-transition-old(*),
+:root.sem-movimento::view-transition-new(*) {
+  animation: none !important;
 }
 
 * {
