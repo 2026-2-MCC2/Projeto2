@@ -34,7 +34,8 @@ export function EnviarPropostaEtapa3() {
   const [enviando, setEnviando] = useState(false)
   const [erro, setErro] = useState('')
   const voltar = () => navigate(proposta.rotaDaEtapa(2))
-  // o envio com fotos pode demorar: se o fornecedor sair no meio, ele termina sem levar para outra tela
+  // o envio com fotos pode demorar: se o fornecedor sair no meio, ele termina sem levar para outra
+  // tela, mas o aviso do resultado aparece mesmo assim (os toasts valem para o app todo)
   const telaAberta = useRef(true)
 
   useEffect(() => {
@@ -43,6 +44,10 @@ export function EnviarPropostaEtapa3() {
       telaAberta.current = false
     }
   }, [])
+
+  const irPara = (rota) => {
+    if (telaAberta.current) navigate(rota)
+  }
 
   async function aoEnviar(envio) {
     envio.preventDefault()
@@ -53,9 +58,8 @@ export function EnviarPropostaEtapa3() {
       if (proposta.editando) {
         await atualizarProposta(proposta.proposalKey, rascunho)
         proposta.descartar()
-        if (!telaAberta.current) return
         toast.sucesso('Proposta atualizada', { descricao: item.description })
-        navigate(`/fornecedor/propostas/${proposta.proposalKey}`)
+        irPara(`/fornecedor/propostas/${proposta.proposalKey}`)
         return
       }
 
@@ -67,13 +71,12 @@ export function EnviarPropostaEtapa3() {
         fotos,
       )
       proposta.descartar()
-      if (!telaAberta.current) return
       if (fotosQueFalharam > 0) {
         // a proposta já foi enviada: a tela dela mostra o que entrou, e Editar tenta as fotos de novo
         toast.erro('Proposta enviada, mas algumas fotos não foram anexadas', {
           descricao: `${fotosQueFalharam} de ${fotos.length} fotos. Abra a proposta e use Editar para enviar de novo.`,
         })
-        navigate(`/fornecedor/propostas/${proposalKey}`)
+        irPara(`/fornecedor/propostas/${proposalKey}`)
         return
       }
       toast.sucesso('Proposta enviada', {
@@ -81,10 +84,19 @@ export function EnviarPropostaEtapa3() {
           ? `${item.description} · ${fotos.length} ${fotos.length === 1 ? 'foto' : 'fotos'}`
           : item.description,
       })
-      navigate('/fornecedor/propostas')
+      irPara('/fornecedor/propostas')
     } catch (falha) {
-      if (!telaAberta.current) return
       // ex.: "Você já enviou uma proposta para este item." ou validade fora do evento
+      if (!telaAberta.current) {
+        // a mensagem da tela sumiu com ela: o aviso vai por toast
+        toast.erro(
+          proposta.editando
+            ? 'Não foi possível salvar a proposta'
+            : 'Não foi possível enviar a proposta',
+          { descricao: falha.message },
+        )
+        return
+      }
       setErro(falha.message)
       setEnviando(false)
     }
