@@ -366,10 +366,15 @@ function SituacaoDoOrcamento({ orcamento, isMobile, rotaDeEdicao, podeEditar }) 
           {consolidado}
           <Indicador rotulo="TETO DE GASTOS" valor="Não definido" />
         </div>
-        <p className="cartao__apoio">
-          Defina um teto de gastos para acompanhar quanto do orçamento já foi usado.{' '}
-          {podeEditar && <Link to={rotaDeEdicao}>Definir teto</Link>}
-        </p>
+        <div className="progresso-orcamento progresso-orcamento--vazio" aria-hidden="true" />
+        <div className="orcamento-sem-teto">
+          <p>Defina um teto de gastos para acompanhar quanto do orçamento já foi usado.</p>
+          {podeEditar && (
+            <Link to={rotaDeEdicao} className="botao botao--secundario orcamento-sem-teto__botao">
+              Definir teto
+            </Link>
+          )}
+        </div>
       </>
     )
   }
