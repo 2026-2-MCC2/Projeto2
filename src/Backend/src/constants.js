@@ -43,6 +43,8 @@ export const FRONT_URL = process.env.FRONT_URL ?? ''
 export const PASSWORD_RESET_EXPIRATION_MINUTES = Number(process.env.PASSWORD_RESET_EXPIRATION_MINUTES ?? 60)
 // intervalo mínimo entre dois pedidos de redefinição para a mesma conta, contra abuso
 export const PASSWORD_RESET_COOLDOWN_SECONDS = Number(process.env.PASSWORD_RESET_COOLDOWN_SECONDS ?? 120)
+// esqueci-senha nunca responde antes disso, para o tempo não revelar se o e-mail tem conta
+export const FORGOT_PASSWORD_MIN_RESPONSE_MS = Number(process.env.FORGOT_PASSWORD_MIN_RESPONSE_MS ?? 500)
 
 // Limite de tentativas nas rotas de login, cadastro e senha (ver middlewares/rate_limit.js).
 // Fica na memória de cada instância: com até 3 instâncias no Cloud Run, o limite real pode chegar ao triplo.

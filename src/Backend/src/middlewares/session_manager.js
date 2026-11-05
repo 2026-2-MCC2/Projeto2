@@ -14,18 +14,12 @@
 
 import { DatabaseConnector } from '../connectors/database_connector.js'
 import { API_PREFIX, BYPASS_ENDPOINTS } from '../constants.js'
-import { Context } from '../utils/context.js'
-import { Logger } from '../utils/logger.js'
 
-// Rotas que abrem a própria transação, fora do SessionManager:
-//   envio de foto   abre depois de receber o arquivo (openSessionAfterUpload)
-//   esqueci-senha   faz o trabalho depois de responder (runAfterResponse)
+// O envio de foto abre a própria transação, depois de receber o arquivo (openSessionAfterUpload).
 // Igual ao roteamento do Express: sem diferença de maiúscula e com barra no fim opcional
 const PHOTO_UPLOAD_PATH = new RegExp(`^${API_PREFIX}/supplier/proposals/[^/]+/photos/?$`, 'i')
-const FORGOT_PASSWORD_PATH = new RegExp(`^${API_PREFIX}/auth/esqueci-senha/?$`, 'i')
 
 const isPhotoUpload = (req) => req.method === 'POST' && PHOTO_UPLOAD_PATH.test(req.path)
-const isForgotPassword = (req) => req.method === 'POST' && FORGOT_PASSWORD_PATH.test(req.path)
 
 export class SessionManager {
   async processRequest(req, res) {
@@ -33,7 +27,7 @@ export class SessionManager {
       return
     }
     // um upload lento não pode segurar uma conexão do banco
-    if (isPhotoUpload(req) || isForgotPassword(req)) {
+    if (isPhotoUpload(req)) {
       return
     }
 
@@ -74,23 +68,4 @@ export async function openSessionAfterUpload(req) {
   }
 
   req.context.addSession(dbSession)
-}
-
-// Trabalho que segue depois de a resposta ser enviada, numa transação própria: a da requisição é
-// desfeita quando a resposta fecha. Falhas viram log, porque não há mais a quem responder.
-export function runAfterResponse(requestContext, work) {
-  const context = new Context(requestContext.globalTraceId, requestContext.cloudTraceId)
-  const logger = new Logger(context, 'SessionManager')
-
-  async function runInOwnSession() {
-    const dbSession = await DatabaseConnector.openSession()
-    context.addSession(dbSession)
-    try {
-      await work(context)
-    } finally {
-      if (!dbSession.finished) await dbSession.rollback()
-    }
-  }
-
-  runInOwnSession().catch((error) => logger.error(`Work after response failed: ${error.stack ?? error}`))
 }

@@ -90,7 +90,7 @@ describe('POST /auth/esqueci-senha', () => {
       responses.map(([status]) => status),
       [202, 202, 202, 202, 202],
     )
-    // o link é gerado depois do 202: espera o e-mail chegar antes de contar os tokens
+    // o e-mail sai depois do 202: espera ele chegar antes de contar
     await Mailpit.waitForEmailTo(user.email)
     assert.equal(await Mailpit.countEmailsAfterWaiting(user.email), 1)
     assert.equal((await DbUtils.getPasswordResetTokens(user.userKey)).length, 1)

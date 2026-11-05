@@ -1,9 +1,12 @@
 // rotas públicas (PUBLIC_ENDPOINTS): quem chama ainda não tem login, por isso não há requireProfile
 
+import { setTimeout } from 'node:timers/promises'
+
 import { EmailConnector } from '../connectors/email_connector.js'
+import { FORGOT_PASSWORD_MIN_RESPONSE_MS } from '../constants.js'
 import { AuthController } from '../controllers/auth_controller.js'
 import { PasswordResetController } from '../controllers/password_reset_controller.js'
-import { runAfterResponse } from '../middlewares/session_manager.js'
+import { Logger } from '../utils/logger.js'
 import { SchemaHandler } from '../utils/schema_handler.js'
 
 export class AuthResource {
@@ -25,18 +28,29 @@ export class AuthResource {
     res.status(200).json(loginDto)
   }
 
-  // responde igual exista ou não a conta, para ninguém descobrir quais e-mails estão cadastrados;
-  // e responde antes de procurar a conta, para o tempo de resposta também não revelar
+  // responde igual exista ou não a conta, para ninguém descobrir quais e-mails estão cadastrados.
+  // O link é gravado dentro da requisição (no Cloud Run a CPU para depois da resposta, e um trabalho
+  // em segundo plano ficaria parado segurando a conta travada); para o tempo de resposta não revelar
+  // se a conta existe, a resposta nunca sai antes de FORGOT_PASSWORD_MIN_RESPONSE_MS
   async onPostEsqueciSenha(req, res) {
     SchemaHandler.validate(req, 'post_auth_esqueci_senha.json')
-    const { email } = req.context.media
+    const respondAt = Date.now() + FORGOT_PASSWORD_MIN_RESPONSE_MS
 
+    let resetEmail = null
+    try {
+      resetEmail = await new PasswordResetController(req.context).createResetEmailByEmail(req.context.media.email)
+    } catch (error) {
+      // um erro só aconteceria com conta existente: vira log, e a resposta segue igual
+      new Logger(req.context, 'AuthResource').error(`Forgot password failed: ${error.stack ?? error}`)
+    }
+
+    // a conexão volta ao pool antes da espera
+    const dbSession = req.context.dbSession
+    if (dbSession !== null && !dbSession.finished) await dbSession.rollback().catch(() => {})
+
+    await setTimeout(Math.max(0, respondAt - Date.now()))
     res.status(202).end()
-
-    runAfterResponse(req.context, async (context) => {
-      const resetEmail = await new PasswordResetController(context).createResetEmailByEmail(email)
-      if (resetEmail !== null) EmailConnector.sendInBackground(resetEmail)
-    })
+    if (resetEmail !== null) EmailConnector.sendInBackground(resetEmail)
   }
 
   async onPostRedefinirSenha(req, res) {
