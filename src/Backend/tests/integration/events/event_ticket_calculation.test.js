@@ -43,4 +43,35 @@ describe('Cálculo do ticket do evento', () => {
     assert.equal(response.total_accepted_proposals, 2500, JSON.stringify(response))
     assert.equal(response.total_cost, 3500)
   })
+
+  test('custos com centavos somam sem resto de ponto flutuante', async () => {
+    const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
+    const supplier = await ObjectGenerator.createUserFixture({ profile: 'fornecedor', status: 'approved' })
+    fixtureUserKeys.push(organizer.userKey, supplier.userKey)
+    const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
+    const [createStatus, event] = await RequestGenerator.POST_events(
+      PayloadGenerator.createEventPayload({
+        internal_costs: [
+          { type: 'tax', description: 'Taxa da prefeitura', amount: 0.1 },
+          { type: 'operational', description: 'Lanche da equipe', amount: 0.2 },
+        ],
+      }),
+      headers,
+    )
+    assert.equal(createStatus, 201)
+    assert.equal(event.total_internal_cost, 0.3)
+
+    const item = await DbUtils.createBudgetItemFixture(event.event_key)
+    const proposal = await DbUtils.createProposalFixture(item.itemKey, supplier.userKey, { amount: 10.07 })
+    await RequestGenerator.PATCH_event_status(event.event_key, { status: 'open_for_quotes' }, headers)
+    const [acceptStatus] = await RequestGenerator.POST_event_proposal_accept(event.event_key, proposal.proposalKey, headers)
+    assert.equal(acceptStatus, 200)
+
+    const [status, response] = await RequestGenerator.GET_event_by_key(event.event_key, headers)
+
+    assert.equal(status, 200)
+    assert.equal(response.total_internal_cost, 0.3)
+    assert.equal(response.total_accepted_proposals, 10.07)
+    assert.equal(response.total_cost, 10.37)
+  })
 })
