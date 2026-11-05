@@ -1229,3 +1229,161 @@
     gap: 32px;
   }
 }
+
+/* ---------- chamada final ---------- */
+
+/* fundo fixo (escuro nos dois temas), com os três brilhos do Figma em % da seção */
+.chamada-landing {
+  display: flex;
+  justify-content: center;
+  padding: 104px max(32px, calc((100% - 1200px) / 2));
+  background:
+    radial-gradient(62.5% 50% at 43.75% 90%, rgb(10 80 174 / 25%), transparent),
+    radial-gradient(55.6% 35.7% at 5.6% 25%, rgb(249 23 136 / 22%), transparent),
+    radial-gradient(55.6% 35.7% at 88.9% 71.4%, rgb(254 117 36 / 28%), transparent),
+    var(--marca-preto);
+}
+
+.chamada-landing__ingresso {
+  --ingresso-raio: 24px;
+  --ingresso-recorte: 20px;
+  --ingresso-fundo-canhoto: var(--marca-laranja);
+  --ingresso-picote-cor: rgb(255 255 255 / 70%);
+  --ingresso-picote-espessura: 2px;
+  --ingresso-picote-traco: 8px;
+  --ingresso-picote-espaco: 4px;
+  --ingresso-picote-recuo: 28px;
+  --ingresso-sombra: drop-shadow(0 30px 30px rgb(0 0 0 / 35%));
+
+  width: 100%;
+  max-width: 1040px;
+}
+
+.chamada-landing__ingresso .ingresso__corpo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 18px;
+  padding: 56px;
+}
+
+.chamada-landing__ingresso .ingresso__canhoto {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 280px;
+  padding: 24px;
+  color: var(--acao-sobre-primaria);
+  text-align: center;
+}
+
+.chamada-landing__sobretitulo {
+  margin: 0;
+  color: var(--texto-destaque);
+  font-size: 0.7059rem; /* 12px */
+  font-weight: 600;
+  letter-spacing: 0.14em;
+}
+
+.chamada-landing__titulo {
+  margin: 0;
+  color: var(--texto-primario);
+  font-size: 2.3529rem; /* 40px */
+  font-weight: 700;
+  line-height: 1.2; /* 48px */
+  letter-spacing: -0.015em;
+}
+
+.chamada-landing__subtitulo {
+  margin: 0;
+  color: var(--texto-secundario);
+  font-size: 1.0588rem; /* 18px */
+  line-height: 1.5556; /* 28px */
+}
+
+.chamada-landing__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-top: 6px;
+}
+
+.chamada-landing__entrada {
+  font-size: 0.7059rem; /* 12px */
+  font-weight: 600;
+  letter-spacing: 0.24em;
+}
+
+.chamada-landing__numero {
+  font-size: 2.5882rem; /* 44px */
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.chamada-landing__aviso {
+  font-size: 0.7059rem; /* 12px */
+  font-weight: 500;
+  opacity: 0.85;
+}
+
+@media (max-width: 900px) {
+  .chamada-landing {
+    padding: 64px 20px;
+  }
+
+  .chamada-landing__ingresso {
+    --ingresso-raio: 20px;
+    --ingresso-recorte: 16px;
+    --ingresso-picote-recuo: 22px;
+  }
+
+  .chamada-landing__ingresso .ingresso__corpo {
+    gap: 14px;
+    padding: 28px 24px 30px;
+  }
+
+  .chamada-landing__ingresso .ingresso__canhoto {
+    gap: 8px;
+    width: auto;
+    padding: 16px 24px 20px;
+  }
+
+  .chamada-landing__sobretitulo {
+    font-size: 0.6471rem; /* 11px */
+    letter-spacing: 0.12em;
+  }
+
+  .chamada-landing__titulo {
+    font-size: 1.5294rem; /* 26px */
+    line-height: 1.1923; /* 31px */
+    letter-spacing: -0.01em;
+  }
+
+  .chamada-landing__subtitulo {
+    font-size: 0.8824rem; /* 15px */
+    line-height: 1.5333; /* 23px */
+  }
+
+  .chamada-landing__acoes {
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .chamada-landing__entrada {
+    font-size: 0.6471rem; /* 11px */
+  }
+
+  .chamada-landing__numero {
+    font-size: 2rem; /* 34px */
+  }
+
+  /* o código de barras do Figma mobile é mais baixo (140 × 32) */
+  .chamada-landing__barras {
+    width: 140px;
+    height: 32px;
+  }
+}
