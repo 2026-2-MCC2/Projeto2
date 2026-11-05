@@ -12,7 +12,7 @@ import {
   menorPropostaDisponivel,
   podeSerSelecionada,
 } from '../../../application/propostas.js'
-import { formatarCnpj, formatarMoeda } from '../../../domain/formatacao.js'
+import { formatarCnpj, formatarMoeda, iniciais } from '../../../domain/formatacao.js'
 import { Carregando, ErroNaTela, Vazio } from '../../components/comum/EstadoDaTela.jsx'
 import { Cartao } from '../../components/organizador/Cartao.jsx'
 import { EventoLayout } from '../../components/organizador/EventoLayout.jsx'
@@ -266,14 +266,6 @@ function EtiquetaDaSituacao({ proposta, menorValor }) {
   if (menorValor) return <span className="etiqueta etiqueta--aprovado">Menor valor</span>
   return null
 }
-
-const iniciais = (nome) =>
-  nome
-    .split(/\s+/)
-    .filter((parte) => /^[\p{L}\d]/u.test(parte))
-    .slice(0, 2)
-    .map((parte) => parte[0].toUpperCase())
-    .join('')
 
 function textoDaDiferenca(valor, previsto) {
   const diferenca = previsto - valor

@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { formatarMoeda } from '../../../application/eventos.js'
+import { formatarMoeda } from '../../../domain/formatacao.js'
 import {
   aceitarPropostaDoEvento,
   buscarComparacaoDePropostas,
