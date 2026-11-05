@@ -11,6 +11,7 @@ import {
   itemJaDecidido,
   menorPropostaDisponivel,
   podeSerSelecionada,
+  propostaEscolhida,
 } from '../../../application/propostas.js'
 import { Carregando, ErroNaTela, Vazio } from '../../components/comum/EstadoDaTela.jsx'
 import { EventoLayout } from '../../components/organizador/EventoLayout.jsx'
@@ -82,10 +83,12 @@ export function EventoPropostas() {
     )
   }
 
-  // começa pelo primeiro item ainda sem escolha; se todos já foram decididos, pelo primeiro com proposta
+  // começa pelo primeiro item que ainda espera uma escolha possível; senão, pelo primeiro com proposta
   const item =
     itens.find((candidato) => candidato.item_key === itemEscolhido) ??
-    comPropostas.find((candidato) => !itemJaDecidido(candidato)) ??
+    comPropostas.find(
+      (candidato) => !itemJaDecidido(candidato) && menorPropostaDisponivel(candidato),
+    ) ??
     comPropostas[0]
 
   async function confirmarSelecao() {
@@ -101,14 +104,24 @@ export function EventoPropostas() {
       setSelecionando(null)
     } catch (falha) {
       toast.erro('Não foi possível selecionar a proposta', { descricao: falha.message })
-      if (falha.status === 409) setTentativa((v) => v + 1)
+      // 409: a proposta mudou (retirada, vencida, evento fora de cotação); o modal não fica com a velha
+      if (falha.status === 409) {
+        setSelecionando(null)
+        setTentativa((v) => v + 1)
+      }
     } finally {
       setSalvando(false)
     }
   }
 
+  const custoConsolidado = (
+    <p className="propostas-consolidado">
+      Custo consolidado do evento <strong>{formatarMoeda(resultado.total_cost)}</strong>
+    </p>
+  )
+
   return (
-    <EventoLayout>
+    <EventoLayout acoes={custoConsolidado}>
       <div className="propostas-do-item">
         {!emLista && <AbasDosItens itens={itens} itemAtual={item} aoEscolher={setItemEscolhido} />}
         <PropostasDoItem
@@ -233,7 +246,7 @@ function PropostasDoItem({
           <h2 id="item-das-propostas">{item.description}</h2>
           <p>{apoio}</p>
         </div>
-        {!isMobile && item.proposals.length > 0 && (
+        {!isMobile && (
           <div className="visao" role="group" aria-label="Forma de ver as propostas">
             {VISOES.map((opcao) => (
               <button
@@ -384,14 +397,19 @@ function CartaoDeProposta({ eventKey, proposta, destaque, podeSelecionar, troca,
 
 function situacaoDoItem(item) {
   if (itemJaDecidido(item)) return { nome: 'Selecionada', estilo: 'aprovado' }
-  if (
-    item.proposals.length > 0 &&
-    item.proposals.every((proposta) => proposta.status === 'canceled')
-  ) {
+  if (item.proposals.length === 0) return { nome: 'Sem propostas', estilo: 'neutro' }
+  if (item.proposals.every((proposta) => proposta.status === 'canceled')) {
     return { nome: 'Cancelada', estilo: 'neutro' }
   }
-  if (item.proposals.length === 0) return { nome: 'Sem propostas', estilo: 'neutro' }
+  // só vencidas (ou encerradas): nenhuma pode mais ser escolhida
+  if (!menorPropostaDisponivel(item)) return { nome: 'Sem propostas válidas', estilo: 'neutro' }
   return { nome: 'Em análise', estilo: 'cotacao' }
+}
+
+// item decidido mostra o valor escolhido; os demais, a menor proposta que ainda pode ser escolhida
+function valorDoItem(item) {
+  const proposta = propostaEscolhida(item) ?? menorPropostaDisponivel(item)
+  return proposta ? formatarMoeda(proposta.amount) : '—'
 }
 
 function ItensEmCotacao({ itens, itemAtual, aoEscolher }) {
@@ -404,7 +422,6 @@ function ItensEmCotacao({ itens, itemAtual, aoEscolher }) {
         <span>Situação</span>
       </div>
       {itens.map((item) => {
-        const menor = menorPropostaDisponivel(item)
         const situacao = situacaoDoItem(item)
         const atual = item.item_key === itemAtual.item_key
         return (
@@ -417,7 +434,7 @@ function ItensEmCotacao({ itens, itemAtual, aoEscolher }) {
           >
             <strong>{item.description}</strong>
             <span>{item.proposals.length}</span>
-            <span>{menor ? formatarMoeda(menor.amount) : '—'}</span>
+            <span>{valorDoItem(item)}</span>
             <span className={`itens-cotacao__situacao itens-cotacao__situacao--${situacao.estilo}`}>
               {situacao.nome}
             </span>

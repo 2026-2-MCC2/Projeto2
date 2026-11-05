@@ -52,10 +52,13 @@ const REGRAS_ENTRE_CAMPOS = {
 }
 
 // titulo, textos do botão final e aoConcluir mudam entre criar e editar; o resto do fluxo é o mesmo
+// custoJaCadastrado: na edição, o custo do evento salvo (custos próprios + propostas aceitas),
+// que entra na prévia do ticket
 export function FormularioDeEvento({
   titulo,
   valorInicial,
   comCustosProprios,
+  custoJaCadastrado = 0,
   permiteDataPassada = false,
   avisoDaRevisao,
   textoDoBotaoFinal,
@@ -150,6 +153,7 @@ export function FormularioDeEvento({
       <EtapaRevisao
         dados={dados}
         comCustosProprios={comCustosProprios}
+        custoJaCadastrado={custoJaCadastrado}
         aviso={avisoDaRevisao}
         isMobile={isMobile}
       />

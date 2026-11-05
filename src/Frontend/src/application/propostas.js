@@ -1,6 +1,7 @@
 // Propostas: comparação e aceite pelo organizador, e envio pelo fornecedor.
 
 import { api } from '../infrastructure/api.js'
+import { relerEventoEmMemoria } from './eventos.js'
 import { formatarMoeda } from '../domain/formatacao.js'
 import { paraData, paraDataIso, paraNumero } from '../domain/validacao.js'
 
@@ -8,8 +9,11 @@ export function buscarComparacaoDePropostas(eventKey) {
   return api.get(`/events/${eventKey}/proposals`)
 }
 
-export function aceitarPropostaDoEvento(eventKey, proposalKey) {
-  return api.post(`/events/${eventKey}/proposals/${proposalKey}/accept`, {})
+// o aceite muda o custo e o ticket do evento, que é relido em memória
+export async function aceitarPropostaDoEvento(eventKey, proposalKey) {
+  const comparacao = await api.post(`/events/${eventKey}/proposals/${proposalKey}/accept`, {})
+  relerEventoEmMemoria(eventKey)
+  return comparacao
 }
 
 // propostas que ainda esperam a decisão do organizador
@@ -25,8 +29,10 @@ export function menorPropostaDisponivel(item) {
     )
 }
 
-export const itemJaDecidido = (item) =>
-  item.proposals.some((proposta) => proposta.status === 'accepted')
+export const propostaEscolhida = (item) =>
+  item.proposals.find((proposta) => proposta.status === 'accepted')
+
+export const itemJaDecidido = (item) => Boolean(propostaEscolhida(item))
 
 // O organizador escolhe enquanto o evento está em cotação e a validade não passou. Com o item já
 // decidido ele ainda pode trocar a escolha por outra, inclusive uma recusada na escolha anterior.

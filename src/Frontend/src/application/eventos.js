@@ -45,6 +45,10 @@ const quantidadeDePessoas = (quantidade) =>
 
 export { formatarMoeda }
 
+// a margem é guardada com 4 casas da fração: 0,125 aparece como 12,5%, não arredondada para 13%
+const formatarMargem = (fracao) =>
+  `${(Number(fracao) * 100).toLocaleString('pt-BR', { maximumFractionDigits: 2 })}%`
+
 // as datas são criadas no horário de quem cadastra, então são mostradas no horário local também
 function partesDaData(dataIso) {
   const data = new Date(dataIso)
@@ -136,7 +140,7 @@ function calcularDadosTicket(evento, totalCustos) {
     explicacao: margemInvalida
       ? 'A margem de lucro precisa ser menor que 100% para calcular o ticket.'
       : totalCustos > 0
-        ? `Custo de ${formatarMoeda(totalCustos)} dividido por ${quantidadeDePessoas(publicoRef)}, com margem de ${Math.round(margem * 100)}%.`
+        ? `Custo de ${formatarMoeda(totalCustos)} dividido por ${quantidadeDePessoas(publicoRef)}, com margem de ${formatarMargem(margem)}.`
         : 'Cadastre os custos para calcular o ticket sugerido.',
     cenarios: [
       {
@@ -160,18 +164,21 @@ function calcularDadosTicket(evento, totalCustos) {
     ],
   }
 
-  if (totalCustos <= 0 || precoSugeridoNum <= 0) {
+  // o ingresso é cobrado em centavos: sem arredondar, 7.999,9999 ingressos virariam 8.001 no Math.ceil
+  const precoCobrado = Math.round(precoSugeridoNum * 100) / 100
+  if (totalCustos <= 0 || precoCobrado <= 0) {
     return { precoSugerido, ticketEstimado, calculo: null }
   }
 
-  const ingressosEquilibrio = Math.ceil(totalCustos / precoSugeridoNum)
-  const receitaMin = publicoMin * precoSugeridoNum
+  const TOLERANCIA_DO_PONTO_FLUTUANTE = 1e-9
+  const ingressosEquilibrio = Math.ceil(totalCustos / precoCobrado - TOLERANCIA_DO_PONTO_FLUTUANTE)
+  const receitaMin = publicoMin * precoCobrado
   const resultadoMin = receitaMin - totalCustos
 
-  const receitaExp = publicoExp * precoSugeridoNum
+  const receitaExp = publicoExp * precoCobrado
   const resultadoExp = receitaExp - totalCustos
 
-  const receitaMax = publicoMax * precoSugeridoNum
+  const receitaMax = publicoMax * precoCobrado
   const resultadoMax = receitaMax - totalCustos
 
   const resultadoDoCenarioBase =
@@ -233,14 +240,14 @@ function calcularDadosTicket(evento, totalCustos) {
       },
       {
         rotulo: 'Margem no cenário base',
-        valor: `${formatarMoeda(resultadoDoCenarioBase)} · ${Math.round(margem * 100)}%`,
+        valor: `${formatarMoeda(resultadoDoCenarioBase)} · ${formatarMargem(margem)}`,
         positivo: resultadoDoCenarioBase >= 0,
       },
     ],
     formula: 'Ticket = Custo total ÷ [Público × (1 − Margem)]',
     premissas: [
       { rotulo: 'Custo consolidado', valor: formatarMoeda(totalCustos) },
-      { rotulo: 'Margem de lucro', valor: `${Math.round(margem * 100)}%` },
+      { rotulo: 'Margem de lucro', valor: formatarMargem(margem) },
       { rotulo: 'Público mínimo', valor: publicoMin.toLocaleString('pt-BR') },
       { rotulo: 'Público esperado', valor: publicoExp.toLocaleString('pt-BR') },
       { rotulo: 'Público máximo', valor: publicoMax.toLocaleString('pt-BR') },
@@ -299,6 +306,7 @@ export function formatarEventoParaExibicao(evento, itensDeCotacao = evento.budge
 
   const totalCustos = Number(evento.total_cost ?? evento.total_internal_cost) || 0
   const totalPropostasAceitas = Number(evento.total_accepted_proposals) || 0
+  const totalCustosProprios = Number(evento.total_internal_cost) || 0
   const { precoSugerido, ticketEstimado, calculo } = calcularDadosTicket(evento, totalCustos)
   const motivoCancelamento = evento.cancellation_reason ?? evento.motivoDoCancelamento ?? null
 
@@ -309,7 +317,7 @@ export function formatarEventoParaExibicao(evento, itensDeCotacao = evento.budge
       rotulo: 'PÚBLICO',
       valor: `${Number(evento.min_audience).toLocaleString('pt-BR')} · ${Number(evento.expected_audience).toLocaleString('pt-BR')} · ${Number(evento.max_audience).toLocaleString('pt-BR')}`,
     },
-    { rotulo: 'MARGEM DE LUCRO', valor: `${Math.round(Number(evento.profit_margin) * 100)}%` },
+    { rotulo: 'MARGEM DE LUCRO', valor: formatarMargem(evento.profit_margin) },
     { rotulo: 'TIPO DE INGRESSO', valor: 'Inteira' },
     ...(statusFront === 'cancelado' || motivoCancelamento
       ? [{ rotulo: 'MOTIVO DO CANCELAMENTO', valor: motivoCancelamento || 'Não informado' }]
@@ -340,7 +348,10 @@ export function formatarEventoParaExibicao(evento, itensDeCotacao = evento.budge
     nome: item.description,
     categoria: item.category,
     situacao: item.accepted_proposal ? 'aceita' : 'cotacao',
-    valor: formatarMoeda(item.accepted_proposal?.amount ?? item.estimated_value),
+    valor:
+      item.accepted_proposal || item.estimated_value != null
+        ? formatarMoeda(item.accepted_proposal?.amount ?? item.estimated_value)
+        : 'A definir',
     propostasCount: Number(item.proposals_count) || 0,
   }))
   const itens = [...itensDeFornecedores, ...itensProprios]
@@ -371,19 +382,19 @@ export function formatarEventoParaExibicao(evento, itensDeCotacao = evento.budge
       orcamento: situacaoDoOrcamento(totalCustos, evento.budget_limit),
       itens,
       totalDeItens: itens.length,
-      propostas: [],
+      propostasRecebidas: itensDeFornecedores.filter((item) => item.propostasCount > 0),
       ticketEstimado,
       calculo,
       andamento,
       comparacao: { itens: [] },
       custos: {
-        total: formatarMoeda(totalCustos),
+        totalProprios: formatarMoeda(totalCustosProprios),
         resumoMobile: `${linhasCustos.length} custos cadastrados`,
         indicadores: [
           { nome: 'Custos de fornecedores', valor: formatarMoeda(totalPropostasAceitas) },
           {
             nome: 'Custos fiscais e operacionais',
-            valor: formatarMoeda(Number(evento.total_internal_cost) || 0),
+            valor: formatarMoeda(totalCustosProprios),
           },
           { nome: 'Custo total do evento', valor: formatarMoeda(totalCustos) },
         ],
@@ -434,12 +445,8 @@ function periodoDoEvento(dados) {
   return { startDate: inicio.toISOString(), endDate: termino.toISOString() }
 }
 
-/**
- * Transforma dados do formulário de NovoEvento no payload esperado pelo POST/PUT /events da API.
- */
-export function montarPayloadEvento(dados) {
-  const { startDate, endDate } = periodoDoEvento(dados)
-
+// público, margem e cenário de referência: o que entra no cálculo do ticket
+function parametrosDoTicket(dados) {
   const minAudience = Math.round(paraNumero(dados.publicoMinimo)) || 1
   const expectedAudience = Math.round(paraNumero(dados.publicoEsperado)) || minAudience
   const maxAudience = Math.round(paraNumero(dados.publicoMaximo)) || expectedAudience
@@ -449,40 +456,41 @@ export function montarPayloadEvento(dados) {
     ? 0.2
     : Math.min(Math.max(Number((margemNumero / 100).toFixed(4)), 0), 0.9999)
 
+  return {
+    min_audience: minAudience,
+    expected_audience: expectedAudience,
+    max_audience: maxAudience,
+    profit_margin: profitMargin,
+    reference_scenario: CENARIOS_MAPA[dados.cenarioReferencia] || 'expected',
+  }
+}
+
+const CUSTOS_PROPRIOS_DO_FORMULARIO = [
+  { campo: 'custosFiscais', type: 'tax', description: 'Custos fiscais e alvarás' },
+  { campo: 'equipeProducao', type: 'operational', description: 'Equipe de produção' },
+  { campo: 'outrosCustos', type: 'other', description: 'Outros custos variáveis' },
+]
+
+function custosProprios(dados) {
+  return CUSTOS_PROPRIOS_DO_FORMULARIO.map(({ campo, type, description }) => ({
+    type,
+    description,
+    amount: paraNumero(dados[campo] ?? ''),
+  })).filter((custo) => custo.amount > 0)
+}
+
+/**
+ * Transforma dados do formulário de NovoEvento no payload esperado pelo POST/PUT /events da API.
+ */
+export function montarPayloadEvento(dados) {
+  const { startDate, endDate } = periodoDoEvento(dados)
+
   const teto = paraNumero(dados.tetoDeGastos ?? '')
   const budgetLimit = teto > 0 ? Number(teto.toFixed(2)) : null
 
   const venueCapacity = dados.capacidadeEspaco
     ? Math.round(paraNumero(dados.capacidadeEspaco))
     : null
-
-  const internalCosts = []
-  const valorFiscais = paraNumero(dados.custosFiscais)
-  if (!Number.isNaN(valorFiscais) && valorFiscais > 0) {
-    internalCosts.push({
-      type: 'tax',
-      description: 'Custos fiscais e alvarás',
-      amount: valorFiscais,
-    })
-  }
-
-  const valorProducao = paraNumero(dados.equipeProducao)
-  if (!Number.isNaN(valorProducao) && valorProducao > 0) {
-    internalCosts.push({
-      type: 'operational',
-      description: 'Equipe de produção',
-      amount: valorProducao,
-    })
-  }
-
-  const valorOutros = paraNumero(dados.outrosCustos)
-  if (!Number.isNaN(valorOutros) && valorOutros > 0) {
-    internalCosts.push({
-      type: 'other',
-      description: 'Outros custos variáveis',
-      amount: valorOutros,
-    })
-  }
 
   return {
     name: dados.nome.trim(),
@@ -496,14 +504,18 @@ export function montarPayloadEvento(dados) {
     state: (dados.estado || 'SP').toUpperCase().trim(),
     zip_code: dados.cep ? digitos(dados.cep) : null,
     venue_capacity: venueCapacity || null,
-    min_audience: minAudience,
-    expected_audience: expectedAudience,
-    max_audience: maxAudience,
-    profit_margin: profitMargin,
+    ...parametrosDoTicket(dados),
     budget_limit: budgetLimit,
-    reference_scenario: CENARIOS_MAPA[dados.cenarioReferencia] || 'expected',
-    internal_costs: internalCosts,
+    internal_costs: custosProprios(dados),
   }
+}
+
+// Prévia da revisão do formulário: o mesmo cálculo do ticket, com os parâmetros digitados e o custo
+// que o evento já tem (na edição) somado aos custos próprios informados (na criação).
+export function previaDoTicket(dados, custoJaCadastrado = 0) {
+  const custoDoFormulario = custosProprios(dados).reduce((total, custo) => total + custo.amount, 0)
+  const custoTotal = (Number(custoJaCadastrado) || 0) + custoDoFormulario
+  return calcularDadosTicket(parametrosDoTicket(dados), custoTotal).ticketEstimado
 }
 
 // máximo aceito pelo backend
@@ -515,6 +527,27 @@ function formatarEGuardar(eventosDaApi, pedido) {
   const eventos = eventosDaApi.map((evento) => {
     const itensEmMemoria = buscarEventoEmMemoria(evento.event_key)?.raw?.budget_items
     return formatarEventoParaExibicao(evento, evento.budget_items ?? itensEmMemoria ?? [])
+  })
+  guardarEventos(eventos, pedido)
+  return eventos
+}
+
+// A listagem não garante o total das propostas aceitas nem traz os itens: completa com a versão
+// detalhada já em memória ou, sem ela, guarda o evento como parcial, e carregarEvento busca o detalhe.
+function formatarEGuardarDaLista(eventosDaLista, pedido) {
+  const eventos = eventosDaLista.map((eventoDaLista) => {
+    const detalhado = buscarEventoEmMemoria(eventoDaLista.event_key)
+    if (!detalhado || detalhado.parcial) {
+      return { ...formatarEventoParaExibicao(eventoDaLista, []), parcial: true }
+    }
+
+    const totalAceitas = Number(detalhado.raw.total_accepted_proposals) || 0
+    const completo = {
+      ...eventoDaLista,
+      total_accepted_proposals: totalAceitas,
+      total_cost: (Number(eventoDaLista.total_internal_cost) || 0) + totalAceitas,
+    }
+    return formatarEventoParaExibicao(completo, detalhado.raw.budget_items ?? [])
   })
   guardarEventos(eventos, pedido)
   return eventos
@@ -540,7 +573,7 @@ export function listarEventosRecentes(quantidade) {
     const pedido = iniciarPedido()
     const carregamento = api
       .get(montarBuscaDeEventos({ limit: quantidade, page: 0 }))
-      .then((resposta) => formatarEGuardar(resposta.data, pedido))
+      .then((resposta) => formatarEGuardarDaLista(resposta.data, pedido))
       .catch((falha) => {
         // só esquece se este ainda for o pedido guardado; um mais novo pode ter tomado o lugar
         if (recentesEmCache?.carregamento === carregamento) esquecerRecentes()
@@ -571,7 +604,7 @@ export async function listarTodosOsEventos() {
       .flatMap((pagina) => pagina.data)
       .map((evento) => [evento.event_key, evento]),
   )
-  return formatarEGuardar([...eventosSemRepetir.values()], pedido)
+  return formatarEGuardarDaLista([...eventosSemRepetir.values()], pedido)
 }
 
 /**
@@ -596,9 +629,8 @@ const SEGUNDOS_SEM_BUSCAR_DE_NOVO = 15
 export function carregarEvento(eventKey) {
   const buscadoHaPouco =
     Date.now() - (ultimaBuscaPorChave.get(eventKey) ?? 0) < SEGUNDOS_SEM_BUSCAR_DE_NOVO * 1000
-  if (buscadoHaPouco && buscarEventoEmMemoria(eventKey)) {
-    return Promise.resolve(buscarEventoEmMemoria(eventKey))
-  }
+  const emMemoria = buscarEventoEmMemoria(eventKey)
+  if (buscadoHaPouco && emMemoria && !emMemoria.parcial) return Promise.resolve(emMemoria)
 
   if (!carregamentosEmAndamento.has(eventKey)) {
     const carregamento = buscarEventoPorChave(eventKey)
@@ -610,6 +642,17 @@ export function carregarEvento(eventKey) {
     carregamentosEmAndamento.set(eventKey, carregamento)
   }
   return carregamentosEmAndamento.get(eventKey)
+}
+
+// Depois de uma mudança cuja resposta não traz o evento (aceite de proposta, itens de cotação), a
+// cópia em memória fica velha: a releitura começa já, e a próxima tela que abrir não espera os 15 s.
+// Uma falha na releitura não vira falha da mudança, que já foi salva: a tela diria que não salvou e
+// a pessoa repetiria (duplicando o item).
+export function relerEventoEmMemoria(eventKey) {
+  ultimaBuscaPorChave.delete(eventKey)
+  buscarEventoPorChave(eventKey)
+    .then(() => ultimaBuscaPorChave.set(eventKey, Date.now()))
+    .catch(() => {})
 }
 
 /**
@@ -725,19 +768,19 @@ export async function listarItensDeCotacao(eventKey) {
 
 export async function criarItemDeCotacao(eventKey, item) {
   const resposta = await api.post(`/events/${eventKey}/items`, itemParaApi(item))
-  await buscarEventoPorChave(eventKey)
+  relerEventoEmMemoria(eventKey)
   return resposta
 }
 
 export async function atualizarItemDeCotacao(eventKey, itemKey, item) {
   const resposta = await api.put(`/events/${eventKey}/items/${itemKey}`, itemParaApi(item))
-  await buscarEventoPorChave(eventKey)
+  relerEventoEmMemoria(eventKey)
   return resposta
 }
 
 export async function excluirItemDeCotacao(eventKey, itemKey) {
   await api.delete(`/events/${eventKey}/items/${itemKey}`)
-  await buscarEventoPorChave(eventKey)
+  relerEventoEmMemoria(eventKey)
 }
 
 function itemParaApi(item) {

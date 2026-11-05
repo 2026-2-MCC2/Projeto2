@@ -76,7 +76,7 @@ export function ModalCustoProprio({ eventKey, nomeDoEvento, custo, aoFechar }) {
           rotulo="Valor"
           placeholder="R$ 1.500,00"
           inputMode="decimal"
-          data-validar="valor"
+          data-validar="valorPositivo"
           required
           value={dados.valor}
           onChange={definir('valor')}

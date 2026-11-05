@@ -1,6 +1,9 @@
+import { previaDoTicket } from '../../../../application/eventos.js'
 import { nomeDoCenario } from './cenarios.js'
 
-export function EtapaRevisao({ dados, comCustosProprios, aviso, isMobile }) {
+export function EtapaRevisao({ dados, comCustosProprios, custoJaCadastrado, aviso, isMobile }) {
+  const previa = previaDoTicket(dados, custoJaCadastrado)
+  const tituloDaPrevia = `Prévia do ticket no ${previa.cenario.toLowerCase()}`
   const periodo = [dados.dataInicio, dados.dataTermino].filter(Boolean).join(' a ')
   const custosProprios = [dados.custosFiscais, dados.equipeProducao, dados.outrosCustos]
     .filter(Boolean)
@@ -23,9 +26,9 @@ export function EtapaRevisao({ dados, comCustosProprios, aviso, isMobile }) {
         </div>
 
         <div className="preveia-ticket preveia-ticket--mobile">
-          <p className="preveia-ticket__titulo">Prévia do ticket no público esperado</p>
-          <strong>—</strong>
-          <p className="preveia-ticket__apoio">{APOIO_PREVIA}</p>
+          <p className="preveia-ticket__titulo">{tituloDaPrevia}</p>
+          <strong>{previa.valor}</strong>
+          <p className="preveia-ticket__apoio">{previa.explicacao}</p>
         </div>
       </>
     )
@@ -63,19 +66,16 @@ export function EtapaRevisao({ dados, comCustosProprios, aviso, isMobile }) {
 
       <div className="preveia-ticket">
         <div>
-          <p className="preveia-ticket__titulo">Prévia do ticket no público esperado</p>
-          <p className="preveia-ticket__apoio">{APOIO_PREVIA}</p>
+          <p className="preveia-ticket__titulo">{tituloDaPrevia}</p>
+          <p className="preveia-ticket__apoio">{previa.explicacao}</p>
         </div>
-        <strong>—</strong>
+        <strong>{previa.valor}</strong>
       </div>
 
       <p className="aviso">{aviso}</p>
     </>
   )
 }
-
-const APOIO_PREVIA =
-  'Ainda sem propostas de fornecedores. O valor é recalculado a cada proposta selecionada.'
 
 function BlocoResumo({ titulo, children }) {
   return (

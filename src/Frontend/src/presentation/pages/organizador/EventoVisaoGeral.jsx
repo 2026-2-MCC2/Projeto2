@@ -217,7 +217,7 @@ export function EventoVisaoGeral() {
       <ListaDeLinhas
         compacta={isMobile}
         linhas={detalhe.itens.map((item) => ({
-          chave: item.nome,
+          chave: item.chave,
           titulo: item.nome,
           apoio: isMobile ? undefined : item.categoria,
           etiqueta: ETIQUETA_DA_SITUACAO[item.situacao]?.[isMobile ? 'curta' : 'longa'],
@@ -228,11 +228,21 @@ export function EventoVisaoGeral() {
     </Cartao>
   )
 
+  const totalDePropostas = detalhe.propostasRecebidas.reduce(
+    (total, item) => total + item.propostasCount,
+    0,
+  )
+
   const propostas = (
     <Cartao
       titulo="Propostas recebidas"
+      complemento={
+        totalDePropostas > 0
+          ? `${totalDePropostas} ${totalDePropostas === 1 ? 'proposta' : 'propostas'}`
+          : undefined
+      }
       link={
-        detalhe.propostas.length > 0
+        totalDePropostas > 0
           ? {
               para: `/organizador/eventos/${id}/propostas`,
               nome: isMobile ? 'Comparar' : 'Comparar propostas',
@@ -240,20 +250,19 @@ export function EventoVisaoGeral() {
           : undefined
       }
     >
-      {detalhe.propostas.length === 0 ? (
+      {totalDePropostas === 0 ? (
         <p className="cartao__vazio">Não há propostas</p>
       ) : (
         <ListaDeLinhas
-          linhas={(isMobile ? detalhe.propostas.slice(0, 2) : detalhe.propostas).map(
-            (proposta) => ({
-              chave: proposta.fornecedor,
-              titulo: proposta.fornecedor,
-              apoio: isMobile ? undefined : proposta.item,
-              etiqueta: isMobile ? undefined : proposta.etiqueta,
-              estiloDaEtiqueta: 'aprovado',
-              valor: proposta.valor,
-            }),
-          )}
+          compacta={isMobile}
+          linhas={detalhe.propostasRecebidas.map((item) => ({
+            chave: item.chave,
+            titulo: item.nome,
+            apoio: `${item.propostasCount} ${item.propostasCount === 1 ? 'proposta' : 'propostas'}`,
+            etiqueta: ETIQUETA_DA_SITUACAO[item.situacao]?.[isMobile ? 'curta' : 'longa'],
+            estiloDaEtiqueta: ETIQUETA_DA_SITUACAO[item.situacao]?.estilo,
+            valor: item.situacao === 'aceita' ? item.valor : undefined,
+          }))}
         />
       )}
     </Cartao>
