@@ -81,12 +81,14 @@
   }
 }
 
-/* fica aqui, e não na folha de cada área, para valer também nas telas de acesso */
+/* fica aqui, e não na folha de cada área, para valer também nas telas de acesso;
+   uma volta só para as animações infinitas (carregando, skeleton) pararem em vez de piscar */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
 }
