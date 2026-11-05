@@ -465,3 +465,17 @@ export class ProposalItemAlreadyDecided extends ApiException {
     super(title, ProposalItemAlreadyDecided.code, httpStatus, description, translation)
   }
 }
+
+// muitas tentativas em pouco tempo nas rotas de login, cadastro e senha (ver middlewares/rate_limit.js)
+export class TooManyAttempts extends ApiException {
+  static code = 'EVP000049'
+
+  constructor(retryAfterSeconds) {
+    const minutes = Math.max(1, Math.ceil(retryAfterSeconds / 60))
+    const title = 'Too many attempts'
+    const httpStatus = 429
+    const description = `Too many attempts. Try again in ${retryAfterSeconds} seconds.`
+    const translation = `Muitas tentativas seguidas. Aguarde ${minutes === 1 ? '1 minuto' : `${minutes} minutos`} e tente de novo.`
+    super(title, TooManyAttempts.code, httpStatus, description, translation)
+  }
+}
