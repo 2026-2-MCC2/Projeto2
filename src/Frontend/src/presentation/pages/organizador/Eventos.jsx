@@ -5,7 +5,7 @@ import { CartaoEvento, CartaoEventoSkeleton } from '../../components/organizador
 import { useIsMobile } from '../../hooks/useIsMobile.js'
 import { listarTodosOsEventos, STATUS_FRONTEND } from '../../../application/eventos.js'
 import { Icone } from '../../components/comum/Icone.jsx'
-import { toast } from '../../toasts.js'
+import { ErroNaTela, Vazio } from '../../components/comum/EstadoDaTela.jsx'
 import iconeBuscar from '../../assets/organizador/icone-buscar.svg'
 import iconeAdicionar from '../../assets/organizador/icone-adicionar.svg'
 
@@ -21,16 +21,19 @@ export function Eventos() {
   const [filtro, setFiltro] = useState('todos')
   const [listaEventos, setListaEventos] = useState([])
   const [carregando, setCarregando] = useState(true)
+  const [erro, setErro] = useState(null)
+  const [tentativa, setTentativa] = useState(0)
 
   useEffect(() => {
     let ativo = true
     async function carregar() {
       setCarregando(true)
+      setErro(null)
       try {
         const eventos = await listarTodosOsEventos()
         if (ativo) setListaEventos(eventos)
       } catch (falha) {
-        if (ativo) toast.erro('Não foi possível carregar os eventos', { descricao: falha.message })
+        if (ativo) setErro(falha)
       } finally {
         if (ativo) setCarregando(false)
       }
@@ -39,12 +42,14 @@ export function Eventos() {
     return () => {
       ativo = false
     }
-  }, [])
+  }, [tentativa])
 
   const emPlanejamento = listaEventos.filter((evento) => evento.status === 'planejamento').length
   const resumoDoPlanejamento = carregando
     ? 'Carregando eventos...'
-    : `${emPlanejamento} ${emPlanejamento === 1 ? 'evento' : 'eventos'} em planejamento`
+    : erro
+      ? 'Não foi possível carregar os eventos'
+      : `${emPlanejamento} ${emPlanejamento === 1 ? 'evento' : 'eventos'} em planejamento`
 
   const termo = busca.trim().toLowerCase()
   const eventos = listaEventos.filter((evento) => {
@@ -55,6 +60,9 @@ export function Eventos() {
         .includes(termo)
     return combinaStatus && combinaBusca
   })
+
+  // sem nenhum evento cadastrado, o cartão de novo evento já basta; o aviso é para a busca sem resultado
+  const semResultado = !carregando && !erro && listaEventos.length > 0 && eventos.length === 0
 
   const cardNovoEvento = (
     <button
@@ -102,6 +110,29 @@ export function Eventos() {
           ))}
         </div>
       </div>
+
+      {erro && !carregando && (
+        <ErroNaTela erro={erro} aoTentarDeNovo={() => setTentativa((atual) => atual + 1)} />
+      )}
+
+      {semResultado && (
+        <Vazio
+          icone="eventos"
+          titulo="Nenhum evento encontrado"
+          mensagem="Nenhum evento combina com a busca e o filtro escolhidos."
+        >
+          <button
+            type="button"
+            className="botao botao--secundario"
+            onClick={() => {
+              setBusca('')
+              setFiltro('todos')
+            }}
+          >
+            Limpar busca e filtro
+          </button>
+        </Vazio>
+      )}
 
       <div className="organizador__grade" aria-busy={carregando}>
         {carregando ? (
