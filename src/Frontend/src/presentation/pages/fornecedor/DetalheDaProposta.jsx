@@ -17,6 +17,7 @@ import { OrganizadorLayout } from '../../components/organizador/OrganizadorLayou
 import { toast } from '../../toasts.js'
 import iconeRetirar from '../../assets/admin/icone-modal-rejeitar.svg'
 import { ENTRAR_NA_EDICAO } from '../../hooks/usePropostaEmEdicao.js'
+import { useRenovarFotosVencidas } from '../../hooks/useRenovarFotosVencidas.js'
 import '../../styles/fornecedor.css'
 
 const VOLTAR_PARA = '/fornecedor/propostas'
@@ -70,6 +71,7 @@ export function DetalheDaProposta() {
   const [confirmandoRetirada, setConfirmandoRetirada] = useState(false)
   const [retirando, setRetirando] = useState(false)
   const carregando = resultado.chave !== proposalKey
+  const aoFalharFoto = useRenovarFotosVencidas(() => setTentativa((valor) => valor + 1))
 
   useEffect(() => {
     let telaAberta = true
@@ -172,6 +174,7 @@ export function DetalheDaProposta() {
                     src={foto.url}
                     alt={`Foto ${indice + 1} do serviço`}
                     className="proposta-detalhes__foto"
+                    onError={aoFalharFoto}
                   />
                 ))}
               </div>

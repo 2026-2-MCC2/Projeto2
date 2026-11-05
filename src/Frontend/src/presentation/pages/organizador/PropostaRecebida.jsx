@@ -16,6 +16,7 @@ import { EventoLayout } from '../../components/organizador/EventoLayout.jsx'
 import { Botao } from '../../components/organizador/Formulario.jsx'
 import { toast } from '../../toasts.js'
 import iconeAceitar from '../../assets/organizador/icone-modal-aceitar.svg'
+import { useRenovarFotosVencidas } from '../../hooks/useRenovarFotosVencidas.js'
 
 export function PropostaRecebida() {
   const { id, proposta: proposalKey } = useParams()
@@ -24,6 +25,7 @@ export function PropostaRecebida() {
   const [tentativa, setTentativa] = useState(0)
   const [confirmacaoAberta, setConfirmacaoAberta] = useState(false)
   const [salvando, setSalvando] = useState(false)
+  const aoFalharFoto = useRenovarFotosVencidas(() => setTentativa((valor) => valor + 1))
 
   useEffect(() => {
     let telaAberta = true
@@ -123,7 +125,11 @@ export function PropostaRecebida() {
               <div className="proposta-recebida__fotos">
                 {proposta.photos.map((foto, indice) => (
                   <a key={foto.photo_key} href={foto.url} target="_blank" rel="noreferrer">
-                    <img src={foto.url} alt={`Foto ${indice + 1} enviada pelo fornecedor`} />
+                    <img
+                      src={foto.url}
+                      alt={`Foto ${indice + 1} enviada pelo fornecedor`}
+                      onError={aoFalharFoto}
+                    />
                   </a>
                 ))}
               </div>

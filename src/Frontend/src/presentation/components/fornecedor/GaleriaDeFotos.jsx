@@ -9,6 +9,7 @@ import {
 import { Icone } from '../comum/Icone.jsx'
 import { toast } from '../../toasts.js'
 import iconeAdicionar from '../../assets/organizador/icone-adicionar.svg'
+import { useRenovarFotosVencidas } from '../../hooks/useRenovarFotosVencidas.js'
 
 const TIPOS_ACEITOS = 'image/jpeg,image/png,image/webp'
 
@@ -16,6 +17,11 @@ const TIPOS_ACEITOS = 'image/jpeg,image/png,image/webp'
 export function GaleriaDeFotos({ proposalKey }) {
   const [fotos, setFotos] = useState([])
   const [enviando, setEnviando] = useState(false)
+  const aoFalharFoto = useRenovarFotosVencidas(() =>
+    buscarMinhaProposta(proposalKey)
+      .then((detalhe) => setFotos(detalhe.photos ?? []))
+      .catch(() => {}),
+  )
 
   useEffect(() => {
     if (!proposalKey) return
@@ -76,6 +82,7 @@ export function GaleriaDeFotos({ proposalKey }) {
             {fotos.map((foto, indice) => (
               <div key={foto.photo_key} className="proposta-detalhes__foto-item">
                 <img
+                  onError={aoFalharFoto}
                   src={foto.url}
                   alt={`Foto ${indice + 1} do serviço`}
                   className="proposta-detalhes__foto"
