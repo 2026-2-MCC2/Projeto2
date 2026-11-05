@@ -85,6 +85,22 @@ export function enviarProposta(eventKey, itemKey, rascunho) {
   )
 }
 
+// Proposta nova com as fotos escolhidas na etapa 2: a foto precisa da proposta já criada, então elas
+// vão uma por uma logo depois. Uma foto que falhar não desfaz a proposta: volta em fotosQueFalharam,
+// e o fornecedor tenta de novo na edição.
+export async function enviarPropostaComFotos(eventKey, itemKey, rascunho, fotos) {
+  const { proposal_key: proposalKey } = await enviarProposta(eventKey, itemKey, rascunho)
+  let fotosQueFalharam = 0
+  for (const foto of fotos) {
+    try {
+      await enviarFotoDaProposta(proposalKey, foto)
+    } catch {
+      fotosQueFalharam += 1
+    }
+  }
+  return { proposalKey, fotosQueFalharam }
+}
+
 // mesmo body do envio; responde o detalhe atualizado
 export function atualizarProposta(proposalKey, rascunho) {
   return api.put(`/supplier/proposals/${proposalKey}`, paraPropostaDaApi(rascunho))
@@ -112,6 +128,14 @@ export function listarMinhasPropostas({ status, limit = 20, depoisDe } = {}) {
 // até 5 fotos JPG, PNG ou WebP de até 5 MB, só em proposta já enviada; a API confere o tipo real
 export const LIMITE_DE_FOTOS = 5
 export const TAMANHO_MAXIMO_DA_FOTO = 5 * 1024 * 1024
+export const TIPOS_DE_FOTO = ['image/jpeg', 'image/png', 'image/webp']
+
+// mensagem do problema de uma foto escolhida, ou null se ela pode ser enviada
+export function problemaDaFoto(arquivo) {
+  if (!TIPOS_DE_FOTO.includes(arquivo.type)) return 'Use uma foto JPG, PNG ou WebP.'
+  if (arquivo.size > TAMANHO_MAXIMO_DA_FOTO) return 'Escolha uma imagem de até 5 MB.'
+  return null
+}
 
 export function enviarFotoDaProposta(proposalKey, arquivo) {
   return api.enviarArquivo(`/supplier/proposals/${proposalKey}/photos`, 'photo', arquivo)

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { atualizarProposta, enviarProposta } from '../../../application/propostas.js'
+import { atualizarProposta, enviarPropostaComFotos } from '../../../application/propostas.js'
+import { lerFotosPendentes } from '../../../application/rascunhosDePropostas.js'
 import { RetornoDoEnvio } from '../../components/acesso/RetornoDoEnvio.jsx'
 import { EtapaDaProposta } from '../../components/fornecedor/EtapaDaProposta.jsx'
 import { ResumoItemCotacao, ResumoProposta } from '../../components/fornecedor/ResumoProposta.jsx'
@@ -51,9 +52,27 @@ export function EnviarPropostaEtapa3() {
         return
       }
 
-      await enviarProposta(proposta.eventKey, proposta.itemKey, rascunho)
+      const fotos = lerFotosPendentes(proposta.eventKey, proposta.itemKey)
+      const { proposalKey, fotosQueFalharam } = await enviarPropostaComFotos(
+        proposta.eventKey,
+        proposta.itemKey,
+        rascunho,
+        fotos,
+      )
       proposta.descartar()
-      toast.sucesso('Proposta enviada', { descricao: item.description })
+      if (fotosQueFalharam > 0) {
+        // a proposta já foi enviada: a tela dela mostra o que entrou, e Editar tenta as fotos de novo
+        toast.erro('Proposta enviada, mas algumas fotos não foram anexadas', {
+          descricao: `${fotosQueFalharam} de ${fotos.length} fotos. Abra a proposta e use Editar para enviar de novo.`,
+        })
+        navigate(`/fornecedor/propostas/${proposalKey}`)
+        return
+      }
+      toast.sucesso('Proposta enviada', {
+        descricao: fotos.length
+          ? `${item.description} · ${fotos.length} ${fotos.length === 1 ? 'foto' : 'fotos'}`
+          : item.description,
+      })
       navigate('/fornecedor/propostas')
     } catch (falha) {
       // ex.: "Você já enviou uma proposta para este item." ou validade fora do evento

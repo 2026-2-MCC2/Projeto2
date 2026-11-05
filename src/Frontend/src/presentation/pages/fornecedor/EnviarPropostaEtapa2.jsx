@@ -89,7 +89,11 @@ export function EnviarPropostaEtapa2() {
                 onChange={preencher('naoIncluido')}
               />
             </div>
-            <GaleriaDeFotos proposalKey={proposta.proposalKey} />
+            <GaleriaDeFotos
+              proposalKey={proposta.proposalKey}
+              eventKey={proposta.eventKey}
+              itemKey={proposta.itemKey}
+            />
             {!isMobile && acoes}
           </form>
           {!isMobile && (

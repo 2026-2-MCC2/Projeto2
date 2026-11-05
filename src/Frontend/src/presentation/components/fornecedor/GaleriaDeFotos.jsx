@@ -1,20 +1,83 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   apagarFotoDaProposta,
   buscarMinhaProposta,
   enviarFotoDaProposta,
   LIMITE_DE_FOTOS,
-  TAMANHO_MAXIMO_DA_FOTO,
+  problemaDaFoto,
+  TIPOS_DE_FOTO,
 } from '../../../application/propostas.js'
+import {
+  definirFotosPendentes,
+  lerFotosPendentes,
+} from '../../../application/rascunhosDePropostas.js'
 import { Icone } from '../comum/Icone.jsx'
 import { toast } from '../../toasts.js'
 import iconeAdicionar from '../../assets/organizador/icone-adicionar.svg'
 import { useRenovarFotosVencidas } from '../../hooks/useRenovarFotosVencidas.js'
 
-const TIPOS_ACEITOS = 'image/jpeg,image/png,image/webp'
+const TIPOS_ACEITOS = TIPOS_DE_FOTO.join(',')
 
-// A foto precisa de uma proposta já enviada (a rota é da proposta): no envio novo a galeria só avisa.
-export function GaleriaDeFotos({ proposalKey }) {
+// Na proposta já enviada cada foto vai na hora para a API. Na proposta nova ainda não existe onde
+// guardar a foto: ela fica com o rascunho e é enviada logo depois da proposta (enviarPropostaComFotos).
+export function GaleriaDeFotos({ proposalKey, eventKey, itemKey }) {
+  return (
+    <section className="proposta-detalhes__fotos" aria-labelledby="titulo-fotos-servico">
+      <div className="proposta-detalhes__cabecalho-fotos">
+        <h3 id="titulo-fotos-servico">Fotos do serviço</h3>
+        <p>Imagens de trabalhos anteriores ajudam o organizador a avaliar a proposta.</p>
+      </div>
+
+      {proposalKey ? (
+        <FotosDaProposta proposalKey={proposalKey} />
+      ) : (
+        <FotosPendentes eventKey={eventKey} itemKey={itemKey} />
+      )}
+
+      <p className="proposta-detalhes__ajuda-fotos">
+        Até {LIMITE_DE_FOTOS} fotos JPG, PNG ou WebP, com no máximo 5 MB cada.
+        {!proposalKey && ' Elas são enviadas junto com a proposta.'}
+      </p>
+    </section>
+  )
+}
+
+function FotosPendentes({ eventKey, itemKey }) {
+  const [arquivos, setArquivos] = useState(() => lerFotosPendentes(eventKey, itemKey))
+  const previas = useMemo(() => arquivos.map((arquivo) => URL.createObjectURL(arquivo)), [arquivos])
+
+  useEffect(() => () => previas.forEach((previa) => URL.revokeObjectURL(previa)), [previas])
+
+  function guardar(novos) {
+    definirFotosPendentes(eventKey, itemKey, novos)
+    setArquivos(novos)
+  }
+
+  function adicionar(evento) {
+    const arquivo = evento.target.files?.[0]
+    evento.target.value = ''
+    if (!arquivo) return
+    const problema = problemaDaFoto(arquivo)
+    if (problema) {
+      toast.erro('Esta foto não pode ser usada', { descricao: problema })
+      return
+    }
+    guardar([...arquivos, arquivo])
+  }
+
+  return (
+    <Galeria
+      fotos={arquivos.map((arquivo, indice) => ({
+        chave: `${arquivo.name}-${indice}`,
+        url: previas[indice],
+      }))}
+      aoAdicionar={adicionar}
+      aoRemover={(indice) => guardar(arquivos.filter((_, posicao) => posicao !== indice))}
+    />
+  )
+}
+
+function FotosDaProposta({ proposalKey }) {
   const [fotos, setFotos] = useState([])
   const [enviando, setEnviando] = useState(false)
   // muda a cada envio ou remoção: uma renovação que começou antes não sobrescreve a lista mais nova
@@ -29,7 +92,6 @@ export function GaleriaDeFotos({ proposalKey }) {
   })
 
   useEffect(() => {
-    if (!proposalKey) return
     let telaAberta = true
     buscarMinhaProposta(proposalKey)
       .then((detalhe) => {
@@ -47,8 +109,9 @@ export function GaleriaDeFotos({ proposalKey }) {
     const arquivo = evento.target.files?.[0]
     evento.target.value = ''
     if (!arquivo) return
-    if (arquivo.size > TAMANHO_MAXIMO_DA_FOTO) {
-      toast.erro('Foto acima de 5 MB', { descricao: 'Escolha uma imagem menor.' })
+    const problema = problemaDaFoto(arquivo)
+    if (problema) {
+      toast.erro('Esta foto não pode ser usada', { descricao: problema })
       return
     }
 
@@ -65,7 +128,8 @@ export function GaleriaDeFotos({ proposalKey }) {
     }
   }
 
-  async function remover(photoKey) {
+  async function remover(indice) {
+    const { photo_key: photoKey } = fotos[indice]
     try {
       await apagarFotoDaProposta(proposalKey, photoKey)
       versaoDaLista.current += 1
@@ -76,62 +140,52 @@ export function GaleriaDeFotos({ proposalKey }) {
   }
 
   return (
-    <section className="proposta-detalhes__fotos" aria-labelledby="titulo-fotos-servico">
-      <div className="proposta-detalhes__cabecalho-fotos">
-        <h3 id="titulo-fotos-servico">Fotos do serviço</h3>
-        <p>Imagens de trabalhos anteriores ajudam o organizador a avaliar a proposta.</p>
-      </div>
+    <Galeria
+      fotos={fotos.map((foto) => ({ chave: foto.photo_key, url: foto.url }))}
+      enviando={enviando}
+      aoAdicionar={adicionar}
+      aoRemover={remover}
+      aoFalharFoto={aoFalharFoto}
+    />
+  )
+}
 
-      {proposalKey ? (
-        <>
-          <div className="proposta-detalhes__galeria">
-            {fotos.map((foto, indice) => (
-              <div key={foto.photo_key} className="proposta-detalhes__foto-item">
-                {foto.url ? (
-                  <img
-                    onError={aoFalharFoto}
-                    src={foto.url}
-                    alt={`Foto ${indice + 1} do serviço`}
-                    className="proposta-detalhes__foto"
-                  />
-                ) : (
-                  <span className="proposta-detalhes__foto proposta-detalhes__foto--sem-link">
-                    Foto salva
-                  </span>
-                )}
-                <button
-                  type="button"
-                  className="proposta-detalhes__remover-foto"
-                  aria-label={`Apagar a foto ${indice + 1}`}
-                  onClick={() => remover(foto.photo_key)}
-                >
-                  ×
-                </button>
-              </div>
-            ))}
+// fotos: [{ chave, url }]; url null é foto salva cujo link não pôde ser gerado agora
+function Galeria({ fotos, enviando = false, aoAdicionar, aoRemover, aoFalharFoto }) {
+  return (
+    <div className="proposta-detalhes__galeria">
+      {fotos.map((foto, indice) => (
+        <div key={foto.chave} className="proposta-detalhes__foto-item">
+          {foto.url ? (
+            <img
+              onError={aoFalharFoto}
+              src={foto.url}
+              alt={`Foto ${indice + 1} do serviço`}
+              className="proposta-detalhes__foto"
+            />
+          ) : (
+            <span className="proposta-detalhes__foto proposta-detalhes__foto--sem-link">
+              Foto salva
+            </span>
+          )}
+          <button
+            type="button"
+            className="proposta-detalhes__remover-foto"
+            aria-label={`Apagar a foto ${indice + 1}`}
+            onClick={() => aoRemover(indice)}
+          >
+            ×
+          </button>
+        </div>
+      ))}
 
-            {fotos.length < LIMITE_DE_FOTOS && (
-              <label className="proposta-detalhes__adicionar">
-                <Icone src={iconeAdicionar} />
-                {enviando ? 'Enviando...' : 'Adicionar'}
-                <input
-                  type="file"
-                  accept={TIPOS_ACEITOS}
-                  disabled={enviando}
-                  onChange={adicionar}
-                />
-              </label>
-            )}
-          </div>
-          <p className="proposta-detalhes__ajuda-fotos">
-            Até {LIMITE_DE_FOTOS} fotos JPG, PNG ou WebP, com no máximo 5 MB cada.
-          </p>
-        </>
-      ) : (
-        <p className="aviso" role="note">
-          As fotos podem ser anexadas depois de enviar a proposta: é só abrir a proposta e editar.
-        </p>
+      {fotos.length < LIMITE_DE_FOTOS && (
+        <label className="proposta-detalhes__adicionar">
+          <Icone src={iconeAdicionar} />
+          {enviando ? 'Enviando...' : 'Adicionar'}
+          <input type="file" accept={TIPOS_ACEITOS} disabled={enviando} onChange={aoAdicionar} />
+        </label>
       )}
-    </section>
+    </div>
   )
 }
