@@ -12,7 +12,12 @@ import {
   menorPropostaDisponivel,
   podeSerSelecionada,
 } from '../../../application/propostas.js'
-import { formatarCnpj, formatarMoeda, iniciais } from '../../../domain/formatacao.js'
+import {
+  comparacaoComPrevisto,
+  formatarCnpj,
+  formatarMoeda,
+  iniciais,
+} from '../../../domain/formatacao.js'
 import { Carregando, ErroNaTela, Vazio } from '../../components/comum/EstadoDaTela.jsx'
 import { Cartao } from '../../components/organizador/Cartao.jsx'
 import { EventoLayout } from '../../components/organizador/EventoLayout.jsx'
@@ -208,7 +213,7 @@ export function PropostaRecebida() {
               <span
                 className={`etiqueta ${proposta.amount <= item.estimated_value ? 'etiqueta--aprovado' : 'etiqueta--rejeitado'}`}
               >
-                {percentualDoOrcamento(proposta.amount, item.estimated_value)}
+                {comparacaoComPrevisto(proposta.amount, item.estimated_value, 'orçamento')}
               </span>
             )}
             <p className="cartao__apoio">{textoDaDecisao(proposta, item, eventoEmCotacao)}</p>
@@ -282,12 +287,6 @@ function textoDaDiferenca(valor, previsto) {
   const diferenca = previsto - valor
   if (diferenca === 0) return 'Igual ao previsto'
   return `${formatarMoeda(Math.abs(diferenca))} ${diferenca > 0 ? 'abaixo' : 'acima'} do previsto`
-}
-
-function percentualDoOrcamento(valor, previsto) {
-  const percentual = Math.abs(((valor - previsto) / previsto) * 100)
-  const texto = percentual.toLocaleString('pt-BR', { maximumFractionDigits: 1 })
-  return `${texto}% ${valor <= previsto ? 'abaixo' : 'acima'} do orçamento`
 }
 
 function textoDaDecisao(proposta, item, eventoEmCotacao) {

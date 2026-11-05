@@ -1,20 +1,10 @@
 import { formatarMoeda } from '../../../application/eventos.js'
 import { formatarValidade } from '../../../application/propostas.js'
-import { diaEmBrasilia } from '../../../domain/formatacao.js'
+import { comparacaoComPrevisto, diaEmBrasilia } from '../../../domain/formatacao.js'
 import { paraData, paraNumero } from '../../../domain/validacao.js'
 
 const AVISO_PROPOSTA =
   'Confira os dados antes de enviar. Depois do envio, você pode editar ou retirar a proposta até o organizador analisar.'
-
-// "15% acima do previsto" · "8% abaixo do previsto" · null quando falta um dos valores
-function comparacaoComPrevisto(valor, previsto) {
-  if (!(valor > 0) || !(previsto > 0)) return null
-  const diferenca = ((valor - previsto) / previsto) * 100
-  if (Math.abs(diferenca) < 0.05) return 'Igual ao previsto'
-
-  const percentual = Math.abs(diferenca).toLocaleString('pt-BR', { maximumFractionDigits: 1 })
-  return `${percentual}% ${diferenca > 0 ? 'acima' : 'abaixo'} do previsto`
-}
 
 // o que o fornecedor já preencheu nas etapas (application/rascunhosDePropostas.js)
 export function ResumoProposta({ rascunho, item }) {
