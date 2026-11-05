@@ -1471,6 +1471,10 @@
   color: var(--status-sucesso-texto);
 }
 
+.indicador__valor--negativo {
+  color: var(--status-perigo-texto);
+}
+
 .progresso-orcamento {
   height: 8px;
   border-radius: 999px;
@@ -1482,6 +1486,10 @@
   height: 100%;
   border-radius: 999px;
   background: var(--acao-primaria);
+}
+
+.progresso-orcamento--acima span {
+  background: var(--status-perigo-texto);
 }
 
 .lista {

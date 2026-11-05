@@ -17,6 +17,7 @@ export const EVENTO_EM_BRANCO = {
   publicoEsperado: '',
   publicoMaximo: '',
   margemLucro: '',
+  tetoDeGastos: '',
   custosFiscais: '',
   equipeProducao: '',
   outrosCustos: '',

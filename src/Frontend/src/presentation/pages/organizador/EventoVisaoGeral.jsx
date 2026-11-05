@@ -194,30 +194,12 @@ export function EventoVisaoGeral() {
         nome: isMobile ? 'Ver itens' : 'Ver itens de custo',
       }}
     >
-      <div className="indicadores">
-        <Indicador
-          rotulo={isMobile ? 'CONSOLIDADO' : 'CUSTO CONSOLIDADO'}
-          valor={detalhe.orcamento.consolidado}
-        />
-        <Indicador
-          rotulo={isMobile ? 'PREVISTO' : 'ORÇAMENTO PREVISTO'}
-          valor={detalhe.orcamento.previsto}
-        />
-        <Indicador
-          rotulo={isMobile ? 'ECONOMIA' : 'ECONOMIA NAS COTAÇÕES'}
-          valor={detalhe.orcamento.economia}
-          positivo
-        />
-      </div>
-
-      <div className="progresso-orcamento">
-        <span style={{ width: `${detalhe.orcamento.comprometido}%` }} />
-      </div>
-
-      <p className="cartao__apoio">
-        {detalhe.orcamento.comprometido}% do orçamento previsto{' '}
-        {isMobile ? 'comprometido' : 'já está comprometido'}
-      </p>
+      <SituacaoDoOrcamento
+        orcamento={detalhe.orcamento}
+        isMobile={isMobile}
+        rotaDeEdicao={`/organizador/eventos/${id}/editar`}
+        podeEditar={podeEditar}
+      />
     </Cartao>
   )
 
@@ -369,10 +351,62 @@ function nomeDoLinkDosItens(totalDeItens, isMobile) {
   return isMobile ? 'Ver todos' : `Ver todos os ${totalDeItens} itens`
 }
 
-function Indicador({ rotulo, valor, positivo = false }) {
+function SituacaoDoOrcamento({ orcamento, isMobile, rotaDeEdicao, podeEditar }) {
+  const consolidado = (
+    <Indicador
+      rotulo={isMobile ? 'CONSOLIDADO' : 'CUSTO CONSOLIDADO'}
+      valor={orcamento.consolidado}
+    />
+  )
+
+  if (!orcamento.teto) {
+    return (
+      <>
+        <div className="indicadores">
+          {consolidado}
+          <Indicador rotulo="TETO DE GASTOS" valor="Não definido" />
+        </div>
+        <p className="cartao__apoio">
+          Defina um teto de gastos para acompanhar quanto do orçamento já foi usado.{' '}
+          {podeEditar && <Link to={rotaDeEdicao}>Definir teto</Link>}
+        </p>
+      </>
+    )
+  }
+
+  return (
+    <>
+      <div className="indicadores">
+        {consolidado}
+        <Indicador rotulo="TETO DE GASTOS" valor={orcamento.teto} />
+        <Indicador
+          rotulo={orcamento.acimaDoTeto ? 'ACIMA DO TETO' : 'DISPONÍVEL'}
+          valor={orcamento.saldo}
+          positivo={!orcamento.acimaDoTeto}
+          negativo={orcamento.acimaDoTeto}
+        />
+      </div>
+
+      <div
+        className={`progresso-orcamento${orcamento.acimaDoTeto ? ' progresso-orcamento--acima' : ''}`}
+      >
+        <span style={{ width: `${Math.min(orcamento.comprometido, 100)}%` }} />
+      </div>
+
+      <p className="cartao__apoio">
+        {orcamento.acimaDoTeto
+          ? `Os custos passaram ${orcamento.saldo} do teto de gastos.`
+          : `${orcamento.comprometido}% do teto de gastos ${isMobile ? 'comprometido' : 'já está comprometido'}`}
+      </p>
+    </>
+  )
+}
+
+function Indicador({ rotulo, valor, positivo = false, negativo = false }) {
   const valorLongo = String(valor ?? '').length > 11
   const classeValor = [
     positivo && 'indicador__valor--positivo',
+    negativo && 'indicador__valor--negativo',
     valorLongo && 'indicador__valor--compacto',
   ]
     .filter(Boolean)
