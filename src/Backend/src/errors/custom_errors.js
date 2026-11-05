@@ -1,3 +1,4 @@
+import { PROPOSAL_STATUSES } from '../constants.js'
 import { ApiException } from './base_error.js'
 
 export class NotFoundUser extends ApiException {
@@ -378,7 +379,7 @@ export class ProposalValidUntilAfterEvent extends ApiException {
 
 // o motivo muda com o status: o evento cancelado não foi uma decisão do organizador sobre a proposta
 const PROPOSAL_LOCKED_TRANSLATIONS = {
-  canceled: 'O organizador cancelou o evento: esta proposta não pode mais ser alterada nem retirada.',
+  [PROPOSAL_STATUSES.CANCELED]: 'O organizador cancelou o evento: esta proposta não pode mais ser alterada nem retirada.',
 }
 
 export class ProposalCannotBeChanged extends ApiException {
