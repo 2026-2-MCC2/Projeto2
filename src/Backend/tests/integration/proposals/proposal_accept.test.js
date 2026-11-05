@@ -175,6 +175,8 @@ describe('POST /events/:event_key/proposals/:proposal_key/accept', () => {
     ])
 
     assert.deepEqual(results.map(([status]) => status).sort(), [200, 409])
+    const [, conflict] = results.find(([status]) => status === 409)
+    assert.equal(conflict.code, 'EVP000035')
     const [, comparison] = await RequestGenerator.GET_event_proposals(event.event_key, organizer.headers)
     const acceptedProposals = comparison.items[0].proposals.filter((proposal) => proposal.status === 'accepted')
     assert.equal(acceptedProposals.length, 1)
