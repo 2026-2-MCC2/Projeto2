@@ -15,6 +15,7 @@ import { Botao } from '../../components/organizador/Formulario.jsx'
 import { OrganizadorLayout } from '../../components/organizador/OrganizadorLayout.jsx'
 import { toast } from '../../toasts.js'
 import iconeRetirar from '../../assets/admin/icone-modal-rejeitar.svg'
+import { ENTRAR_NA_EDICAO } from '../../hooks/usePropostaEmEdicao.js'
 import '../../styles/fornecedor.css'
 
 const VOLTAR_PARA = '/fornecedor/propostas'
@@ -164,7 +165,7 @@ export function DetalheDaProposta() {
               <Botao type="button" perigo onClick={() => setConfirmandoRetirada(true)}>
                 Retirar proposta
               </Botao>
-              <Link to={rotaDeEdicao} className="botao">
+              <Link to={rotaDeEdicao} state={ENTRAR_NA_EDICAO} className="botao">
                 Editar
               </Link>
             </div>

@@ -6,6 +6,7 @@ import { traduzirStatusDaProposta } from '../../../application/propostas.js'
 import { Carregando, ErroNaTela, Vazio } from '../../components/comum/EstadoDaTela.jsx'
 import { OrganizadorLayout } from '../../components/organizador/OrganizadorLayout.jsx'
 import { useEventoDisponivel } from '../../hooks/useEventoDisponivel.js'
+import { ENTRAR_NA_EDICAO } from '../../hooks/usePropostaEmEdicao.js'
 import '../../styles/fornecedor.css'
 
 export function EventoDisponivel() {
@@ -95,6 +96,7 @@ export function EventoDisponivel() {
                       ) : (
                         <Link
                           to={`/fornecedor/eventos/${id}/itens/${item.item_key}/propostas/etapa-1`}
+                          state={ENTRAR_NA_EDICAO}
                           className="botao"
                         >
                           Enviar proposta

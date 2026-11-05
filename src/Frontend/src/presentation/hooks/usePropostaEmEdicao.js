@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useLocation, useParams } from 'react-router-dom'
 import { buscarMinhaProposta, paraRascunho } from '../../application/propostas.js'
 import {
   atualizarRascunho,
@@ -15,8 +15,16 @@ import { toast } from '../toasts.js'
 // edição dela: o rascunho começa com os dados da proposta e o envio final usa o PUT.
 //   const proposta = usePropostaEmEdicao()
 //   <input value={proposta.rascunho.valor} onChange={proposta.preencher('valor')} />
+// Os links que abrem as etapas mandam este estado: entrar na edição sempre recarrega a proposta salva,
+// para um rascunho abandonado antes não ser salvo por engano. Entre as etapas o rascunho continua.
+export const ENTRAR_NA_EDICAO = { recarregarProposta: true }
+
 export function usePropostaEmEdicao() {
   const { id, itemKey } = useParams()
+  const location = useLocation()
+  const [recarregarAoEntrar, setRecarregarAoEntrar] = useState(
+    () => location.state?.recarregarProposta === true,
+  )
   const evento = useEventoDisponivel(id)
   const recarregarEvento = evento.tentarDeNovo
   const [rascunho, setRascunho] = useState(() => lerRascunho(id, itemKey))
@@ -27,7 +35,8 @@ export function usePropostaEmEdicao() {
   const item = evento.evento?.items.find((candidato) => candidato.item_key === itemKey) ?? null
   const propostaEnviada = item?.my_proposal?.status === 'sent' ? item.my_proposal : null
   const proposalKey = propostaEnviada?.proposal_key ?? null
-  const precisaCarregarProposta = proposalKey !== null && rascunho.chaveDaProposta !== proposalKey
+  const precisaCarregarProposta =
+    proposalKey !== null && (recarregarAoEntrar || rascunho.chaveDaProposta !== proposalKey)
 
   useEffect(() => {
     if (!precisaCarregarProposta) return
@@ -42,6 +51,7 @@ export function usePropostaEmEdicao() {
             chaveDaProposta: proposalKey,
           }),
         )
+        setRecarregarAoEntrar(false)
       })
       .catch((erro) => {
         if (!telaAberta) return
