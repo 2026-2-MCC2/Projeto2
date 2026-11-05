@@ -7,9 +7,16 @@
   --marca-ciano: #04a5ed;
   --marca-rosa: #f91788;
   --marca-preto: #0c0c0c;
+  /* laranja para texto pequeno: o da marca dá 2,7:1 sobre o branco; este dá 5,2:1 */
+  --texto-destaque: #b84a0e;
 
   min-height: 100vh;
   background: var(--fundo-superficie);
+}
+
+/* no escuro o laranja da marca já tem contraste (6,2:1) */
+:root[data-tema='escuro'] .landing {
+  --texto-destaque: var(--marca-laranja);
 }
 
 /* rolagem suave até as âncoras do menu, menos para quem pediu menos movimento */
@@ -588,120 +595,145 @@
   }
 }
 
-/* ---------- TEMPORÁRIO: vitrine do Ingresso (sai junto com DemonstracaoDoIngresso) ---------- */
+/* ---------- seções e cabeçalho da seção ---------- */
 
-.demo-ingresso {
+/* conteúdo de 1200px centralizado, como a navbar e o hero */
+.landing__secao {
   display: flex;
   flex-direction: column;
-  gap: 32px;
-  max-width: 1040px;
-  margin: 0 auto;
-  padding: 48px 16px;
+  align-items: center;
+  gap: 56px;
+  padding: 112px max(32px, calc((100% - 1200px) / 2));
 }
 
-.demo-ingresso h2 {
-  margin: 0;
-}
-
-.demo-ingresso__linha {
+.cabecalho-secao {
   display: flex;
-  flex-wrap: wrap;
-  gap: 32px;
-  align-items: flex-start;
+  flex-direction: column;
+  gap: 14px;
 }
 
-.demo-ingresso__passo {
+.cabecalho-secao--centro {
+  align-items: center;
+  max-width: 760px;
+  text-align: center;
+}
+
+.cabecalho-secao__sobretitulo {
+  margin: 0;
+  color: var(--texto-destaque);
+  font-size: 0.7647rem; /* 13px */
+  font-weight: 600;
+  letter-spacing: 0.1em;
+}
+
+.cabecalho-secao__titulo {
+  margin: 0;
+  color: var(--texto-primario);
+  font-size: 2.4706rem; /* 42px */
+  font-weight: 700;
+  line-height: 1.1905; /* 50px */
+  letter-spacing: -0.015em;
+}
+
+.cabecalho-secao__subtitulo {
+  max-width: 640px;
+  margin: 0;
+  color: var(--texto-secundario);
+  font-size: 1.0588rem; /* 18px */
+  line-height: 1.5556; /* 28px */
+}
+
+/* ---------- como funciona ---------- */
+
+.etapas-landing {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* mini-ingresso "LP · Passo": canhoto em cima, recortes de 11px (padrão do Ingresso) */
+.etapa-landing {
   --ingresso-fundo: var(--fundo-pagina);
   --ingresso-fundo-canhoto: var(--fundo-marca-suave);
-  width: 270px;
 }
 
-.demo-ingresso__painel {
-  padding: 32px;
-  border-radius: 16px;
-  background: var(--fundo-pagina);
-}
-
-.demo-ingresso__cenario {
-  --ingresso-raio: 12px;
-  --ingresso-recorte: 9px;
-  width: 200px;
-}
-
-.demo-ingresso__etapa {
+.etapa-landing .ingresso__corpo {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 10px;
+  padding: 24px 28px 28px;
+}
+
+.etapa-landing__numero {
+  display: flex;
   align-items: center;
+  justify-content: space-between;
   height: 72px;
+  margin: 0;
   padding: 0 28px;
   color: var(--texto-marca);
 }
 
-.demo-ingresso__etapa span {
-  font-size: 0.75rem;
+.etapa-landing__numero span {
+  font-size: 0.7059rem; /* 12px */
   font-weight: 600;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.14em;
 }
 
-.demo-ingresso__etapa strong {
-  font-size: 1.75rem;
+.etapa-landing__numero strong {
+  font-size: 1.7647rem; /* 30px */
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
-.demo-ingresso__texto {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 20px 24px;
+.etapa-landing__titulo {
+  margin: 0;
+  color: var(--texto-primario);
+  font-size: 1.1176rem; /* 19px */
+  font-weight: 600;
+  line-height: 1.3684; /* 26px */
 }
 
-.demo-ingresso__texto span {
+.etapa-landing__descricao {
+  margin: 0;
   color: var(--texto-secundario);
-  font-size: 0.875rem;
+  font-size: 0.8824rem; /* 15px */
+  line-height: 1.5333; /* 23px */
 }
 
-.demo-ingresso__valor {
-  display: block;
-  padding: 14px 20px 18px;
-  color: var(--status-sucesso-texto);
-  font-size: 1.375rem;
+/* entre o mobile e o desktop largo, 4 colunas ficam estreitas demais para o texto */
+@media (max-width: 1100px) {
+  .etapas-landing {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
-.demo-ingresso__fundo-escuro {
-  padding: 48px 24px;
-  border-radius: 16px;
-  background: var(--marca-preto);
-}
+@media (max-width: 900px) {
+  .landing__secao {
+    gap: 32px;
+    padding: 64px 20px;
+  }
 
-.demo-ingresso__chamada {
-  --ingresso-raio: 24px;
-  --ingresso-recorte: 20px;
-  --ingresso-fundo-canhoto: var(--marca-laranja);
-  --ingresso-picote-cor: #fff;
-  --ingresso-picote-espessura: 2px;
-  --ingresso-picote-recuo: 28px;
-  --ingresso-sombra: drop-shadow(0 30px 60px rgb(0 0 0 / 35%));
-}
+  .cabecalho-secao {
+    gap: 12px;
+  }
 
-.demo-ingresso__texto--grande {
-  padding: 56px;
-}
+  .cabecalho-secao__titulo {
+    font-size: 1.6471rem; /* 28px */
+    line-height: 1.1786; /* 33px */
+  }
 
-.demo-ingresso__texto--grande strong {
-  font-size: 2rem;
-}
+  .cabecalho-secao__subtitulo {
+    font-size: 0.9412rem; /* 16px */
+    line-height: 1.5625; /* 25px */
+  }
 
-.demo-ingresso__entrada {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 8px;
-  height: 100%;
-  min-width: 280px;
-  padding: 40px;
-  color: #fff;
-}
-
-.demo-ingresso__entrada strong {
-  font-size: 2.5rem;
+  .etapas-landing {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
 }
