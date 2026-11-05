@@ -12,7 +12,8 @@ const ESTADOS = [
 // "R$ 49.800,00" → 49800 · "20%" → 20 · texto que não é número → NaN
 // Com ponto e vírgula, o que vem por último é o decimal ("1.500,50" e "1,500.50" valem 1500,5).
 // Com um só tipo, ele é milhar quando se repete ou vem seguido de exatamente 3 dígitos ("1,500" e
-// "20.000"), e decimal quando vem seguido de 1 ou 2 dígitos ("1,5" e "12.5").
+// "20.000"), e decimal quando vem seguido de 1 ou 2 dígitos ("1,5" e "12.5"). Com parte inteira 0
+// não há milhar: "0,500" vale 0,5.
 export function paraNumero(texto) {
   const semSimbolos = texto.replace(/[R$\s%]/g, '')
   if (semSimbolos === '') return NaN
@@ -40,7 +41,8 @@ function separadorDecimal(texto) {
   if (!separador) return null
   const repetido = texto.indexOf(separador) !== texto.lastIndexOf(separador)
   const tresDigitosDepois = new RegExp(`\\${separador}\\d{3}$`).test(texto)
-  return repetido || tresDigitosDepois ? null : separador
+  const parteInteiraZero = Number(texto.slice(0, texto.indexOf(separador))) === 0
+  return repetido || (tresDigitosDepois && !parteInteiraZero) ? null : separador
 }
 
 // "18/10/2026" → Date · data inexistente (31/02) ou fora do formato → null
