@@ -5,7 +5,7 @@ import { BudgetItemDTO } from '../dtos/budget_item_dto.js'
 import {
   BudgetItemLocked,
   EventCannotBeModified,
-  InvalidParameter,
+  InvalidSchema,
   NotFoundBudgetItem,
   NotFoundEvent,
   NotFoundOrganizer,
@@ -32,7 +32,7 @@ export class BudgetItemController extends BaseController {
 
     const category = await this.budgetItemRepository.getCategoryByName(payload.category)
     if (!category) {
-      throw new InvalidParameter(`The item category ${payload.category} does not exist.`)
+      throw new InvalidSchema(`The item category ${payload.category} does not exist.`, 'Escolha uma das categorias de item da lista.')
     }
 
     const item = await this.budgetItemRepository.create(event.id, category.id, {
@@ -67,7 +67,7 @@ export class BudgetItemController extends BaseController {
 
     const category = await this.budgetItemRepository.getCategoryByName(payload.category)
     if (!category) {
-      throw new InvalidParameter(`The item category ${payload.category} does not exist.`)
+      throw new InvalidSchema(`The item category ${payload.category} does not exist.`, 'Escolha uma das categorias de item da lista.')
     }
 
     const updatedItem = await this.budgetItemRepository.update(item, category.id, {

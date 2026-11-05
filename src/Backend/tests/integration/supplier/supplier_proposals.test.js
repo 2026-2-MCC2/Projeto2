@@ -347,6 +347,7 @@ describe('PUT /supplier/proposals/:proposal_key', () => {
     const [afterStatus, after] = await send(
       PayloadGenerator.createSupplierProposalPayload({ valid_until: PayloadGenerator.dateFromToday(31) }),
     )
+    const [missingDayStatus, missingDay] = await send(PayloadGenerator.createSupplierProposalPayload({ valid_until: '2026-02-30' }))
     const [zeroStatus, zero] = await send(PayloadGenerator.createSupplierProposalPayload({ amount: 0 }))
     const [missingStatus, missing] = await send(missingTerms)
 
@@ -354,6 +355,8 @@ describe('PUT /supplier/proposals/:proposal_key', () => {
     assert.equal(past.code, 'EVP000039')
     assert.equal(afterStatus, 400)
     assert.equal(after.code, 'EVP000040')
+    assert.equal(missingDayStatus, 400)
+    assert.equal(missingDay.code, 'APP000001')
     assert.equal(zeroStatus, 400)
     assert.equal(zero.code, 'APP000001')
     assert.equal(missingStatus, 400)

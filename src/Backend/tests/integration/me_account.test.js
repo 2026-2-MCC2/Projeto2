@@ -77,7 +77,8 @@ describe('PATCH /me', () => {
 
     const [phoneStatus, phoneResponse] = await RequestGenerator.PATCH_me({ phone: '(11) 9999-99' }, organizer.headers)
     assert.equal(phoneStatus, 400)
-    assert.equal(phoneResponse.code, 'APP000010')
+    assert.equal(phoneResponse.code, 'APP000001')
+    assert.equal(phoneResponse.translation, 'Informe o telefone com DDD: 10 ou 11 dígitos.')
   })
 
   test('sem token responde 401', async () => {

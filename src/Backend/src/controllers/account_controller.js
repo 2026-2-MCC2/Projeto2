@@ -1,6 +1,6 @@
 import { USER_PROFILES } from '../constants.js'
 import { AuthDTO } from '../dtos/auth_dto.js'
-import { CurrentPasswordIncorrect, ForbiddenProfile, InvalidParameter } from '../errors/index.js'
+import { CurrentPasswordIncorrect, ForbiddenProfile, InvalidSchema } from '../errors/index.js'
 import { SupplierRepository } from '../repositories/supplier_repository.js'
 import { UserRepository } from '../repositories/user_repository.js'
 import { SecurityTools } from '../utils/security_tools.js'
@@ -41,7 +41,10 @@ export class AccountController extends BaseController {
     if (payload.phone !== undefined) {
       const phone = TextTools.onlyDigits(payload.phone)
       if (!PHONE_PATTERN.test(phone)) {
-        throw new InvalidParameter('The phone must have 10 or 11 digits, including the area code.')
+        throw new InvalidSchema(
+          'The phone must have 10 or 11 digits, including the area code.',
+          'Informe o telefone com DDD: 10 ou 11 dígitos.',
+        )
       }
       company.phone = phone
     }

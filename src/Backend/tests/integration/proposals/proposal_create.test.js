@@ -152,7 +152,7 @@ describe('POST /supplier/events/:event_key/items/:item_key/proposals', () => {
     assert.equal(response.code, 'EVP000028')
   })
 
-  test('validade antes de hoje ou depois do fim do evento responde 400', async () => {
+  test('validade antes de hoje, depois do fim do evento ou inexistente responde 400', async () => {
     const { supplier, event, items } = await createScenario()
     const send = (validUntil) =>
       RequestGenerator.POST_supplier_item_proposal(
@@ -165,11 +165,15 @@ describe('POST /supplier/events/:event_key/items/:item_key/proposals', () => {
     const [pastStatus, past] = await send(PayloadGenerator.dateFromToday(-1))
     const [afterStatus, after] = await send(PayloadGenerator.dateFromToday(31))
     const [lastDayStatus] = await send(PayloadGenerator.dateFromToday(30))
+    const [missingDayStatus, missingDay] = await send('2026-02-30')
 
     assert.equal(pastStatus, 400)
     assert.equal(past.code, 'EVP000039')
     assert.equal(afterStatus, 400)
     assert.equal(after.code, 'EVP000040')
+    assert.equal(missingDayStatus, 400)
+    assert.equal(missingDay.code, 'APP000001')
+    assert.equal(missingDay.translation, 'A data de validade informada não existe no calendário.')
     // o último dia do evento ainda vale
     assert.equal(lastDayStatus, 201)
   })

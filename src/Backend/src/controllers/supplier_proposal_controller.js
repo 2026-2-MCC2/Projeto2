@@ -7,6 +7,7 @@ import { EVENT_STATUSES, PROPOSAL_STATUSES } from '../constants.js'
 import { SupplierProposalDto } from '../dtos/supplier_proposal_dto.js'
 import {
   InvalidParameter,
+  InvalidSchema,
   InvalidProposalPhoto,
   NotFoundBudgetItem,
   NotFoundEvent,
@@ -323,7 +324,10 @@ function ensureValidUntilInsideEvent(validUntil, eventEndDate) {
   // o schema só confere o formato: 2026-02-31 passa por ele, mas não existe no calendário
   const validUntilDate = new Date(`${validUntil}T00:00:00.000Z`)
   if (Number.isNaN(validUntilDate.getTime()) || toUtcDateString(validUntilDate) !== validUntil) {
-    throw new InvalidParameter(`The valid_until ${validUntil} is not a date that exists in the calendar.`)
+    throw new InvalidSchema(
+      `The valid_until ${validUntil} is not a date that exists in the calendar.`,
+      'A data de validade informada não existe no calendário.',
+    )
   }
 
   if (validUntil < toBrazilDateString(new Date())) {

@@ -79,14 +79,14 @@ export class NotFoundResource extends ApiException {
   }
 }
 
-// body inválido: não segue o JSON Schema ou é um JSON mal formado
+// body inválido: não segue o JSON Schema, é um JSON mal formado ou um campo não passa numa regra de
+// formato que o schema não consegue expressar (ex.: telefone, dia que não existe no calendário)
 export class InvalidSchema extends ApiException {
   static code = 'APP000001'
 
-  constructor(description) {
+  constructor(description, translation = 'Alguns campos estão inválidos. Confira os dados e tente de novo.') {
     const title = 'Bad Request'
     const httpStatus = 400
-    const translation = 'Alguns campos estão inválidos. Confira os dados e tente de novo.'
     super(title, InvalidSchema.code, httpStatus, description, translation)
   }
 }
