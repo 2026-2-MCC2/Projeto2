@@ -4,6 +4,7 @@ import { TituloDaPagina } from '../components/comum/TituloDaPagina.jsx'
 import { Hero } from '../components/landing/Hero.jsx'
 import { CalculoDoTicket } from '../components/landing/CalculoDoTicket.jsx'
 import { ComoFunciona } from '../components/landing/ComoFunciona.jsx'
+import { DuvidasFrequentes } from '../components/landing/DuvidasFrequentes.jsx'
 import { NavbarLanding } from '../components/landing/NavbarLanding.jsx'
 import { Perfis } from '../components/landing/Perfis.jsx'
 import '../styles/landing.css'
@@ -27,9 +28,7 @@ export function Landing() {
 
         <CalculoDoTicket />
 
-        <section id="duvidas" className="landing__secao">
-          {/* dúvidas frequentes */}
-        </section>
+        <DuvidasFrequentes />
 
         <section className="landing__secao landing__chamada">{/* chamada final */}</section>
       </main>

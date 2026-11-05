@@ -1160,3 +1160,72 @@
     flex-direction: column;
   }
 }
+
+/* ---------- dúvidas frequentes ---------- */
+
+.duvidas-landing {
+  gap: 40px;
+}
+
+.duvidas-landing__lista {
+  width: 100%;
+  max-width: 800px;
+}
+
+.pergunta-landing {
+  padding: 24px 0;
+  border-bottom: 1px solid var(--borda-padrao);
+}
+
+.pergunta-landing__pergunta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-radius: 4px;
+  color: var(--texto-primario);
+  font-size: 1.0588rem; /* 18px */
+  font-weight: 600;
+  line-height: 1.4444; /* 26px */
+  list-style: none;
+  cursor: pointer;
+}
+
+.pergunta-landing__pergunta::-webkit-details-marker {
+  display: none;
+}
+
+/* "Ícone · Recolher" do Figma (traço de 20px); fechado, ganha o traço vertical e vira "+" */
+.pergunta-landing__pergunta::after {
+  content: '';
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  background:
+    linear-gradient(var(--texto-marca), var(--texto-marca)) center / 11.67px 1.67px no-repeat,
+    linear-gradient(var(--texto-marca), var(--texto-marca)) center / 1.67px 11.67px no-repeat;
+}
+
+.pergunta-landing[open] .pergunta-landing__pergunta::after {
+  background: linear-gradient(var(--texto-marca), var(--texto-marca)) center / 11.67px 1.67px
+    no-repeat;
+}
+
+/* o foco global do projeto cobre botões e links; o summary precisa do mesmo contorno */
+.pergunta-landing__pergunta:focus-visible {
+  outline: 2px solid var(--texto-marca);
+  outline-offset: 4px;
+}
+
+.pergunta-landing__resposta {
+  margin: 10px 0 0;
+  color: var(--texto-secundario);
+  font-size: 0.9412rem; /* 16px */
+  line-height: 1.5625; /* 25px */
+}
+
+@media (max-width: 900px) {
+  .duvidas-landing {
+    gap: 32px;
+  }
+}
