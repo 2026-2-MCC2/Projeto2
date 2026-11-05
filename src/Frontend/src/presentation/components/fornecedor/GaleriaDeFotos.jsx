@@ -97,6 +97,10 @@ function FotosDaProposta({ proposalKey }) {
   const [enviando, setEnviando] = useState(false)
   const [fotoParaApagar, setFotoParaApagar] = useState(null)
   const [apagando, setApagando] = useState(false)
+  // posição da foto que acabou de sair: o foco vai para o X que ficou no lugar dela (ou para o Adicionar),
+  // porque o Modal devolveria o foco a um botão que já saiu da tela
+  const [focarPosicao, setFocarPosicao] = useState(null)
+  const galeria = useRef(null)
   // muda a cada envio ou remoção: uma renovação que começou antes não sobrescreve a lista mais nova
   const versaoDaLista = useRef(0)
   const aoFalharFoto = useRenovarFotosVencidas(() => {
@@ -124,6 +128,16 @@ function FotosDaProposta({ proposalKey }) {
       telaAberta = false
     }
   }, [proposalKey, tentativa])
+
+  useEffect(() => {
+    if (focarPosicao === null || !galeria.current) return
+    const removedores = galeria.current.querySelectorAll('.proposta-detalhes__remover-foto')
+    const alvo =
+      removedores[Math.min(focarPosicao, removedores.length - 1)] ??
+      galeria.current.querySelector('input[type="file"]')
+    alvo?.focus()
+    setFocarPosicao(null)
+  }, [focarPosicao, fotos])
 
   async function adicionar(evento) {
     const arquivo = fotoEscolhida(evento)
@@ -160,6 +174,12 @@ function FotosDaProposta({ proposalKey }) {
 
   function tirarDaLista(photoKey) {
     versaoDaLista.current += 1
+    setFocarPosicao(
+      Math.max(
+        0,
+        fotos.findIndex((foto) => foto.photo_key === photoKey),
+      ),
+    )
     setFotos((atuais) => atuais.filter((foto) => foto.photo_key !== photoKey))
   }
 
@@ -178,6 +198,7 @@ function FotosDaProposta({ proposalKey }) {
   return (
     <>
       <Galeria
+        refDaGaleria={galeria}
         fotos={fotos.map((foto) => ({ chave: foto.photo_key, url: foto.url }))}
         ocupadoCom={carga.carregando ? 'Carregando...' : enviando ? 'Enviando...' : null}
         aoAdicionar={adicionar}
@@ -207,9 +228,9 @@ function FotosDaProposta({ proposalKey }) {
 // ocupadoCom: texto que troca o Adicionar enquanto a lista carrega ou uma foto é enviada. O leitor de
 // tela ouve só esse texto, numa região à parte que fica vazia quando nada está acontecendo (assim a
 // volta para "Adicionar" não é anunciada)
-function Galeria({ fotos, ocupadoCom = null, aoAdicionar, aoRemover, aoFalharFoto }) {
+function Galeria({ refDaGaleria, fotos, ocupadoCom = null, aoAdicionar, aoRemover, aoFalharFoto }) {
   return (
-    <div className="proposta-detalhes__galeria">
+    <div ref={refDaGaleria} className="proposta-detalhes__galeria">
       <span role="status" className="so-leitor">
         {ocupadoCom}
       </span>

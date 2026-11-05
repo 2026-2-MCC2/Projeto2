@@ -45,7 +45,8 @@ export function useFocoPreso() {
     dialogo.addEventListener('keydown', prenderTab)
     return () => {
       dialogo.removeEventListener('keydown', prenderTab)
-      quemAbriu?.focus?.()
+      // quem abriu pode ter saído da tela (ex.: o X da foto apagada); aí quem chamou decide o foco
+      if (quemAbriu?.isConnected) quemAbriu.focus?.()
     }
   }, [])
 
