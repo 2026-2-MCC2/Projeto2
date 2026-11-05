@@ -109,7 +109,11 @@ export function PropostaRecebida() {
       })
     } catch (falha) {
       toast.erro('Não foi possível selecionar a proposta', { descricao: falha.message })
-      if (falha.status === 409) setTentativa((valor) => valor + 1)
+      // 409: a proposta mudou (retirada, vencida, evento fora de cotação); o modal não fica com a velha
+      if (falha.status === 409) {
+        setConfirmacaoAberta(false)
+        setTentativa((valor) => valor + 1)
+      }
     } finally {
       setSalvando(false)
     }
