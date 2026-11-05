@@ -10,6 +10,7 @@ import { InvalidProposalPhoto, ProposalPhotoTooLarge } from '../errors/index.js'
 import { MAX_PHOTO_BYTES, MAX_PHOTO_MEGABYTES } from '../utils/proposal_photo_tools.js'
 import { getParam, getParamAsInt } from '../utils/request_params.js'
 import { SchemaHandler } from '../utils/schema_handler.js'
+import { openSessionAfterUpload } from '../middlewares/session_manager.js'
 import { SecurityTools } from '../utils/security_tools.js'
 
 export class SupplierProposalResource {
@@ -73,6 +74,7 @@ export class SupplierProposalResource {
   async onPostPhotos(req, res, proposalKey) {
     SecurityTools.requireProfile(req.context, [USER_PROFILES.SUPPLIER])
     const file = await receivePhoto(req, res)
+    await openSessionAfterUpload(req)
 
     const controller = new SupplierProposalController(req.context)
     const photo = await controller.addPhoto(req.context.user.userKey, proposalKey, file)

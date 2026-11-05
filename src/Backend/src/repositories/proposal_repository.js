@@ -122,8 +122,11 @@ export class ProposalRepository {
     return proposals[0] ?? null
   }
 
-  async getPhotos(proposalId) {
-    return sequelize.query(`SELECT position, url FROM proposal_photo WHERE proposal_id = :proposalId ORDER BY position ASC`, {
+  // com lock, a leitura enxerga as fotos que outra requisição acabou de gravar (a leitura comum usa a
+  // foto do banco tirada no começo da transação)
+  async getPhotos(proposalId, { lock = false } = {}) {
+    const forUpdate = lock ? ' FOR UPDATE' : ''
+    return sequelize.query(`SELECT position, url FROM proposal_photo WHERE proposal_id = :proposalId ORDER BY position ASC${forUpdate}`, {
       replacements: { proposalId },
       transaction: this.session,
       type: QueryTypes.SELECT,

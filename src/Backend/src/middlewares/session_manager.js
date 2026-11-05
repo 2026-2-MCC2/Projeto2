@@ -20,6 +20,11 @@ export class SessionManager {
     if (req.method === 'OPTIONS' || BYPASS_ENDPOINTS.includes(req.path)) {
       return
     }
+    // envio de arquivo: a transação só abre depois que o arquivo chega (openSessionAfterUpload),
+    // para um upload lento não segurar uma conexão do banco
+    if (req.is('multipart/form-data')) {
+      return
+    }
 
     const dbSession = await DatabaseConnector.openSession()
 
@@ -45,4 +50,8 @@ export class SessionManager {
       await dbSession.rollback()
     }
   }
+}
+
+export async function openSessionAfterUpload(req) {
+  req.context.addSession(await DatabaseConnector.openSession())
 }

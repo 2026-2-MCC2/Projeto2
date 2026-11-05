@@ -107,6 +107,19 @@ describe('POST /supplier/proposals/:proposal_key/photos', () => {
     assert.equal(limitStatus, 201)
   })
 
+  test('fotos enviadas ao mesmo tempo ficam todas, cada uma numa posição', async () => {
+    const scenario = await createScenario()
+
+    const results = await Promise.all([upload(scenario), upload(scenario), upload(scenario)])
+
+    assert.deepEqual(
+      results.map(([status]) => status),
+      [201, 201, 201],
+    )
+    const [, detail] = await RequestGenerator.GET_supplier_proposal_by_key(scenario.proposal.proposal_key, scenario.supplier.headers)
+    assert.equal(detail.photos.length, 3)
+  })
+
   test('até 5 fotos por proposta: a sexta responde 409', async () => {
     const scenario = await createScenario()
     for (let index = 0; index < 5; index++) {

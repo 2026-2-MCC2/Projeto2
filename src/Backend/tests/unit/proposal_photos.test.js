@@ -96,7 +96,7 @@ describe('SupplierProposalController: fotos', () => {
   function mockProposal({ photos = [] } = {}) {
     const operations = []
     UserRepository.prototype.getProfileByKey = async () => ({ id: 1, supplier: { id: 8 } })
-    ProposalRepository.prototype.getSupplierProposalByKey = async () => ({ id: 99, event_id: 20 })
+    ProposalRepository.prototype.getSupplierProposalByKey = async () => ({ id: 99, event_id: 20, status: 'sent' })
     SupplierEventRepository.prototype.getEventForShare = async () => ({ id: 20, status: 'open_for_quotes' })
     ProposalRepository.prototype.getSupplierProposalForUpdate = async () => ({ id: 99, status: 'sent' })
     ProposalRepository.prototype.getPhotos = async () => photos

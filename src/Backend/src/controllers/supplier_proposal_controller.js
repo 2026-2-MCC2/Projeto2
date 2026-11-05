@@ -122,7 +122,7 @@ export class SupplierProposalController extends BaseController {
   async deleteProposal(userKey, proposalKey) {
     const supplier = await getSupplierOfUser(this.userRepository, userKey)
     const { proposal } = await this.#getChangeableProposal(supplier.id, proposalKey)
-    const photos = await this.proposalRepository.getPhotos(proposal.id)
+    const photos = await this.proposalRepository.getPhotos(proposal.id, { lock: true })
 
     // os registros das fotos saem junto com a proposta (ON DELETE CASCADE); os arquivos, só depois do commit
     await this.proposalRepository.delete(proposal)
@@ -130,10 +130,11 @@ export class SupplierProposalController extends BaseController {
     await this.#removeFiles(photos.map((photo) => photo.url))
   }
 
-  // Foto nova da proposta (até 5). A ordem evita sobra dos dois lados:
-  //   1. tudo que pode recusar a foto é conferido antes de gravar qualquer coisa;
-  //   2. o arquivo vai para o armazenamento; se falhar, nada foi gravado no banco (a transação é desfeita);
-  //   3. o registro entra no banco; se ele ou o commit falhar, o arquivo recém-gravado é apagado.
+  // Foto nova da proposta (até 5). A conferência acontece duas vezes:
+  //   1. sem trava, antes de gravar o arquivo: proposta cheia ou que não muda mais é recusada na hora;
+  //   2. com a proposta travada, depois de gravar: pega duas fotos chegando ao mesmo tempo.
+  // O arquivo vai para o armazenamento entre as duas, para um envio lento não segurar o evento travado.
+  // Qualquer recusa ou falha depois de gravar o arquivo apaga o arquivo.
   async addPhoto(userKey, proposalKey, file) {
     const imageType = detectImageType(file.buffer)
     if (!imageType) {
@@ -141,10 +142,14 @@ export class SupplierProposalController extends BaseController {
     }
 
     const supplier = await getSupplierOfUser(this.userRepository, userKey)
-    // a trava da proposta também faz dois envios ao mesmo tempo esperarem um pelo outro na contagem
-    const { proposal } = await this.#getChangeableProposal(supplier.id, proposalKey)
-    const position = firstFreePosition(await this.proposalRepository.getPhotos(proposal.id))
-    if (position === null) {
+    const reference = await this.proposalRepository.getSupplierProposalByKey(supplier.id, proposalKey)
+    if (!reference) {
+      throw new NotFoundProposal(proposalKey)
+    }
+    if (reference.status !== PROPOSAL_STATUSES.SENT) {
+      throw new ProposalCannotBeChanged(reference.status)
+    }
+    if (firstFreePosition(await this.proposalRepository.getPhotos(reference.id)) === null) {
       throw new ProposalPhotoLimitReached(MAX_PHOTOS_PER_PROPOSAL)
     }
 
@@ -152,6 +157,12 @@ export class SupplierProposalController extends BaseController {
     await StorageConnector.save(file.buffer, imageType.contentType, path)
 
     try {
+      const { proposal } = await this.#getChangeableProposal(supplier.id, proposalKey)
+      const position = firstFreePosition(await this.proposalRepository.getPhotos(proposal.id, { lock: true }))
+      if (position === null) {
+        throw new ProposalPhotoLimitReached(MAX_PHOTOS_PER_PROPOSAL)
+      }
+
       await this.proposalRepository.createPhoto(proposal.id, position, path)
       const url = await StorageConnector.getUrl(path)
       await this.session.commit()
@@ -265,10 +276,6 @@ function toUtcDateString(date) {
   return date.toISOString().slice(0, 10)
 }
 
-// campo opcional vazio ou só com espaços vira NULL no banco
-function optionalText(value) {
-  return value?.trim() || null
-}
 // en-CA formata a data como AAAA-MM-DD
 const BRAZIL_DATE_FORMAT = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' })
 
@@ -276,3 +283,7 @@ function toBrazilDateString(date) {
   return BRAZIL_DATE_FORMAT.format(date)
 }
 
+// campo opcional vazio ou só com espaços vira NULL no banco
+function optionalText(value) {
+  return value?.trim() || null
+}
