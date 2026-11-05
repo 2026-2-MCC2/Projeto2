@@ -632,14 +632,15 @@ export function carregarEvento(eventKey) {
   return carregamentosEmAndamento.get(eventKey)
 }
 
-// depois de uma mudança cuja resposta não traz o evento (aceite de proposta, itens de cotação),
-// a cópia em memória fica velha: a busca começa já, e a próxima tela que abrir não espera os 15 s
-export function atualizarEventoEmMemoria(eventKey) {
+// Depois de uma mudança cuja resposta não traz o evento (aceite de proposta, itens de cotação), a
+// cópia em memória fica velha: a releitura começa já, e a próxima tela que abrir não espera os 15 s.
+// Uma falha na releitura não vira falha da mudança, que já foi salva: a tela diria que não salvou e
+// a pessoa repetiria (duplicando o item).
+export function relerEventoEmMemoria(eventKey) {
   ultimaBuscaPorChave.delete(eventKey)
-  return buscarEventoPorChave(eventKey).then((evento) => {
-    ultimaBuscaPorChave.set(eventKey, Date.now())
-    return evento
-  })
+  buscarEventoPorChave(eventKey)
+    .then(() => ultimaBuscaPorChave.set(eventKey, Date.now()))
+    .catch(() => {})
 }
 
 /**
@@ -755,19 +756,19 @@ export async function listarItensDeCotacao(eventKey) {
 
 export async function criarItemDeCotacao(eventKey, item) {
   const resposta = await api.post(`/events/${eventKey}/items`, itemParaApi(item))
-  await buscarEventoPorChave(eventKey)
+  relerEventoEmMemoria(eventKey)
   return resposta
 }
 
 export async function atualizarItemDeCotacao(eventKey, itemKey, item) {
   const resposta = await api.put(`/events/${eventKey}/items/${itemKey}`, itemParaApi(item))
-  await buscarEventoPorChave(eventKey)
+  relerEventoEmMemoria(eventKey)
   return resposta
 }
 
 export async function excluirItemDeCotacao(eventKey, itemKey) {
   await api.delete(`/events/${eventKey}/items/${itemKey}`)
-  await buscarEventoPorChave(eventKey)
+  relerEventoEmMemoria(eventKey)
 }
 
 function itemParaApi(item) {
