@@ -520,6 +520,27 @@ function formatarEGuardar(eventosDaApi, pedido) {
   return eventos
 }
 
+// A listagem não garante o total das propostas aceitas nem traz os itens: completa com a versão
+// detalhada já em memória ou, sem ela, guarda o evento como parcial, e carregarEvento busca o detalhe.
+function formatarEGuardarDaLista(eventosDaLista, pedido) {
+  const eventos = eventosDaLista.map((eventoDaLista) => {
+    const detalhado = buscarEventoEmMemoria(eventoDaLista.event_key)
+    if (!detalhado || detalhado.parcial) {
+      return { ...formatarEventoParaExibicao(eventoDaLista, []), parcial: true }
+    }
+
+    const totalAceitas = Number(detalhado.raw.total_accepted_proposals) || 0
+    const completo = {
+      ...eventoDaLista,
+      total_accepted_proposals: totalAceitas,
+      total_cost: (Number(eventoDaLista.total_internal_cost) || 0) + totalAceitas,
+    }
+    return formatarEventoParaExibicao(completo, detalhado.raw.budget_items ?? [])
+  })
+  guardarEventos(eventos, pedido)
+  return eventos
+}
+
 // o menu aparece em toda tela do organizador: a lista é buscada uma vez e refeita quando um evento muda
 let recentesEmCache = null
 
@@ -540,7 +561,7 @@ export function listarEventosRecentes(quantidade) {
     const pedido = iniciarPedido()
     const carregamento = api
       .get(montarBuscaDeEventos({ limit: quantidade, page: 0 }))
-      .then((resposta) => formatarEGuardar(resposta.data, pedido))
+      .then((resposta) => formatarEGuardarDaLista(resposta.data, pedido))
       .catch((falha) => {
         // só esquece se este ainda for o pedido guardado; um mais novo pode ter tomado o lugar
         if (recentesEmCache?.carregamento === carregamento) esquecerRecentes()
@@ -571,7 +592,7 @@ export async function listarTodosOsEventos() {
       .flatMap((pagina) => pagina.data)
       .map((evento) => [evento.event_key, evento]),
   )
-  return formatarEGuardar([...eventosSemRepetir.values()], pedido)
+  return formatarEGuardarDaLista([...eventosSemRepetir.values()], pedido)
 }
 
 /**
@@ -596,9 +617,8 @@ const SEGUNDOS_SEM_BUSCAR_DE_NOVO = 15
 export function carregarEvento(eventKey) {
   const buscadoHaPouco =
     Date.now() - (ultimaBuscaPorChave.get(eventKey) ?? 0) < SEGUNDOS_SEM_BUSCAR_DE_NOVO * 1000
-  if (buscadoHaPouco && buscarEventoEmMemoria(eventKey)) {
-    return Promise.resolve(buscarEventoEmMemoria(eventKey))
-  }
+  const emMemoria = buscarEventoEmMemoria(eventKey)
+  if (buscadoHaPouco && emMemoria && !emMemoria.parcial) return Promise.resolve(emMemoria)
 
   if (!carregamentosEmAndamento.has(eventKey)) {
     const carregamento = buscarEventoPorChave(eventKey)
