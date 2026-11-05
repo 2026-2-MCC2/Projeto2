@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   apagarFotoDaProposta,
   buscarMinhaProposta,
@@ -17,11 +17,16 @@ const TIPOS_ACEITOS = 'image/jpeg,image/png,image/webp'
 export function GaleriaDeFotos({ proposalKey }) {
   const [fotos, setFotos] = useState([])
   const [enviando, setEnviando] = useState(false)
-  const aoFalharFoto = useRenovarFotosVencidas(() =>
+  // muda a cada envio ou remoção: uma renovação que começou antes não sobrescreve a lista mais nova
+  const versaoDaLista = useRef(0)
+  const aoFalharFoto = useRenovarFotosVencidas(() => {
+    const versao = versaoDaLista.current
     buscarMinhaProposta(proposalKey)
-      .then((detalhe) => setFotos(detalhe.photos ?? []))
-      .catch(() => {}),
-  )
+      .then((detalhe) => {
+        if (versaoDaLista.current === versao) setFotos(detalhe.photos ?? [])
+      })
+      .catch(() => {})
+  })
 
   useEffect(() => {
     if (!proposalKey) return
@@ -51,6 +56,7 @@ export function GaleriaDeFotos({ proposalKey }) {
     try {
       // sem url, a foto foi salva mas a API não conseguiu gerar o link agora: ela entra na lista do mesmo jeito
       const foto = await enviarFotoDaProposta(proposalKey, arquivo)
+      versaoDaLista.current += 1
       setFotos((atuais) => [...atuais, foto])
     } catch (falha) {
       toast.erro('Não foi possível enviar a foto', { descricao: falha.message })
@@ -62,6 +68,7 @@ export function GaleriaDeFotos({ proposalKey }) {
   async function remover(photoKey) {
     try {
       await apagarFotoDaProposta(proposalKey, photoKey)
+      versaoDaLista.current += 1
       setFotos((atuais) => atuais.filter((foto) => foto.photo_key !== photoKey))
     } catch (falha) {
       toast.erro('Não foi possível apagar a foto', { descricao: falha.message })
