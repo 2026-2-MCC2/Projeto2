@@ -299,6 +299,7 @@ export function formatarEventoParaExibicao(evento, itensDeCotacao = evento.budge
 
   const totalCustos = Number(evento.total_cost ?? evento.total_internal_cost) || 0
   const totalPropostasAceitas = Number(evento.total_accepted_proposals) || 0
+  const totalCustosProprios = Number(evento.total_internal_cost) || 0
   const { precoSugerido, ticketEstimado, calculo } = calcularDadosTicket(evento, totalCustos)
   const motivoCancelamento = evento.cancellation_reason ?? evento.motivoDoCancelamento ?? null
 
@@ -377,13 +378,13 @@ export function formatarEventoParaExibicao(evento, itensDeCotacao = evento.budge
       andamento,
       comparacao: { itens: [] },
       custos: {
-        total: formatarMoeda(totalCustos),
+        totalProprios: formatarMoeda(totalCustosProprios),
         resumoMobile: `${linhasCustos.length} custos cadastrados`,
         indicadores: [
           { nome: 'Custos de fornecedores', valor: formatarMoeda(totalPropostasAceitas) },
           {
             nome: 'Custos fiscais e operacionais',
-            valor: formatarMoeda(Number(evento.total_internal_cost) || 0),
+            valor: formatarMoeda(totalCustosProprios),
           },
           { nome: 'Custo total do evento', valor: formatarMoeda(totalCustos) },
         ],

@@ -104,7 +104,7 @@ export function EventoItens() {
         {custos && (
           <div className="destaque-total">
             <span>Custos próprios do evento</span>
-            <strong>{custos.total}</strong>
+            <strong>{custos.totalProprios}</strong>
             <small>{custos.resumoMobile}</small>
           </div>
         )}
@@ -205,7 +205,7 @@ export function EventoItens() {
             chave: linha.chave,
             celulas: [linha.nome, linha.categoria, linha.origem, linha.valor],
           }))}
-          rodape={['Total de custos próprios', '', '', custos.total]}
+          rodape={['Total de custos próprios', '', '', custos.totalProprios]}
           aoClicarNaLinha={podeEditar ? abrirCusto : undefined}
         />
       ) : !carregandoItens && !erroItens && itensDeCotacao.length === 0 ? (
