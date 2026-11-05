@@ -344,23 +344,23 @@
   white-space: nowrap;
 }
 
-.minhas-propostas__situacao--aceita {
+.minhas-propostas__situacao--accepted {
   background: var(--status-sucesso-fundo);
   color: var(--status-sucesso-texto);
 }
-.minhas-propostas__situacao--em-análise {
+.minhas-propostas__situacao--under_review {
   background: var(--fundo-marca-suave);
   color: var(--texto-marca);
 }
-.minhas-propostas__situacao--enviada {
+.minhas-propostas__situacao--sent {
   background: var(--fundo-sutil);
   color: var(--texto-secundario);
 }
-.minhas-propostas__situacao--recusada {
+.minhas-propostas__situacao--rejected {
   background: var(--status-perigo-fundo);
   color: var(--status-perigo-texto);
 }
-.minhas-propostas__situacao--evento-cancelado {
+.minhas-propostas__situacao--canceled {
   background: var(--fundo-sutil);
   color: var(--status-perigo-texto);
 }
@@ -675,10 +675,6 @@
 .proposta-condicoes__campo textarea {
   min-height: 62px;
   resize: vertical;
-}
-
-.proposta-condicoes__campo--somente-desktop {
-  display: flex;
 }
 
 .proposta-condicoes__campo input::placeholder,
@@ -1259,10 +1255,6 @@
     gap: 16px;
   }
 
-  .proposta-condicoes__campo--somente-desktop {
-    display: none;
-  }
-
   .proposta-condicoes__campo textarea {
     min-height: 57px;
   }
@@ -1355,6 +1347,12 @@
 
   .proposta-detalhes__foto--desktop {
     display: none;
+  }
+
+  .proposta-detalhes__remover-foto {
+    width: 32px;
+    height: 32px;
+    font-size: 1.25rem;
   }
 
   .proposta-detalhes__ajuda-fotos {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   apagarFotoDaProposta,
   buscarMinhaProposta,
@@ -11,9 +11,13 @@ import {
   definirFotosPendentes,
   lerFotosPendentes,
 } from '../../../application/rascunhosDePropostas.js'
+import { ErroNaTela } from '../comum/EstadoDaTela.jsx'
 import { Icone } from '../comum/Icone.jsx'
+import { Modal } from '../comum/Modal.jsx'
+import { FotoDoServico } from './FotoDoServico.jsx'
 import { toast } from '../../toasts.js'
 import iconeAdicionar from '../../assets/organizador/icone-adicionar.svg'
+import iconeApagar from '../../assets/admin/icone-modal-rejeitar.svg'
 import { useRenovarFotosVencidas } from '../../hooks/useRenovarFotosVencidas.js'
 
 const TIPOS_ACEITOS = TIPOS_DE_FOTO.join(',')
@@ -29,7 +33,7 @@ export function GaleriaDeFotos({ proposalKey, eventKey, itemKey }) {
       </div>
 
       {proposalKey ? (
-        <FotosDaProposta proposalKey={proposalKey} />
+        <FotosDaProposta key={proposalKey} proposalKey={proposalKey} />
       ) : (
         <FotosPendentes eventKey={eventKey} itemKey={itemKey} />
       )}
@@ -42,11 +46,24 @@ export function GaleriaDeFotos({ proposalKey, eventKey, itemKey }) {
   )
 }
 
+// a foto do campo de arquivo, ou null quando nada foi escolhido ou ela não pode ser usada (com o aviso)
+function fotoEscolhida(evento) {
+  const arquivo = evento.target.files?.[0]
+  evento.target.value = ''
+  if (!arquivo) return null
+  const problema = problemaDaFoto(arquivo)
+  if (problema) {
+    toast.erro('Esta foto não pode ser usada', { descricao: problema })
+    return null
+  }
+  return arquivo
+}
+
+// o navegador não diz se dois File são o mesmo arquivo do disco: nome, tamanho e data bastam aqui
+const identidadeDoArquivo = (arquivo) => `${arquivo.name}|${arquivo.size}|${arquivo.lastModified}`
+
 function FotosPendentes({ eventKey, itemKey }) {
   const [arquivos, setArquivos] = useState(() => lerFotosPendentes(eventKey, itemKey))
-  const previas = useMemo(() => arquivos.map((arquivo) => URL.createObjectURL(arquivo)), [arquivos])
-
-  useEffect(() => () => previas.forEach((previa) => URL.revokeObjectURL(previa)), [previas])
 
   function guardar(novos) {
     definirFotosPendentes(eventKey, itemKey, novos)
@@ -54,12 +71,11 @@ function FotosPendentes({ eventKey, itemKey }) {
   }
 
   function adicionar(evento) {
-    const arquivo = evento.target.files?.[0]
-    evento.target.value = ''
+    const arquivo = fotoEscolhida(evento)
     if (!arquivo) return
-    const problema = problemaDaFoto(arquivo)
-    if (problema) {
-      toast.erro('Esta foto não pode ser usada', { descricao: problema })
+    const identidade = identidadeDoArquivo(arquivo)
+    if (arquivos.some((escolhido) => identidadeDoArquivo(escolhido) === identidade)) {
+      toast.info('Esta foto já foi escolhida')
       return
     }
     guardar([...arquivos, arquivo])
@@ -67,10 +83,7 @@ function FotosPendentes({ eventKey, itemKey }) {
 
   return (
     <Galeria
-      fotos={arquivos.map((arquivo, indice) => ({
-        chave: `${arquivo.name}-${indice}`,
-        url: previas[indice],
-      }))}
+      fotos={arquivos.map((arquivo) => ({ chave: identidadeDoArquivo(arquivo), arquivo }))}
       aoAdicionar={adicionar}
       aoRemover={(indice) => guardar(arquivos.filter((_, posicao) => posicao !== indice))}
     />
@@ -79,7 +92,11 @@ function FotosPendentes({ eventKey, itemKey }) {
 
 function FotosDaProposta({ proposalKey }) {
   const [fotos, setFotos] = useState([])
+  const [carga, setCarga] = useState({ carregando: true, erro: null })
+  const [tentativa, setTentativa] = useState(0)
   const [enviando, setEnviando] = useState(false)
+  const [fotoParaApagar, setFotoParaApagar] = useState(null)
+  const [apagando, setApagando] = useState(false)
   // muda a cada envio ou remoção: uma renovação que começou antes não sobrescreve a lista mais nova
   const versaoDaLista = useRef(0)
   const aoFalharFoto = useRenovarFotosVencidas(() => {
@@ -93,27 +110,24 @@ function FotosDaProposta({ proposalKey }) {
 
   useEffect(() => {
     let telaAberta = true
+    const versao = versaoDaLista.current
     buscarMinhaProposta(proposalKey)
       .then((detalhe) => {
-        if (telaAberta) setFotos(detalhe.photos ?? [])
+        if (!telaAberta) return
+        if (versaoDaLista.current === versao) setFotos(detalhe.photos ?? [])
+        setCarga({ carregando: false, erro: null })
       })
-      .catch((falha) =>
-        toast.erro('Não foi possível carregar as fotos', { descricao: falha.message }),
-      )
+      .catch((erro) => {
+        if (telaAberta) setCarga({ carregando: false, erro })
+      })
     return () => {
       telaAberta = false
     }
-  }, [proposalKey])
+  }, [proposalKey, tentativa])
 
   async function adicionar(evento) {
-    const arquivo = evento.target.files?.[0]
-    evento.target.value = ''
+    const arquivo = fotoEscolhida(evento)
     if (!arquivo) return
-    const problema = problemaDaFoto(arquivo)
-    if (problema) {
-      toast.erro('Esta foto não pode ser usada', { descricao: problema })
-      return
-    }
 
     setEnviando(true)
     try {
@@ -128,46 +142,75 @@ function FotosDaProposta({ proposalKey }) {
     }
   }
 
-  async function remover(indice) {
-    const { photo_key: photoKey } = fotos[indice]
+  async function confirmarRemocao() {
+    const { photo_key: photoKey } = fotoParaApagar
+    setApagando(true)
     try {
       await apagarFotoDaProposta(proposalKey, photoKey)
-      versaoDaLista.current += 1
-      setFotos((atuais) => atuais.filter((foto) => foto.photo_key !== photoKey))
+      tirarDaLista(photoKey)
     } catch (falha) {
-      toast.erro('Não foi possível apagar a foto', { descricao: falha.message })
+      // 404: já tinha sido apagada (em outra aba, por exemplo), então o resultado é o mesmo
+      if (falha.status === 404) tirarDaLista(photoKey)
+      else toast.erro('Não foi possível apagar a foto', { descricao: falha.message })
+    } finally {
+      setApagando(false)
+      setFotoParaApagar(null)
     }
   }
 
+  function tirarDaLista(photoKey) {
+    versaoDaLista.current += 1
+    setFotos((atuais) => atuais.filter((foto) => foto.photo_key !== photoKey))
+  }
+
+  if (carga.erro) {
+    return (
+      <ErroNaTela
+        erro={carga.erro}
+        aoTentarDeNovo={() => {
+          setCarga({ carregando: true, erro: null })
+          setTentativa((valor) => valor + 1)
+        }}
+      />
+    )
+  }
+
   return (
-    <Galeria
-      fotos={fotos.map((foto) => ({ chave: foto.photo_key, url: foto.url }))}
-      enviando={enviando}
-      aoAdicionar={adicionar}
-      aoRemover={remover}
-      aoFalharFoto={aoFalharFoto}
-    />
+    <>
+      <Galeria
+        fotos={fotos.map((foto) => ({ chave: foto.photo_key, url: foto.url }))}
+        ocupadoCom={carga.carregando ? 'Carregando...' : enviando ? 'Enviando...' : null}
+        aoAdicionar={adicionar}
+        aoRemover={(indice) => setFotoParaApagar(fotos[indice])}
+        aoFalharFoto={aoFalharFoto}
+      />
+      {fotoParaApagar && (
+        <Modal
+          icone={iconeApagar}
+          corDoIcone="vermelho"
+          titulo="Apagar esta foto?"
+          mensagem="Ela sai da proposta na hora, sem precisar salvar as alterações."
+          acao={{
+            cancelar: 'Cancelar',
+            confirmar: apagando ? 'Apagando...' : 'Apagar foto',
+            aoConfirmar: confirmarRemocao,
+            ocupado: apagando,
+          }}
+          aoFechar={() => !apagando && setFotoParaApagar(null)}
+        />
+      )}
+    </>
   )
 }
 
-// fotos: [{ chave, url }]; url null é foto salva cujo link não pôde ser gerado agora
-function Galeria({ fotos, enviando = false, aoAdicionar, aoRemover, aoFalharFoto }) {
+// fotos: [{ chave, url }] das já enviadas ou [{ chave, arquivo }] das escolhidas (ver FotoDoServico)
+// ocupadoCom: texto que troca o Adicionar enquanto a lista carrega ou uma foto é enviada
+function Galeria({ fotos, ocupadoCom = null, aoAdicionar, aoRemover, aoFalharFoto }) {
   return (
     <div className="proposta-detalhes__galeria">
       {fotos.map((foto, indice) => (
         <div key={foto.chave} className="proposta-detalhes__foto-item">
-          {foto.url ? (
-            <img
-              onError={aoFalharFoto}
-              src={foto.url}
-              alt={`Foto ${indice + 1} do serviço`}
-              className="proposta-detalhes__foto"
-            />
-          ) : (
-            <span className="proposta-detalhes__foto proposta-detalhes__foto--sem-link">
-              Foto salva
-            </span>
-          )}
+          <FotoDoServico foto={foto} indice={indice} aoFalharFoto={aoFalharFoto} />
           <button
             type="button"
             className="proposta-detalhes__remover-foto"
@@ -182,8 +225,14 @@ function Galeria({ fotos, enviando = false, aoAdicionar, aoRemover, aoFalharFoto
       {fotos.length < LIMITE_DE_FOTOS && (
         <label className="proposta-detalhes__adicionar">
           <Icone src={iconeAdicionar} />
-          {enviando ? 'Enviando...' : 'Adicionar'}
-          <input type="file" accept={TIPOS_ACEITOS} disabled={enviando} onChange={aoAdicionar} />
+          <span role="status">{ocupadoCom ?? 'Adicionar'}</span>
+          <input
+            type="file"
+            aria-label="Adicionar foto"
+            accept={TIPOS_ACEITOS}
+            disabled={ocupadoCom !== null}
+            onChange={aoAdicionar}
+          />
         </label>
       )}
     </div>

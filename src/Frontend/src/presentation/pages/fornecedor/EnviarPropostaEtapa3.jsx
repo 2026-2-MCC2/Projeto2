@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { atualizarProposta, enviarPropostaComFotos } from '../../../application/propostas.js'
 import { lerFotosPendentes } from '../../../application/rascunhosDePropostas.js'
@@ -12,12 +12,9 @@ import { useValidacao } from '../../hooks/useValidacao.js'
 import { toast } from '../../toasts.js'
 import '../../styles/fornecedor.css'
 
-function CampoCondicao({ id, rotulo, obrigatorio = false, somenteDesktop = false, children }) {
+function CampoCondicao({ id, rotulo, obrigatorio = false, children }) {
   return (
-    <label
-      className={`proposta-condicoes__campo${somenteDesktop ? ' proposta-condicoes__campo--somente-desktop' : ''}`}
-      htmlFor={id}
-    >
+    <label className="proposta-condicoes__campo" htmlFor={id}>
       <span>
         {rotulo} {obrigatorio && <b aria-hidden="true">*</b>}
       </span>
@@ -37,6 +34,15 @@ export function EnviarPropostaEtapa3() {
   const [enviando, setEnviando] = useState(false)
   const [erro, setErro] = useState('')
   const voltar = () => navigate(proposta.rotaDaEtapa(2))
+  // o envio com fotos pode demorar: se o fornecedor sair no meio, ele termina sem levar para outra tela
+  const telaAberta = useRef(true)
+
+  useEffect(() => {
+    telaAberta.current = true
+    return () => {
+      telaAberta.current = false
+    }
+  }, [])
 
   async function aoEnviar(envio) {
     envio.preventDefault()
@@ -47,6 +53,7 @@ export function EnviarPropostaEtapa3() {
       if (proposta.editando) {
         await atualizarProposta(proposta.proposalKey, rascunho)
         proposta.descartar()
+        if (!telaAberta.current) return
         toast.sucesso('Proposta atualizada', { descricao: item.description })
         navigate(`/fornecedor/propostas/${proposta.proposalKey}`)
         return
@@ -60,6 +67,7 @@ export function EnviarPropostaEtapa3() {
         fotos,
       )
       proposta.descartar()
+      if (!telaAberta.current) return
       if (fotosQueFalharam > 0) {
         // a proposta já foi enviada: a tela dela mostra o que entrou, e Editar tenta as fotos de novo
         toast.erro('Proposta enviada, mas algumas fotos não foram anexadas', {
@@ -75,6 +83,7 @@ export function EnviarPropostaEtapa3() {
       })
       navigate('/fornecedor/propostas')
     } catch (falha) {
+      if (!telaAberta.current) return
       // ex.: "Você já enviou uma proposta para este item." ou validade fora do evento
       setErro(falha.message)
       setEnviando(false)
@@ -138,7 +147,7 @@ export function EnviarPropostaEtapa3() {
                       required
                     />
                   </CampoCondicao>
-                  <CampoCondicao id="equipe-envolvida" rotulo="Equipe envolvida" somenteDesktop>
+                  <CampoCondicao id="equipe-envolvida" rotulo="Equipe envolvida">
                     <input
                       id="equipe-envolvida"
                       type="text"
@@ -148,11 +157,7 @@ export function EnviarPropostaEtapa3() {
                       onChange={preencher('equipe')}
                     />
                   </CampoCondicao>
-                  <CampoCondicao
-                    id="garantia-substituicao"
-                    rotulo="Garantia ou substituição"
-                    somenteDesktop
-                  >
+                  <CampoCondicao id="garantia-substituicao" rotulo="Garantia ou substituição">
                     <input
                       id="garantia-substituicao"
                       type="text"

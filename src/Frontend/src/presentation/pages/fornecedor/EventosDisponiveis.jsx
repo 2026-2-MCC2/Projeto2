@@ -10,6 +10,13 @@ import iconeBuscar from '../../assets/organizador/icone-buscar.svg'
 import '../../styles/fornecedor.css'
 
 const TAMANHO_DA_PAGINA = 100
+// espera o fornecedor parar de digitar antes de buscar, para não pedir uma lista a cada letra
+const ESPERA_DA_BUSCA_EM_MS = 300
+
+const TODAS_AS_CATEGORIAS = 'Minhas categorias'
+
+const categoriasDosEventos = (eventos) =>
+  [...new Set(eventos.flatMap((evento) => evento.categories))].sort()
 
 function CartaoEvento({ evento }) {
   return (
@@ -45,24 +52,35 @@ function CartaoEvento({ evento }) {
 export function EventosDisponiveis() {
   const isMobile = useIsMobile()
   const [busca, setBusca] = useState('')
-  const [filtro, setFiltro] = useState('Minhas categorias')
+  const [termo, setTermo] = useState('')
+  const [filtro, setFiltro] = useState(TODAS_AS_CATEGORIAS)
   const [tentativa, setTentativa] = useState(0)
   const [carregandoMais, setCarregandoMais] = useState(false)
+  // guardado com o termo: o erro de uma busca anterior não aparece na lista de outra
+  const [erroAoCarregarMais, setErroAoCarregarMais] = useState({ termo: null, mensagem: '' })
   const [resultado, setResultado] = useState({ termo: null, data: [], erro: null })
-  const termo = busca.trim()
   const carregando = resultado.termo !== termo
   const dados = carregando ? { data: [], total: 0, is_last_page: true } : resultado
-  const categorias = [...new Set(dados.data.flatMap((evento) => evento.categories))].sort()
-  const filtros = ['Minhas categorias', ...categorias]
+  const categorias = categoriasDosEventos(dados.data)
+  const filtros = [TODAS_AS_CATEGORIAS, ...categorias]
   const eventos = dados.data.filter(
-    (evento) => filtro === 'Minhas categorias' || evento.categories.includes(filtro),
+    (evento) => filtro === TODAS_AS_CATEGORIAS || evento.categories.includes(filtro),
   )
+
+  useEffect(() => {
+    const espera = setTimeout(() => setTermo(busca.trim()), ESPERA_DA_BUSCA_EM_MS)
+    return () => clearTimeout(espera)
+  }, [busca])
 
   useEffect(() => {
     let telaAberta = true
     listarEventosDisponiveis({ search: termo, limit: TAMANHO_DA_PAGINA, page: 0 })
       .then((resposta) => {
-        if (telaAberta) setResultado({ ...resposta, termo, pagina: 0, erro: null })
+        if (!telaAberta) return
+        setResultado({ ...resposta, termo, pagina: 0, erro: null })
+        // a categoria escolhida pode não existir na lista nova: o filtro escondido continuaria valendo
+        const categoriasNovas = categoriasDosEventos(resposta.data)
+        setFiltro((atual) => (categoriasNovas.includes(atual) ? atual : TODAS_AS_CATEGORIAS))
       })
       .catch((erro) => {
         if (telaAberta) setResultado({ termo, data: [], total: 0, is_last_page: true, erro })
@@ -75,6 +93,7 @@ export function EventosDisponiveis() {
 
   async function carregarMais() {
     setCarregandoMais(true)
+    setErroAoCarregarMais({ termo: null, mensagem: '' })
     try {
       const pagina = resultado.pagina + 1
       const resposta = await listarEventosDisponiveis({
@@ -84,11 +103,11 @@ export function EventosDisponiveis() {
       })
       setResultado((atual) =>
         atual.termo === termo
-          ? { ...resposta, termo, pagina, data: [...atual.data, ...resposta.data], erro: null }
+          ? { ...resposta, termo, pagina, data: [...atual.data, ...resposta.data] }
           : atual,
       )
-    } catch (erro) {
-      setResultado((atual) => (atual.termo === termo ? { ...atual, erro } : atual))
+    } catch (falha) {
+      setErroAoCarregarMais({ termo, mensagem: falha.message })
     } finally {
       setCarregandoMais(false)
     }
@@ -148,6 +167,11 @@ export function EventosDisponiveis() {
                 <CartaoEvento key={evento.event_key} evento={evento} />
               ))}
             </section>
+            {erroAoCarregarMais.termo === termo && (
+              <p className="mensagem-erro" role="alert">
+                {erroAoCarregarMais.mensagem}
+              </p>
+            )}
             {!dados.is_last_page && (
               <button
                 type="button"
@@ -160,7 +184,7 @@ export function EventosDisponiveis() {
             )}
           </>
         ) : (
-          <SemEventos filtrando={termo !== '' || filtro !== 'Minhas categorias'} />
+          <SemEventos filtrando={termo !== '' || filtro !== TODAS_AS_CATEGORIAS} />
         )}
       </>
     </OrganizadorLayout>
