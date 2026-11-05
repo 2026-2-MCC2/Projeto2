@@ -11,10 +11,10 @@ let ultimoId = 0
 export function useValidacao(regrasEntreCampos = {}) {
   function validar(formulario) {
     const campos = camposDo(formulario)
-    const valores = Object.fromEntries(campos.map((campo) => [campo.name, campo.value.trim()]))
+    const valores = Object.fromEntries(campos.map((campo) => [campo.name, valorDe(campo)]))
 
     for (const campo of campos) {
-      const valor = campo.value.trim()
+      const valor = valorDe(campo)
       const regra = REGRAS[campo.dataset.validar]
       const entreCampos = regrasEntreCampos[campo.name]
       const soEspacos = campo.required && campo.value !== '' && !valor && !ehSenha(campo)
@@ -73,6 +73,9 @@ export function useValidacao(regrasEntreCampos = {}) {
 // espaços valem como caractere de senha, então só nela um campo obrigatório só com espaços passa
 // (o campo de senha alterna entre password e text ao mostrar, por isso a classe e não o type)
 const ehSenha = (campo) => Boolean(campo.closest('.entrada-de-senha'))
+
+// a senha vai crua para a API, então tamanho e confirmação também olham o valor com os espaços
+const valorDe = (campo) => (ehSenha(campo) ? campo.value : campo.value.trim())
 
 function camposDo(formulario) {
   return [...formulario.elements].filter((campo) => 'value' in campo && 'validity' in campo)
