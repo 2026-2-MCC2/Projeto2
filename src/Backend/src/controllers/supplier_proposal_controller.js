@@ -114,9 +114,10 @@ export class SupplierProposalController extends BaseController {
     ensureValidUntilInsideEvent(payload.valid_until, event.end_date)
     await this.proposalRepository.update(proposal, toProposalFields(payload))
 
-    const proposalDto = await this.#getProposalDetail(supplier.id, proposalKey)
+    // a URL das fotos é assinada depois do commit, para não segurar o evento travado
+    const detail = await this.#readProposalDetail(supplier.id, proposalKey)
     await this.session.commit()
-    return proposalDto
+    return this.#buildProposalDetail(detail)
   }
 
   // O banco não tem status "retirada": a retirada apaga a proposta, e o fornecedor pode enviar outra
@@ -166,13 +167,14 @@ export class SupplierProposalController extends BaseController {
       }
 
       await this.proposalRepository.createPhoto(proposal.id, position, path)
-      const url = await StorageConnector.getUrl(path)
       await this.session.commit()
-      return { photo_key: photoKey, url }
     } catch (error) {
       await this.#removeFiles([path])
       throw error
     }
+
+    // depois do commit a foto já está salva: a URL é assinada sem o evento travado
+    return { photo_key: photoKey, url: await StorageConnector.getUrl(path) }
   }
 
   // O registro sai primeiro (com commit) e o arquivo depois: se a remoção do arquivo falhar, sobra só
@@ -208,13 +210,20 @@ export class SupplierProposalController extends BaseController {
   }
 
   async #getProposalDetail(supplierId, proposalKey) {
+    return this.#buildProposalDetail(await this.#readProposalDetail(supplierId, proposalKey))
+  }
+
+  // a leitura do banco fica separada de assinar as URLs, que pode ser lento (uma chamada por foto no GCS)
+  async #readProposalDetail(supplierId, proposalKey) {
     const proposal = await this.proposalRepository.getSupplierProposalByKey(supplierId, proposalKey)
     if (!proposal) {
       throw new NotFoundProposal(proposalKey)
     }
+    return { proposal, photos: await this.proposalRepository.getPhotos(proposal.id) }
+  }
 
-    const photos = await toPhotoResponses(await this.proposalRepository.getPhotos(proposal.id))
-    return SupplierProposalDto.fromDetail(proposal, photos)
+  async #buildProposalDetail({ proposal, photos }) {
+    return SupplierProposalDto.fromDetail(proposal, await toPhotoResponses(photos))
   }
 
   // Só a proposta enviada, ainda não analisada, de um evento em cotação pode mudar. As travas seguem
