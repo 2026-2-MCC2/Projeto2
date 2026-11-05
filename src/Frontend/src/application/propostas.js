@@ -102,23 +102,10 @@ export function buscarMinhaProposta(proposalKey) {
   return api.get(`/supplier/proposals/${proposalKey}`)
 }
 
-// histórico do fornecedor logado: { data, total, is_last_page }, da proposta mais recente para a mais antiga
+// histórico do fornecedor logado: { data, total, is_last_page, counts }, da proposta mais recente para a
+// mais antiga; counts traz quantas propostas há em cada status, sem o filtro (os cartões do topo)
 export function listarMinhasPropostas({ status, limit = 20, page = 0 } = {}) {
   const parametros = new URLSearchParams({ limit: String(limit), page: String(page) })
   if (status) parametros.set('status', status)
   return api.get(`/supplier/proposals?${parametros}`)
-}
-
-// quantas propostas o fornecedor tem em cada status (os cartões do topo de Minhas propostas);
-// usa o total de cada filtro, então não depende de quantas páginas da lista já foram carregadas
-export async function contarMinhasPropostas() {
-  const status = [null, ...Object.keys(STATUS_DA_PROPOSTA)]
-  const respostas = await Promise.all(
-    status.map((filtro) => listarMinhasPropostas({ status: filtro, limit: 1 })),
-  )
-
-  const totais = Object.fromEntries(
-    status.slice(1).map((filtro, indice) => [filtro, respostas[indice + 1].total]),
-  )
-  return { todas: respostas[0].total, ...totais }
 }

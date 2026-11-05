@@ -91,11 +91,13 @@ export class SupplierProposalController extends BaseController {
     const supplier = await getSupplierOfUser(this.userRepository, userKey)
     const offset = page * limit
     const { proposals, total } = await this.proposalRepository.getSupplierProposals(supplier.id, { status, limit, offset })
+    const counts = await this.proposalRepository.getSupplierProposalCounts(supplier.id)
 
     return {
       data: SupplierProposalDto.fromList(proposals),
       total,
       is_last_page: offset + proposals.length >= total,
+      counts: toStatusCounts(counts),
     }
   }
 
@@ -239,6 +241,15 @@ export class SupplierProposalController extends BaseController {
 
     return { proposal, event }
   }
+}
+
+// todos os status aparecem, com zero quando o fornecedor não tem proposta naquele status
+function toStatusCounts(rows) {
+  const counts = Object.fromEntries(Object.values(PROPOSAL_STATUSES).map((status) => [status, 0]))
+  rows.forEach((row) => {
+    counts[row.status] = Number(row.total)
+  })
+  return { all: rows.reduce((sum, row) => sum + Number(row.total), 0), ...counts }
 }
 
 function toProposalFields(payload) {

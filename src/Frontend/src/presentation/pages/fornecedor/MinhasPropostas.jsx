@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { formatarMoeda } from '../../../application/eventos.js'
-import { contarMinhasPropostas, listarMinhasPropostas } from '../../../application/propostas.js'
+import { listarMinhasPropostas } from '../../../application/propostas.js'
 import { formatarData } from '../../../domain/formatacao.js'
 import { Carregando, ErroNaTela, Vazio } from '../../components/comum/EstadoDaTela.jsx'
 import { EtiquetaDaProposta } from '../../components/fornecedor/EtiquetaDaProposta.jsx'
@@ -12,9 +12,9 @@ import '../../styles/fornecedor.css'
 
 const POR_PAGINA = 20
 
-// cartões do topo: rótulo e o total de contarMinhasPropostas
+// cartões do topo: rótulo e a chave em counts, que vem junto com a lista
 const INDICADORES = [
-  { chave: 'todas', rotulo: 'Enviadas', somenteDesktop: true },
+  { chave: 'all', rotulo: 'Enviadas', somenteDesktop: true },
   { chave: 'under_review', rotulo: 'Em análise' },
   { chave: 'accepted', rotulo: 'Aceitas' },
   { chave: 'rejected', rotulo: 'Recusadas' },
@@ -92,15 +92,15 @@ export function MinhasPropostas() {
 
   useEffect(() => {
     let telaAberta = true
-    Promise.all([listarMinhasPropostas({ limit: POR_PAGINA, page: 0 }), contarMinhasPropostas()])
-      .then(([pagina, totais]) => {
+    listarMinhasPropostas({ limit: POR_PAGINA, page: 0 })
+      .then((pagina) => {
         if (!telaAberta) return
         setEstado({
           situacao: 'pronto',
           propostas: pagina.data,
           pagina: 0,
           temMais: !pagina.is_last_page,
-          totais,
+          totais: pagina.counts,
         })
       })
       .catch((erro) => {

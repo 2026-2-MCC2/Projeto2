@@ -109,6 +109,19 @@ describe('GET /supplier/proposals', () => {
     assert.equal(anonymousStatus, 401)
     assert.equal(anonymousError.code, 'APP000401')
   })
+
+  test('traz quantas propostas o fornecedor tem em cada status, sem o filtro da lista', async () => {
+    const scenario = await createScenario()
+    const { supplier, event, items, proposal } = scenario
+    await ObjectGenerator.sendProposal(event.event_key, items[1].item_key, supplier.headers)
+    await decideByOrganizer(scenario, proposal.proposal_key)
+
+    const [status, response] = await RequestGenerator.GET_supplier_proposals({ status: 'sent' }, supplier.headers)
+
+    assert.equal(status, 200)
+    assert.equal(response.total, 1)
+    assert.deepEqual(response.counts, { all: 2, sent: 1, under_review: 0, accepted: 1, rejected: 0 })
+  })
 })
 
 describe('GET /supplier/proposals/:proposal_key', () => {

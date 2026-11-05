@@ -35,6 +35,7 @@ const originals = {
   create: ProposalRepository.prototype.create,
   getEventForShare: SupplierEventRepository.prototype.getEventForShare,
   getSupplierProposals: ProposalRepository.prototype.getSupplierProposals,
+  getSupplierProposalCounts: ProposalRepository.prototype.getSupplierProposalCounts,
   getSupplierProposalByKey: ProposalRepository.prototype.getSupplierProposalByKey,
   getPhotos: ProposalRepository.prototype.getPhotos,
   getSupplierProposalForUpdate: ProposalRepository.prototype.getSupplierProposalForUpdate,
@@ -51,6 +52,7 @@ afterEach(() => {
   ProposalRepository.prototype.hasAcceptedProposal = originals.hasAcceptedProposal
   ProposalRepository.prototype.create = originals.create
   SupplierEventRepository.prototype.getEventForShare = originals.getEventForShare
+  ProposalRepository.prototype.getSupplierProposalCounts = originals.getSupplierProposalCounts
   ProposalRepository.prototype.getSupplierProposals = originals.getSupplierProposals
   ProposalRepository.prototype.getSupplierProposalByKey = originals.getSupplierProposalByKey
   ProposalRepository.prototype.getPhotos = originals.getPhotos
@@ -335,6 +337,10 @@ describe('SupplierProposalController.getProposals', () => {
       repositoryArguments = args
       return { proposals: [proposalRow()], total: 3 }
     }
+    ProposalRepository.prototype.getSupplierProposalCounts = async () => [
+      { status: 'sent', total: 3 },
+      { status: 'accepted', total: 1 },
+    ]
 
     const controller = new SupplierProposalController(context)
     const result = await controller.getProposals('supplier-key', { status: 'sent', limit: 1, page: 1 })
@@ -342,6 +348,7 @@ describe('SupplierProposalController.getProposals', () => {
     assert.deepEqual(repositoryArguments, [8, { status: 'sent', limit: 1, offset: 1 }])
     assert.equal(result.total, 3)
     assert.equal(result.is_last_page, false)
+    assert.deepEqual(result.counts, { all: 4, sent: 3, under_review: 0, accepted: 1, rejected: 0 })
     assert.deepEqual(result.data[0], {
       proposal_key: PROPOSAL_KEY,
       event: { event_key: EVENT_KEY, name: 'Festival', status: 'open_for_quotes' },

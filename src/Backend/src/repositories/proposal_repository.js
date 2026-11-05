@@ -107,6 +107,15 @@ export class ProposalRepository {
     return { proposals, total: Number(countResult.total) }
   }
 
+  // quantas propostas o fornecedor tem em cada status, sem o filtro da lista (os cartões do topo)
+  async getSupplierProposalCounts(supplierId) {
+    return sequelize.query(`SELECT status, COUNT(*) AS total FROM proposal WHERE supplier_id = :supplierId GROUP BY status`, {
+      replacements: { supplierId },
+      transaction: this.session,
+      type: QueryTypes.SELECT,
+    })
+  }
+
   // proposta do próprio fornecedor com evento e item; de outro fornecedor volta null
   async getSupplierProposalByKey(supplierId, proposalKey) {
     const proposals = await sequelize.query(
