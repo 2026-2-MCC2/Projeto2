@@ -12,10 +12,13 @@ export function aceitarPropostaDoEvento(eventKey, proposalKey) {
   return api.post(`/events/${eventKey}/proposals/${proposalKey}/accept`, {})
 }
 
-// a proposta que pode ser escolhida e tem o menor valor do item (vencida ou recusada não conta)
+// propostas que ainda esperam a decisão do organizador
+const STATUS_EM_ABERTO = ['sent', 'under_review']
+
+// a proposta em aberto, dentro da validade, com o menor valor do item (recusada, cancelada ou vencida não conta)
 export function menorPropostaDisponivel(item) {
   return item.proposals
-    .filter((proposta) => !proposta.is_expired && proposta.status !== 'rejected')
+    .filter((proposta) => !proposta.is_expired && STATUS_EM_ABERTO.includes(proposta.status))
     .reduce(
       (menor, proposta) => (!menor || proposta.amount < menor.amount ? proposta : menor),
       null,
@@ -24,6 +27,15 @@ export function menorPropostaDisponivel(item) {
 
 export const itemJaDecidido = (item) =>
   item.proposals.some((proposta) => proposta.status === 'accepted')
+
+// O organizador escolhe enquanto o evento está em cotação e a validade não passou. Com o item já
+// decidido ele ainda pode trocar a escolha por outra, inclusive uma recusada na escolha anterior.
+export function podeSerSelecionada(proposta, item, eventoEmCotacao) {
+  if (!eventoEmCotacao || proposta.is_expired) return false
+  if (itemJaDecidido(item))
+    return proposta.status === 'rejected' || STATUS_EM_ABERTO.includes(proposta.status)
+  return STATUS_EM_ABERTO.includes(proposta.status)
+}
 
 // a API manda a validade como AAAA-MM-DD
 export function formatarValidade(validade) {

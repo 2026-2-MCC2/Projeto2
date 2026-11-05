@@ -1,15 +1,27 @@
-import { formatarMoeda } from '../../../application/eventos.js'
+import { formatarMoeda } from '../../../domain/formatacao.js'
 import { Modal } from '../comum/Modal.jsx'
 import iconeAceitar from '../../assets/organizador/icone-modal-aceitar.svg'
 
 // Confirmação de escolha de uma proposta, usada na aba Propostas e na proposta recebida.
-export function ModalSelecionarProposta({ proposta, item, salvando, aoConfirmar, aoFechar }) {
+// troca: o item já tinha uma proposta escolhida, que passa a ficar recusada
+export function ModalSelecionarProposta({
+  proposta,
+  item,
+  troca,
+  salvando,
+  aoConfirmar,
+  aoFechar,
+}) {
   return (
     <Modal
       icone={iconeAceitar}
       corDoIcone="verde"
-      titulo="Selecionar esta proposta?"
-      mensagem="O valor entra nos itens de custo do evento e o ticket é recalculado. As demais propostas deste item ficam recusadas."
+      titulo={troca ? 'Trocar a proposta escolhida?' : 'Selecionar esta proposta?'}
+      mensagem={
+        troca
+          ? 'Esta proposta passa a ser a escolhida do item e a anterior fica recusada. O custo e o ticket são recalculados.'
+          : 'O valor entra nos itens de custo do evento e o ticket é recalculado. As demais propostas deste item ficam recusadas.'
+      }
       dados={[
         { rotulo: 'Fornecedor', valor: proposta.supplier_name },
         { rotulo: 'Item', valor: item.description },

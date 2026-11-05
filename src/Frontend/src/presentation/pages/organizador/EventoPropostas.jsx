@@ -10,11 +10,13 @@ import {
   formatarValidade,
   itemJaDecidido,
   menorPropostaDisponivel,
+  podeSerSelecionada,
 } from '../../../application/propostas.js'
 import { Carregando, ErroNaTela, Vazio } from '../../components/comum/EstadoDaTela.jsx'
 import { EventoLayout } from '../../components/organizador/EventoLayout.jsx'
 import { ModalSelecionarProposta } from '../../components/organizador/ModalSelecionarProposta.jsx'
 import { Icone } from '../../components/comum/Icone.jsx'
+import { useEvento } from '../../hooks/useEvento.js'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
 import { toast } from '../../toasts.js'
 import iconeCards from '../../assets/organizador/icone-cards.svg'
@@ -29,6 +31,8 @@ export function EventoPropostas() {
   const [salvando, setSalvando] = useState(false)
   const [visao, setVisao] = useState('cards')
   const isMobile = useIsMobile()
+  const { evento } = useEvento(id)
+  const eventoEmCotacao = evento?.statusReal === 'open_for_quotes'
   // no celular é sempre cards; em cards os itens viram abas em cima, na lista a tabela fica embaixo
   const emLista = !isMobile && visao === 'lista'
 
@@ -88,6 +92,8 @@ export function EventoPropostas() {
     setSalvando(true)
     try {
       const atualizada = await aceitarPropostaDoEvento(id, selecionando.proposal_key)
+      // continua no item que acabou de ser decidido, em vez de pular para o próximo sem escolha
+      setItemEscolhido(item.item_key)
       setResultado({ ...atualizada, error: null })
       toast.sucesso('Proposta selecionada', { descricao: selecionando.supplier_name })
       setSelecionando(null)
@@ -107,6 +113,8 @@ export function EventoPropostas() {
           eventKey={id}
           item={item}
           emLista={emLista}
+          isMobile={isMobile}
+          eventoEmCotacao={eventoEmCotacao}
           visao={visao}
           aoTrocarVisao={setVisao}
           aoSelecionar={(proposta) => setSelecionando(proposta)}
@@ -118,6 +126,7 @@ export function EventoPropostas() {
         <ModalSelecionarProposta
           proposta={selecionando}
           item={item}
+          troca={itemJaDecidido(item)}
           salvando={salvando}
           aoConfirmar={confirmarSelecao}
           aoFechar={() => setSelecionando(null)}
@@ -154,15 +163,24 @@ function AbasDosItens({ itens, itemAtual, aoEscolher }) {
   )
 }
 
-function PropostasDoItem({ eventKey, item, emLista, visao, aoTrocarVisao, aoSelecionar }) {
-  const isMobile = useIsMobile()
+function PropostasDoItem({
+  eventKey,
+  item,
+  emLista,
+  isMobile,
+  eventoEmCotacao,
+  visao,
+  aoTrocarVisao,
+  aoSelecionar,
+}) {
   const menor = menorPropostaDisponivel(item)
   const decidido = itemJaDecidido(item)
   const propriedadesDe = (proposta) => ({
     eventKey,
     proposta,
     destaque: !decidido && proposta.proposal_key === menor?.proposal_key,
-    podeSelecionar: !decidido && !proposta.is_expired && proposta.status === 'sent',
+    podeSelecionar: podeSerSelecionada(proposta, item, eventoEmCotacao),
+    troca: decidido,
     aoSelecionar: () => aoSelecionar(proposta),
   })
   const apoio = [
@@ -242,12 +260,15 @@ function EtiquetasDaProposta({ proposta, destaque }) {
       {proposta.status === 'rejected' && (
         <span className="etiqueta etiqueta--rejeitado">Recusada</span>
       )}
+      {proposta.status === 'canceled' && (
+        <span className="etiqueta etiqueta--rejeitado">Cancelada</span>
+      )}
       {proposta.is_expired && <span className="etiqueta etiqueta--vencida">Vencida</span>}
     </>
   )
 }
 
-function AcaoDaProposta({ rota, destaque, podeSelecionar, aoSelecionar }) {
+function AcaoDaProposta({ rota, destaque, podeSelecionar, troca, aoSelecionar }) {
   if (!podeSelecionar) {
     return (
       <Link to={rota} className="botao botao--secundario" viewTransition>
@@ -261,12 +282,12 @@ function AcaoDaProposta({ rota, destaque, podeSelecionar, aoSelecionar }) {
       className={destaque ? 'botao' : 'botao botao--secundario'}
       onClick={aoSelecionar}
     >
-      {destaque ? 'Selecionar proposta' : 'Selecionar'}
+      {troca ? 'Trocar para esta' : destaque ? 'Selecionar proposta' : 'Selecionar'}
     </button>
   )
 }
 
-function LinhaDeProposta({ eventKey, proposta, destaque, podeSelecionar, aoSelecionar }) {
+function LinhaDeProposta({ eventKey, proposta, destaque, podeSelecionar, troca, aoSelecionar }) {
   const rota = `/organizador/eventos/${eventKey}/propostas/${proposta.proposal_key}`
   return (
     <div className={`lista-propostas__linha${destaque ? ' lista-propostas__linha--destaque' : ''}`}>
@@ -283,13 +304,14 @@ function LinhaDeProposta({ eventKey, proposta, destaque, podeSelecionar, aoSelec
         rota={rota}
         destaque={destaque}
         podeSelecionar={podeSelecionar}
+        troca={troca}
         aoSelecionar={aoSelecionar}
       />
     </div>
   )
 }
 
-function CartaoDeProposta({ eventKey, proposta, destaque, podeSelecionar, aoSelecionar }) {
+function CartaoDeProposta({ eventKey, proposta, destaque, podeSelecionar, troca, aoSelecionar }) {
   const rota = `/organizador/eventos/${eventKey}/propostas/${proposta.proposal_key}`
 
   return (
@@ -318,6 +340,7 @@ function CartaoDeProposta({ eventKey, proposta, destaque, podeSelecionar, aoSele
         rota={rota}
         destaque={destaque}
         podeSelecionar={podeSelecionar}
+        troca={troca}
         aoSelecionar={aoSelecionar}
       />
     </article>
@@ -326,6 +349,12 @@ function CartaoDeProposta({ eventKey, proposta, destaque, podeSelecionar, aoSele
 
 function situacaoDoItem(item) {
   if (itemJaDecidido(item)) return { nome: 'Selecionada', estilo: 'aprovado' }
+  if (
+    item.proposals.length > 0 &&
+    item.proposals.every((proposta) => proposta.status === 'canceled')
+  ) {
+    return { nome: 'Cancelada', estilo: 'neutro' }
+  }
   if (item.proposals.length === 0) return { nome: 'Sem propostas', estilo: 'neutro' }
   return { nome: 'Em análise', estilo: 'cotacao' }
 }

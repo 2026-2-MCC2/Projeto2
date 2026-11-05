@@ -10,6 +10,7 @@ import {
   formatarValidade,
   itemJaDecidido,
   menorPropostaDisponivel,
+  podeSerSelecionada,
 } from '../../../application/propostas.js'
 import { formatarCnpj, formatarMoeda } from '../../../domain/formatacao.js'
 import { Carregando, ErroNaTela, Vazio } from '../../components/comum/EstadoDaTela.jsx'
@@ -18,6 +19,7 @@ import { EventoLayout } from '../../components/organizador/EventoLayout.jsx'
 import { Botao } from '../../components/organizador/Formulario.jsx'
 import { ModalSelecionarProposta } from '../../components/organizador/ModalSelecionarProposta.jsx'
 import { toast } from '../../toasts.js'
+import { useEvento } from '../../hooks/useEvento.js'
 import { useRenovarFotosVencidas } from '../../hooks/useRenovarFotosVencidas.js'
 
 const TEXTOS_DA_PROPOSTA = [
@@ -34,6 +36,8 @@ export function PropostaRecebida() {
   const [confirmacaoAberta, setConfirmacaoAberta] = useState(false)
   const [salvando, setSalvando] = useState(false)
   const aoFalharFoto = useRenovarFotosVencidas(() => setTentativa((valor) => valor + 1))
+  const { evento } = useEvento(id)
+  const eventoEmCotacao = evento?.statusReal === 'open_for_quotes'
 
   useEffect(() => {
     let telaAberta = true
@@ -89,7 +93,8 @@ export function PropostaRecebida() {
   const outras = item.proposals.filter((outra) => outra.proposal_key !== proposalKey)
   const menorValor =
     !itemJaDecidido(item) && menorPropostaDisponivel(item)?.proposal_key === proposalKey
-  const podeSelecionar = !itemJaDecidido(item) && !proposta.is_expired && proposta.status === 'sent'
+  const troca = itemJaDecidido(item)
+  const podeSelecionar = podeSerSelecionada(proposta, item, eventoEmCotacao)
 
   async function confirmarSelecao() {
     setSalvando(true)
@@ -197,10 +202,10 @@ export function PropostaRecebida() {
                 {percentualDoOrcamento(proposta.amount, item.estimated_value)}
               </span>
             )}
-            <p className="cartao__apoio">{textoDaDecisao(proposta, item)}</p>
+            <p className="cartao__apoio">{textoDaDecisao(proposta, item, eventoEmCotacao)}</p>
             {podeSelecionar && (
               <Botao type="button" disabled={salvando} onClick={() => setConfirmacaoAberta(true)}>
-                Selecionar proposta
+                {troca ? 'Trocar para esta proposta' : 'Selecionar proposta'}
               </Botao>
             )}
           </Cartao>
@@ -229,6 +234,7 @@ export function PropostaRecebida() {
         <ModalSelecionarProposta
           proposta={proposta}
           item={item}
+          troca={troca}
           salvando={salvando}
           aoConfirmar={confirmarSelecao}
           aoFechar={() => setConfirmacaoAberta(false)}
@@ -252,6 +258,8 @@ function EtiquetaDaSituacao({ proposta, menorValor }) {
     return <span className="etiqueta etiqueta--aprovado">Selecionada</span>
   if (proposta.status === 'rejected')
     return <span className="etiqueta etiqueta--rejeitado">Recusada</span>
+  if (proposta.status === 'canceled')
+    return <span className="etiqueta etiqueta--rejeitado">Cancelada</span>
   if (proposta.is_expired) return <span className="etiqueta etiqueta--vencida">Vencida</span>
   if (menorValor) return <span className="etiqueta etiqueta--aprovado">Menor valor</span>
   return null
@@ -277,9 +285,13 @@ function percentualDoOrcamento(valor, previsto) {
   return `${texto}% ${valor <= previsto ? 'abaixo' : 'acima'} do orçamento`
 }
 
-function textoDaDecisao(proposta, item) {
+function textoDaDecisao(proposta, item, eventoEmCotacao) {
+  if (proposta.status === 'canceled') return 'O evento foi cancelado e esta proposta foi encerrada.'
   if (proposta.status === 'accepted') return 'Esta é a proposta escolhida para o item.'
-  if (itemJaDecidido(item)) return 'Outra proposta já foi escolhida para este item.'
+  if (!eventoEmCotacao) return 'O evento não está mais em cotação: a escolha não pode mudar.'
   if (proposta.is_expired) return 'A validade passou: esta proposta não pode mais ser escolhida.'
+  if (itemJaDecidido(item)) {
+    return 'Outra proposta está escolhida. Ao trocar, ela fica recusada e esta entra no custo.'
+  }
   return 'Ao selecionar, o valor entra nos itens de custo e o ticket é recalculado.'
 }
