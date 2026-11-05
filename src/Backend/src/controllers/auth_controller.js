@@ -127,7 +127,7 @@ export class AuthController extends BaseController {
       throw new RegistrationRejected(await this.getRegistrationStatus(user))
     }
     if (user.status === USER_STATUSES.BLOCKED) {
-      throw new AccountBlocked()
+      throw new AccountBlocked(await this.getRegistrationStatus(user))
     }
 
     const token = await SecurityTools.generateUserToken({ userKey: user.user_key, profile: user.profile })

@@ -14,6 +14,7 @@ import { validarConfirmacaoSenha } from '../../../domain/validacao.js'
 import setaVoltar from '../../assets/acesso/seta-voltar.svg'
 import perfilSelecionado from '../../assets/acesso/perfil-selecionado.svg'
 import '../../styles/acesso.css'
+import { EntradaDeSenha } from '../comum/EntradaDeSenha.jsx'
 
 const ETAPAS = ['Perfil', 'Dados da empresa', 'Acesso']
 const ETAPA_DO_CNPJ = 2
@@ -214,8 +215,7 @@ export function CadastroMobile() {
 
               <label className="campo">
                 <span>Senha</span>
-                <input
-                  type="password"
+                <EntradaDeSenha
                   name="senha"
                   autoComplete="new-password"
                   data-validar="senha"
@@ -229,8 +229,7 @@ export function CadastroMobile() {
 
               <label className="campo">
                 <span>Confirmar senha</span>
-                <input
-                  type="password"
+                <EntradaDeSenha
                   name="confirmacaoSenha"
                   autoComplete="new-password"
                   placeholder="Repita a senha"

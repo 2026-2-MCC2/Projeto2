@@ -25,6 +25,7 @@ Event.init(
     expected_audience: { type: DataTypes.INTEGER },
     max_audience: { type: DataTypes.INTEGER },
     profit_margin: { type: DataTypes.DECIMAL(5, 4) },
+    budget_limit: { type: DataTypes.DECIMAL(12, 2) },
     reference_scenario: { type: DataTypes.ENUM('minimum', 'expected', 'maximum') },
     status: { type: DataTypes.ENUM('draft', 'open_for_quotes', 'closed', 'canceled') },
     cancellation_reason: { type: DataTypes.STRING(500) },

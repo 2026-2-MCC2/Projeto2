@@ -22,7 +22,7 @@ Proposal.init(
     warranty: { type: DataTypes.STRING(255) },
     valid_until: { type: DataTypes.DATEONLY },
     notes: { type: DataTypes.TEXT },
-    status: { type: DataTypes.ENUM('sent', 'under_review', 'accepted', 'rejected') },
+    status: { type: DataTypes.ENUM('sent', 'under_review', 'accepted', 'rejected', 'canceled') },
     selected: { type: DataTypes.BOOLEAN },
     sent_at: { type: DataTypes.DATE },
   },

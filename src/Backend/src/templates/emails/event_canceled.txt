@@ -1,0 +1,15 @@
+Olá, {{nome}}.
+
+O organizador {{organizador}} cancelou o evento {{evento}}.
+
+{{situacao}}
+Item: {{item}}
+Valor da proposta: {{valor}}
+
+Motivo do cancelamento: {{motivo}}
+
+Para combinar qualquer custo que você já teve, fale com o organizador: {{contato}}
+
+Veja a proposta: {{link}}
+
+Este é um e-mail automático, não é preciso responder.

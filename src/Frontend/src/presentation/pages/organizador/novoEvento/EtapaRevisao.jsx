@@ -18,6 +18,7 @@ export function EtapaRevisao({ dados, comCustosProprios, aviso, isMobile }) {
           />
           <DadoResumo rotulo="Público esperado" valor={dados.publicoEsperado} />
           <DadoResumo rotulo="Margem de lucro" valor={dados.margemLucro} />
+          <DadoResumo rotulo="Teto de gastos" valor={dados.tetoDeGastos || 'Sem teto'} />
           {comCustosProprios && <DadoResumo rotulo="Custos próprios" valor={custosProprios} />}
         </div>
 
@@ -51,6 +52,7 @@ export function EtapaRevisao({ dados, comCustosProprios, aviso, isMobile }) {
 
         <BlocoResumo titulo="Financeiro">
           <DadoResumo rotulo="Margem de lucro" valor={dados.margemLucro} />
+          <DadoResumo rotulo="Teto de gastos" valor={dados.tetoDeGastos || 'Sem teto'} />
           {comCustosProprios && <DadoResumo rotulo="Custos próprios" valor={custosProprios} />}
           <DadoResumo
             rotulo="Cenário de referência"

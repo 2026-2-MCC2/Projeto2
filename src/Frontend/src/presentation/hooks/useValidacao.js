@@ -93,7 +93,9 @@ function atualizarMensagem(campo) {
     mensagem = document.createElement('small')
     mensagem.id = id
     mensagem.className = 'mensagem-erro'
-    campo.insertAdjacentElement('afterend', mensagem)
+    // no campo de senha a mensagem vai depois do botão de mostrar, não dentro dele
+    const ancora = campo.closest('.entrada-de-senha') ?? campo
+    ancora.insertAdjacentElement('afterend', mensagem)
   }
 
   mensagem.textContent = erro

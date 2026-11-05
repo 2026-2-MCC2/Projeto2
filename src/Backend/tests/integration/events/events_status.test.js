@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { afterEach, describe, test } from 'node:test'
 
 import { DbUtils } from '../../utils/db_utils.js'
+import { Mailpit } from '../../utils/mailpit.js'
 import { ObjectGenerator } from '../../utils/object_generator.js'
 import { PayloadGenerator } from '../../utils/payload_generator.js'
 import { RequestGenerator } from '../../utils/request_generator.js'
@@ -242,5 +243,42 @@ describe('PATCH /events/:event_key/status (RF08 - Publicação para cotação)',
 
     assert.equal(status, 400)
     assert.equal(response.code, 'APP000001')
+  })
+
+  test('cancelar o evento cancela as propostas em jogo e mantém as recusadas', async () => {
+    const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
+    const suppliers = await Promise.all(
+      [1, 2, 3].map(() => ObjectGenerator.createUserFixture({ profile: 'fornecedor', status: 'approved' })),
+    )
+    fixtureUserKeys.push(organizer.userKey, ...suppliers.map((supplier) => supplier.userKey))
+    const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
+    const [, created] = await RequestGenerator.POST_events(PayloadGenerator.createEventPayload(), headers)
+    const firstItem = await DbUtils.createBudgetItemFixture(created.event_key, { description: 'Som' })
+    const secondItem = await DbUtils.createBudgetItemFixture(created.event_key, { description: 'Bar' })
+    await RequestGenerator.PATCH_event_status(created.event_key, { status: 'open_for_quotes' }, headers)
+    const accepted = await DbUtils.createProposalFixture(firstItem.itemKey, suppliers[0].userKey)
+    const rejected = await DbUtils.createProposalFixture(firstItem.itemKey, suppliers[1].userKey)
+    const sent = await DbUtils.createProposalFixture(secondItem.itemKey, suppliers[2].userKey)
+    await RequestGenerator.POST_event_proposal_accept(created.event_key, accepted.proposalKey, headers)
+
+    const [status] = await RequestGenerator.PATCH_event_status(
+      created.event_key,
+      { status: 'canceled', reason: 'Patrocinador desistiu.' },
+      headers,
+    )
+
+    assert.equal(status, 200)
+    assert.deepEqual(await DbUtils.getProposalStatus(accepted.proposalKey), { status: 'canceled', selected: true })
+    assert.deepEqual(await DbUtils.getProposalStatus(sent.proposalKey), { status: 'canceled', selected: false })
+    assert.deepEqual(await DbUtils.getProposalStatus(rejected.proposalKey), { status: 'rejected', selected: false })
+
+    const acceptedEmail = await Mailpit.waitForEmailTo(suppliers[0].email)
+    const sentEmail = await Mailpit.waitForEmailTo(suppliers[2].email)
+    assert.equal(acceptedEmail.subject, `O evento ${created.name} foi cancelado`)
+    assert.match(acceptedEmail.text, /tinha sido aceita/)
+    assert.match(acceptedEmail.text, /Motivo do cancelamento: Patrocinador desistiu\./)
+    assert.match(acceptedEmail.text, new RegExp(`/fornecedor/propostas/${accepted.proposalKey}`))
+    assert.match(sentEmail.text, /aguardava a decisão do organizador/)
+    assert.equal(await Mailpit.countEmailsAfterWaiting(suppliers[1].email, 500), 0)
   })
 })

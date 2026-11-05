@@ -108,6 +108,7 @@ export const PROPOSAL_STATUSES = Object.freeze({
   UNDER_REVIEW: 'under_review',
   ACCEPTED: 'accepted',
   REJECTED: 'rejected',
+  CANCELED: 'canceled',
 })
 
 // rotas de infraestrutura: não passam pelos middlewares de log, login e banco

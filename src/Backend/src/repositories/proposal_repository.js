@@ -15,6 +15,7 @@ export const TODAY_IN_BRAZIL = "DATE(CONVERT_TZ(UTC_TIMESTAMP(), '+00:00', '-03:
 const SUPPLIER_PROPOSAL_COLUMNS = `proposal.proposal_key, proposal.amount,
        DATE_FORMAT(proposal.valid_until, '%Y-%m-%d') AS valid_until, proposal.status, proposal.selected, proposal.sent_at,
        event.event_key, event.name AS event_name, event.status AS event_status,
+       event.cancellation_reason AS event_cancellation_reason,
        budget_item.budget_item_key AS item_key, budget_item.description AS item_description,
        item_category.name AS item_category`
 
@@ -142,8 +143,11 @@ export class ProposalRepository {
               proposal.id, event.id AS event_id, event.end_date AS event_end_date,
               budget_item.type AS item_type, budget_item.quantity AS item_quantity,
               proposal.description, proposal.not_included, proposal.delivery_terms, proposal.payment_terms,
-              proposal.team, proposal.warranty, proposal.notes
+              proposal.team, proposal.warranty, proposal.notes, budget_item.estimated_value AS item_estimated_value,
+              organizer_user.name AS organizer_name, organizer_user.email AS organizer_email, organizer.phone AS organizer_phone
        ${SUPPLIER_PROPOSAL_JOINS}
+       INNER JOIN organizer ON organizer.id = event.organizer_id
+       INNER JOIN user AS organizer_user ON organizer_user.id = organizer.user_id
        WHERE proposal.supplier_id = :supplierId AND proposal.proposal_key = :proposalKey`,
       { replacements: { supplierId, proposalKey }, transaction: this.session, type: QueryTypes.SELECT },
     )
@@ -207,6 +211,30 @@ export class ProposalRepository {
   // as fotos da proposta saem junto (ON DELETE CASCADE em proposal_photo)
   async delete(proposal) {
     await proposal.destroy({ transaction: this.session })
+  }
+
+  // propostas ainda em jogo (enviada, em análise ou aceita), com o fornecedor que precisa saber do cancelamento
+  async getOpenProposalsOfEventForUpdate(eventId) {
+    return sequelize.query(
+      `SELECT proposal.id, proposal.proposal_key, proposal.status, proposal.amount, budget_item.description AS item_description,
+              supplier_user.name AS supplier_name, supplier_user.email AS supplier_email
+       FROM proposal
+       INNER JOIN budget_item ON budget_item.id = proposal.budget_item_id
+       INNER JOIN supplier ON supplier.id = proposal.supplier_id
+       INNER JOIN user AS supplier_user ON supplier_user.id = supplier.user_id
+       WHERE budget_item.event_id = :eventId AND proposal.status IN ('sent', 'under_review', 'accepted')
+       ORDER BY proposal.id
+       FOR UPDATE`,
+      { replacements: { eventId }, transaction: this.session, type: QueryTypes.SELECT },
+    )
+  }
+
+  async cancelProposals(proposalIds) {
+    if (proposalIds.length === 0) return
+    await sequelize.query(`UPDATE proposal SET status = 'canceled' WHERE id IN (:proposalIds)`, {
+      replacements: { proposalIds },
+      transaction: this.session,
+    })
   }
 
   async acceptByProposalKey(eventId, proposalKey) {

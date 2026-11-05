@@ -241,4 +241,33 @@ describe('POST /events (RF05, RF07)', () => {
       assert.equal(response.code, 'APP000001')
     }
   })
+
+  test('teto de gastos é opcional e precisa ser positivo', async () => {
+    const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
+    fixtureUserKeys.push(organizer.userKey)
+    const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
+
+    const [, semTeto] = await RequestGenerator.POST_events(PayloadGenerator.createEventPayload(), headers)
+    const [statusComTeto, comTeto] = await RequestGenerator.POST_events(
+      PayloadGenerator.createEventPayload({ budget_limit: 150000.5 }),
+      headers,
+    )
+    const invalidos = await Promise.all(
+      [0, -10, 'cem mil'].map((budget_limit) =>
+        RequestGenerator.POST_events(PayloadGenerator.createEventPayload({ budget_limit }), headers),
+      ),
+    )
+
+    assert.equal(semTeto.budget_limit, null)
+    assert.equal(statusComTeto, 201)
+    assert.equal(comTeto.budget_limit, 150000.5)
+    assert.deepEqual(
+      invalidos.map(([status, response]) => [status, response.code]),
+      [
+        [400, 'APP000001'],
+        [400, 'APP000001'],
+        [400, 'APP000001'],
+      ],
+    )
+  })
 })

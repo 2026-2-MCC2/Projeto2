@@ -1,3 +1,8 @@
+import { Icone } from './Icone.jsx'
+import iconeEventos from '../../assets/comum/icone-estado-eventos.svg'
+import iconePropostas from '../../assets/comum/icone-estado-propostas.svg'
+import iconeAtencao from '../../assets/comum/icone-estado-atencao.svg'
+
 // telaInteira: para quando ainda não há layout (carregando uma rota)
 export function Carregando({ mensagem = 'Carregando…', telaInteira = false }) {
   return (
@@ -26,9 +31,21 @@ export function ErroNaTela({ erro, aoTentarDeNovo }) {
   )
 }
 
-export function Vazio({ titulo, mensagem, children }) {
+const ICONES_DO_ESTADO = {
+  eventos: iconeEventos,
+  propostas: iconePropostas,
+  atencao: iconeAtencao,
+}
+
+// icone: 'eventos', 'propostas' ou 'atencao' (este em laranja, para o que ficou indisponível)
+export function Vazio({ titulo, mensagem, icone, children }) {
   return (
     <div className="estado-tela" role="status">
+      {icone && (
+        <span className={`estado-tela__icone estado-tela__icone--${icone}`}>
+          <Icone src={ICONES_DO_ESTADO[icone]} />
+        </span>
+      )}
       <strong>{titulo}</strong>
       {mensagem && <p>{mensagem}</p>}
       {children}

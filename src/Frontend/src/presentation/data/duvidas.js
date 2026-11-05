@@ -52,6 +52,16 @@ export const DUVIDAS = {
         'Abra o evento em Eventos disponíveis e preencha as 3 etapas: valor e validade, descrição e fotos, e condições de execução.',
     },
     {
+      pergunta: 'Posso editar ou retirar uma proposta?',
+      resposta:
+        'Sim, enquanto ela estiver como Enviada e o evento continuar em cotação. Depois que o organizador decide, ela fica só para consulta.',
+    },
+    {
+      pergunta: 'O que acontece se o evento for cancelado?',
+      resposta:
+        'Suas propostas do evento passam para Evento cancelado e você recebe um e-mail com o motivo e o contato do organizador, para combinar qualquer custo que já teve.',
+    },
+    {
       pergunta: 'O que acontece depois que a proposta vence?',
       resposta:
         'Depois da data de validade, a proposta expira e não pode mais ser selecionada pelo organizador.',
@@ -59,7 +69,7 @@ export const DUVIDAS = {
     {
       pergunta: 'Como acompanho minhas propostas?',
       resposta:
-        'Em Minhas propostas você vê cada proposta enviada e a situação dela: enviada, em análise, aceita ou recusada.',
+        'Em Minhas propostas você vê cada proposta enviada e a situação dela: enviada, aceita, recusada ou evento cancelado.',
     },
     ...COMUNS,
   ],
