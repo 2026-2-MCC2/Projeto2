@@ -1120,3 +1120,13 @@ button.calendario__titulo:focus-visible {
   font-weight: 500;
   text-align: right;
 }
+
+/* texto só para leitor de tela: some da tela, mas continua sendo lido */
+.so-leitor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

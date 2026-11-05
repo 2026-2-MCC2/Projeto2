@@ -204,10 +204,15 @@ function FotosDaProposta({ proposalKey }) {
 }
 
 // fotos: [{ chave, url }] das já enviadas ou [{ chave, arquivo }] das escolhidas (ver FotoDoServico)
-// ocupadoCom: texto que troca o Adicionar enquanto a lista carrega ou uma foto é enviada
+// ocupadoCom: texto que troca o Adicionar enquanto a lista carrega ou uma foto é enviada. O leitor de
+// tela ouve só esse texto, numa região à parte que fica vazia quando nada está acontecendo (assim a
+// volta para "Adicionar" não é anunciada)
 function Galeria({ fotos, ocupadoCom = null, aoAdicionar, aoRemover, aoFalharFoto }) {
   return (
     <div className="proposta-detalhes__galeria">
+      <span role="status" className="so-leitor">
+        {ocupadoCom}
+      </span>
       {fotos.map((foto, indice) => (
         <div key={foto.chave} className="proposta-detalhes__foto-item">
           <FotoDoServico foto={foto} indice={indice} aoFalharFoto={aoFalharFoto} />
@@ -225,7 +230,7 @@ function Galeria({ fotos, ocupadoCom = null, aoAdicionar, aoRemover, aoFalharFot
       {fotos.length < LIMITE_DE_FOTOS && (
         <label className="proposta-detalhes__adicionar">
           <Icone src={iconeAdicionar} />
-          <span role="status">{ocupadoCom ?? 'Adicionar'}</span>
+          <span aria-hidden="true">{ocupadoCom ?? 'Adicionar'}</span>
           <input
             type="file"
             aria-label="Adicionar foto"
