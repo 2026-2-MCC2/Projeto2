@@ -56,3 +56,9 @@ const FORMATO_DO_DIA_EM_BRASILIA = new Intl.DateTimeFormat('en-CA', {
 })
 
 export const diaEmBrasilia = (dataIso) => FORMATO_DO_DIA_EM_BRASILIA.format(new Date(dataIso))
+
+// 49800 → "R$ 49.800,00"; valor ausente ou que não é número vira "R$ 0,00"
+export function formatarMoeda(valor) {
+  if (valor === null || valor === undefined || Number.isNaN(Number(valor))) return 'R$ 0,00'
+  return Number(valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+}

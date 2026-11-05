@@ -3,6 +3,7 @@ import { OrganizadorLayout } from '../../components/organizador/OrganizadorLayou
 import { Carregando, ErroNaTela, Vazio } from '../../components/comum/EstadoDaTela.jsx'
 import { buscarRelatorioAdmin } from '../../../infrastructure/relatoriosAdmin.js'
 import '../../styles/admin.css'
+import { formatarMoeda } from '../../../domain/formatacao.js'
 
 const COLUNAS = [
   { chave: 'nome', rotulo: 'Evento' },
@@ -19,10 +20,9 @@ function contar(statuses, status, profile) {
     .reduce((total, item) => total + item.total, 0)
 }
 
-function formatarMoeda(valor) {
-  const numero = Number(valor)
-  if (!Number.isFinite(numero)) return '—'
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(numero)
+// o relatório mostra "—" quando o valor não veio, em vez de R$ 0,00
+function formatarMoedaDoRelatorio(valor) {
+  return Number.isFinite(Number(valor)) && valor !== null ? formatarMoeda(valor) : '—'
 }
 
 function mapearStatus(status) {
@@ -42,12 +42,12 @@ function mapearEventos(eventos) {
     nome: evento.name,
     organizador: evento.organizer.name,
     situacao: mapearStatus(evento.status),
-    custos: formatarMoeda(
+    custos: formatarMoedaDoRelatorio(
       Number(evento.values.planning_cost_total) + Number(evento.values.internal_cost_total),
     ),
     propostas: String(evento.proposal_count),
     ticket: evento.estimated_ticket?.[evento.reference_scenario]
-      ? formatarMoeda(evento.estimated_ticket[evento.reference_scenario])
+      ? formatarMoedaDoRelatorio(evento.estimated_ticket[evento.reference_scenario])
       : '—',
   }))
 }
@@ -82,8 +82,8 @@ function Indicadores({ summary }) {
     {
       id: 'estimativas-planejamento',
       titulo: 'Estimativas de itens',
-      valor: formatarMoeda(summary.values.estimated_items_total),
-      detalhe: `Propostas selecionadas: ${formatarMoeda(summary.values.selected_proposals_total)}`,
+      valor: formatarMoedaDoRelatorio(summary.values.estimated_items_total),
+      detalhe: `Propostas selecionadas: ${formatarMoedaDoRelatorio(summary.values.selected_proposals_total)}`,
     },
   ]
 

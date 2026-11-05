@@ -1,7 +1,7 @@
 // Propostas: comparação e aceite pelo organizador, e envio pelo fornecedor.
 
 import { api } from '../infrastructure/api.js'
-import { formatarMoeda } from './eventos.js'
+import { formatarMoeda } from '../domain/formatacao.js'
 import { paraData, paraDataIso, paraNumero } from '../domain/validacao.js'
 
 export function buscarComparacaoDePropostas(eventKey) {

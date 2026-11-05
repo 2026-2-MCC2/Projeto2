@@ -1,6 +1,6 @@
 import { api } from '../infrastructure/api.js'
 import { paraData, paraNumero, paraPercentual } from '../domain/validacao.js'
-import { digitos, mascararCep } from '../domain/formatacao.js'
+import { digitos, formatarMoeda, mascararCep } from '../domain/formatacao.js'
 import {
   buscarEventoEmMemoria,
   guardarEventos,
@@ -43,10 +43,7 @@ export function mapearStatusBackend(statusBackend) {
 const quantidadeDePessoas = (quantidade) =>
   `${quantidade.toLocaleString('pt-BR')} ${quantidade === 1 ? 'pessoa' : 'pessoas'}`
 
-export function formatarMoeda(valor) {
-  if (valor === null || valor === undefined || Number.isNaN(Number(valor))) return 'R$ 0,00'
-  return Number(valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-}
+export { formatarMoeda }
 
 // as datas são criadas no horário de quem cadastra, então são mostradas no horário local também
 function partesDaData(dataIso) {
