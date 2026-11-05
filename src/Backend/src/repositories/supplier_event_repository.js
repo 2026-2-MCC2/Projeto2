@@ -89,14 +89,16 @@ export class SupplierEventRepository {
   }
 
   // status e fim do evento de uma proposta, travado (FOR SHARE) para ele não sair de cotação
-  // enquanto a proposta é editada ou retirada
+  // enquanto a proposta é editada ou retirada; organizer_is_approved diz se o organizador ainda está aprovado
   async getEventForShare(eventId) {
-    const events = await sequelize.query(`SELECT id, status, end_date FROM event WHERE id = :eventId FOR SHARE`, {
-      replacements: { eventId },
-      transaction: this.session,
-      type: QueryTypes.SELECT,
-    })
-    return events[0] ?? null
+    const events = await sequelize.query(
+      `SELECT event.id, event.status, event.end_date, ${ORGANIZER_IS_APPROVED} AS organizer_is_approved
+       FROM event
+       WHERE event.id = :eventId FOR SHARE`,
+      { replacements: { eventId }, transaction: this.session, type: QueryTypes.SELECT },
+    )
+    const event = events[0]
+    return event ? { ...event, organizer_is_approved: Boolean(Number(event.organizer_is_approved)) } : null
   }
 
   // item do evento numa categoria que o fornecedor atende. O item fica travado (FOR UPDATE) para o

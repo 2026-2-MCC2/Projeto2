@@ -255,7 +255,7 @@ export class SupplierProposalController extends BaseController {
     return SupplierProposalDto.fromDetail(proposal, await toPhotoResponses(photos))
   }
 
-  // Só a proposta enviada, ainda não analisada, de um evento em cotação pode mudar. As travas seguem
+  // Só a proposta enviada, ainda não analisada, de um evento em cotação (com organizador aprovado) pode mudar. As travas seguem
   // a ordem do aceite do organizador (evento, depois proposta), para os dois não se bloquearem.
   async #getChangeableProposal(supplierId, proposalKey) {
     const reference = await this.proposalRepository.getSupplierProposalByKey(supplierId, proposalKey)
@@ -273,7 +273,8 @@ export class SupplierProposalController extends BaseController {
     if (proposal.status !== PROPOSAL_STATUSES.SENT) {
       throw new ProposalCannotBeChanged(proposal.status)
     }
-    if (event.status !== EVENT_STATUSES.OPEN_FOR_QUOTES) {
+    // evento de organizador bloqueado sai de cotação para o fornecedor, como na listagem e no envio
+    if (event.status !== EVENT_STATUSES.OPEN_FOR_QUOTES || !event.organizer_is_approved) {
       throw new ProposalEventNotOpen()
     }
 

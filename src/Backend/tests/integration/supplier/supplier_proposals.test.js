@@ -343,6 +343,23 @@ describe('PUT /supplier/proposals/:proposal_key', () => {
     assert.equal(response.code, 'EVP000042')
   })
 
+  test('evento de organizador bloqueado não aceita edição nem retirada', async () => {
+    const { organizer, supplier, proposal } = await createScenario()
+    await DbUtils.setUserStatus(organizer.user.userKey, 'blocked')
+
+    const [editStatus, edit] = await RequestGenerator.PUT_supplier_proposal(
+      proposal.proposal_key,
+      PayloadGenerator.createSupplierProposalPayload(),
+      supplier.headers,
+    )
+    const [deleteStatus, deletion] = await RequestGenerator.DELETE_supplier_proposal(proposal.proposal_key, supplier.headers)
+
+    assert.equal(editStatus, 409)
+    assert.equal(edit.code, 'EVP000042')
+    assert.equal(deleteStatus, 409)
+    assert.equal(deletion.code, 'EVP000042')
+  })
+
   test('mesmas validações do envio: validade, valor e campo obrigatório', async () => {
     const { supplier, proposal } = await createScenario()
     const missingTerms = PayloadGenerator.createSupplierProposalPayload()
