@@ -69,7 +69,7 @@ export class SupplierProposalResource {
 
   // POST /event_planning/supplier/proposals/:proposal_key/photos (multipart/form-data, campo "photo")
   //   201 { "photo_key": "6f1c...", "url": "<URL de leitura com validade curta>" }
-  //   400 { "code": "EVP000044" } não é JPG/PNG/WebP de verdade, ou faltou o campo "photo"
+  //   400 { "code": "EVP000044" } não é JPG/PNG/WebP de verdade, faltou o campo "photo" ou o formulário veio quebrado
   //   413 { "code": "EVP000045" } foto acima de 5 MB
   //   409 { "code": "EVP000043" } a proposta já tem 5 fotos · EVP000041/42 como na edição
   async onPostPhotos(req, res, proposalKey) {
@@ -110,7 +110,8 @@ function receivePhoto(req, res) {
       } else if (error instanceof multer.MulterError) {
         reject(new InvalidProposalPhoto(`Send only one file, in the "photo" field (${error.code}).`))
       } else if (error) {
-        reject(error)
+        // erros do leitor do formulário (ex.: "Unexpected end of form") vêm de um envio mal montado ou interrompido
+        reject(new InvalidProposalPhoto(`Malformed multipart form (${error.message}).`))
       } else if (!req.file) {
         reject(new InvalidProposalPhoto('Send the photo as multipart/form-data, in the "photo" field.'))
       } else {

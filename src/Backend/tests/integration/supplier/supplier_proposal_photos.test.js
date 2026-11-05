@@ -7,6 +7,7 @@ import { DbUtils } from '../../utils/db_utils.js'
 import { ImageFixtures } from '../../utils/image_fixtures.js'
 import { ObjectGenerator } from '../../utils/object_generator.js'
 import { RequestGenerator } from '../../utils/request_generator.js'
+import { ClientRequisition } from '../../utils/requisition.js'
 import { TokenGenerator } from '../../utils/token_generator.js'
 
 const fixtureUserKeys = []
@@ -94,6 +95,19 @@ describe('POST /supplier/proposals/:proposal_key/photos', () => {
     assert.equal(noFile.code, 'EVP000044')
     assert.equal(otherFieldStatus, 400)
     assert.equal(otherField.code, 'EVP000044')
+  })
+
+  test('formulário cortado no meio responde 400, não 500', async () => {
+    const scenario = await createScenario()
+    const boundary = 'limite-do-formulario'
+
+    const response = await ClientRequisition.send('POST', `/event_planning/supplier/proposals/${scenario.proposal.proposal_key}/photos`, {
+      data: `--${boundary}\r\nContent-Disposition: form-data; name="photo"; filename="palco.png"\r\nContent-Type: image/png\r\n\r\nmeia-foto`,
+      headers: { ...scenario.supplier.headers, 'Content-Type': `multipart/form-data; boundary=${boundary}` },
+    })
+
+    assert.equal(response.responseStatus, 400)
+    assert.equal(response.responseJson.code, 'EVP000044')
   })
 
   test('foto acima de 5 MB responde 413; com exatamente 5 MB passa', async () => {
