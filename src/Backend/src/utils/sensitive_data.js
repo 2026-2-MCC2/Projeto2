@@ -9,10 +9,13 @@ function isHiddenField(field) {
   return HIDDEN_FIELDS.has(name) || HIDDEN_FIELD_PARTS.some((part) => name.includes(part))
 }
 
+// vale também com prefixo, como supplier_cnpj e contact_email
 const PARTIALLY_MASKED_FIELDS = {
   email: (value) => maskEmail(value),
   cnpj: (value) => maskEnding(value, 4),
   phone: (value) => maskEnding(value, 4),
+  // a assinatura da URL de leitura da foto fica na query string: quem a copiasse do log abriria a foto
+  url: (value) => `${value.split('?')[0]}?HIDDEN`,
 }
 
 export function maskEmail(email) {
@@ -25,6 +28,12 @@ function maskEnding(value, visibleCharacters) {
   return `***${text.slice(-visibleCharacters)}`
 }
 
+function findPartialMask(field) {
+  const name = field.toLowerCase()
+  const maskedField = Object.keys(PARTIALLY_MASKED_FIELDS).find((key) => name === key || name.endsWith(`_${key}`))
+  return maskedField === undefined ? null : PARTIALLY_MASKED_FIELDS[maskedField]
+}
+
 export function hideSensitiveData(data) {
   if (Array.isArray(data)) return data.map(hideSensitiveData)
   if (data === null || typeof data !== 'object') return data
@@ -32,7 +41,8 @@ export function hideSensitiveData(data) {
   return Object.fromEntries(
     Object.entries(data).map(([field, value]) => {
       if (isHiddenField(field)) return [field, 'HIDDEN']
-      if (field in PARTIALLY_MASKED_FIELDS && typeof value === 'string') return [field, PARTIALLY_MASKED_FIELDS[field](value)]
+      const partialMask = findPartialMask(field)
+      if (partialMask !== null && typeof value === 'string') return [field, partialMask(value)]
       return [field, hideSensitiveData(value)]
     }),
   )
