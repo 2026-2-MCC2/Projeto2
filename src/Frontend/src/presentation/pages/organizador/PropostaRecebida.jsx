@@ -1,4 +1,5 @@
-// Exibe os detalhes da proposta selecionada na comparação do evento.
+// Uma proposta recebida, no padrão do Figma: fornecedor, condições, descrição e fotos à esquerda;
+// a decisão e as outras propostas do item à direita.
 
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
@@ -7,16 +8,23 @@ import {
   aceitarPropostaDoEvento,
   buscarComparacaoDePropostas,
   formatarValidade,
+  itemJaDecidido,
+  menorPropostaDisponivel,
 } from '../../../application/propostas.js'
-import { formatarMoeda } from '../../../application/eventos.js'
+import { formatarCnpj, formatarMoeda } from '../../../domain/formatacao.js'
 import { Carregando, ErroNaTela, Vazio } from '../../components/comum/EstadoDaTela.jsx'
-import { Modal } from '../../components/comum/Modal.jsx'
 import { Cartao } from '../../components/organizador/Cartao.jsx'
 import { EventoLayout } from '../../components/organizador/EventoLayout.jsx'
 import { Botao } from '../../components/organizador/Formulario.jsx'
+import { ModalSelecionarProposta } from '../../components/organizador/ModalSelecionarProposta.jsx'
 import { toast } from '../../toasts.js'
-import iconeAceitar from '../../assets/organizador/icone-modal-aceitar.svg'
 import { useRenovarFotosVencidas } from '../../hooks/useRenovarFotosVencidas.js'
+
+const TEXTOS_DA_PROPOSTA = [
+  { campo: 'description', rotulo: 'O que está incluído' },
+  { campo: 'not_included', rotulo: 'O que não está incluído' },
+  { campo: 'notes', rotulo: 'Observações' },
+]
 
 export function PropostaRecebida() {
   const { id, proposta: proposalKey } = useParams()
@@ -29,7 +37,6 @@ export function PropostaRecebida() {
 
   useEffect(() => {
     let telaAberta = true
-
     buscarComparacaoDePropostas(id)
       .then((resposta) => {
         if (telaAberta) {
@@ -40,7 +47,6 @@ export function PropostaRecebida() {
       .catch((erroDaApi) => {
         if (telaAberta) setErro(erroDaApi)
       })
-
     return () => {
       telaAberta = false
     }
@@ -72,27 +78,27 @@ export function PropostaRecebida() {
     return (
       <EventoLayout>
         <Vazio
+          icone="atencao"
           titulo="Proposta não encontrada"
-          mensagem="Ela pode ter sido removida. Volte para a lista de propostas do evento."
+          mensagem="Ela pode ter sido retirada pelo fornecedor. Volte para a lista de propostas do evento."
         />
       </EventoLayout>
     )
   }
 
-  const outras = item.proposals.filter(
-    (otherProposal) => otherProposal.proposal_key !== proposalKey,
-  )
-  const existeOutraSelecionada = outras.some((otherProposal) => otherProposal.status === 'accepted')
+  const outras = item.proposals.filter((outra) => outra.proposal_key !== proposalKey)
+  const menorValor =
+    !itemJaDecidido(item) && menorPropostaDisponivel(item)?.proposal_key === proposalKey
+  const podeSelecionar = !itemJaDecidido(item) && !proposta.is_expired && proposta.status === 'sent'
 
-  async function confirmarAceite() {
+  async function confirmarSelecao() {
     setSalvando(true)
     try {
-      const comparacaoAtualizada = await aceitarPropostaDoEvento(id, proposalKey)
-      setComparacao(comparacaoAtualizada)
+      setComparacao(await aceitarPropostaDoEvento(id, proposalKey))
       setConfirmacaoAberta(false)
-      toast.sucesso('Proposta aceita', { descricao: proposta.supplier_name })
+      toast.sucesso('Proposta selecionada', { descricao: proposta.supplier_name })
     } catch (falha) {
-      toast.erro('Não foi possível aceitar a proposta', { descricao: falha.message })
+      toast.erro('Não foi possível selecionar a proposta', { descricao: falha.message })
       if (falha.status === 409) setTentativa((valor) => valor + 1)
     } finally {
       setSalvando(false)
@@ -105,23 +111,65 @@ export function PropostaRecebida() {
 
       <div className="colunas">
         <div className="colunas__principal">
-          <Cartao titulo={`Proposta de ${proposta.supplier_name}`}>
-            <div className="dado-linha">
-              <span>Valor proposto</span>
-              <strong>{formatarMoeda(proposta.amount)}</strong>
+          <section className="cartao proposta-recebida__fornecedor">
+            <span className="proposta-recebida__avatar" aria-hidden="true">
+              {iniciais(proposta.supplier_name)}
+            </span>
+            <div>
+              <h2>{proposta.supplier_name}</h2>
+              <p>
+                {[
+                  proposta.supplier_cnpj && `CNPJ ${formatarCnpj(proposta.supplier_cnpj)}`,
+                  item.category,
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </p>
             </div>
-            <div className="dado-linha">
-              <span>Validade</span>
-              <strong>{formatarValidade(proposta.valid_until)}</strong>
+            <EtiquetaDaSituacao proposta={proposta} menorValor={menorValor} />
+          </section>
+
+          <Cartao titulo="Condições da proposta">
+            <dl className="linhas-de-dados">
+              <Linha rotulo="Valor proposto" valor={formatarMoeda(proposta.amount)} />
+              {item.estimated_value != null && (
+                <>
+                  <Linha
+                    rotulo="Orçamento previsto para o item"
+                    valor={formatarMoeda(item.estimated_value)}
+                  />
+                  <Linha
+                    rotulo="Diferença"
+                    valor={textoDaDiferenca(proposta.amount, item.estimated_value)}
+                    estilo={proposta.amount <= item.estimated_value ? 'positivo' : 'negativo'}
+                  />
+                </>
+              )}
+              <Linha rotulo="Validade da proposta" valor={formatarValidade(proposta.valid_until)} />
+              <Linha rotulo="Prazo de entrega ou montagem" valor={proposta.delivery_terms} />
+              <Linha rotulo="Condição de pagamento" valor={proposta.payment_terms} />
+              {proposta.team && <Linha rotulo="Equipe envolvida" valor={proposta.team} />}
+              {proposta.warranty && (
+                <Linha rotulo="Garantia ou substituição" valor={proposta.warranty} />
+              )}
+            </dl>
+          </Cartao>
+
+          <Cartao titulo="Descrição enviada pelo fornecedor">
+            <div className="detalhe-proposta__textos">
+              {TEXTOS_DA_PROPOSTA.filter(({ campo }) => proposta[campo]).map(
+                ({ campo, rotulo }) => (
+                  <div key={campo}>
+                    <h3>{rotulo}</h3>
+                    <p>{proposta[campo]}</p>
+                  </div>
+                ),
+              )}
             </div>
           </Cartao>
 
-          <Cartao titulo="Observações do fornecedor">
-            <p>{proposta.notes || 'Nenhuma observação enviada.'}</p>
-          </Cartao>
-
-          {proposta.photos?.length > 0 && (
-            <Cartao titulo="Fotos do serviço">
+          {proposta.photos?.some((foto) => foto.url) && (
+            <Cartao titulo="Fotos enviadas">
               <div className="proposta-recebida__fotos">
                 {proposta.photos
                   .filter((foto) => foto.url)
@@ -139,72 +187,99 @@ export function PropostaRecebida() {
           )}
         </div>
 
-        <div className="colunas__lateral colunas__lateral--estreita">
-          <Cartao titulo="Disponibilidade">
-            {proposta.is_expired ? (
-              <span className="etiqueta etiqueta--vencida">
-                Vencida · indisponível para seleção
+        <aside className="colunas__lateral">
+          <Cartao titulo="Decisão sobre a proposta">
+            <strong className="proposta-recebida__valor">{formatarMoeda(proposta.amount)}</strong>
+            {item.estimated_value != null && (
+              <span
+                className={`etiqueta ${proposta.amount <= item.estimated_value ? 'etiqueta--aprovado' : 'etiqueta--rejeitado'}`}
+              >
+                {percentualDoOrcamento(proposta.amount, item.estimated_value)}
               </span>
-            ) : proposta.status === 'accepted' ? (
-              <span className="etiqueta etiqueta--aprovado">Selecionada</span>
-            ) : proposta.status === 'rejected' ? (
-              <span className="etiqueta etiqueta--rejeitado">Rejeitada anteriormente</span>
-            ) : (
-              <span className="etiqueta etiqueta--aprovado">Dentro do prazo de validade</span>
             )}
-
-            <p className="cartao__apoio">
-              Custo consolidado: {formatarMoeda(comparacaoDoEvento.total_cost)}
-            </p>
-
-            <Botao
-              type="button"
-              disabled={proposta.is_expired || proposta.status === 'accepted' || salvando}
-              onClick={() => setConfirmacaoAberta(true)}
-            >
-              {proposta.status === 'accepted'
-                ? 'Proposta selecionada'
-                : existeOutraSelecionada
-                  ? 'Trocar proposta escolhida'
-                  : 'Aceitar proposta'}
-            </Botao>
+            <p className="cartao__apoio">{textoDaDecisao(proposta, item)}</p>
+            {podeSelecionar && (
+              <Botao type="button" disabled={salvando} onClick={() => setConfirmacaoAberta(true)}>
+                Selecionar proposta
+              </Botao>
+            )}
           </Cartao>
 
           {outras.length > 0 && (
             <Cartao titulo="Outras propostas do item">
-              {outras.map((outra) => (
-                <Link
-                  key={outra.proposal_key}
-                  className="dado-linha"
-                  to={`/organizador/eventos/${id}/propostas/${outra.proposal_key}`}
-                >
-                  <span>
-                    {outra.supplier_name}
-                    {outra.is_expired && <small> · vencida</small>}
-                  </span>
-                  <strong>{formatarMoeda(outra.amount)}</strong>
-                </Link>
-              ))}
+              <dl className="linhas-de-dados">
+                {outras.map((outra) => (
+                  <div key={outra.proposal_key}>
+                    <dt>
+                      <Link to={`/organizador/eventos/${id}/propostas/${outra.proposal_key}`}>
+                        {outra.supplier_name}
+                      </Link>
+                      {outra.is_expired && <small> · vencida</small>}
+                    </dt>
+                    <dd>{formatarMoeda(outra.amount)}</dd>
+                  </div>
+                ))}
+              </dl>
             </Cartao>
           )}
-        </div>
+        </aside>
       </div>
 
       {confirmacaoAberta && (
-        <Modal
-          icone={iconeAceitar}
-          corDoIcone="verde"
-          titulo={existeOutraSelecionada ? 'Trocar proposta escolhida?' : 'Aceitar esta proposta?'}
-          mensagem="As outras propostas deste item serão rejeitadas e o custo consolidado será atualizado."
-          dados={[
-            { rotulo: 'Fornecedor', valor: proposta.supplier_name },
-            { rotulo: 'Item', valor: item.description },
-            { rotulo: 'Valor', valor: formatarMoeda(proposta.amount) },
-          ]}
-          acao={{ confirmar: 'Aceitar proposta', ocupado: salvando, aoConfirmar: confirmarAceite }}
+        <ModalSelecionarProposta
+          proposta={proposta}
+          item={item}
+          salvando={salvando}
+          aoConfirmar={confirmarSelecao}
           aoFechar={() => setConfirmacaoAberta(false)}
         />
       )}
     </EventoLayout>
   )
+}
+
+function Linha({ rotulo, valor, estilo }) {
+  return (
+    <div>
+      <dt>{rotulo}</dt>
+      <dd className={estilo ? `linhas-de-dados__valor--${estilo}` : undefined}>{valor}</dd>
+    </div>
+  )
+}
+
+function EtiquetaDaSituacao({ proposta, menorValor }) {
+  if (proposta.status === 'accepted')
+    return <span className="etiqueta etiqueta--aprovado">Selecionada</span>
+  if (proposta.status === 'rejected')
+    return <span className="etiqueta etiqueta--rejeitado">Recusada</span>
+  if (proposta.is_expired) return <span className="etiqueta etiqueta--vencida">Vencida</span>
+  if (menorValor) return <span className="etiqueta etiqueta--aprovado">Menor valor</span>
+  return null
+}
+
+const iniciais = (nome) =>
+  nome
+    .split(/\s+/)
+    .filter((parte) => /^[\p{L}\d]/u.test(parte))
+    .slice(0, 2)
+    .map((parte) => parte[0].toUpperCase())
+    .join('')
+
+function textoDaDiferenca(valor, previsto) {
+  const diferenca = previsto - valor
+  if (diferenca === 0) return 'Igual ao previsto'
+  return `${formatarMoeda(Math.abs(diferenca))} ${diferenca > 0 ? 'abaixo' : 'acima'} do previsto`
+}
+
+function percentualDoOrcamento(valor, previsto) {
+  const percentual = Math.abs(((valor - previsto) / previsto) * 100)
+  const texto = percentual.toLocaleString('pt-BR', { maximumFractionDigits: 1 })
+  return `${texto}% ${valor <= previsto ? 'abaixo' : 'acima'} do orçamento`
+}
+
+function textoDaDecisao(proposta, item) {
+  if (proposta.status === 'accepted') return 'Esta é a proposta escolhida para o item.'
+  if (itemJaDecidido(item)) return 'Outra proposta já foi escolhida para este item.'
+  if (proposta.is_expired) return 'A validade passou: esta proposta não pode mais ser escolhida.'
+  return 'Ao selecionar, o valor entra nos itens de custo e o ticket é recalculado.'
 }

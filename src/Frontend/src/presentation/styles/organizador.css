@@ -3154,3 +3154,76 @@
     display: none;
   }
 }
+
+/* ---------- proposta recebida (pages/organizador/PropostaRecebida.jsx) ---------- */
+.proposta-recebida__fornecedor {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+.proposta-recebida__fornecedor > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.proposta-recebida__fornecedor h2 {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.proposta-recebida__fornecedor p {
+  margin: 0.125rem 0 0;
+  color: var(--texto-secundario);
+  font-size: 0.75rem;
+}
+
+.proposta-recebida__avatar {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 999px;
+  background: var(--fundo-marca-suave);
+  color: var(--texto-marca);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.proposta-recebida__valor {
+  display: block;
+  margin: 0.25rem 0 0.5rem;
+  color: var(--texto-marca);
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.colunas__lateral .cartao > .etiqueta {
+  align-self: flex-start;
+}
+
+.colunas__lateral .cartao .botao {
+  width: 100%;
+}
+
+.linhas-de-dados__valor--positivo {
+  color: var(--status-sucesso-texto);
+}
+
+.linhas-de-dados__valor--negativo {
+  color: var(--status-perigo-texto);
+}
+
+.linhas-de-dados a {
+  color: var(--texto-primario);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.linhas-de-dados a:hover {
+  color: var(--texto-marca);
+}

@@ -1031,3 +1031,50 @@ button.calendario__titulo:focus-visible {
   outline: 2px solid var(--texto-marca);
   outline-offset: 1px;
 }
+
+/* linhas "rótulo · valor" e blocos de texto das propostas (detalhe do fornecedor e proposta recebida) */
+.detalhe-proposta__textos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.detalhe-proposta__textos h3 {
+  margin: 0 0 0.25rem;
+  color: var(--texto-secundario);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.detalhe-proposta__textos p {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+.linhas-de-dados {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.linhas-de-dados > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.8125rem;
+}
+
+.linhas-de-dados dt {
+  color: var(--texto-secundario);
+}
+
+.linhas-de-dados dd {
+  margin: 0;
+  font-weight: 500;
+  text-align: right;
+}
