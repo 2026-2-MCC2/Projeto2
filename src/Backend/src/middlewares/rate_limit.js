@@ -44,9 +44,13 @@ function normalizePath(path) {
   return path.toLowerCase().replace(/\/+$/, '')
 }
 
+// o MySQL acha a conta ignorando acentos (collation utf8mb4_0900_ai_ci): "vítima@x.com" e "vitima@x.com"
+// são a mesma linha, então a chave também tira os acentos, para cada grafia não ganhar a própria cota
 function loginKey(req) {
   const email = req.context.media?.email
-  return typeof email === 'string' ? `${req.ip} ${TextTools.normalizeEmail(email)}` : null
+  if (typeof email !== 'string') return null
+  const withoutAccents = TextTools.normalizeEmail(email).normalize('NFKD').replace(/\p{M}/gu, '')
+  return `${req.ip} ${withoutAccents}`
 }
 
 function throwIfBlocked(res, limiter, key) {
