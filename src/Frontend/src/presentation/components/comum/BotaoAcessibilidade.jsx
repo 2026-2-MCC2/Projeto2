@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useAcessibilidade } from '../../hooks/useAcessibilidade.js'
 import { useFolhaArrastavel } from '../../hooks/useFolhaArrastavel.js'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
+import { manterTabDentro } from '../../hooks/useFocoPreso.js'
 import { leituraDisponivel, useLeituraEmVozAlta } from '../../hooks/useLeituraEmVozAlta.js'
 import { Icone } from './Icone.jsx'
 import { BotaoTema, SeletorTema } from './BotaoTema.jsx'
@@ -35,6 +36,7 @@ export function BotaoAcessibilidade({ posicao = 'flutuante' }) {
   const { ajustes, alternar, mudarFonte, restaurar } = useAcessibilidade()
   const leitura = useLeituraEmVozAlta()
   const caixa = useRef(null)
+  const botao = useRef(null)
   const folha = useFolhaArrastavel(() => setAberto(false))
   const flutuante = posicao === 'flutuante'
   const isMobile = useIsMobile()
@@ -63,6 +65,30 @@ export function BotaoAcessibilidade({ posicao = 'flutuante' }) {
     if (elemento.scrollHeight > elemento.clientHeight) setLargo(true)
   }, [medicao, largo])
 
+  // o foco entra no painel ao abrir e volta ao botão ao fechar, a não ser que já tenha ido
+  // para outro lugar (clique fora em outro campo)
+  useEffect(() => {
+    if (!aberto) return
+    const elementoPainel = painel.current
+    const elementoBotao = botao.current
+    elementoPainel?.focus()
+
+    return () => {
+      const foco = document.activeElement
+      if (!foco || foco === document.body || elementoPainel?.contains(foco)) elementoBotao?.focus()
+    }
+  }, [aberto])
+
+  // no celular o painel cobre a tela como uma folha: o Tab não pode sair para a página atrás
+  useEffect(() => {
+    const elementoPainel = painel.current
+    if (!aberto || !isMobile || !elementoPainel) return
+
+    const prenderTab = (evento) => manterTabDentro(evento, elementoPainel)
+    elementoPainel.addEventListener('keydown', prenderTab)
+    return () => elementoPainel.removeEventListener('keydown', prenderTab)
+  }, [aberto, isMobile])
+
   useEffect(() => {
     if (!aberto) return
 
@@ -88,6 +114,7 @@ export function BotaoAcessibilidade({ posicao = 'flutuante' }) {
       {flutuante && !isMobile && <BotaoTema />}
 
       <button
+        ref={botao}
         type="button"
         className={`acessibilidade acessibilidade--${posicao}${aberto ? ' acessibilidade--aberta' : ''}`}
         aria-label="Opções de acessibilidade"
@@ -102,7 +129,9 @@ export function BotaoAcessibilidade({ posicao = 'flutuante' }) {
           ref={painel}
           className={`painel-acesso${largo ? ' painel-acesso--largo' : ''}${folha.expandida ? ' painel-acesso--expandida' : ''}${folha.arrasto ? ' painel-acesso--arrastando' : ''}`}
           role="dialog"
+          aria-modal={isMobile}
           aria-label="Opções de acessibilidade"
+          tabIndex={-1}
           style={folha.estiloDoArrasto}
         >
           <button

@@ -195,6 +195,11 @@
   grid-row: 2 / span 3;
 }
 
+/* o painel só recebe o foco como ponto de partida do Tab; o contorno fica nos controles */
+.painel-acesso:focus {
+  outline: none;
+}
+
 @keyframes painel-surge {
   from {
     opacity: 0;
