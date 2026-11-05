@@ -57,6 +57,34 @@ async function createEventWithItems(organizerHeaders, { name, categories, publis
 }
 
 describe('GET /supplier/events', () => {
+  test('evento de organizador bloqueado some da lista, do detalhe e não recebe proposta', async () => {
+    const organizer = await createUser('organizador')
+    const supplier = await createUser('fornecedor')
+    const supplierHeaders = authorizationFor(supplier)
+    const { event, items } = await createEventWithItems(authorizationFor(organizer), {
+      name: 'Evento de organizador bloqueado',
+      categories: ['Estrutura'],
+    })
+
+    await DbUtils.setUserStatus(organizer.userKey, 'blocked')
+
+    const [listStatus, list] = await RequestGenerator.GET_supplier_events({}, supplierHeaders)
+    const [detailStatus, detail] = await RequestGenerator.GET_supplier_event_by_key(event.event_key, supplierHeaders)
+    const [proposalStatus, proposal] = await RequestGenerator.POST_supplier_item_proposal(
+      event.event_key,
+      items[0].item_key,
+      PayloadGenerator.createSupplierProposalPayload({ valid_until: PayloadGenerator.dateFromToday(1) }),
+      supplierHeaders,
+    )
+
+    assert.equal(listStatus, 200)
+    assert.ok(!list.data.some((listed) => listed.event_key === event.event_key))
+    assert.equal(detailStatus, 404)
+    assert.equal(detail.code, 'EVP000013')
+    assert.equal(proposalStatus, 404)
+    assert.equal(proposal.code, 'EVP000013')
+  })
+
   test('lista somente eventos em cotação que tenham itens nas categorias do fornecedor', async () => {
     const organizer = await createUser('organizador')
     const supplier = await createUser('fornecedor')

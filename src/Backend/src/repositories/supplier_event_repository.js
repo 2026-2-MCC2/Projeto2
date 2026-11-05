@@ -4,6 +4,14 @@ import { QueryTypes } from 'sequelize'
 
 import { sequelize } from '../connectors/database_connector.js'
 
+// evento de organizador bloqueado (ou que deixou de estar aprovado) some para o fornecedor
+const ORGANIZER_IS_APPROVED = `EXISTS (
+           SELECT 1
+           FROM organizer
+           INNER JOIN user AS organizer_user ON organizer_user.id = organizer.user_id
+           WHERE organizer.id = event.organizer_id AND organizer_user.status = 'approved'
+         )`
+
 export class SupplierEventRepository {
   constructor(context) {
     this.session = context.dbSession
@@ -26,6 +34,7 @@ export class SupplierEventRepository {
        INNER JOIN supplier_category ON supplier_category.category_id = budget_item.category_id
        WHERE supplier_category.supplier_id = :supplierId
          AND event.status = 'open_for_quotes'
+         AND ${ORGANIZER_IS_APPROVED}
          AND (:searchPattern IS NULL OR event.name LIKE :searchPattern
               OR event.venue_name LIKE :searchPattern OR event.city LIKE :searchPattern)`,
       { replacements, transaction: this.session, type: QueryTypes.SELECT },
@@ -43,6 +52,7 @@ export class SupplierEventRepository {
        INNER JOIN supplier_category ON supplier_category.category_id = item_category.id
        WHERE supplier_category.supplier_id = :supplierId
          AND event.status = 'open_for_quotes'
+         AND ${ORGANIZER_IS_APPROVED}
          AND (:searchPattern IS NULL OR event.name LIKE :searchPattern
               OR event.venue_name LIKE :searchPattern OR event.city LIKE :searchPattern)
        GROUP BY event.id
@@ -64,6 +74,7 @@ export class SupplierEventRepository {
        FROM event
        WHERE event.event_key = ?
          AND event.status = 'open_for_quotes'
+         AND ${ORGANIZER_IS_APPROVED}
          AND EXISTS (
            SELECT 1
            FROM budget_item
