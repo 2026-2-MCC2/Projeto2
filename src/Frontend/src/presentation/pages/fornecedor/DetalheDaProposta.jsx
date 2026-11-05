@@ -114,6 +114,7 @@ export function DetalheDaProposta() {
       <OrganizadorLayout perfil="fornecedor" titulo="Proposta" voltarPara={VOLTAR_PARA}>
         {resultado.erro.status === 404 ? (
           <Vazio
+            icone="atencao"
             titulo="Proposta não encontrada"
             mensagem="Ela pode ter sido retirada. Confira suas propostas na lista."
           >

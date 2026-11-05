@@ -708,12 +708,31 @@ button.calendario__titulo:focus-visible {
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
-  padding: 2.5rem 1.5rem;
-  border: 1px dashed var(--borda-forte);
+  padding: 3rem 1.5rem;
+  border: 1px solid var(--borda-padrao);
   border-radius: 14px;
   background: var(--fundo-superficie);
   color: var(--texto-secundario);
   text-align: center;
+}
+
+.estado-tela__icone {
+  display: flex;
+  padding: 0.875rem;
+  margin-bottom: 0.5rem;
+  border-radius: 999px;
+  background: var(--fundo-marca-suave);
+  --icone-cor: var(--texto-marca);
+}
+
+.estado-tela__icone .icone {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.estado-tela__icone--atencao {
+  background: var(--status-alerta-fundo);
+  --icone-cor: var(--status-alerta-texto);
 }
 
 .estado-tela strong {

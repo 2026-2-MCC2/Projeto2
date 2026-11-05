@@ -44,8 +44,9 @@ export function EtapaDaProposta({ proposta, etapa, aoVoltar, rodape, children })
         voltarPara="/fornecedor/eventos"
       >
         <Vazio
+          icone="atencao"
           titulo="Este item não está disponível para proposta"
-          mensagem="O evento pode ter sido encerrado ou o item não está nas suas categorias."
+          mensagem="O evento pode ter sido encerrado ou o item não está mais nas suas categorias."
         >
           <Link to="/fornecedor/eventos" className="botao botao--secundario">
             Ver eventos disponíveis
@@ -60,8 +61,9 @@ export function EtapaDaProposta({ proposta, etapa, aoVoltar, rodape, children })
     return (
       <OrganizadorLayout perfil="fornecedor" titulo="Proposta enviada" voltarPara={paginaDoEvento}>
         <Vazio
+          icone="atencao"
           titulo="Esta proposta não pode mais ser alterada"
-          mensagem={`Situação: ${traduzirStatusDaProposta(item.my_proposal.status)}.`}
+          mensagem={`O organizador já decidiu sobre ela ou o evento saiu da cotação. Situação: ${traduzirStatusDaProposta(item.my_proposal.status)}.`}
         >
           <Link
             to={`/fornecedor/propostas/${item.my_proposal.proposal_key}`}

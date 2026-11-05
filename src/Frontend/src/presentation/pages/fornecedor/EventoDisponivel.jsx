@@ -33,8 +33,9 @@ export function EventoDisponivel() {
           <Carregando mensagem="Carregando os itens disponíveis…" />
         ) : erro.status === 404 ? (
           <Vazio
-            titulo="Este evento não está disponível"
-            mensagem="Ele pode ter sido encerrado ou não ter mais itens nas suas categorias."
+            icone="atencao"
+            titulo="Este evento não está mais disponível"
+            mensagem="O organizador cancelou ou encerrou a cotação, ou o evento não tem mais itens nas suas categorias. Suas propostas continuam em Minhas propostas."
           >
             <Link to={LISTA_DE_EVENTOS} className="botao botao--secundario">
               Ver eventos disponíveis
@@ -99,7 +100,7 @@ function ItensParaCotar({ eventKey, itens }) {
   return (
     <Cartao titulo="Itens para cotar">
       {itens.length === 0 ? (
-        <Vazio titulo="Nenhum item nas suas categorias" />
+        <Vazio icone="eventos" titulo="Nenhum item nas suas categorias" />
       ) : (
         <>
           <p className="itens-para-cotar__progresso">

@@ -1038,16 +1038,6 @@
   min-width: 0;
 }
 
-.fornecedor__vazio {
-  margin: 0;
-  padding: 24px;
-  border: 1px solid var(--borda-padrao);
-  border-radius: 12px;
-  background: var(--fundo-superficie);
-  color: var(--texto-secundario);
-  font-size: 0.8125rem;
-  text-align: center;
-}
 
 .fornecedor-evento-detalhe {
   display: grid;

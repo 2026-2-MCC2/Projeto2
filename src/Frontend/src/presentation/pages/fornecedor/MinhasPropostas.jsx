@@ -152,6 +152,7 @@ export function MinhasPropostas() {
 
       {estado.situacao === 'pronto' && estado.propostas.length === 0 && (
         <Vazio
+          icone="propostas"
           titulo="Você ainda não enviou propostas"
           mensagem="Escolha um evento aberto para cotação e envie a sua proposta para um item."
         >
