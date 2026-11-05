@@ -100,13 +100,12 @@ export const REGRAS = {
       : 'Informe o telefone com DDD, como (11) 90000-0000.',
   senha: (texto) => (texto.length >= 8 ? '' : 'A senha precisa ter pelo menos 8 caracteres.'),
   data: (texto) => (paraData(texto) ? '' : 'Informe a data no formato dd/mm/aaaa.'),
+  // "hoje" é o dia de Brasília, o mesmo que a API usa, e não o do relógio de quem está digitando
   dataFutura: (texto) => {
     const data = paraData(texto)
     if (!data) return 'Informe a data no formato dd/mm/aaaa.'
 
-    const hoje = new Date()
-    hoje.setHours(0, 0, 0, 0)
-    return data >= hoje ? '' : 'A data não pode estar no passado.'
+    return paraDataIso(data) >= diaEmBrasilia(Date.now()) ? '' : 'A data não pode estar no passado.'
   },
   horario: (texto) =>
     /^([01]\d|2[0-3]):[0-5]\d$/.test(texto) ? '' : 'Informe o horário no formato hh:mm.',
