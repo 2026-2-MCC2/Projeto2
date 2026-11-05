@@ -8,6 +8,7 @@ import {
 import { AcessoLayout } from '../../components/acesso/AcessoLayout.jsx'
 import { RetornoDoEnvio } from '../../components/acesso/RetornoDoEnvio.jsx'
 import { useValidacao } from '../../hooks/useValidacao.js'
+import { EntradaDeSenha } from '../../components/comum/EntradaDeSenha.jsx'
 
 export function Login() {
   const navegar = useNavigate()
@@ -59,8 +60,7 @@ export function Login() {
 
         <label className="campo">
           <span>Senha</span>
-          <input
-            type="password"
+          <EntradaDeSenha
             autoComplete="current-password"
             placeholder="••••••••"
             value={senha}

@@ -928,3 +928,42 @@ select:user-invalid {
 :root[data-tema='escuro'] .logotipo__negativo {
   display: block;
 }
+
+/* campo de senha com o botão de mostrar (components/comum/EntradaDeSenha.jsx) */
+.entrada-de-senha {
+  position: relative;
+  display: flex;
+}
+
+.campo .entrada-de-senha > input.entrada-de-senha__campo {
+  flex: 1;
+  min-width: 0;
+  padding-right: 2.75rem;
+}
+
+.entrada-de-senha__olho {
+  position: absolute;
+  top: 50%;
+  right: 0.375rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  transform: translateY(-50%);
+  --icone-cor: var(--texto-secundario);
+}
+
+.entrada-de-senha__olho:hover {
+  background: var(--fundo-sutil);
+}
+
+.entrada-de-senha__olho:focus-visible {
+  outline: 2px solid var(--texto-marca);
+  outline-offset: 1px;
+}

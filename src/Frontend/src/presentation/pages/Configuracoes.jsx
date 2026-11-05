@@ -24,6 +24,7 @@ import { validarConfirmacaoSenha } from '../../domain/validacao.js'
 import { Icone } from '../components/comum/Icone.jsx'
 import iconeBloqueado from '../assets/organizador/icone-bloqueado.svg'
 import iconePermitido from '../assets/organizador/icone-permitido.svg'
+import { EntradaDeSenha } from '../components/comum/EntradaDeSenha.jsx'
 
 const ABA_SENHA = { id: 'senha', nome: 'Senha', nomeCurto: 'Senha' }
 const ABA_PERFIL = { id: 'perfil', nome: 'Perfil de acesso', nomeCurto: 'Perfil' }
@@ -480,8 +481,7 @@ function PainelSenha() {
       <Linha>
         {CAMPOS_DE_SENHA.map((item) => (
           <Campo key={item.nome} rotulo={item.rotulo}>
-            <input
-              type="password"
+            <EntradaDeSenha
               name={item.nome}
               autoComplete={item.preencher ?? 'new-password'}
               placeholder={item.placeholder}

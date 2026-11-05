@@ -13,6 +13,7 @@ import { useValidacao } from '../../hooks/useValidacao.js'
 import { validarConfirmacaoSenha } from '../../../domain/validacao.js'
 import fotoMusica from '../../assets/acesso/foto-musica.jpg'
 import perfilSelecionado from '../../assets/acesso/perfil-selecionado.svg'
+import { EntradaDeSenha } from '../../components/comum/EntradaDeSenha.jsx'
 
 const ETAPAS = ['Perfil', 'Dados da empresa', 'Acesso']
 const ETAPA_DO_CNPJ = 2
@@ -242,8 +243,7 @@ export function Cadastro() {
 
             <label className="campo">
               <span>Senha</span>
-              <input
-                type="password"
+              <EntradaDeSenha
                 name="senha"
                 autoComplete="new-password"
                 data-validar="senha"
@@ -257,8 +257,7 @@ export function Cadastro() {
 
             <label className="campo">
               <span>Confirmar senha</span>
-              <input
-                type="password"
+              <EntradaDeSenha
                 name="confirmacaoSenha"
                 autoComplete="new-password"
                 placeholder="Repita a senha"

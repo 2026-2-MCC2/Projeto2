@@ -6,6 +6,7 @@ import { AcessoLayout } from '../../components/acesso/AcessoLayout.jsx'
 import { RetornoDoEnvio } from '../../components/acesso/RetornoDoEnvio.jsx'
 import { useValidacao } from '../../hooks/useValidacao.js'
 import { toast } from '../../toasts.js'
+import { EntradaDeSenha } from '../../components/comum/EntradaDeSenha.jsx'
 
 export function RedefinirSenha() {
   const navegar = useNavigate()
@@ -59,8 +60,7 @@ export function RedefinirSenha() {
       <form className="acesso__campos" onSubmit={aoEnviar} {...validacao}>
         <label className="campo">
           <span>Senha nova</span>
-          <input
-            type="password"
+          <EntradaDeSenha
             name="senha"
             autoComplete="new-password"
             data-validar="senha"
@@ -74,8 +74,7 @@ export function RedefinirSenha() {
 
         <label className="campo">
           <span>Confirme a senha nova</span>
-          <input
-            type="password"
+          <EntradaDeSenha
             name="confirmacaoSenha"
             autoComplete="new-password"
             placeholder="Repita a senha"
