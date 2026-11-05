@@ -1,9 +1,10 @@
-import { buffer } from 'node:stream/consumers'
-
 import { BYPASS_ENDPOINTS } from '../constants.js'
-import { InvalidSchema } from '../errors/index.js'
+import { InvalidSchema, PayloadTooLarge } from '../errors/index.js'
 import { Logger } from '../utils/logger.js'
 import { hideSensitiveData } from '../utils/sensitive_data.js'
+
+// o maior body JSON da API (evento com itens) fica bem abaixo disso; a foto vai por multipart, com limite próprio
+const MAX_BODY_BYTES = 1024 * 1024
 
 export class InputOutputMiddleware {
   async processRequest(req, res) {
@@ -51,7 +52,7 @@ export class InputOutputMiddleware {
       return
     }
 
-    const binaryBody = await buffer(req)
+    const binaryBody = await readBodyWithLimit(req, MAX_BODY_BYTES)
     req.context.binaryBody = binaryBody
 
     const contentType = req.get('content-type')
@@ -78,4 +79,23 @@ export class InputOutputMiddleware {
       return originalJson(body)
     }
   }
+}
+
+// para de ler assim que passa do limite, sem guardar o resto na memória. destroyOnReturn: false
+// mantém a conexão aberta, senão o 413 não chegaria ao cliente (o Node descarta o resto do body sozinho)
+async function readBodyWithLimit(req, maxBytes) {
+  if (Number(req.get('content-length')) > maxBytes) {
+    throw new PayloadTooLarge(maxBytes / 1024)
+  }
+
+  const chunks = []
+  let totalBytes = 0
+  for await (const chunk of req.iterator({ destroyOnReturn: false })) {
+    totalBytes += chunk.length
+    if (totalBytes > maxBytes) {
+      throw new PayloadTooLarge(maxBytes / 1024)
+    }
+    chunks.push(chunk)
+  }
+  return Buffer.concat(chunks)
 }

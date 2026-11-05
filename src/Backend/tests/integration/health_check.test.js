@@ -39,6 +39,14 @@ describe('HealthCheck', () => {
     assert.equal(response.responseJson.code, 'APP000001')
   })
 
+  test('body JSON acima de 1 MB responde 413', async () => {
+    const response = await ClientRequisition.send('POST', '/event_planning/auth/login', {
+      payload: { email: 'alguem@example.test', password: 'x'.repeat(1024 * 1024) },
+    })
+    assert.equal(response.responseStatus, 413)
+    assert.equal(response.responseJson.code, 'APP000413')
+  })
+
   test('respostas têm os headers de segurança', async () => {
     const response = await ClientRequisition.send('GET', '/event_planning/health_check')
     assert.equal(response.responseStatus, 204)
