@@ -12,6 +12,19 @@ export function aceitarPropostaDoEvento(eventKey, proposalKey) {
   return api.post(`/events/${eventKey}/proposals/${proposalKey}/accept`, {})
 }
 
+// a proposta que pode ser escolhida e tem o menor valor do item (vencida ou recusada não conta)
+export function menorPropostaDisponivel(item) {
+  return item.proposals
+    .filter((proposta) => !proposta.is_expired && proposta.status !== 'rejected')
+    .reduce(
+      (menor, proposta) => (!menor || proposta.amount < menor.amount ? proposta : menor),
+      null,
+    )
+}
+
+export const itemJaDecidido = (item) =>
+  item.proposals.some((proposta) => proposta.status === 'accepted')
+
 // a API manda a validade como AAAA-MM-DD
 export function formatarValidade(validade) {
   const [ano, mes, dia] = validade.split('-')

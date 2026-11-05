@@ -1,51 +1,31 @@
+// Aba Propostas do evento: as propostas do item escolhido lado a lado, com a de menor valor em
+// destaque, e a tabela dos itens em cotação embaixo (clicar numa linha troca o item mostrado).
+
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
-import { EventoLayout } from '../../components/organizador/EventoLayout.jsx'
-import { Carregando, ErroNaTela, Vazio } from '../../components/comum/EstadoDaTela.jsx'
-import { Tabela } from '../../components/organizador/Tabela.jsx'
-import { Botao } from '../../components/organizador/Formulario.jsx'
-import { Cartao } from '../../components/organizador/Cartao.jsx'
-import { useIsMobile } from '../../hooks/useIsMobile.js'
-import { Icone } from '../../components/comum/Icone.jsx'
+import { Link, useParams } from 'react-router-dom'
 import { formatarMoeda } from '../../../application/eventos.js'
-import { buscarComparacaoDePropostas, formatarValidade } from '../../../application/propostas.js'
-import iconeAvancar from '../../assets/organizador/icone-avancar.svg'
-import iconeCards from '../../assets/organizador/icone-cards.svg'
-import iconeLista from '../../assets/organizador/icone-lista.svg'
-
-const VISOES = [
-  { valor: 'cards', nome: 'Ver em cards', icone: iconeCards },
-  { valor: 'lista', nome: 'Ver em lista', icone: iconeLista },
-]
-
-function Etiquetas({ proposta }) {
-  return (
-    <>
-      {proposta.status === 'accepted' && (
-        <span className="etiqueta etiqueta--aprovado">Selecionada</span>
-      )}
-      {proposta.status === 'rejected' && (
-        <span className="etiqueta etiqueta--rejeitado">Rejeitada</span>
-      )}
-      {proposta.is_expired && (
-        <span className="etiqueta etiqueta--vencida">Vencida · indisponível para seleção</span>
-      )}
-    </>
-  )
-}
+import {
+  aceitarPropostaDoEvento,
+  buscarComparacaoDePropostas,
+  formatarValidade,
+  itemJaDecidido,
+  menorPropostaDisponivel,
+} from '../../../application/propostas.js'
+import { Carregando, ErroNaTela, Vazio } from '../../components/comum/EstadoDaTela.jsx'
+import { EventoLayout } from '../../components/organizador/EventoLayout.jsx'
+import { ModalSelecionarProposta } from '../../components/organizador/ModalSelecionarProposta.jsx'
+import { toast } from '../../toasts.js'
 
 export function EventoPropostas() {
   const { id } = useParams()
-  const isMobile = useIsMobile()
-  const navigate = useNavigate()
-  const [visao, setVisao] = useState('cards')
-  const [itemAberto, setItemAberto] = useState('todos')
   const [resultado, setResultado] = useState({ event_key: null, items: [], error: null })
   const [tentativa, setTentativa] = useState(0)
+  const [itemEscolhido, setItemEscolhido] = useState(null)
+  const [selecionando, setSelecionando] = useState(null)
+  const [salvando, setSalvando] = useState(false)
 
   useEffect(() => {
     let telaAberta = true
-
     buscarComparacaoDePropostas(id)
       .then((resposta) => {
         if (telaAberta) setResultado({ ...resposta, error: null })
@@ -53,26 +33,13 @@ export function EventoPropostas() {
       .catch((error) => {
         if (telaAberta) setResultado({ event_key: id, items: [], error })
       })
-
     return () => {
       telaAberta = false
     }
   }, [id, tentativa])
 
   const carregando = resultado.event_key !== id
-  const itens = resultado.items
-  const total = itens ? itens.reduce((soma, item) => soma + item.proposals.length, 0) : 0
-
-  if (resultado.error && !carregando) {
-    return (
-      <EventoLayout>
-        <ErroNaTela
-          erro={resultado.error}
-          aoTentarDeNovo={() => setTentativa((valor) => valor + 1)}
-        />
-      </EventoLayout>
-    )
-  }
+  const itens = resultado.items ?? []
 
   if (carregando) {
     return (
@@ -82,181 +49,203 @@ export function EventoPropostas() {
     )
   }
 
-  if (!itens || itens.length === 0 || total === 0) {
+  if (resultado.error) {
     return (
       <EventoLayout>
-        <div className="painel-propostas">
-          <Cartao titulo="Custo consolidado do evento">
-            <strong className="decisao__valor">{formatarMoeda(resultado.total_cost)}</strong>
-            <p className="cartao__apoio">Custos próprios e propostas aceitas.</p>
-          </Cartao>
-          <Vazio
-            titulo="Não há propostas"
-            mensagem="As propostas aparecem aqui quando os fornecedores responderem."
-          />
-        </div>
+        <ErroNaTela erro={resultado.error} aoTentarDeNovo={() => setTentativa((v) => v + 1)} />
       </EventoLayout>
     )
   }
 
-  const visiveis =
-    itemAberto === 'todos' ? itens : itens.filter((item) => item.item_key === itemAberto)
-  const emLista = !isMobile && visao === 'lista'
+  const comPropostas = itens.filter((item) => item.proposals.length > 0)
+  if (comPropostas.length === 0) {
+    return (
+      <EventoLayout>
+        <Vazio
+          icone="propostas"
+          titulo="Nenhuma proposta ainda"
+          mensagem="As propostas aparecem aqui quando os fornecedores responderem aos itens em cotação."
+        />
+      </EventoLayout>
+    )
+  }
 
-  const rotaDa = (proposta) => `/organizador/eventos/${id}/propostas/${proposta.proposal_key}`
-  const abrir = (proposta) => navigate(rotaDa(proposta), { viewTransition: true })
+  // começa pelo primeiro item ainda sem escolha; se todos já foram decididos, pelo primeiro com proposta
+  const item =
+    itens.find((candidato) => candidato.item_key === itemEscolhido) ??
+    comPropostas.find((candidato) => !itemJaDecidido(candidato)) ??
+    comPropostas[0]
 
-  const abas = [
-    { id: 'todos', nome: 'Todos os itens', conta: total },
-    ...itens.map((item) => ({
-      id: item.item_key,
-      nome: item.description,
-      conta: item.proposals.length,
-    })),
-  ]
-
-  // abas da WAI-ARIA: só a aba ativa entra no Tab; as setas trocam de aba
-  function aoTeclarNasAbas(evento) {
-    const atual = abas.findIndex((aba) => aba.id === itemAberto)
-    const destino = {
-      ArrowRight: (atual + 1) % abas.length,
-      ArrowLeft: (atual - 1 + abas.length) % abas.length,
-      Home: 0,
-      End: abas.length - 1,
-    }[evento.key]
-    if (destino === undefined) return
-
-    evento.preventDefault()
-    setItemAberto(abas[destino].id)
-    document.getElementById(`aba-${abas[destino].id}`)?.focus()
+  async function confirmarSelecao() {
+    setSalvando(true)
+    try {
+      const atualizada = await aceitarPropostaDoEvento(id, selecionando.proposal_key)
+      setResultado({ ...atualizada, error: null })
+      toast.sucesso('Proposta selecionada', { descricao: selecionando.supplier_name })
+      setSelecionando(null)
+    } catch (falha) {
+      toast.erro('Não foi possível selecionar a proposta', { descricao: falha.message })
+      if (falha.status === 409) setTentativa((v) => v + 1)
+    } finally {
+      setSalvando(false)
+    }
   }
 
   return (
     <EventoLayout>
-      <div className="painel-propostas__resumo">
-        <Cartao titulo="Custo consolidado do evento">
-          <strong className="decisao__valor">{formatarMoeda(resultado.total_cost)}</strong>
-          <p className="cartao__apoio">Custos próprios e propostas aceitas.</p>
-        </Cartao>
+      <div className="propostas-do-item">
+        <PropostasDoItem
+          eventKey={id}
+          item={item}
+          aoSelecionar={(proposta) => setSelecionando(proposta)}
+        />
+        <ItensEmCotacao
+          itens={itens}
+          itemAtual={item}
+          aoEscolher={(chave) => setItemEscolhido(chave)}
+        />
       </div>
-      <div className="propostas-topo">
-        <div
-          className="itens-em-cotacao"
-          role="tablist"
-          aria-label="Itens em cotação"
-          onKeyDown={aoTeclarNasAbas}
-        >
-          {abas.map((aba) => (
-            <button
-              key={aba.id}
-              type="button"
-              id={`aba-${aba.id}`}
-              role="tab"
-              aria-selected={aba.id === itemAberto}
-              aria-controls="painel-propostas"
-              tabIndex={aba.id === itemAberto ? 0 : -1}
-              className={`aba-item${aba.id === itemAberto ? ' aba-item--ativa' : ''}`}
-              onClick={() => setItemAberto(aba.id)}
-            >
-              {aba.nome}
-              <span className="aba-item__conta">{aba.conta}</span>
-            </button>
+
+      {selecionando && (
+        <ModalSelecionarProposta
+          proposta={selecionando}
+          item={item}
+          salvando={salvando}
+          aoConfirmar={confirmarSelecao}
+          aoFechar={() => setSelecionando(null)}
+        />
+      )}
+    </EventoLayout>
+  )
+}
+
+function PropostasDoItem({ eventKey, item, aoSelecionar }) {
+  const menor = menorPropostaDisponivel(item)
+  const decidido = itemJaDecidido(item)
+  const apoio = [
+    item.category,
+    item.estimated_value != null && `orçamento previsto ${formatarMoeda(item.estimated_value)}`,
+    `${item.proposals.length} ${item.proposals.length === 1 ? 'proposta' : 'propostas'}`,
+  ]
+    .filter(Boolean)
+    .join(' · ')
+
+  return (
+    <section aria-labelledby="item-das-propostas">
+      <header className="propostas-do-item__cabecalho">
+        <h2 id="item-das-propostas">{item.description}</h2>
+        <p>{apoio}</p>
+      </header>
+
+      {item.proposals.length === 0 ? (
+        <Vazio
+          icone="propostas"
+          titulo="Este item ainda não recebeu propostas"
+          mensagem="Escolha outro item na tabela abaixo."
+        />
+      ) : (
+        <div className="propostas-do-item__grade">
+          {item.proposals.map((proposta) => (
+            <CartaoDeProposta
+              key={proposta.proposal_key}
+              eventKey={eventKey}
+              proposta={proposta}
+              destaque={!decidido && proposta.proposal_key === menor?.proposal_key}
+              podeSelecionar={!decidido && !proposta.is_expired && proposta.status === 'sent'}
+              aoSelecionar={() => aoSelecionar(proposta)}
+            />
           ))}
         </div>
+      )}
+    </section>
+  )
+}
 
-        {!isMobile && (
-          <div className="visao">
-            {VISOES.map((opcao) => (
-              <button
-                key={opcao.valor}
-                type="button"
-                className={`visao__botao${visao === opcao.valor ? ' visao__botao--ativo' : ''}`}
-                aria-label={opcao.nome}
-                aria-pressed={visao === opcao.valor}
-                title={opcao.nome}
-                onClick={() => setVisao(opcao.valor)}
-              >
-                <Icone src={opcao.icone} />
-              </button>
-            ))}
-          </div>
+function CartaoDeProposta({ eventKey, proposta, destaque, podeSelecionar, aoSelecionar }) {
+  const rota = `/organizador/eventos/${eventKey}/propostas/${proposta.proposal_key}`
+
+  return (
+    <article className={`cartao-proposta${destaque ? ' cartao-proposta--destaque' : ''}`}>
+      <div className="cartao-proposta__etiquetas">
+        {destaque && <span className="etiqueta etiqueta--aprovado">Menor valor</span>}
+        {proposta.status === 'accepted' && (
+          <span className="etiqueta etiqueta--aprovado">Selecionada</span>
         )}
+        {proposta.status === 'rejected' && (
+          <span className="etiqueta etiqueta--rejeitado">Recusada</span>
+        )}
+        {proposta.is_expired && <span className="etiqueta etiqueta--vencida">Vencida</span>}
       </div>
 
-      <div
-        id="painel-propostas"
-        className="painel-propostas"
-        role="tabpanel"
-        aria-labelledby={`aba-${itemAberto}`}
-        tabIndex={0}
-      >
-        {visiveis.map((item) => (
-          <section key={item.item_key} className="grupo-propostas">
-            <p className="proposta-recebida__origem">
-              {item.proposals.length} propostas para <strong>{item.description}</strong>
-            </p>
+      <Link to={rota} className="cartao-proposta__fornecedor" viewTransition>
+        {proposta.supplier_name}
+      </Link>
+      <strong className="cartao-proposta__valor">{formatarMoeda(proposta.amount)}</strong>
 
-            {emLista ? (
-              <Tabela
-                colunas={['FORNECEDOR', 'VALOR', 'VALIDADE', 'OBSERVAÇÕES', '']}
-                aoClicarNaLinha={(chave) =>
-                  abrir(item.proposals.find((proposal) => proposal.proposal_key === chave))
-                }
-                linhas={item.proposals.map((proposta) => ({
-                  chave: proposta.proposal_key,
-                  celulas: [
-                    <span className="lista-proposta__nome" key="nome">
-                      {proposta.supplier_name}
-                      <Etiquetas proposta={proposta} />
-                    </span>,
-                    formatarMoeda(proposta.amount),
-                    formatarValidade(proposta.valid_until),
-                    proposta.notes || 'Sem observações',
-                    <Link key="acao" to={rotaDa(proposta)} className="cartao__link" viewTransition>
-                      Ver proposta
-                      <Icone src={iconeAvancar} />
-                    </Link>,
-                  ],
-                }))}
-              />
-            ) : (
-              <div className="comparacao">
-                {item.proposals.map((proposta) => (
-                  <article
-                    key={proposta.proposal_key}
-                    className={`proposta${proposta.is_expired ? ' proposta--vencida' : ''}`}
-                  >
-                    <div className="proposta__etiquetas">
-                      <Etiquetas proposta={proposta} />
-                    </div>
+      <dl className="cartao-proposta__dados">
+        <div>
+          <dt>Prazo de entrega</dt>
+          <dd>{proposta.delivery_terms}</dd>
+        </div>
+        <div>
+          <dt>Validade da proposta</dt>
+          <dd>{formatarValidade(proposta.valid_until)}</dd>
+        </div>
+      </dl>
 
-                    <div className="proposta__cabecalho">
-                      <strong className="proposta__fornecedor">{proposta.supplier_name}</strong>
-                      <strong className="proposta__valor">{formatarMoeda(proposta.amount)}</strong>
-                    </div>
+      {podeSelecionar ? (
+        <button
+          type="button"
+          className={destaque ? 'botao' : 'botao botao--secundario'}
+          onClick={aoSelecionar}
+        >
+          {destaque ? 'Selecionar proposta' : 'Selecionar'}
+        </button>
+      ) : (
+        <Link to={rota} className="botao botao--secundario" viewTransition>
+          Ver proposta
+        </Link>
+      )}
+    </article>
+  )
+}
 
-                    <div className="proposta__dados">
-                      <div>
-                        <span>{isMobile ? 'Validade' : 'Validade da proposta'}</span>
-                        <strong>{formatarValidade(proposta.valid_until)}</strong>
-                      </div>
-                    </div>
+function situacaoDoItem(item) {
+  if (itemJaDecidido(item)) return { nome: 'Selecionada', estilo: 'aprovado' }
+  if (item.proposals.length === 0) return { nome: 'Sem propostas', estilo: 'neutro' }
+  return { nome: 'Em análise', estilo: 'cotacao' }
+}
 
-                    <div className="proposta__observacoes">
-                      <span>Observações</span>
-                      <p>{proposta.notes || 'Nenhuma observação enviada.'}</p>
-                    </div>
-
-                    <Botao type="button" secundario onClick={() => abrir(proposta)}>
-                      Ver proposta
-                    </Botao>
-                  </article>
-                ))}
-              </div>
-            )}
-          </section>
-        ))}
+function ItensEmCotacao({ itens, itemAtual, aoEscolher }) {
+  return (
+    <section className="itens-cotacao" aria-label="Itens em cotação">
+      <div className="itens-cotacao__linha itens-cotacao__linha--cabecalho" aria-hidden="true">
+        <span>Itens em cotação</span>
+        <span>Propostas</span>
+        <span>Menor valor</span>
+        <span>Situação</span>
       </div>
-    </EventoLayout>
+      {itens.map((item) => {
+        const menor = menorPropostaDisponivel(item)
+        const situacao = situacaoDoItem(item)
+        const atual = item.item_key === itemAtual.item_key
+        return (
+          <button
+            key={item.item_key}
+            type="button"
+            className={`itens-cotacao__linha${atual ? ' itens-cotacao__linha--atual' : ''}`}
+            aria-pressed={atual}
+            onClick={() => aoEscolher(item.item_key)}
+          >
+            <strong>{item.description}</strong>
+            <span>{item.proposals.length}</span>
+            <span>{menor ? formatarMoeda(menor.amount) : '—'}</span>
+            <span className={`itens-cotacao__situacao itens-cotacao__situacao--${situacao.estilo}`}>
+              {situacao.nome}
+            </span>
+          </button>
+        )
+      })}
+    </section>
   )
 }
