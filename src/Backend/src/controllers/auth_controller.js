@@ -8,7 +8,7 @@ import {
   EmailAlreadyRegistered,
   InvalidCnpj,
   InvalidCredentials,
-  InvalidParameter,
+  InvalidSchema,
   RegistrationPending,
   RegistrationRejected,
 } from '../errors/index.js'
@@ -47,7 +47,10 @@ export class AuthController extends BaseController {
       throw new InvalidCnpj()
     }
     if (!PHONE_PATTERN.test(phone)) {
-      throw new InvalidParameter('The phone must have 10 or 11 digits, including the area code.')
+      throw new InvalidSchema(
+        'The phone must have 10 or 11 digits, including the area code.',
+        'Informe o telefone com DDD: 10 ou 11 dígitos.',
+      )
     }
 
     if ((await this.userRepository.getByEmail(email)) !== null) {
@@ -102,7 +105,7 @@ export class AuthController extends BaseController {
     if (payload.profile === USER_PROFILES.ORGANIZER) {
       return { profile: USER_PROFILES.ORGANIZER, repository: this.organizerRepository, extraData: {} }
     }
-    throw new InvalidParameter(`The profile ${payload.profile} cannot self-register.`)
+    throw new InvalidSchema(`The profile ${payload.profile} cannot self-register.`)
   }
 
   async getCurrentUser(userKey) {

@@ -7,10 +7,13 @@ export class PasswordResetTokenRepository {
     this.session = context.dbSession
   }
 
-  async getLatestByUserId(userId) {
+  // leitura com trava (FOR SHARE): enxerga o token que outra transação acabou de gravar, o que a leitura
+  // comum não faz depois da primeira consulta da transação (REPEATABLE READ)
+  async getLatestByUserIdForShare(userId) {
     return PasswordResetToken.findOne({
       where: { user_id: userId },
       order: [['id', 'DESC']],
+      lock: this.session.LOCK.SHARE,
       transaction: this.session,
     })
   }

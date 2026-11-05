@@ -1,11 +1,11 @@
 // Regras de negócio para cadastrar itens de custo nos eventos do Organizador.
 
-import { EVENT_STATUSES, isFinalEventStatus } from '../constants.js'
+import { EVENT_STATUSES } from '../constants.js'
 import { BudgetItemDTO } from '../dtos/budget_item_dto.js'
 import {
   BudgetItemLocked,
   EventCannotBeModified,
-  InvalidParameter,
+  InvalidSchema,
   NotFoundBudgetItem,
   NotFoundEvent,
   NotFoundOrganizer,
@@ -15,6 +15,7 @@ import { BudgetItemRepository } from '../repositories/budget_item_repository.js'
 import { EventRepository } from '../repositories/event_repository.js'
 import { OrganizerRepository } from '../repositories/organizer_repository.js'
 import { UserRepository } from '../repositories/user_repository.js'
+import { ensureAtMostTwoDecimals } from '../utils/money_tools.js'
 import { BaseController } from './base_controller.js'
 
 export class BudgetItemController extends BaseController {
@@ -27,12 +28,13 @@ export class BudgetItemController extends BaseController {
   }
 
   async createItem(userKey, eventKey, payload) {
+    ensureAtMostTwoDecimals(payload.estimated_value, 'estimated_value')
     const event = await this.#getOwnedEvent(userKey, eventKey, { lock: true })
     this.#ensureEventAllowsItemChanges(event.status)
 
     const category = await this.budgetItemRepository.getCategoryByName(payload.category)
     if (!category) {
-      throw new InvalidParameter(`The item category ${payload.category} does not exist.`)
+      throw new InvalidSchema(`The item category ${payload.category} does not exist.`, 'Escolha uma das categorias de item da lista.')
     }
 
     const item = await this.budgetItemRepository.create(event.id, category.id, {
@@ -54,6 +56,7 @@ export class BudgetItemController extends BaseController {
   }
 
   async updateItem(userKey, eventKey, itemKey, payload) {
+    ensureAtMostTwoDecimals(payload.estimated_value, 'estimated_value')
     const event = await this.#getOwnedEvent(userKey, eventKey, { lock: true })
     this.#ensureEventAllowsItemChanges(event.status)
 
@@ -67,7 +70,7 @@ export class BudgetItemController extends BaseController {
 
     const category = await this.budgetItemRepository.getCategoryByName(payload.category)
     if (!category) {
-      throw new InvalidParameter(`The item category ${payload.category} does not exist.`)
+      throw new InvalidSchema(`The item category ${payload.category} does not exist.`, 'Escolha uma das categorias de item da lista.')
     }
 
     const updatedItem = await this.budgetItemRepository.update(item, category.id, {
@@ -119,7 +122,7 @@ export class BudgetItemController extends BaseController {
 
   #ensureEventAllowsItemChanges(status) {
     const isEditableStatus = [EVENT_STATUSES.DRAFT, EVENT_STATUSES.OPEN_FOR_QUOTES].includes(status)
-    if (isFinalEventStatus(status) || !isEditableStatus) {
+    if (!isEditableStatus) {
       throw new EventCannotBeModified(status)
     }
   }

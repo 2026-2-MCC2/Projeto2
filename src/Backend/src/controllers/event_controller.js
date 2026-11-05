@@ -32,6 +32,7 @@ import { ProposalRepository } from '../repositories/proposal_repository.js'
 import { UserRepository } from '../repositories/user_repository.js'
 import { ProposalComparisonDTO } from '../dtos/proposal_comparison_dto.js'
 import { EmailTemplates } from '../utils/email_templates.js'
+import { ensureAtMostTwoDecimals } from '../utils/money_tools.js'
 import { toPhotoResponses } from '../utils/proposal_photo_tools.js'
 import { TextTools } from '../utils/text_tools.js'
 
@@ -150,6 +151,8 @@ export class EventController extends BaseController {
 
     this.#validateDates(payload.start_date, payload.end_date)
     this.#validateAudience(payload.min_audience, payload.expected_audience, payload.max_audience, payload.venue_capacity)
+    ensureAtMostTwoDecimals(payload.budget_limit, 'budget_limit')
+    payload.internal_costs?.forEach((cost) => ensureAtMostTwoDecimals(cost.amount, 'internal cost amount'))
 
     const eventData = {
       ...this.#buildEventFields(payload),
@@ -158,7 +161,7 @@ export class EventController extends BaseController {
       status: EVENT_STATUSES.DRAFT,
     }
 
-    const internalCosts = payload.internal_costs ?? []
+    const internalCosts = (payload.internal_costs ?? []).map((cost) => ({ ...cost, description: cost.description.trim() }))
     const createdEvent = await this.eventRepository.create(eventData, internalCosts)
 
     await this.session.commit()
@@ -308,6 +311,7 @@ export class EventController extends BaseController {
 
     this.#validateDates(payload.start_date, payload.end_date)
     this.#validateAudience(payload.min_audience, payload.expected_audience, payload.max_audience, payload.venue_capacity)
+    ensureAtMostTwoDecimals(payload.budget_limit, 'budget_limit')
 
     const updatedFields = {
       ...this.#buildEventFields(payload),
@@ -397,12 +401,14 @@ export class EventController extends BaseController {
 
   // os três devolvem o evento inteiro, para o total e o ticket já virem recalculados
   async addInternalCost(userKey, eventKey, payload) {
+    ensureAtMostTwoDecimals(payload.amount, 'amount')
     const event = await this.#getEditableEventForUpdate(userKey, eventKey)
     await this.internalCostRepository.create(event.id, { ...payload, description: payload.description.trim() })
     return this.#commitAndGetEvent(eventKey)
   }
 
   async updateInternalCost(userKey, eventKey, costKey, payload) {
+    ensureAtMostTwoDecimals(payload.amount, 'amount')
     const event = await this.#getEditableEventForUpdate(userKey, eventKey)
     const cost = await this.#getInternalCost(costKey, event)
     await this.internalCostRepository.update(cost, { ...payload, description: payload.description.trim() })

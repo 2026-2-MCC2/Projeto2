@@ -47,8 +47,11 @@ export class PasswordResetController extends BaseController {
     return this.createResetEmail(user)
   }
 
+  // a conta fica travada até o commit: pedidos simultâneos passam um de cada vez pelo intervalo mínimo
+  // entre e-mails, e só o primeiro gera um link
   async createResetEmail(user) {
-    const latestToken = await this.tokenRepository.getLatestByUserId(user.id)
+    await this.userRepository.getByKeyForUpdate(user.user_key)
+    const latestToken = await this.tokenRepository.getLatestByUserIdForShare(user.id)
     const secondsSinceLatest = latestToken ? (Date.now() - latestToken.created_at.getTime()) / 1000 : Infinity
     if (secondsSinceLatest < PASSWORD_RESET_COOLDOWN_SECONDS) return null
 

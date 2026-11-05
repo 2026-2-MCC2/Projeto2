@@ -71,6 +71,51 @@ describe('PUT /events/:event_key (RF05)', () => {
     assert.equal(response.code, 'EVP000013')
   })
 
+  test('teto de gastos com mais de 2 casas decimais responde 400', async () => {
+    const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
+    fixtureUserKeys.push(organizer.userKey)
+    const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
+    const [, created] = await RequestGenerator.POST_events(PayloadGenerator.createEventPayload(), headers)
+
+    const [status, response] = await RequestGenerator.PUT_event_by_key(
+      created.event_key,
+      PayloadGenerator.createEventUpdatePayload({ budget_limit: 0.001 }),
+      headers,
+    )
+
+    assert.equal(status, 400)
+    assert.equal(response.code, 'APP000001')
+  })
+
+  test('datas e público incoerentes na edição respondem 400 com o erro específico e não mudam o evento', async () => {
+    const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
+    fixtureUserKeys.push(organizer.userKey)
+    const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
+    const [, created] = await RequestGenerator.POST_events(PayloadGenerator.createEventPayload(), headers)
+
+    const invalidCases = [
+      [{ start_date: '2026-10-21T14:00:00.000Z', end_date: '2026-10-19T23:00:00.000Z' }, 'EVP000014'],
+      [{ min_audience: 9000, expected_audience: 8000, max_audience: 18000 }, 'EVP000016'],
+      [{ min_audience: 9000, expected_audience: 13000, max_audience: 12000 }, 'EVP000017'],
+      [{ venue_capacity: 15000, max_audience: 18000 }, 'EVP000018'],
+      [{ end_date: '2026-02-30T23:00:00.000Z' }, 'EVP000027'],
+    ]
+
+    for (const [overrides, code] of invalidCases) {
+      const [status, response] = await RequestGenerator.PUT_event_by_key(
+        created.event_key,
+        PayloadGenerator.createEventUpdatePayload(overrides),
+        headers,
+      )
+      assert.equal(status, 400, code)
+      assert.equal(response.code, code)
+    }
+
+    const [, stored] = await RequestGenerator.GET_event_by_key(created.event_key, headers)
+    assert.equal(stored.name, created.name)
+    assert.equal(stored.max_audience, created.max_audience)
+  })
+
   test('edição define, troca e remove o teto de gastos', async () => {
     const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
     fixtureUserKeys.push(organizer.userKey)

@@ -81,6 +81,19 @@ describe('POST /auth/esqueci-senha', () => {
     assert.equal((await DbUtils.getPasswordResetTokens(user.userKey)).length, 1)
   })
 
+  test('pedidos simultâneos geram um link só', async () => {
+    const user = await createFixture({ profile: 'organizador', status: 'approved' })
+
+    const responses = await Promise.all(Array.from({ length: 5 }, () => RequestGenerator.POST_auth_esqueci_senha({ email: user.email })))
+
+    assert.deepEqual(
+      responses.map(([status]) => status),
+      [202, 202, 202, 202, 202],
+    )
+    assert.equal((await DbUtils.getPasswordResetTokens(user.userKey)).length, 1)
+    assert.equal(await Mailpit.countEmailsAfterWaiting(user.email), 1)
+  })
+
   test('e-mail faltando ou campo extra responde 400', async () => {
     for (const payload of [{}, { email: '' }, { email: 'a@b.com', extra: true }]) {
       const [status, response] = await RequestGenerator.POST_auth_esqueci_senha(payload)
