@@ -727,6 +727,8 @@ button.calendario__titulo:focus-visible {
 .toast__fechar {
   display: grid;
   place-items: center;
+  min-width: 24px; /* alvo de toque mínimo (WCAG 2.5.8) */
+  min-height: 24px;
   padding: 0.25rem;
 }
 
