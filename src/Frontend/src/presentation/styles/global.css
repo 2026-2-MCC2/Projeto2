@@ -531,8 +531,8 @@ button.calendario__titulo:focus-visible {
 }
 
 .calendario__dia--selecionado {
-  background: var(--texto-marca) !important;
-  color: #ffffff !important;
+  background: var(--acao-primaria) !important;
+  color: var(--acao-sobre-primaria) !important;
   font-weight: 700;
 }
 
