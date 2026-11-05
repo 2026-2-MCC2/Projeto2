@@ -56,8 +56,8 @@ describe('Admin user status', () => {
 
     const email = await Mailpit.waitForEmailTo(target.email)
     assert.equal(email.subject, 'Seu cadastro no TrocaTicket foi aprovado')
-    // o login do site fica na raiz: /login não existe e daria 404
-    assert.match(email.text, /http:\/\/localhost:5173\/$/m)
+    // o login do site fica em /entrar (a raiz é a landing); /login não existe e daria 404
+    assert.match(email.text, /http:\/\/localhost:5173\/entrar$/m)
     assert.doesNotMatch(email.text, /\/login/)
   })
 

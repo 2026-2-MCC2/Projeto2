@@ -55,7 +55,7 @@ export function NavbarLanding() {
 
   return (
     <header className="landing-topo" ref={topo}>
-      <Link to="/inicio" className="landing-topo__marca">
+      <Link to="/" className="landing-topo__marca">
         {/* mesmas classes do Logotipo: no escuro entra a versão negativa */}
         <span className="logotipo landing-topo__logo" role="img" aria-label="TrocaTicket">
           <img src={logotipo} alt="" className="logotipo__claro" />
@@ -91,7 +91,7 @@ export function NavbarLanding() {
         </ul>
 
         <div className="landing-topo__acoes">
-          <BotaoLanding tipo="secundario" para="/">
+          <BotaoLanding tipo="secundario" para="/entrar">
             Entrar
           </BotaoLanding>
           <BotaoLanding para="/cadastro">Criar cadastro</BotaoLanding>
