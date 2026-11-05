@@ -3,16 +3,20 @@
 // O GlobalTraceId funciona como um número de protocolo: é um id único da requisição que aparece
 // em todos os logs dela. Quando der problema, você busca esse id nos logs e vê tudo o que aconteceu.
 // Se quem chamou mandar o header GlobalTraceId, usamos o mesmo valor, assim dá para seguir uma
-// requisição que passou por vários serviços.
+// requisição que passou por vários serviços. Valor fora do formato é trocado por um novo, para
+// ninguém encher o log com texto gigante ou forjar linhas de log.
 
 import { randomUUID } from 'node:crypto'
 
 import { Context } from '../utils/context.js'
 
+// cobre o UUID e ids de outros serviços, sem espaço nem quebra de linha
+const VALID_TRACE_ID = /^[A-Za-z0-9_-]{1,64}$/
+
 export class ContextCreator {
   processRequest(req, res) {
     let globalTraceId = req.get('GlobalTraceId')
-    if (globalTraceId === undefined) {
+    if (globalTraceId === undefined || !VALID_TRACE_ID.test(globalTraceId)) {
       globalTraceId = randomUUID()
     }
 
