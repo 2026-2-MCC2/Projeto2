@@ -3,8 +3,12 @@
 // Retry-After dizendo em quantos segundos pode tentar de novo.
 //
 //   por IP e rota       toda requisição conta (RATE_LIMIT_MAX_REQUESTS_PER_IP)
-//   por e-mail (login)  só senha errada conta, de qualquer IP, e um login certo zera
-//                       (RATE_LIMIT_MAX_FAILED_LOGINS_PER_EMAIL)
+//   por IP e e-mail     só senha errada conta, e um login certo zera
+//   (login)             (RATE_LIMIT_MAX_FAILED_LOGINS_PER_EMAIL)
+//
+// A contagem de senhas erradas é por IP e e-mail, não só por e-mail: a trava vem antes de conferir a
+// senha, então uma contagem só por e-mail deixaria qualquer um bloquear o login do dono da conta
+// errando a senha dele de outro lugar. Quem tenta de muitos IPs continua barrado pelo limite por IP.
 //
 // O IP vem de req.ip, que atrás do Cloud Run depende do "trust proxy" configurado em app.js.
 
@@ -40,9 +44,9 @@ function normalizePath(path) {
   return path.toLowerCase().replace(/\/+$/, '')
 }
 
-function loginEmail(req) {
+function loginKey(req) {
   const email = req.context.media?.email
-  return typeof email === 'string' ? TextTools.normalizeEmail(email) : null
+  return typeof email === 'string' ? `${req.ip} ${TextTools.normalizeEmail(email)}` : null
 }
 
 function throwIfBlocked(res, limiter, key) {
@@ -65,18 +69,18 @@ export class RateLimitMiddleware {
     requestsPerIp.hit(ipKey)
 
     if (path === LOGIN_PATH) {
-      const email = loginEmail(req)
-      if (email !== null) throwIfBlocked(res, failedLoginsPerEmail, email)
+      const key = loginKey(req)
+      if (key !== null) throwIfBlocked(res, failedLoginsPerEmail, key)
     }
   }
 
   processResponse(req, res) {
     if (req.method === 'OPTIONS' || normalizePath(req.path) !== LOGIN_PATH) return
 
-    const email = loginEmail(req)
-    if (email === null) return
+    const key = loginKey(req)
+    if (key === null) return
 
-    if (res.statusCode === 401) failedLoginsPerEmail.hit(email)
-    if (res.statusCode === 200) failedLoginsPerEmail.reset(email)
+    if (res.statusCode === 401) failedLoginsPerEmail.hit(key)
+    if (res.statusCode === 200) failedLoginsPerEmail.reset(key)
   }
 }

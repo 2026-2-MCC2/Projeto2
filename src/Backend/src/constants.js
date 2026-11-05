@@ -49,7 +49,7 @@ export const PASSWORD_RESET_COOLDOWN_SECONDS = Number(process.env.PASSWORD_RESET
 export const RATE_LIMIT_WINDOW_SECONDS = Number(process.env.RATE_LIMIT_WINDOW_SECONDS ?? 900)
 // requisições por IP em cada rota limitada, dentro da janela
 export const RATE_LIMIT_MAX_REQUESTS_PER_IP = Number(process.env.RATE_LIMIT_MAX_REQUESTS_PER_IP ?? 30)
-// logins com senha errada para o mesmo e-mail, de qualquer IP; um login certo zera a contagem
+// logins com senha errada para o mesmo e-mail vindos do mesmo IP; um login certo zera a contagem
 export const RATE_LIMIT_MAX_FAILED_LOGINS_PER_EMAIL = Number(process.env.RATE_LIMIT_MAX_FAILED_LOGINS_PER_EMAIL ?? 10)
 
 export const SECRET_MANAGER_EMULATOR_HOST = process.env.SECRET_MANAGER_EMULATOR_HOST ?? ''

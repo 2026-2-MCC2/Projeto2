@@ -187,7 +187,7 @@ describe('POST /auth/login (limite de tentativas)', () => {
     }
   }
 
-  test('senha errada demais no mesmo e-mail responde 429, até com a senha certa; outro e-mail segue normal', async () => {
+  test('senha errada demais no mesmo e-mail e IP responde 429, até com a senha certa; outro e-mail segue normal', async () => {
     const user = await createFixture({ profile: 'organizador', status: 'approved' })
     const otherUser = await createFixture({ profile: 'organizador', status: 'approved' })
     await failLogins(user.email, MAX_FAILED_LOGINS)
