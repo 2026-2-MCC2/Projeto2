@@ -45,6 +45,10 @@ const quantidadeDePessoas = (quantidade) =>
 
 export { formatarMoeda }
 
+// a margem é guardada com 4 casas da fração: 0,125 aparece como 12,5%, não arredondada para 13%
+const formatarMargem = (fracao) =>
+  `${(Number(fracao) * 100).toLocaleString('pt-BR', { maximumFractionDigits: 2 })}%`
+
 // as datas são criadas no horário de quem cadastra, então são mostradas no horário local também
 function partesDaData(dataIso) {
   const data = new Date(dataIso)
@@ -136,7 +140,7 @@ function calcularDadosTicket(evento, totalCustos) {
     explicacao: margemInvalida
       ? 'A margem de lucro precisa ser menor que 100% para calcular o ticket.'
       : totalCustos > 0
-        ? `Custo de ${formatarMoeda(totalCustos)} dividido por ${quantidadeDePessoas(publicoRef)}, com margem de ${Math.round(margem * 100)}%.`
+        ? `Custo de ${formatarMoeda(totalCustos)} dividido por ${quantidadeDePessoas(publicoRef)}, com margem de ${formatarMargem(margem)}.`
         : 'Cadastre os custos para calcular o ticket sugerido.',
     cenarios: [
       {
@@ -236,14 +240,14 @@ function calcularDadosTicket(evento, totalCustos) {
       },
       {
         rotulo: 'Margem no cenário base',
-        valor: `${formatarMoeda(resultadoDoCenarioBase)} · ${Math.round(margem * 100)}%`,
+        valor: `${formatarMoeda(resultadoDoCenarioBase)} · ${formatarMargem(margem)}`,
         positivo: resultadoDoCenarioBase >= 0,
       },
     ],
     formula: 'Ticket = Custo total ÷ [Público × (1 − Margem)]',
     premissas: [
       { rotulo: 'Custo consolidado', valor: formatarMoeda(totalCustos) },
-      { rotulo: 'Margem de lucro', valor: `${Math.round(margem * 100)}%` },
+      { rotulo: 'Margem de lucro', valor: formatarMargem(margem) },
       { rotulo: 'Público mínimo', valor: publicoMin.toLocaleString('pt-BR') },
       { rotulo: 'Público esperado', valor: publicoExp.toLocaleString('pt-BR') },
       { rotulo: 'Público máximo', valor: publicoMax.toLocaleString('pt-BR') },
@@ -313,7 +317,7 @@ export function formatarEventoParaExibicao(evento, itensDeCotacao = evento.budge
       rotulo: 'PÚBLICO',
       valor: `${Number(evento.min_audience).toLocaleString('pt-BR')} · ${Number(evento.expected_audience).toLocaleString('pt-BR')} · ${Number(evento.max_audience).toLocaleString('pt-BR')}`,
     },
-    { rotulo: 'MARGEM DE LUCRO', valor: `${Math.round(Number(evento.profit_margin) * 100)}%` },
+    { rotulo: 'MARGEM DE LUCRO', valor: formatarMargem(evento.profit_margin) },
     { rotulo: 'TIPO DE INGRESSO', valor: 'Inteira' },
     ...(statusFront === 'cancelado' || motivoCancelamento
       ? [{ rotulo: 'MOTIVO DO CANCELAMENTO', valor: motivoCancelamento || 'Não informado' }]
