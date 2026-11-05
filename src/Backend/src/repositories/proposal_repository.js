@@ -35,13 +35,16 @@ export class ProposalRepository {
               proposal.proposal_key, supplier_user.name AS supplier_name, proposal.amount,
               DATE_FORMAT(proposal.valid_until, '%Y-%m-%d') AS valid_until, proposal.notes, proposal.status,
               CASE WHEN proposal.valid_until < ${TODAY_IN_BRAZIL} THEN TRUE ELSE FALSE END AS is_expired,
-              (SELECT COALESCE(SUM(internal_cost.amount), 0)
-               FROM internal_cost WHERE internal_cost.event_id = event.id) +
-              (SELECT COALESCE(SUM(accepted_proposal.amount), 0)
-               FROM budget_item AS accepted_item
-               INNER JOIN proposal AS accepted_proposal ON accepted_proposal.budget_item_id = accepted_item.id
-               WHERE accepted_item.event_id = event.id AND accepted_proposal.status = 'accepted') AS total_cost
+              event_total.total_cost
        FROM event
+       CROSS JOIN (
+         SELECT (SELECT COALESCE(SUM(internal_cost.amount), 0)
+                 FROM internal_cost WHERE internal_cost.event_id = :eventId) +
+                (SELECT COALESCE(SUM(accepted_proposal.amount), 0)
+                 FROM budget_item AS accepted_item
+                 INNER JOIN proposal AS accepted_proposal ON accepted_proposal.budget_item_id = accepted_item.id
+                 WHERE accepted_item.event_id = :eventId AND accepted_proposal.status = 'accepted') AS total_cost
+       ) AS event_total
        LEFT JOIN budget_item ON budget_item.event_id = event.id
        LEFT JOIN proposal ON proposal.budget_item_id = budget_item.id
        LEFT JOIN supplier ON supplier.id = proposal.supplier_id
