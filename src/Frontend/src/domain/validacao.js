@@ -94,8 +94,9 @@ export const REGRAS = {
       ? ''
       : 'Informe um e-mail válido, como nome@empresa.com.',
   cnpj: (texto) => (cnpjValido(normalizarCnpj(texto)) ? '' : 'Informe um CNPJ válido.'),
+  // as mesmas regras da API: só números, espaço, parênteses, + e -, até 20 caracteres e 10 ou 11 dígitos
   telefone: (texto) =>
-    [10, 11].includes(digitos(texto).length)
+    /^[\d\s()+-]{10,20}$/.test(texto) && [10, 11].includes(digitos(texto).length)
       ? ''
       : 'Informe o telefone com DDD, como (11) 90000-0000.',
   senha: (texto) => (texto.length >= 8 ? '' : 'A senha precisa ter pelo menos 8 caracteres.'),
