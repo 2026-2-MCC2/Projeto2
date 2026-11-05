@@ -268,6 +268,23 @@ describe('POST /events (RF05, RF07)', () => {
     }
   })
 
+  test('teto de gastos ou custo próprio com mais de 2 casas decimais responde 400 sem criar o evento', async () => {
+    const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
+    fixtureUserKeys.push(organizer.userKey)
+    const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
+
+    const invalidOverrides = [{ budget_limit: 0.001 }, { internal_costs: [{ type: 'tax', description: 'Taxa', amount: 10.005 }] }]
+    for (const overrides of invalidOverrides) {
+      const [status, response] = await RequestGenerator.POST_events(PayloadGenerator.createEventPayload(overrides), headers)
+      assert.equal(status, 400, JSON.stringify(overrides))
+      assert.equal(response.code, 'APP000001')
+      assert.equal(response.translation, 'Valores em dinheiro aceitam no máximo 2 casas decimais.')
+    }
+
+    const [, list] = await RequestGenerator.GET_events({}, headers)
+    assert.equal(list.total, 0)
+  })
+
   test('teto de gastos é opcional e precisa ser positivo', async () => {
     const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
     fixtureUserKeys.push(organizer.userKey)

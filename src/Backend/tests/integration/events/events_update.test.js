@@ -71,6 +71,22 @@ describe('PUT /events/:event_key (RF05)', () => {
     assert.equal(response.code, 'EVP000013')
   })
 
+  test('teto de gastos com mais de 2 casas decimais responde 400', async () => {
+    const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
+    fixtureUserKeys.push(organizer.userKey)
+    const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
+    const [, created] = await RequestGenerator.POST_events(PayloadGenerator.createEventPayload(), headers)
+
+    const [status, response] = await RequestGenerator.PUT_event_by_key(
+      created.event_key,
+      PayloadGenerator.createEventUpdatePayload({ budget_limit: 0.001 }),
+      headers,
+    )
+
+    assert.equal(status, 400)
+    assert.equal(response.code, 'APP000001')
+  })
+
   test('edição define, troca e remove o teto de gastos', async () => {
     const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
     fixtureUserKeys.push(organizer.userKey)

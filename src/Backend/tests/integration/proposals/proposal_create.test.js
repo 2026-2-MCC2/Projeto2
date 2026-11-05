@@ -202,6 +202,22 @@ describe('POST /supplier/events/:event_key/items/:item_key/proposals', () => {
     assert.equal(missing.code, 'APP000001')
   })
 
+  test('valor com mais de 2 casas decimais responde 400 sem gravar a proposta', async () => {
+    const { supplier, event, items } = await createScenario()
+
+    const [status, response] = await RequestGenerator.POST_supplier_item_proposal(
+      event.event_key,
+      items[0].item_key,
+      PayloadGenerator.createSupplierProposalPayload({ amount: 0.001 }),
+      supplier.headers,
+    )
+
+    assert.equal(status, 400)
+    assert.equal(response.code, 'APP000001')
+    const [, proposals] = await RequestGenerator.GET_supplier_proposals({}, supplier.headers)
+    assert.equal(proposals.total, 0)
+  })
+
   test('organizador recebe 403 e sem token recebe 401', async () => {
     const { organizer, event, items } = await createScenario()
     const payload = PayloadGenerator.createSupplierProposalPayload()

@@ -71,11 +71,11 @@ describe('POST /events/:event_key/items', () => {
     assert.equal(items.length, 0)
   })
 
-  test('observação longa demais e quantidade acima do limite respondem 400 sem criar o item', async () => {
+  test('observação longa demais, quantidade acima do limite e valor com mais de 2 casas respondem 400 sem criar o item', async () => {
     const headers = await createOrganizer()
     const event = await createEvent(headers)
 
-    for (const overrides of [{ notes: 'a'.repeat(2001) }, { quantity: 1000001 }]) {
+    for (const overrides of [{ notes: 'a'.repeat(2001) }, { quantity: 1000001 }, { estimated_value: 99.999 }]) {
       const [status, response] = await createBudgetItem(event.event_key, headers, PayloadGenerator.createBudgetItemPayload(overrides))
       assert.equal(status, 400, Object.keys(overrides)[0])
       assert.equal(response.code, 'APP000001')

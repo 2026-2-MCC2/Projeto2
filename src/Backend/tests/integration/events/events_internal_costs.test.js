@@ -55,7 +55,7 @@ describe('Custos próprios do evento', () => {
     assert.equal(deleted.total_internal_cost, 0)
   })
 
-  test('tipo fora da lista, descrição vazia, valor negativo ou acima do limite respondem 400', async () => {
+  test('tipo fora da lista, descrição vazia, valor negativo, acima do limite ou com mais de 2 casas respondem 400', async () => {
     const headers = await createOrganizer()
     const event = await createEventWithoutCosts(headers)
     const invalidCosts = [
@@ -63,6 +63,7 @@ describe('Custos próprios do evento', () => {
       { ...ALVARA, description: '   ' },
       { ...ALVARA, amount: -1 },
       { ...ALVARA, amount: 1e11 },
+      { ...ALVARA, amount: 0.001 },
       { type: 'tax', description: 'Sem valor' },
       { ...ALVARA, extra: true },
     ]

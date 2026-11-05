@@ -24,6 +24,7 @@ import {
 import { ProposalRepository } from '../repositories/proposal_repository.js'
 import { SupplierEventRepository } from '../repositories/supplier_event_repository.js'
 import { UserRepository } from '../repositories/user_repository.js'
+import { ensureAtMostTwoDecimals } from '../utils/money_tools.js'
 import {
   buildPhotoPath,
   detectImageType,
@@ -47,6 +48,7 @@ export class SupplierProposalController extends BaseController {
   // Mesma visibilidade do SupplierEventController.getAvailableEvent: evento em cotação e item numa
   // categoria do fornecedor. Evento ou item fora disso responde 404, sem revelar que eles existem.
   async createProposal(userKey, eventKey, itemKey, payload) {
+    ensureAtMostTwoDecimals(payload.amount, 'amount')
     const supplier = await getSupplierOfUser(this.userRepository, userKey)
     const event = await this.supplierEventRepository.getAvailableEvent(supplier.id, eventKey, { lock: true })
     if (!event) {
@@ -131,6 +133,7 @@ export class SupplierProposalController extends BaseController {
 
   // mesmo schema e mesmas regras de validade do envio
   async updateProposal(userKey, proposalKey, payload) {
+    ensureAtMostTwoDecimals(payload.amount, 'amount')
     const supplier = await getSupplierOfUser(this.userRepository, userKey)
     const { proposal, event } = await this.#getChangeableProposal(supplier.id, proposalKey)
 

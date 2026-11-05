@@ -15,6 +15,7 @@ import { BudgetItemRepository } from '../repositories/budget_item_repository.js'
 import { EventRepository } from '../repositories/event_repository.js'
 import { OrganizerRepository } from '../repositories/organizer_repository.js'
 import { UserRepository } from '../repositories/user_repository.js'
+import { ensureAtMostTwoDecimals } from '../utils/money_tools.js'
 import { BaseController } from './base_controller.js'
 
 export class BudgetItemController extends BaseController {
@@ -27,6 +28,7 @@ export class BudgetItemController extends BaseController {
   }
 
   async createItem(userKey, eventKey, payload) {
+    ensureAtMostTwoDecimals(payload.estimated_value, 'estimated_value')
     const event = await this.#getOwnedEvent(userKey, eventKey, { lock: true })
     this.#ensureEventAllowsItemChanges(event.status)
 
@@ -54,6 +56,7 @@ export class BudgetItemController extends BaseController {
   }
 
   async updateItem(userKey, eventKey, itemKey, payload) {
+    ensureAtMostTwoDecimals(payload.estimated_value, 'estimated_value')
     const event = await this.#getOwnedEvent(userKey, eventKey, { lock: true })
     this.#ensureEventAllowsItemChanges(event.status)
 
