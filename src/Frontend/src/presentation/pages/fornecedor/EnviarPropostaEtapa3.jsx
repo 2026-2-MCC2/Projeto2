@@ -12,12 +12,9 @@ import { useValidacao } from '../../hooks/useValidacao.js'
 import { toast } from '../../toasts.js'
 import '../../styles/fornecedor.css'
 
-function CampoCondicao({ id, rotulo, obrigatorio = false, somenteDesktop = false, children }) {
+function CampoCondicao({ id, rotulo, obrigatorio = false, children }) {
   return (
-    <label
-      className={`proposta-condicoes__campo${somenteDesktop ? ' proposta-condicoes__campo--somente-desktop' : ''}`}
-      htmlFor={id}
-    >
+    <label className="proposta-condicoes__campo" htmlFor={id}>
       <span>
         {rotulo} {obrigatorio && <b aria-hidden="true">*</b>}
       </span>
@@ -138,7 +135,7 @@ export function EnviarPropostaEtapa3() {
                       required
                     />
                   </CampoCondicao>
-                  <CampoCondicao id="equipe-envolvida" rotulo="Equipe envolvida" somenteDesktop>
+                  <CampoCondicao id="equipe-envolvida" rotulo="Equipe envolvida">
                     <input
                       id="equipe-envolvida"
                       type="text"
@@ -148,11 +145,7 @@ export function EnviarPropostaEtapa3() {
                       onChange={preencher('equipe')}
                     />
                   </CampoCondicao>
-                  <CampoCondicao
-                    id="garantia-substituicao"
-                    rotulo="Garantia ou substituição"
-                    somenteDesktop
-                  >
+                  <CampoCondicao id="garantia-substituicao" rotulo="Garantia ou substituição">
                     <input
                       id="garantia-substituicao"
                       type="text"

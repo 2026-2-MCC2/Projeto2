@@ -723,10 +723,6 @@
   resize: vertical;
 }
 
-.proposta-condicoes__campo--somente-desktop {
-  display: flex;
-}
-
 .proposta-condicoes__campo input::placeholder,
 .proposta-condicoes__campo textarea::placeholder {
   color: var(--texto-terciario);
@@ -1303,10 +1299,6 @@
   .proposta-condicoes__campos {
     grid-template-columns: minmax(0, 1fr);
     gap: 16px;
-  }
-
-  .proposta-condicoes__campo--somente-desktop {
-    display: none;
   }
 
   .proposta-condicoes__campo textarea {
