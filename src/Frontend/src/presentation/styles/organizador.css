@@ -146,14 +146,14 @@
   background: var(--status-perigo-texto);
 }
 
-/* evento cancelado continua nos recentes, mas apagado: não tem mais o que planejar */
-.menu__evento--cancelado {
-  opacity: 0.55;
+/* evento cancelado continua nos recentes, mas apagado: não tem mais o que planejar.
+   O apagado vem das cores secundárias (que passam 4,5:1), não de opacidade no link inteiro */
+.menu__evento--cancelado .menu__evento-texto strong {
+  color: var(--texto-secundario);
 }
 
-.menu__evento--cancelado:hover,
-.menu__evento--cancelado.menu__evento--ativo {
-  opacity: 0.85;
+.menu__evento--cancelado .menu__evento-texto small {
+  color: var(--texto-terciario);
 }
 
 .menu__evento-texto {
