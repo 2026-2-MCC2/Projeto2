@@ -5,7 +5,6 @@ export const SCHEMA_PATH = fileURLToPath(new URL('./schemas/', import.meta.url))
 export const API_PREFIX = '/event_planning'
 
 export const GIT_COMMIT = process.env.GIT_COMMIT ?? '$$GIT_COMMIT'
-export const GIT_BRANCH = process.env.GIT_BRANCH ?? '$$GIT_BRANCH'
 
 // o cloud run define PORT sozinho
 export const PORT = Number(process.env.PORT ?? 3300)
@@ -13,6 +12,7 @@ export const PORT = Number(process.env.PORT ?? 3300)
 // local | test | production
 export const APP_ENV = process.env.APP_ENV ?? ''
 export const IS_LOCAL = ['LOCAL', 'TEST'].includes(APP_ENV.toUpperCase())
+export const IS_PRODUCTION = APP_ENV.toUpperCase() === 'PRODUCTION'
 
 export const SERVICE_NAME = process.env.SERVICE_NAME ?? ''
 
@@ -43,6 +43,14 @@ export const FRONT_URL = process.env.FRONT_URL ?? ''
 export const PASSWORD_RESET_EXPIRATION_MINUTES = Number(process.env.PASSWORD_RESET_EXPIRATION_MINUTES ?? 60)
 // intervalo mínimo entre dois pedidos de redefinição para a mesma conta, contra abuso
 export const PASSWORD_RESET_COOLDOWN_SECONDS = Number(process.env.PASSWORD_RESET_COOLDOWN_SECONDS ?? 120)
+
+// Limite de tentativas nas rotas de login, cadastro e senha (ver middlewares/rate_limit.js).
+// Fica na memória de cada instância: com até 3 instâncias no Cloud Run, o limite real pode chegar ao triplo.
+export const RATE_LIMIT_WINDOW_SECONDS = Number(process.env.RATE_LIMIT_WINDOW_SECONDS ?? 900)
+// requisições por IP em cada rota limitada, dentro da janela
+export const RATE_LIMIT_MAX_REQUESTS_PER_IP = Number(process.env.RATE_LIMIT_MAX_REQUESTS_PER_IP ?? 30)
+// logins com senha errada para o mesmo e-mail, de qualquer IP; um login certo zera a contagem
+export const RATE_LIMIT_MAX_FAILED_LOGINS_PER_EMAIL = Number(process.env.RATE_LIMIT_MAX_FAILED_LOGINS_PER_EMAIL ?? 10)
 
 export const SECRET_MANAGER_EMULATOR_HOST = process.env.SECRET_MANAGER_EMULATOR_HOST ?? ''
 

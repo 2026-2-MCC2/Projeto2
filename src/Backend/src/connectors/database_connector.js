@@ -1,6 +1,6 @@
 // Conexão com o MySQL (local: container "db" do docker-compose; produção: Aiven for MySQL)
 import { Sequelize } from 'sequelize'
-import { DB_CREDENTIALS_SECRET_NAME, DB_NAME, DB_POOL_SIZE } from '../constants.js'
+import { DB_CREDENTIALS_SECRET_NAME, DB_NAME, DB_POOL_SIZE, IS_PRODUCTION } from '../constants.js'
 import { Logger } from '../utils/logger.js'
 import { SecretManagerConnector } from './secret_manager_connector.js'
 
@@ -29,6 +29,13 @@ export const sequelize = new Sequelize({
 
       config.host = credentials.host
       config.port = credentials.port
+
+      // em produção o banco fica na internet (Aiven): sem o certificado, senha e dados iriam sem TLS
+      if (!credentials.ssl_ca && IS_PRODUCTION) {
+        const message = 'Database secret has no ssl_ca: refusing to connect without TLS in production'
+        logger.fatal(message)
+        throw new Error(message)
+      }
 
       if (credentials.ssl_ca) {
         config.dialectOptions = {

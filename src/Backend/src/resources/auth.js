@@ -3,6 +3,7 @@
 import { EmailConnector } from '../connectors/email_connector.js'
 import { AuthController } from '../controllers/auth_controller.js'
 import { PasswordResetController } from '../controllers/password_reset_controller.js'
+import { runAfterResponse } from '../middlewares/session_manager.js'
 import { SchemaHandler } from '../utils/schema_handler.js'
 
 export class AuthResource {
@@ -24,15 +25,18 @@ export class AuthResource {
     res.status(200).json(loginDto)
   }
 
-  // responde igual exista ou não a conta, para ninguém descobrir quais e-mails estão cadastrados
+  // responde igual exista ou não a conta, para ninguém descobrir quais e-mails estão cadastrados;
+  // e responde antes de procurar a conta, para o tempo de resposta também não revelar
   async onPostEsqueciSenha(req, res) {
     SchemaHandler.validate(req, 'post_auth_esqueci_senha.json')
-
-    const controller = new PasswordResetController(req.context)
-    const email = await controller.createResetEmailByEmail(req.context.media.email)
+    const { email } = req.context.media
 
     res.status(202).end()
-    if (email !== null) EmailConnector.sendInBackground(email)
+
+    runAfterResponse(req.context, async (context) => {
+      const resetEmail = await new PasswordResetController(context).createResetEmailByEmail(email)
+      if (resetEmail !== null) EmailConnector.sendInBackground(resetEmail)
+    })
   }
 
   async onPostRedefinirSenha(req, res) {

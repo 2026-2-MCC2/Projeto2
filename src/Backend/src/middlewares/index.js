@@ -1,6 +1,7 @@
 export { ContextCreator } from './context_creator.js'
 export { CorsMiddleware } from './cors.js'
 export { InputOutputMiddleware } from './input_output.js'
+export { RateLimitMiddleware } from './rate_limit.js'
 export { SecureHeaders } from './secure_headers.js'
 export { SessionManager } from './session_manager.js'
 export { UserAuthenticationMiddleware } from './user_authentication.js'

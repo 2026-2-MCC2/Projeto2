@@ -7,6 +7,7 @@ import {
   ContextCreator,
   CorsMiddleware,
   InputOutputMiddleware,
+  RateLimitMiddleware,
   SecureHeaders,
   SessionManager,
   UserAuthenticationMiddleware,
@@ -32,8 +33,9 @@ export function create() {
   const app = express()
 
   app.disable('x-powered-by')
-  // no cloud run há um load balancer na frente; assim req.ip é o ip real do cliente
-  app.set('trust proxy', true)
+  // no cloud run há um proxy do Google na frente, que acrescenta o ip real do cliente no fim do
+  // X-Forwarded-For; confiar só nesse 1 salto impede o cliente de inventar o próprio ip pelo header
+  app.set('trust proxy', 1)
 
   // arquivos do armazenamento local (só em desenvolvimento e testes): antes dos middlewares, porque
   // uma tag <img> não manda o token de login; quem protege o arquivo é a URL assinada
@@ -43,13 +45,14 @@ export function create() {
   }
 
   // cors antes de tudo para que respostas de erro também levem os headers (senão o navegador esconde o erro);
-  // sessão do banco só depois do login, para não gastar conexão com requisição recusada
+  // sessão do banco só depois do login e do limite de tentativas, para não gastar conexão com requisição recusada
   useMiddlewares(app, [
     new SecureHeaders(),
     new CorsMiddleware(),
     new ContextCreator(),
     new InputOutputMiddleware(),
     new UserAuthenticationMiddleware(),
+    new RateLimitMiddleware(),
     new SessionManager(),
     new UserStatusMiddleware(),
   ])

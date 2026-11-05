@@ -5,9 +5,10 @@ import { ClientRequisition } from '../utils/requisition.js'
 import { TokenGenerator } from '../utils/token_generator.js'
 
 describe('HealthCheck', () => {
-  test('home responde 200 sem login', async () => {
+  test('home responde 200 sem login, só com o commit no ar (sem pid nem branch)', async () => {
     const response = await ClientRequisition.send('GET', '/event_planning/')
     assert.equal(response.responseStatus, 200)
+    assert.deepEqual(Object.keys(response.responseJson), ['trocaticket-event-planning-api'])
   })
 
   test('health check responde 204 sem login', async () => {
@@ -36,6 +37,14 @@ describe('HealthCheck', () => {
     })
     assert.equal(response.responseStatus, 400)
     assert.equal(response.responseJson.code, 'APP000001')
+  })
+
+  test('body JSON acima de 1 MB responde 413', async () => {
+    const response = await ClientRequisition.send('POST', '/event_planning/auth/login', {
+      payload: { email: 'alguem@example.test', password: 'x'.repeat(1024 * 1024) },
+    })
+    assert.equal(response.responseStatus, 413)
+    assert.equal(response.responseJson.code, 'APP000413')
   })
 
   test('respostas têm os headers de segurança', async () => {

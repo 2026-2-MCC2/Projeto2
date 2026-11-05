@@ -8,6 +8,7 @@ import { DbUtils } from '../../utils/db_utils.js'
 import { LOCAL_JWT_SECRET } from '../../utils/local_secrets.js'
 import { ObjectGenerator } from '../../utils/object_generator.js'
 import { RequestGenerator } from '../../utils/request_generator.js'
+import { ClientRequisition } from '../../utils/requisition.js'
 import { TokenGenerator } from '../../utils/token_generator.js'
 
 const PASSWORD = 'senhaForte123'
@@ -66,8 +67,9 @@ describe('POST /auth/login', () => {
     const user = await createFixture({ profile: 'organizador', status: 'approved' })
 
     const [wrongPasswordStatus, wrongPassword] = await RequestGenerator.POST_auth_login({ email: user.email, password: 'senhaErrada123' })
+    // e-mail novo a cada execução: senha errada conta no limite por e-mail, que dura entre execuções
     const [unknownEmailStatus, unknownEmail] = await RequestGenerator.POST_auth_login({
-      email: 'ninguem-cadastrado@example.test',
+      email: `ninguem-${user.userKey}@example.test`,
       password: PASSWORD,
     })
 
@@ -172,5 +174,45 @@ describe('POST /auth/login', () => {
     assert.equal(missing.code, 'APP000001')
     assert.equal(extraStatus, 400)
     assert.equal(extra.code, 'APP000001')
+  })
+})
+
+describe('POST /auth/login (limite de tentativas)', () => {
+  const MAX_FAILED_LOGINS = Number(process.env.RATE_LIMIT_MAX_FAILED_LOGINS_PER_EMAIL ?? 10)
+
+  async function failLogins(email, times) {
+    for (let attempt = 0; attempt < times; attempt++) {
+      const [status] = await RequestGenerator.POST_auth_login({ email, password: 'senhaErrada123' })
+      assert.equal(status, 401)
+    }
+  }
+
+  test('senha errada demais no mesmo e-mail responde 429, até com a senha certa; outro e-mail segue normal', async () => {
+    const user = await createFixture({ profile: 'organizador', status: 'approved' })
+    const otherUser = await createFixture({ profile: 'organizador', status: 'approved' })
+    await failLogins(user.email, MAX_FAILED_LOGINS)
+
+    const blocked = await ClientRequisition.send('POST', '/event_planning/auth/login', {
+      payload: { email: user.email.toUpperCase(), password: PASSWORD },
+    })
+    const [otherStatus] = await RequestGenerator.POST_auth_login({ email: otherUser.email, password: PASSWORD })
+
+    assert.equal(blocked.responseStatus, 429)
+    assert.equal(blocked.responseJson.code, 'EVP000049')
+    assert.match(blocked.responseJson.translation, /Aguarde \d+ minutos? e tente de novo/)
+    assert.ok(Number(blocked.response.headers.get('retry-after')) > 0)
+    assert.equal(otherStatus, 200)
+  })
+
+  test('login certo zera a contagem de senhas erradas', async () => {
+    const user = await createFixture({ profile: 'fornecedor', status: 'approved' })
+
+    await failLogins(user.email, MAX_FAILED_LOGINS - 1)
+    const [firstStatus] = await RequestGenerator.POST_auth_login({ email: user.email, password: PASSWORD })
+    await failLogins(user.email, MAX_FAILED_LOGINS - 1)
+    const [secondStatus] = await RequestGenerator.POST_auth_login({ email: user.email, password: PASSWORD })
+
+    assert.equal(firstStatus, 200)
+    assert.equal(secondStatus, 200)
   })
 })

@@ -13,6 +13,8 @@
 //   404 Not Found            a rota ou o registro não existe
 //   405 Method Not Allowed   a rota existe, mas não aceita esse método (ex.: DELETE)
 //   409 Conflict             o pedido conflita com o estado atual (ex.: status que não pode mudar)
+//   413 Payload Too Large    o body passou do tamanho aceito
+//   429 Too Many Requests    tentativas demais em pouco tempo (login, cadastro, senha)
 //   500 Internal Error       bug na API; o detalhe vai para o log, não para quem chamou
 //
 // O "code" (ex.: APP000404) identifica exatamente qual erro foi, para quem chama a API poder tratar.
@@ -129,5 +131,18 @@ export class InvalidParameter extends ApiException {
     const httpStatus = 400
     const translation = 'Parâmetros inválidos foram fornecidos na requisição.'
     super(title, InvalidParameter.code, httpStatus, description, translation)
+  }
+}
+
+// body acima do limite (ver middlewares/input_output.js); a foto tem um erro próprio, com o limite dela
+export class PayloadTooLarge extends ApiException {
+  static code = 'APP000413'
+
+  constructor(maxKilobytes) {
+    const title = 'Payload Too Large'
+    const httpStatus = 413
+    const description = `The request body must have at most ${maxKilobytes} KB.`
+    const translation = 'Os dados enviados são grandes demais.'
+    super(title, PayloadTooLarge.code, httpStatus, description, translation)
   }
 }
