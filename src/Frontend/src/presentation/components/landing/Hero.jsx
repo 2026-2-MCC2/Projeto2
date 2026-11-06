@@ -1,6 +1,6 @@
-import { formatarMoeda, formatarMoedaSemCentavos } from '../../../domain/formatacao.js'
+import { formatarMoeda } from '../../../domain/formatacao.js'
 import { Icone } from '../comum/Icone.jsx'
-import { EVENTO_DE_EXEMPLO as evento } from '../../data/eventoDeExemplo.js'
+import { EVENTO_DE_EXEMPLO as evento, NUMEROS_DO_EXEMPLO } from '../../data/eventoDeExemplo.js'
 import { useEscalaParaCaber } from '../../hooks/useEscalaParaCaber.js'
 import { BotaoLanding } from './BotaoLanding.jsx'
 import { Ingresso } from './Ingresso.jsx'
@@ -9,23 +9,15 @@ import iconeIngresso from '../../assets/landing/icone-ingresso.svg'
 import iconeEscudo from '../../assets/landing/icone-escudo.svg'
 import codigoDeBarras from '../../assets/landing/codigo-de-barras.svg'
 import codigoDeBarrasPequeno from '../../assets/landing/codigo-de-barras-pequeno.svg'
+import { ROTA_DO_LOGIN } from '../../../application/sessao.js'
 
 // largura em que os ingressos foram desenhados no Figma; em telas menores eles encolhem juntos
 const LARGURA_DOS_INGRESSOS = 660
 
-// mesmos números da seção "Cálculo do ticket"
 const ETIQUETAS = [
-  {
-    chave: 'custo',
-    nome: 'Custo total',
-    valor: formatarMoedaSemCentavos(evento.custoTotal),
-  },
-  { chave: 'margem', nome: 'Margem', valor: `${Math.round(evento.margem * 100)}%` },
-  {
-    chave: 'equilibrio',
-    nome: 'Equilíbrio',
-    valor: `${evento.pontoDeEquilibrio.toLocaleString('pt-BR')} ingressos`,
-  },
+  { chave: 'custo', nome: 'Custo total', valor: NUMEROS_DO_EXEMPLO.custoTotal },
+  { chave: 'margem', nome: 'Margem', valor: NUMEROS_DO_EXEMPLO.margem },
+  { chave: 'equilibrio', nome: 'Equilíbrio', valor: NUMEROS_DO_EXEMPLO.equilibrio },
 ]
 
 const DADOS_DO_FESTIVAL = [
@@ -60,7 +52,7 @@ export function Hero() {
 
         <div className="hero__acoes">
           <BotaoLanding para="/cadastro">Criar cadastro</BotaoLanding>
-          <BotaoLanding tipo="contorno-claro" para="/entrar">
+          <BotaoLanding tipo="contorno-claro" para={ROTA_DO_LOGIN}>
             Já tenho conta
           </BotaoLanding>
         </div>

@@ -8,6 +8,7 @@ import marcadorPendente from '../../assets/acesso/marcador-pendente.svg'
 import marcadorAguardando from '../../assets/acesso/marcador-aguardando.svg'
 import marcadorRejeitado from '../../assets/acesso/marcador-rejeitado.svg'
 import { formatarCnpj, formatarData } from '../../../domain/formatacao.js'
+import { ROTA_DO_LOGIN } from '../../../application/sessao.js'
 
 const TEXTOS = {
   pendente: {
@@ -158,7 +159,7 @@ export function CadastroPendente() {
         )}
       </dl>
 
-      <Link to="/entrar" className="acesso__botao">
+      <Link to={ROTA_DO_LOGIN} className="acesso__botao">
         Voltar para o login
       </Link>
     </AcessoLayout>

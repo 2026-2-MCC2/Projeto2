@@ -1,10 +1,6 @@
 import '../../styles/ingresso.css'
 
-// Forma de ingresso: corpo e canhoto separados por um picote, com recortes nas pontas do picote.
-// orientacao: 'horizontal' (canhoto à direita), 'vertical' (canhoto embaixo) ou
-// 'responsiva' (horizontal no desktop e vertical no mobile).
-// canhotoNoInicio põe o canhoto à esquerda ou em cima (como no passo do "Como funciona").
-// Cores e medidas vêm de variáveis CSS (ver styles/ingresso.css).
+// corpo e canhoto separados por um picote; 'responsiva' fica horizontal no desktop e vertical no mobile
 export function Ingresso({
   orientacao = 'horizontal',
   canhoto,

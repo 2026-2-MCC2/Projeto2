@@ -2,9 +2,11 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Icone } from '../comum/Icone.jsx'
 import { BotaoLanding } from './BotaoLanding.jsx'
-import { LogotipoLanding } from './LogotipoLanding.jsx'
+import { Logotipo } from '../comum/Logotipo.jsx'
+import logotipoDaLanding from '../../assets/landing/logotipo-trocaticket.png'
 import iconeMenu from '../../assets/landing/icone-menu.svg'
 import iconeFechar from '../../assets/comum/icone-fechar.svg'
+import { ROTA_DO_LOGIN } from '../../../application/sessao.js'
 
 const LINKS = [
   { ancora: '#como-funciona', nome: 'Como funciona' },
@@ -55,7 +57,7 @@ export function NavbarLanding() {
   return (
     <header className="landing-topo" ref={topo}>
       <Link to="/" className="landing-topo__marca">
-        <LogotipoLanding className="landing-topo__logo" />
+        <Logotipo imagemClara={logotipoDaLanding} className="logotipo-landing landing-topo__logo" />
       </Link>
 
       <button
@@ -86,7 +88,7 @@ export function NavbarLanding() {
         </ul>
 
         <div className="landing-topo__acoes">
-          <BotaoLanding tipo="secundario" para="/entrar">
+          <BotaoLanding tipo="secundario" para={ROTA_DO_LOGIN}>
             Entrar
           </BotaoLanding>
           <BotaoLanding para="/cadastro">Criar cadastro</BotaoLanding>

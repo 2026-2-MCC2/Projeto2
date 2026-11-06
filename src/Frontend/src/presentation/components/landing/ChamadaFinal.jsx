@@ -2,6 +2,7 @@ import { Icone } from '../comum/Icone.jsx'
 import { BotaoLanding } from './BotaoLanding.jsx'
 import { Ingresso } from './Ingresso.jsx'
 import codigoDeBarras from '../../assets/landing/codigo-de-barras-claro.svg'
+import { ROTA_DO_LOGIN } from '../../../application/sessao.js'
 
 // ingresso horizontal no desktop e vertical no mobile (canhoto embaixo)
 export function ChamadaFinal() {
@@ -33,7 +34,7 @@ export function ChamadaFinal() {
         </p>
         <div className="chamada-landing__acoes">
           <BotaoLanding para="/cadastro">Criar cadastro</BotaoLanding>
-          <BotaoLanding tipo="secundario" para="/entrar">
+          <BotaoLanding tipo="secundario" para={ROTA_DO_LOGIN}>
             Entrar na plataforma
           </BotaoLanding>
         </div>

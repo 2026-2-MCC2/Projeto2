@@ -7,6 +7,7 @@ import { RetornoDoEnvio } from '../../components/acesso/RetornoDoEnvio.jsx'
 import { useValidacao } from '../../hooks/useValidacao.js'
 import { toast } from '../../toasts.js'
 import { EntradaDeSenha } from '../../components/comum/EntradaDeSenha.jsx'
+import { ROTA_DO_LOGIN } from '../../../application/sessao.js'
 
 export function RedefinirSenha() {
   const navegar = useNavigate()
@@ -28,7 +29,7 @@ export function RedefinirSenha() {
     try {
       await redefinirSenha({ token, senha })
       toast.sucesso('Senha alterada', { descricao: 'Entre com a senha nova.' })
-      navegar('/entrar', { replace: true })
+      navegar(ROTA_DO_LOGIN, { replace: true })
     } catch (falha) {
       setErro(falha.message)
       setEnviando(false)

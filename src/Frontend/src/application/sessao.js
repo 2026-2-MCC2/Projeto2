@@ -6,7 +6,10 @@ import {
   guardarSessao,
   lerSessao,
   limparSessao,
+  ROTA_DO_LOGIN,
 } from '../infrastructure/armazenamentoDaSessao.js'
+
+export { ROTA_DO_LOGIN }
 import { obterDadosDoUsuarioAtual } from '../infrastructure/usuarios.js'
 
 // também usada quando alguém tenta abrir a área de outro perfil
@@ -68,7 +71,13 @@ export function usuarioAtual() {
 }
 
 export function rotaInicialDoPerfil(perfil) {
-  return ROTAS_INICIAIS[perfil] ?? '/'
+  return ROTAS_INICIAIS[perfil] ?? ROTA_DO_LOGIN
+}
+
+// "voltar ao início": a área de quem está logado, a landing para quem não está
+export function rotaDoInicio() {
+  const usuario = usuarioAtual()
+  return usuario ? rotaInicialDoPerfil(usuario.perfil) : '/'
 }
 
 // o menu e o topo leem o nome da sessão, então ela acompanha os dados vindos da API

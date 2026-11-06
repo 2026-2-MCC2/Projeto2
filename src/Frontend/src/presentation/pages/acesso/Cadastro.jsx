@@ -16,6 +16,7 @@ import { useValidacao } from '../../hooks/useValidacao.js'
 import fotoMusica from '../../assets/acesso/foto-musica.jpg'
 import perfilSelecionado from '../../assets/acesso/perfil-selecionado.svg'
 import { EntradaDeSenha } from '../../components/comum/EntradaDeSenha.jsx'
+import { ROTA_DO_LOGIN } from '../../../application/sessao.js'
 
 const TITULOS_DAS_ETAPAS = {
   1: {
@@ -233,7 +234,7 @@ export function Cadastro() {
         )}
       </form>
 
-      <Link to="/entrar" className="acesso__link acesso__link--centro">
+      <Link to={ROTA_DO_LOGIN} className="acesso__link acesso__link--centro">
         Já tem conta? Entrar
       </Link>
     </AcessoLayout>

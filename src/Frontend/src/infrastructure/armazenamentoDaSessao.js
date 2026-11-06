@@ -1,3 +1,6 @@
+// para onde vai quem sai ou perde a sessão; a raiz do site é a landing
+export const ROTA_DO_LOGIN = '/entrar'
+
 // o navegador pode bloquear o sessionStorage: a cópia em memória mantém o login até recarregar
 const CHAVE = 'trocaticket.sessao'
 

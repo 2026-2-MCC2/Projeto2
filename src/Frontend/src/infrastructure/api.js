@@ -1,4 +1,4 @@
-import { lerSessao, limparSessao } from './armazenamentoDaSessao.js'
+import { lerSessao, limparSessao, ROTA_DO_LOGIN } from './armazenamentoDaSessao.js'
 
 const URL_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3300/event_planning'
 
@@ -55,8 +55,8 @@ function sessaoPerdeuValidade(erro) {
 // o recarregamento completo descarta também o que estivesse na tela
 function encerrarSessaoVencida() {
   limparSessao()
-  if (window.location.pathname !== '/entrar') {
-    window.location.assign('/entrar')
+  if (window.location.pathname !== ROTA_DO_LOGIN) {
+    window.location.assign(ROTA_DO_LOGIN)
   }
 }
 

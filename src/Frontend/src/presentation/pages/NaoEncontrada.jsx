@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { rotaDoInicio } from '../../application/sessao.js'
 import { Icone } from '../components/comum/Icone.jsx'
 import { Logotipo } from '../components/comum/Logotipo.jsx'
 import { BotaoAcessibilidade } from '../components/comum/BotaoAcessibilidade.jsx'
@@ -8,11 +9,13 @@ import ingressoDireita from '../assets/nao-encontrada/ingresso-direita.svg'
 import '../styles/NaoEncontrada.css'
 
 export function NaoEncontrada() {
+  const inicio = rotaDoInicio()
+
   return (
     <main className="nao-encontrada">
       <TituloDaPagina titulo="Página não encontrada" />
       <div className="nao-encontrada__conteudo">
-        <Link to="/" className="nao-encontrada__marca">
+        <Link to={inicio} className="nao-encontrada__marca">
           <Logotipo className="nao-encontrada__logo" />
           <span className="nao-encontrada__selo">· Gestão</span>
         </Link>
@@ -38,7 +41,7 @@ export function NaoEncontrada() {
           </p>
         </div>
 
-        <Link to="/" className="nao-encontrada__botao">
+        <Link to={inicio} className="nao-encontrada__botao">
           Voltar ao início
         </Link>
       </div>

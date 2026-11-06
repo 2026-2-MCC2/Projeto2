@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom'
-import { LogotipoLanding } from './LogotipoLanding.jsx'
+import { Logotipo } from '../comum/Logotipo.jsx'
+import logotipoDaLanding from '../../assets/landing/logotipo-trocaticket.png'
+import { ROTA_DO_LOGIN } from '../../../application/sessao.js'
 
 // âncoras (#) levam às seções desta página; o resto são rotas do app
 const COLUNAS = [
@@ -21,7 +23,7 @@ const COLUNAS = [
   {
     titulo: 'Acesso',
     links: [
-      { nome: 'Entrar', destino: '/entrar' },
+      { nome: 'Entrar', destino: ROTA_DO_LOGIN },
       { nome: 'Criar cadastro', destino: '/cadastro' },
       { nome: 'Recuperar senha', destino: '/recuperar-senha' },
     ],
@@ -33,7 +35,10 @@ export function RodapeLanding() {
     <footer className="rodape-landing">
       <div className="rodape-landing__topo">
         <div className="rodape-landing__marca">
-          <LogotipoLanding className="rodape-landing__logo" />
+          <Logotipo
+            imagemClara={logotipoDaLanding}
+            className="logotipo-landing rodape-landing__logo"
+          />
           <p>Planejamento, cotação e precificação de eventos.</p>
         </div>
 

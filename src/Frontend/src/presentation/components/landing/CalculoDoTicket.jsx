@@ -1,5 +1,5 @@
 import { formatarMoeda, formatarMoedaSemCentavos } from '../../../domain/formatacao.js'
-import { EVENTO_DE_EXEMPLO as evento } from '../../data/eventoDeExemplo.js'
+import { EVENTO_DE_EXEMPLO as evento, NUMEROS_DO_EXEMPLO } from '../../data/eventoDeExemplo.js'
 import { CabecalhoDaSecao } from './CabecalhoDaSecao.jsx'
 import { Ingresso } from './Ingresso.jsx'
 
@@ -9,9 +9,9 @@ const numero = (valor) => valor.toLocaleString('pt-BR')
 const resultado = (valor) => `${valor < 0 ? '−' : '+'} ${formatarMoedaSemCentavos(Math.abs(valor))}`
 
 const PREMISSAS = [
-  { nome: 'Custo total', valor: formatarMoedaSemCentavos(evento.custoTotal) },
-  { nome: 'Margem de lucro', valor: `${Math.round(evento.margem * 100)}%` },
-  { nome: 'Ponto de equilíbrio', valor: `${numero(evento.pontoDeEquilibrio)} ingressos` },
+  { nome: 'Custo total', valor: NUMEROS_DO_EXEMPLO.custoTotal },
+  { nome: 'Margem de lucro', valor: NUMEROS_DO_EXEMPLO.margem },
+  { nome: 'Ponto de equilíbrio', valor: NUMEROS_DO_EXEMPLO.equilibrio },
 ]
 
 export function CalculoDoTicket() {
@@ -84,7 +84,7 @@ export function CalculoDoTicket() {
               {numero(evento.pontoDeEquilibrio)} de {numero(evento.publicoMaximo)}
             </strong>
           </p>
-          {/* a barra repete o "9.600 de 15.000" escrito acima: fica fora do leitor de tela */}
+          {/* a barra repete o número escrito acima: fica fora do leitor de tela */}
           <div className="calculo-landing__barra" aria-hidden="true">
             <span style={{ width: `${vendidosParaPagar}%` }} />
           </div>

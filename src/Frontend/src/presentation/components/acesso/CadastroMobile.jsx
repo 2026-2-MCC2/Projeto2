@@ -16,6 +16,7 @@ import setaVoltar from '../../assets/acesso/seta-voltar.svg'
 import perfilSelecionado from '../../assets/acesso/perfil-selecionado.svg'
 import '../../styles/acesso.css'
 import { EntradaDeSenha } from '../comum/EntradaDeSenha.jsx'
+import { ROTA_DO_LOGIN } from '../../../application/sessao.js'
 
 function textoDoBotao({ naUltimaEtapa, enviando, verificando }) {
   if (verificando) return 'Verificando...'
@@ -32,7 +33,7 @@ export function CadastroMobile({ formulario }) {
 
   function voltar() {
     if (etapa === 1) {
-      navegar('/entrar')
+      navegar(ROTA_DO_LOGIN)
       return
     }
     voltarEtapa()
