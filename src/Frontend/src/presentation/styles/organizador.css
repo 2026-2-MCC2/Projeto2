@@ -2915,6 +2915,17 @@
   text-align: right;
 }
 
+.cartao-proposta__dados > .cartao-proposta__observacoes {
+  display: block;
+}
+
+.cartao-proposta__observacoes dd {
+  margin-top: 0.25rem;
+  text-align: left;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 .cartao-proposta .botao {
   margin-top: auto;
   width: 100%;
@@ -3108,13 +3119,18 @@
 
 .lista-propostas__linha {
   display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1.4fr) minmax(0, 1fr) 11rem;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 0.8fr) minmax(0, 1.1fr) minmax(0, 0.8fr) minmax(0, 2fr) 10rem;
   align-items: center;
   gap: 1rem;
   padding: 0.875rem 1.25rem;
   border-top: 1px solid var(--borda-padrao);
   color: var(--texto-secundario);
   font-size: 0.8125rem;
+}
+
+.lista-propostas__observacoes {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .lista-propostas__linha strong {
