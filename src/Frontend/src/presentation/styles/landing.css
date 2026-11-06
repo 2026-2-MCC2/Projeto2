@@ -970,14 +970,14 @@
     translate: var(--_entrada);
   }
 
-  /* itens da lista: um por vez depois que o cartão entrou (300ms + 80ms por item, somados ao
+  /* itens da lista: um por vez depois que o cartão entrou (500ms + 150ms por item, somados ao
      atraso do cartão), e o ✓ de cada um dá um pop junto com o item */
   :root:not(.sem-movimento) .perfis-landing--animar .perfil-landing__lista li {
-    --_atraso-do-item: calc(var(--i, 0) * 80ms + 300ms + var(--_atraso-do-cartao, 0ms));
+    --_atraso-do-item: calc(var(--i, 0) * 150ms + 500ms + var(--_atraso-do-cartao, 0ms));
 
     transition:
-      opacity 400ms cubic-bezier(0.2, 0.8, 0.2, 1),
-      translate 400ms cubic-bezier(0.2, 0.8, 0.2, 1);
+      opacity 700ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      translate 700ms cubic-bezier(0.2, 0.8, 0.2, 1);
     transition-delay: var(--_atraso-do-item);
   }
 
@@ -998,7 +998,7 @@
 
   /* `scale` individual, para não brigar com outro transform do ícone */
   :root:not(.sem-movimento) .perfis-landing--visivel .perfil-landing__lista .icone {
-    animation: perfil-check-pop 350ms ease-out var(--_atraso-do-item) both;
+    animation: perfil-check-pop 550ms ease-out var(--_atraso-do-item) both;
   }
 }
 
