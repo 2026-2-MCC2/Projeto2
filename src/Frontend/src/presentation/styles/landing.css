@@ -364,6 +364,18 @@
   }
 }
 
+/* depois da entrada, cada ingresso sobe e desce 6px sem parar */
+@keyframes hero-ingresso-flutua {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .hero__ingresso {
     animation: hero-ingresso-entrada 900ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
@@ -371,6 +383,17 @@
 
   .hero__ingresso--summit {
     animation-delay: 150ms;
+  }
+
+  /* o delay é o fim da entrada de cada um (150ms + 900ms no summit); as durações diferentes
+     deixam os dois desencontrados */
+  .hero__ingresso .ingresso-flutua {
+    animation: hero-ingresso-flutua 7.5s ease-in-out 900ms infinite alternate;
+  }
+
+  .hero__ingresso--summit .ingresso-flutua {
+    animation-duration: 6s;
+    animation-delay: 1050ms;
   }
 }
 
