@@ -81,8 +81,7 @@
   }
 }
 
-/* fica aqui, e não na folha de cada área, para valer também nas telas de acesso;
-   uma volta só para as animações infinitas (carregando, skeleton) pararem em vez de piscar */
+/* uma volta só para as animações infinitas pararem em vez de piscar */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -168,8 +167,7 @@ select {
   outline: none;
 }
 
-/* Campo inválido, só depois que a pessoa mexeu nele ou tentou enviar (ver hooks/useValidacao.js).
-   O !important vence as bordas dos campos definidas em cada tela. */
+/* o !important vence as bordas dos campos definidas em cada tela */
 input:user-invalid,
 textarea:user-invalid,
 select:user-invalid {
@@ -202,7 +200,6 @@ select:user-invalid {
   height: 0.875rem;
 }
 
-/* erro do envio do formulário (ex.: e-mail ou senha incorretos) */
 .alerta-erro {
   display: flex;
   align-items: center;
@@ -226,7 +223,7 @@ select:user-invalid {
   height: 1.125rem;
 }
 
-/* ---------- campo de data (components/comum/EntradaData.jsx) ---------- */
+/* ---------- campo de data ---------- */
 
 /* grade de uma célula: campo e ícone se sobrepõem, e a mensagem de erro cai na linha de baixo */
 .entrada-data {
@@ -271,7 +268,7 @@ select:user-invalid {
   height: 18px;
 }
 
-/* ---------- calendario popover customizado (components/comum/Calendario.jsx) ---------- */
+/* ---------- calendário ---------- */
 .calendario-backdrop {
   display: none;
 }
@@ -610,7 +607,7 @@ button.calendario__titulo:focus-visible {
   background: var(--borda-padrao);
 }
 
-/* ---------- toasts (components/comum/Toaster.jsx) ---------- */
+/* ---------- toasts ---------- */
 
 /* no celular fica acima da barra de abas; no desktop, acima dos botões flutuantes do canto */
 .toaster {
@@ -1018,8 +1015,7 @@ button.calendario__titulo:focus-visible {
 .logotipo__negativo {
   height: 100%;
   width: auto;
-  /* alinhamento óptico: a ponta do símbolo é fina, então o desenho é puxado para o corpo dele
-     ficar na mesma linha do texto ao lado (o em vale a altura do logo) */
+  /* alinhamento óptico: a ponta do símbolo é fina */
   margin-left: -0.04em;
 }
 
@@ -1035,7 +1031,6 @@ button.calendario__titulo:focus-visible {
   display: block;
 }
 
-/* campo de senha com o botão de mostrar (components/comum/EntradaDeSenha.jsx) */
 .entrada-de-senha {
   position: relative;
   display: flex;
@@ -1074,7 +1069,6 @@ button.calendario__titulo:focus-visible {
   outline-offset: 1px;
 }
 
-/* linhas "rótulo · valor" e blocos de texto das propostas (detalhe do fornecedor e proposta recebida) */
 .detalhe-proposta__textos {
   display: flex;
   flex-direction: column;
@@ -1121,7 +1115,6 @@ button.calendario__titulo:focus-visible {
   text-align: right;
 }
 
-/* texto só para leitor de tela: some da tela, mas continua sendo lido */
 .so-leitor {
   position: absolute;
   width: 1px;

@@ -1,6 +1,3 @@
-// Aba Propostas do evento: as propostas do item escolhido lado a lado, com a de menor valor em
-// destaque, e a tabela dos itens em cotação embaixo (clicar numa linha troca o item mostrado).
-
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { formatarMoeda } from '../../../domain/formatacao.js'

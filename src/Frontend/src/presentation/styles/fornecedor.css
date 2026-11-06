@@ -78,13 +78,6 @@
   gap: 10px;
 }
 
-.fornecedor-evento__etiquetas {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
-
 .fornecedor-evento__categorias {
   flex: 0 1 auto;
   align-self: flex-start;
@@ -99,23 +92,6 @@
   font-weight: 600;
   line-height: 1.2;
   white-space: nowrap;
-}
-
-.fornecedor-evento__prazo {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 6px;
-  margin-left: auto;
-  color: var(--status-alerta-texto);
-  font-size: 0.6875rem;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.fornecedor-evento__prazo .icone {
-  width: 12px;
-  height: 12px;
 }
 
 .fornecedor-evento__identificacao h2 {
@@ -252,7 +228,6 @@
   font-weight: 500;
 }
 
-/* item da lista que abre o detalhe da proposta (pages/fornecedor/DetalheDaProposta.jsx) */
 .minhas-propostas__link {
   color: var(--texto-marca);
   font-weight: 600;
@@ -328,7 +303,6 @@
   }
 }
 
-/* descrições e condições digitadas em várias linhas */
 .minhas-propostas__data {
   text-align: right;
 }
@@ -433,9 +407,6 @@
     background: var(--fundo-superficie);
   }
 
-  .minhas-propostas__cartao--oculto-mobile {
-    display: none;
-  }
   .minhas-propostas__cartao-cabecalho {
     display: flex;
     align-items: baseline;
@@ -1010,36 +981,6 @@
   min-width: 0;
 }
 
-.fornecedor-evento-detalhe {
-  display: grid;
-  gap: 16px;
-}
-
-.fornecedor-evento-detalhe__dados {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
-  margin: 0;
-}
-
-.fornecedor-evento-detalhe__dados > div {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.fornecedor-evento-detalhe__dados dt {
-  color: var(--texto-secundario);
-  font-size: 0.6875rem;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.fornecedor-evento-detalhe__dados dd {
-  margin: 0;
-  font-size: 0.875rem;
-}
-
 .itens-para-cotar {
   display: flex;
   flex-direction: column;
@@ -1345,10 +1286,6 @@
     height: 92px;
   }
 
-  .proposta-detalhes__foto--desktop {
-    display: none;
-  }
-
   .proposta-detalhes__remover-foto {
     width: 32px;
     height: 32px;
@@ -1393,10 +1330,6 @@
 
   .fornecedor-evento__numeros strong {
     font-size: 0.875rem;
-  }
-
-  .fornecedor-evento-detalhe__dados {
-    grid-template-columns: minmax(0, 1fr);
   }
 
   .item-para-cotar {

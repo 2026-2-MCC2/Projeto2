@@ -1,5 +1,4 @@
-// o navegador pode bloquear o sessionStorage (aba anônima, cookies desativados): por isso o try/catch
-// e a cópia em memória, que mantém a pessoa logada até recarregar a página
+// o navegador pode bloquear o sessionStorage: a cópia em memória mantém o login até recarregar
 const CHAVE = 'trocaticket.sessao'
 
 let sessaoEmMemoria = null

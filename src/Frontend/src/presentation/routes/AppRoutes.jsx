@@ -9,7 +9,6 @@ import { RedefinirSenha } from '../pages/acesso/RedefinirSenha.jsx'
 import { CadastroPendente } from '../pages/acesso/CadastroPendente.jsx'
 import { AreaDoPerfil } from './AreaDoPerfil.jsx'
 
-// a área logada fica fora do pacote inicial: cada perfil vira um arquivo baixado sob demanda;
 // o lazy() espera export default, por isso cada página é pega pelo nome
 const paginasDe = (carregar) => (nome) =>
   lazy(() => carregar().then((modulo) => ({ default: modulo[nome] })))
@@ -83,7 +82,6 @@ export function AppRoutes() {
               element={<Configuracoes perfil="fornecedor" />}
             />
             <Route path="/fornecedor/duvidas" element={<Duvidas perfil="fornecedor" />} />
-            {/* envio de proposta para um item do evento, em 3 etapas */}
             <Route
               path="/fornecedor/eventos/:id/itens/:itemKey/propostas/etapa-1"
               element={<EnviarProposta />}

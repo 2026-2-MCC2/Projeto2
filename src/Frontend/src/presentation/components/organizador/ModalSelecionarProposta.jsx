@@ -2,7 +2,6 @@ import { formatarMoeda } from '../../../domain/formatacao.js'
 import { Modal } from '../comum/Modal.jsx'
 import iconeAceitar from '../../assets/organizador/icone-modal-aceitar.svg'
 
-// Confirmação de escolha de uma proposta, usada na aba Propostas e na proposta recebida.
 // troca: o item já tinha uma proposta escolhida, que passa a ficar recusada
 export function ModalSelecionarProposta({
   proposta,

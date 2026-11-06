@@ -1,4 +1,3 @@
-// valores iniciais do formulário de um evento novo
 export const EVENTO_EM_BRANCO = {
   nome: '',
   categoria: '',

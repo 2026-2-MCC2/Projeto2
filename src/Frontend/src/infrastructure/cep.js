@@ -1,8 +1,3 @@
-/**
- * Consulta CEP na API do ViaCEP e retorna os dados de endereço.
- * @param {string} cep
- * @returns {Promise<{ logradouro: string, bairro: string, cidade: string, estado: string, enderecoCompleto: string } | null>}
- */
 export async function buscarEnderecoPorCep(cep) {
   if (!cep) return null
   const digitos = String(cep).replace(/\D/g, '')

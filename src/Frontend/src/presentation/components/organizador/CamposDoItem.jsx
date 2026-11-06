@@ -25,7 +25,6 @@ const TIPOS_DE_ITEM = [
   { valor: 'service', nome: 'Serviço' },
 ]
 
-// Os mesmos campos servem ao modal do desktop e à página do mobile.
 export function CamposDoItem({ dados, definir, linhas = 2, mostrarOrigem = true }) {
   const porCotacao = dados.origem === 'cotacao'
   const campo = (nome) => ({

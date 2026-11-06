@@ -12,7 +12,6 @@ import '../../styles/fornecedor.css'
 
 const POR_PAGINA = 20
 
-// cartões do topo: rótulo e a chave em counts, que vem junto com a lista
 const INDICADORES = [
   { chave: 'all', rotulo: 'Enviadas', somenteDesktop: true },
   { chave: 'accepted', rotulo: 'Aceitas' },
@@ -81,11 +80,9 @@ function TabelaPropostas({ propostas }) {
   )
 }
 
-// Histórico das propostas do fornecedor (GET /supplier/proposals), da mais recente para a mais antiga.
 export function MinhasPropostas() {
   const isMobile = useIsMobile()
   const [tentativa, setTentativa] = useState(0)
-  // situacao: 'carregando' | 'erro' | 'pronto'
   const [estado, setEstado] = useState({ situacao: 'carregando' })
   const [carregandoMais, setCarregandoMais] = useState(false)
   const [erroAoCarregarMais, setErroAoCarregarMais] = useState('')

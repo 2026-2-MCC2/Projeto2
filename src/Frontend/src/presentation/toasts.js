@@ -1,7 +1,7 @@
 const MAXIMO_VISIVEL = 3
 const DURACAO_EM_MS = { sucesso: 5000, info: 5000, erro: 8000 }
 
-export function criarFilaDeToasts() {
+function criarFilaDeToasts() {
   let toasts = []
   let proximoId = 1
   const ouvintes = new Set()

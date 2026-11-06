@@ -1,4 +1,4 @@
-// As mesmas categorias da tabela item_category do backend, na mesma grafia.
+// mesma grafia da tabela item_category do backend
 export const CATEGORIAS_DE_ATUACAO = [
   'Alimentação',
   'Bebidas',

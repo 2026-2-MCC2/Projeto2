@@ -24,7 +24,6 @@ import '../../styles/fornecedor.css'
 
 const VOLTAR_PARA = '/fornecedor/propostas'
 
-// textos livres da proposta, na ordem em que o fornecedor preenche nas etapas
 const TEXTOS_DA_DESCRICAO = [
   { campo: 'description', rotulo: 'O que está incluído' },
   { campo: 'not_included', rotulo: 'O que não está incluído' },
@@ -63,8 +62,6 @@ function ModalRetirar({ proposta, retirando, aoConfirmar, aoFechar }) {
   )
 }
 
-// Detalhe de uma proposta do fornecedor (GET /supplier/proposals/:proposal_key).
-// Editar e Retirar só aparecem enquanto ela está Enviada e o evento continua em cotação.
 export function DetalheDaProposta() {
   const { proposalKey } = useParams()
   const navigate = useNavigate()

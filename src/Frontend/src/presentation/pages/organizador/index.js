@@ -1,4 +1,3 @@
-// Páginas do perfil organizador, carregadas juntas sob demanda (ver routes/AppRoutes.jsx).
 export { EditarEvento } from './EditarEvento.jsx'
 export { EventoItens } from './EventoItens.jsx'
 export { EventoPropostas } from './EventoPropostas.jsx'

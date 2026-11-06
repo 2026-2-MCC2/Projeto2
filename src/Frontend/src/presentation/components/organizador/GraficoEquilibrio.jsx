@@ -2,7 +2,6 @@ const LARGURA = 660
 const ALTURA = 280
 const MARGEM = { esquerda: 70, direita: 20, topo: 30, base: 34 }
 
-// Os valores são múltiplos do custo.
 export function GraficoEquilibrio({ equilibrio }) {
   const areaLargura = LARGURA - MARGEM.esquerda - MARGEM.direita
   const areaAltura = ALTURA - MARGEM.topo - MARGEM.base

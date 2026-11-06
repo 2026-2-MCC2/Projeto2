@@ -1,11 +1,5 @@
 import { REGRAS } from '../../domain/validacao.js'
 
-// Liga as regras de domain/validacao.js à validação nativa do navegador.
-// Espalhe o retorno no <form>: <form {...useValidacao()}>. Nos campos:
-//   required                  campo obrigatório (só espaços não preenche, exceto na senha)
-//   data-validar="email"      regra de REGRAS (email, cnpj, telefone, data...)
-// Regras que comparam campos vão no parâmetro, pelo name do campo:
-//   useValidacao({ confirmacaoSenha: (valor, valores) => validarConfirmacaoSenha(valor, valores.senha) })
 let ultimoId = 0
 
 export function useValidacao(regrasEntreCampos = {}) {
@@ -70,8 +64,7 @@ export function useValidacao(regrasEntreCampos = {}) {
   return { ref: ligar }
 }
 
-// espaços valem como caractere de senha, então só nela um campo obrigatório só com espaços passa
-// (o campo de senha alterna entre password e text ao mostrar, por isso a classe e não o type)
+// espaços valem na senha; pela classe, porque o campo alterna entre password e text ao mostrar
 const ehSenha = (campo) => Boolean(campo.closest('.entrada-de-senha'))
 
 // a senha vai crua para a API, então tamanho e confirmação também olham o valor com os espaços

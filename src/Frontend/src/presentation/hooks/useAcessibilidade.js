@@ -69,7 +69,6 @@ function salvar(novos) {
 sistemaEscuro.addEventListener('change', () => {
   if (ajustes.tema !== 'sistema') return
   aplicarTema(true)
-  // Novo objeto para o React perceber a mudança e trocar o ícone dos botões.
   ajustes = { ...ajustes }
   avisos.forEach((avisar) => avisar())
 })
@@ -81,7 +80,7 @@ function inscrever(avisar) {
   return () => avisos.delete(avisar)
 }
 
-// Guarda as preferências num estado único, então o botão do cabeçalho, o flutuante e o painel ficam sincronizados.
+// estado único para o botão do cabeçalho, o flutuante e o painel ficarem sincronizados
 export function useAcessibilidade() {
   const atuais = useSyncExternalStore(inscrever, () => ajustes)
 

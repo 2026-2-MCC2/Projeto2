@@ -1,7 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react'
 
-// Campo de seleção montado com botões, porque o <select> do navegador não deixa estilizar a lista aberta.
-// Padrão "select-only combobox" da WAI-ARIA: o foco fica no botão e as setas andam pelas opções.
+// o <select> do navegador não deixa estilizar a lista aberta; segue o "select-only combobox" da WAI-ARIA
 
 export function Selecao({ valor, opcoes, aoEscolher, rotuloAcessivel }) {
   const [aberto, setAberto] = useState(false)
@@ -12,7 +11,6 @@ export function Selecao({ valor, opcoes, aoEscolher, rotuloAcessivel }) {
   const indiceEscolhido = opcoes.findIndex((opcao) => opcao.valor === valor)
   const escolhida = opcoes[indiceEscolhido]
 
-  // Fecha a lista ao clicar fora dela.
   useEffect(() => {
     if (!aberto) return
 

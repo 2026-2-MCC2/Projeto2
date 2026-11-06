@@ -9,7 +9,6 @@ import { usePropostaEmEdicao } from '../../hooks/usePropostaEmEdicao.js'
 import { useValidacao } from '../../hooks/useValidacao.js'
 import '../../styles/fornecedor.css'
 
-// Etapa 1 do envio de proposta: valor e validade.
 export function EnviarProposta() {
   const navigate = useNavigate()
   const proposta = usePropostaEmEdicao()

@@ -48,7 +48,6 @@ function ler() {
   const jaFalando = sintese.speaking || sintese.pending
   mudarEstado(true)
 
-  // Um trecho por vez
   function falar(indice) {
     if (esta !== leituraAtual) return
     if (indice === trechos.length) {
@@ -69,8 +68,7 @@ function ler() {
     sintese.speak(fala)
   }
 
-  // O iOS só deixa falar dentro do toque no botão, então a primeira fala sai na hora. O atraso só
-  // entra depois de um cancel(), porque falar logo em seguida faz o Chrome descartar a fala.
+  // o iOS só fala dentro do toque; o atraso após cancel() evita que o Chrome descarte a fala
   if (jaFalando) {
     sintese.cancel()
     setTimeout(() => falar(0), 100)

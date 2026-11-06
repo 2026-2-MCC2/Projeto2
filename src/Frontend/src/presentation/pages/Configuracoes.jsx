@@ -174,7 +174,6 @@ export function Configuracoes({ perfil = 'organizador' }) {
   )
 }
 
-// envia, avisa o resultado e devolve o perfil atualizado para a tela
 async function salvarComAviso(acao, mensagemDeSucesso, aoSalvar) {
   try {
     const resultado = await acao()

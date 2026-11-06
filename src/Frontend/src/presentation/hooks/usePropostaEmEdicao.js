@@ -9,14 +9,7 @@ import {
 import { useEventoDisponivel } from './useEventoDisponivel.js'
 import { toast } from '../toasts.js'
 
-// Evento, item e rascunho da proposta das rotas /fornecedor/eventos/:id/itens/:itemKey/propostas/etapa-N.
-// O rascunho é o mesmo nas 3 etapas (application/rascunhosDePropostas.js).
-// Se o fornecedor já enviou proposta para o item e ela ainda está "Enviada", as etapas viram a
-// edição dela: o rascunho começa com os dados da proposta e o envio final usa o PUT.
-//   const proposta = usePropostaEmEdicao()
-//   <input value={proposta.rascunho.valor} onChange={proposta.preencher('valor')} />
-// Os links que abrem as etapas mandam este estado: entrar na edição sempre recarrega a proposta salva,
-// para um rascunho abandonado antes não ser salvo por engano. Entre as etapas o rascunho continua.
+// entrar na edição recarrega a proposta salva, para um rascunho abandonado não ser salvo por engano
 export const ENTRAR_NA_EDICAO = { recarregarProposta: true }
 
 export function usePropostaEmEdicao() {
@@ -39,8 +32,7 @@ export function usePropostaEmEdicao() {
   const precisaCarregarProposta =
     proposalKey !== null && (recarregarAoEntrar || rascunho.chaveDaProposta !== proposalKey)
 
-  // O pedido de recarga já ficou em recarregarAoEntrar. Ele sai da entrada do histórico para o voltar
-  // do navegador até esta etapa não recarregar a proposta salva por cima do que foi editado.
+  // sai do histórico para o voltar do navegador não recarregar a proposta por cima do que foi editado
   useEffect(() => {
     if (location.state?.recarregarProposta !== true) return
     navigate(`${location.pathname}${location.search}`, { replace: true, state: null })
@@ -90,7 +82,6 @@ export function usePropostaEmEdicao() {
     erro: evento.erro ?? erroDaEdicao,
     evento: evento.evento,
     item,
-    // edição de uma proposta já enviada (PUT) ou envio de uma nova (POST)
     editando: proposalKey !== null,
     proposalKey,
     rascunho,

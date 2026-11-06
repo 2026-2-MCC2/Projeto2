@@ -42,7 +42,6 @@ const ETAPAS = [
   },
 ]
 
-// regras que comparam campos da mesma etapa
 const REGRAS_ENTRE_CAMPOS = {
   dataTermino: (valor, valores) => validarTermino(valor, valores.dataInicio),
   publicoMaximo: (valor, valores) =>
@@ -51,9 +50,6 @@ const REGRAS_ENTRE_CAMPOS = {
     validarPublicoEsperado(valor, valores.publicoMinimo, valores.publicoMaximo),
 }
 
-// titulo, textos do botão final e aoConcluir mudam entre criar e editar; o resto do fluxo é o mesmo
-// custoJaCadastrado: na edição, o custo do evento salvo (custos próprios + propostas aceitas),
-// que entra na prévia do ticket
 export function FormularioDeEvento({
   titulo,
   valorInicial,
@@ -107,7 +103,6 @@ export function FormularioDeEvento({
     }
   }
 
-  // Na 1ª etapa a seta do topo sai do cadastro; nas demais volta uma etapa.
   const aoVoltarNoTopo = etapa === 1 ? () => navigate(destinoAoSair) : voltar
 
   const acoes = (

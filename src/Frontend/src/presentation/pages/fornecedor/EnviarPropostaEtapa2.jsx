@@ -27,7 +27,6 @@ function CampoDescricao({ id, rotulo, obrigatorio, placeholder, linhas, maximo, 
   )
 }
 
-// Etapa 2 do envio de proposta: descrição do serviço.
 export function EnviarPropostaEtapa2() {
   const navigate = useNavigate()
   const isMobile = useIsMobile()

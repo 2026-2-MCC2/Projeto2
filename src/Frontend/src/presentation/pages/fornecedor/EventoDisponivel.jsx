@@ -1,5 +1,3 @@
-// Evento aberto para cotação visto pelo fornecedor: os itens das suas categorias e os dados do evento.
-
 import { Link, useParams } from 'react-router-dom'
 import { formatarDataEHora, formatarMoeda, formatarPeriodo } from '../../../application/eventos.js'
 import { Carregando, ErroNaTela, Vazio } from '../../components/comum/EstadoDaTela.jsx'

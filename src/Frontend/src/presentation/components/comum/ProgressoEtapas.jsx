@@ -27,7 +27,6 @@ export function ProgressoEtapas({ etapas, etapaAtual }) {
   )
 }
 
-// tom="sucesso" pinta as etapas concluídas de verde (fluxo do fornecedor)
 export function PassosDasEtapas({ etapas, etapaAtual, tom = 'marca' }) {
   return (
     <ol className={`passos passos--${tom}`} aria-label="Etapas">

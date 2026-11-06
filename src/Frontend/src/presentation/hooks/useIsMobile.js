@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 
 const consulta = '(max-width: 900px)'
 
-// Diz se a tela está no tamanho mobile e acompanha o redimensionamento.
 export function useIsMobile() {
   const [isMobile, setIsMobile] = useState(() => window.matchMedia(consulta).matches)
 

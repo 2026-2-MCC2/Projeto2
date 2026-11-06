@@ -2,7 +2,6 @@ import { Link } from 'react-router-dom'
 import { Icone } from '../comum/Icone.jsx'
 import iconeAvancar from '../../assets/organizador/icone-avancar.svg'
 
-// complemento: texto curto à direita do título, como um progresso
 export function Cartao({ titulo, link, etiqueta, complemento, children }) {
   return (
     <section className="cartao">

@@ -176,7 +176,7 @@ export function EventoVisaoGeral() {
   const dadosDoEvento = (
     <Cartao titulo="Dados do evento">
       <div className="ficha">
-        {(isMobile ? detalhe.dadosMobile : detalhe.dados).map((dado) => (
+        {detalhe.dados.map((dado) => (
           <div key={dado.rotulo} className="ficha__dado">
             <span>{dado.rotulo}</span>
             <strong>{dado.valor}</strong>

@@ -1,7 +1,6 @@
 import { Component } from 'react'
 
-// Evita a página em branco quando um componente quebra. Precisa ser classe por causa do
-// getDerivedStateFromError.
+// classe por causa do getDerivedStateFromError
 export class LimiteDeErro extends Component {
   state = { quebrou: false }
 

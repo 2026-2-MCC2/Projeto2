@@ -1,4 +1,3 @@
-// Modal para editar ou remover um item de custo aberto para cotação.
 import { useState } from 'react'
 import { atualizarItemDeCotacao, excluirItemDeCotacao } from '../../../application/eventos.js'
 import { Modal } from '../comum/Modal.jsx'

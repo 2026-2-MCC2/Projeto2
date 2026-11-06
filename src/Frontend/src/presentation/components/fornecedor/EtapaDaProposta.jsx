@@ -8,12 +8,7 @@ import { useIsMobile } from '../../hooks/useIsMobile.js'
 
 const ETAPAS_PROPOSTA = ['Valor e validade', 'Descrição e fotos', 'Condições e envio']
 
-// Moldura das 3 etapas do envio (ou da edição) de proposta: carregando, erro, item indisponível,
-// proposta já analisada e, com tudo certo, o cabeçalho com o evento, o item e o progresso.
-// children é uma função: só roda quando o evento e o item já chegaram.
-//   <EtapaDaProposta proposta={usePropostaEmEdicao()} etapa={2} aoVoltar={...} rodape={acoes}>
-//     {() => <form>...</form>}
-//   </EtapaDaProposta>
+// children é uma função: só roda quando o evento e o item já chegaram
 export function EtapaDaProposta({ proposta, etapa, aoVoltar, rodape, children }) {
   const isMobile = useIsMobile()
   const { carregando, erro, evento, item, tentarDeNovo, eventKey } = proposta

@@ -6,7 +6,6 @@ import { paraData, paraNumero } from '../../../domain/validacao.js'
 const AVISO_PROPOSTA =
   'Confira os dados antes de enviar. Depois do envio, você pode editar ou retirar a proposta até o organizador analisar.'
 
-// o que o fornecedor já preencheu nas etapas (application/rascunhosDePropostas.js)
 export function ResumoProposta({ rascunho, item }) {
   const valor = paraNumero(rascunho.valor)
   const comparacao = comparacaoComPrevisto(valor, Number(item.estimated_value))

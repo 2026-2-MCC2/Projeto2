@@ -1,9 +1,6 @@
 import { useCallback } from 'react'
 
-// Uma foto da proposta, igual na galeria da edição e no detalhe da proposta.
-// foto: { url } de uma foto já enviada (url null é foto salva cujo link não pôde ser gerado agora)
-// ou { arquivo } de uma foto escolhida que ainda vai com a proposta.
-//   <FotoDoServico foto={{ url: foto.url }} indice={0} aoFalharFoto={aoFalharFoto} />
+// url null é foto salva cujo link não pôde ser gerado agora
 export function FotoDoServico({ foto, indice, aoFalharFoto }) {
   const propriedades = {
     alt: `Foto ${indice + 1} do serviço`,
@@ -19,8 +16,7 @@ export function FotoDoServico({ foto, indice, aoFalharFoto }) {
   )
 }
 
-// A URL nasce e é revogada no mesmo ref callback: no StrictMode ele roda duas vezes, e uma URL criada
-// fora dele seria revogada na primeira limpeza e ficaria quebrada.
+// criada e revogada no mesmo ref callback: fora dele o StrictMode revogaria a URL na primeira limpeza
 function PreviaDoArquivo({ arquivo, ...propriedades }) {
   const mostrarArquivo = useCallback(
     (imagem) => {

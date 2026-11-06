@@ -14,7 +14,7 @@ const SVG_POR_URL = Object.fromEntries(
   Object.entries(URLS).map(([caminho, url]) => [url, preparar(CONTEUDOS[caminho])]),
 )
 
-// Tira os ids exportados do Figma (repetem entre ícones) e passa o tamanho original para o CSS.
+// os ids exportados do Figma se repetem entre ícones
 function preparar(svg) {
   const largura = svg.match(/<svg[^>]*\swidth="([\d.]+)"/)?.[1]
   const altura = svg.match(/<svg[^>]*\sheight="([\d.]+)"/)?.[1]

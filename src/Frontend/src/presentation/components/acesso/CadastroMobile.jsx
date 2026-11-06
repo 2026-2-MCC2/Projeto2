@@ -23,7 +23,6 @@ function textoDoBotao({ naUltimaEtapa, enviando, verificando }) {
   return enviando ? 'Enviando...' : 'Enviar cadastro'
 }
 
-// o estado vem da página Cadastro (useFormularioDeCadastro), que alterna entre esta tela e a desktop
 export function CadastroMobile({ formulario }) {
   const navegar = useNavigate()
   const validacao = useValidacao(REGRAS_ENTRE_CAMPOS)

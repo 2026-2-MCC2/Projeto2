@@ -5,14 +5,14 @@ import iconeLua from '../../assets/comum/icone-lua.svg'
 import '../../styles/acessibilidade.css'
 
 // mostra o ícone do tema de destino: lua no claro, sol no escuro
-export function BotaoTema({ posicao = 'flutuante' }) {
+export function BotaoTema() {
   const { tema, mudarTema } = useAcessibilidade()
   const escuro = tema === 'escuro'
 
   return (
     <button
       type="button"
-      className={`botao-tema botao-tema--${posicao}`}
+      className="botao-tema botao-tema--flutuante"
       aria-label={escuro ? 'Ativar tema claro' : 'Ativar tema escuro'}
       title={escuro ? 'Ativar tema claro' : 'Ativar tema escuro'}
       onClick={() => mudarTema(escuro ? 'claro' : 'escuro')}
@@ -22,7 +22,6 @@ export function BotaoTema({ posicao = 'flutuante' }) {
   )
 }
 
-// Controle segmentado do painel de Acessibilidade.
 export function SeletorTema() {
   const { tema, mudarTema } = useAcessibilidade()
   const opcoes = [
@@ -30,7 +29,7 @@ export function SeletorTema() {
     { valor: 'escuro', nome: 'Escuro', icone: iconeLua },
   ]
 
-  // Como em todo radiogroup, as setas trocam a opção e o Tab entra só na opção marcada.
+  // radiogroup: as setas trocam a opção e o Tab entra só na opção marcada
   function aoTeclar(evento) {
     if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(evento.key)) return
     evento.preventDefault()

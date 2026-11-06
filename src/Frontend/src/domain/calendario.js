@@ -20,9 +20,6 @@ export const DIAS_DA_SEMANA = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
 // o mesmo leitor da validação do formulário, para os dois aceitarem as mesmas datas
 export const paraDataLocal = (texto) => paraData(String(texto ?? '').trim())
 
-/**
- * Formata Date para 'DD/MM/AAAA'.
- */
 export function formatarParaInput(data) {
   if (!data) return ''
   const d = String(data.getDate()).padStart(2, '0')
@@ -31,9 +28,6 @@ export function formatarParaInput(data) {
   return `${d}/${m}/${a}`
 }
 
-/**
- * Verifica se duas datas caem no mesmo dia civil.
- */
 export function saoMesmoDia(d1, d2) {
   if (!d1 || !d2) return false
   return (
@@ -43,9 +37,6 @@ export function saoMesmoDia(d1, d2) {
   )
 }
 
-/**
- * Verifica se data é anterior a uma data limite (à meia-noite).
- */
 export function ehAnterior(data, limite) {
   if (!data || !limite) return false
   const d = new Date(data.getFullYear(), data.getMonth(), data.getDate())
@@ -53,10 +44,6 @@ export function ehAnterior(data, limite) {
   return d.getTime() < lim.getTime()
 }
 
-/**
- * Gera a matriz de dias (grade 7 colunas) para um determinado mês e ano.
- * Inclui os dias de transição do mês anterior e próximo para fechar semanas completas.
- */
 export function gerarGradeDoMes(ano, mes) {
   const primeiroDiaDoMes = new Date(ano, mes, 1)
   const ultimoDiaDoMes = new Date(ano, mes + 1, 0)
@@ -64,7 +51,6 @@ export function gerarGradeDoMes(ano, mes) {
   const dias = []
   const diaDaSemanaInicio = primeiroDiaDoMes.getDay() // 0 (Dom) a 6 (Sáb)
 
-  // Dias do mês anterior para completar o início da semana
   const ultimoDiaMesAnterior = new Date(ano, mes, 0).getDate()
   for (let i = diaDaSemanaInicio - 1; i >= 0; i--) {
     const diaNum = ultimoDiaMesAnterior - i
@@ -80,7 +66,6 @@ export function gerarGradeDoMes(ano, mes) {
     })
   }
 
-  // Dias do mês corrente
   const totalDiasMes = ultimoDiaDoMes.getDate()
   for (let diaNum = 1; diaNum <= totalDiasMes; diaNum++) {
     const data = new Date(ano, mes, diaNum)
@@ -95,7 +80,6 @@ export function gerarGradeDoMes(ano, mes) {
     })
   }
 
-  // Dias do próximo mês para fechar a grade (múltiplo de 7)
   const restante = (7 - (dias.length % 7)) % 7
   for (let diaNum = 1; diaNum <= restante; diaNum++) {
     const data = new Date(ano, mes + 1, diaNum)

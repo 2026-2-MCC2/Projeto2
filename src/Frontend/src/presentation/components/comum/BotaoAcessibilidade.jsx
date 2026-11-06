@@ -65,8 +65,7 @@ export function BotaoAcessibilidade({ posicao = 'flutuante' }) {
     if (elemento.scrollHeight > elemento.clientHeight) setLargo(true)
   }, [medicao, largo])
 
-  // o foco entra no painel ao abrir e volta ao botão ao fechar, a não ser que já tenha ido
-  // para outro lugar (clique fora em outro campo)
+  // ao fechar, o foco só volta ao botão se não tiver ido para outro lugar (clique fora em outro campo)
   useEffect(() => {
     if (!aberto) return
     const elementoPainel = painel.current

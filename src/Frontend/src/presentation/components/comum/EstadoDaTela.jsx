@@ -37,7 +37,6 @@ const ICONES_DO_ESTADO = {
   atencao: iconeAtencao,
 }
 
-// icone: 'eventos', 'propostas' ou 'atencao' (este em laranja, para o que ficou indisponível)
 export function Vazio({ titulo, mensagem, icone, children }) {
   return (
     <div className="estado-tela" role="status">

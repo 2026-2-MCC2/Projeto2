@@ -23,8 +23,6 @@ function CampoCondicao({ id, rotulo, obrigatorio = false, children }) {
   )
 }
 
-// Etapa 3 do envio de proposta: condições de execução e envio. Só aqui a proposta vai para a API
-// (POST na proposta nova, PUT na edição de uma proposta ainda Enviada).
 export function EnviarPropostaEtapa3() {
   const navigate = useNavigate()
   const isMobile = useIsMobile()
@@ -34,8 +32,7 @@ export function EnviarPropostaEtapa3() {
   const [enviando, setEnviando] = useState(false)
   const [erro, setErro] = useState('')
   const voltar = () => navigate(proposta.rotaDaEtapa(2))
-  // o envio com fotos pode demorar: se o fornecedor sair no meio, ele termina sem levar para outra
-  // tela, mas o aviso do resultado aparece mesmo assim (os toasts valem para o app todo)
+  // se o fornecedor sair no meio do envio, ele termina sem navegar, mas o toast aparece mesmo assim
   const telaAberta = useRef(true)
 
   useEffect(() => {

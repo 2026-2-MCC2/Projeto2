@@ -22,8 +22,7 @@ import { useRenovarFotosVencidas } from '../../hooks/useRenovarFotosVencidas.js'
 
 const TIPOS_ACEITOS = TIPOS_DE_FOTO.join(',')
 
-// Na proposta já enviada cada foto vai na hora para a API. Na proposta nova ainda não existe onde
-// guardar a foto: ela fica com o rascunho e é enviada logo depois da proposta (enviarPropostaComFotos).
+// na proposta nova ainda não existe onde guardar a foto: ela vai junto com o rascunho
 export function GaleriaDeFotos({ proposalKey, eventKey, itemKey }) {
   return (
     <section className="proposta-detalhes__fotos" aria-labelledby="titulo-fotos-servico">
@@ -46,7 +45,6 @@ export function GaleriaDeFotos({ proposalKey, eventKey, itemKey }) {
   )
 }
 
-// a foto do campo de arquivo, ou null quando nada foi escolhido ou ela não pode ser usada (com o aviso)
 function fotoEscolhida(evento) {
   const arquivo = evento.target.files?.[0]
   evento.target.value = ''
@@ -97,8 +95,7 @@ function FotosDaProposta({ proposalKey }) {
   const [enviando, setEnviando] = useState(false)
   const [fotoParaApagar, setFotoParaApagar] = useState(null)
   const [apagando, setApagando] = useState(false)
-  // posição da foto que acabou de sair: o foco vai para o X que ficou no lugar dela (ou para o Adicionar),
-  // porque o Modal devolveria o foco a um botão que já saiu da tela
+  // o Modal devolveria o foco a um botão que já saiu da tela
   const [focarPosicao, setFocarPosicao] = useState(null)
   const galeria = useRef(null)
   // muda a cada envio ou remoção: uma renovação que começou antes não sobrescreve a lista mais nova
@@ -224,10 +221,7 @@ function FotosDaProposta({ proposalKey }) {
   )
 }
 
-// fotos: [{ chave, url }] das já enviadas ou [{ chave, arquivo }] das escolhidas (ver FotoDoServico)
-// ocupadoCom: texto que troca o Adicionar enquanto a lista carrega ou uma foto é enviada. O leitor de
-// tela ouve só esse texto, numa região à parte que fica vazia quando nada está acontecendo (assim a
-// volta para "Adicionar" não é anunciada)
+// a região viva à parte fica vazia sem ocupadoCom, para a volta ao "Adicionar" não ser anunciada
 function Galeria({ refDaGaleria, fotos, ocupadoCom = null, aoAdicionar, aoRemover, aoFalharFoto }) {
   return (
     <div ref={refDaGaleria} className="proposta-detalhes__galeria">

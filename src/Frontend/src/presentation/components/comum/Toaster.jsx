@@ -58,8 +58,7 @@ function CartaoDeToast({ toast }) {
   )
 }
 
-// uma região viva por urgência, sempre na página (região criada junto com o aviso não é lida);
-// os itens não têm papel próprio, para não aninhar uma região dentro da outra
+// regiões vivas fixas na página: uma criada junto com o aviso não é lida pelo leitor de tela
 export function Toaster() {
   const toasts = useSyncExternalStore(filaDeToasts.inscrever, filaDeToasts.atuais)
   const avisos = toasts.filter((toast) => toast.tom !== 'erro')

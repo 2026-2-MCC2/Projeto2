@@ -1,7 +1,4 @@
-// eventos já buscados na API, por event_key; as telas abertas acompanham quando algum muda.
-// Cada pedido à API recebe um número na ordem em que sai: uma resposta só substitui o que veio
-// de um pedido mais novo se ela for de um pedido ainda mais novo, e nada de antes de sair da
-// conta volta para a memória.
+// cada pedido é numerado na saída: uma resposta antiga nunca sobrescreve a de um pedido mais novo
 const eventosPorChave = new Map()
 const pedidoPorChave = new Map()
 const ouvintes = new Set()

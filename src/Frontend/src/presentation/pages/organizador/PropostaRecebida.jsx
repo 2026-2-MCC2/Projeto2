@@ -1,6 +1,3 @@
-// Uma proposta recebida, no padrão do Figma: fornecedor, condições, descrição e fotos à esquerda;
-// a decisão e as outras propostas do item à direita.
-
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 

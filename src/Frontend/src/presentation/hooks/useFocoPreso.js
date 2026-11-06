@@ -29,7 +29,6 @@ export function manterTabDentro(evento, dialogo) {
   }
 }
 
-// Foco de diálogo modal: entra no diálogo, fica preso nele no Tab e volta para quem o abriu.
 export function useFocoPreso() {
   const caixa = useRef(null)
 

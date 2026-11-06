@@ -22,7 +22,6 @@ export async function listarCadastrosPendentes() {
   }
 }
 
-// decisao: 'aprovar' ou 'rejeitar'; o motivo é obrigatório ao rejeitar
 export function decidirCadastro(chave, decisao, motivo) {
   const corpo =
     decisao === 'aprovar' ? { status: 'approved' } : { status: 'rejected', reason: motivo }

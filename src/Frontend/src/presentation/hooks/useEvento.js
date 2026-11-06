@@ -2,7 +2,6 @@ import { useEffect, useState, useSyncExternalStore } from 'react'
 import { carregarEvento } from '../../application/eventos.js'
 import { buscarEventoEmMemoria, observarEventos } from '../../application/eventosEmMemoria.js'
 
-// o layout e a página do evento usam o mesmo carregamento e veem a mesma versão do evento;
 // a cópia em memória aparece na hora e é atualizada pela API sempre que a tela abre
 export function useEvento(id) {
   const evento = useSyncExternalStore(observarEventos, () => buscarEventoEmMemoria(id))

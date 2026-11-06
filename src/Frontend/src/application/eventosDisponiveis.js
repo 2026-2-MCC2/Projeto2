@@ -1,5 +1,3 @@
-// Busca eventos publicados e seus detalhes para a área do fornecedor.
-
 import { api } from '../infrastructure/api.js'
 
 export function listarEventosDisponiveis({ search = '', limit = 20, page = 0 } = {}) {

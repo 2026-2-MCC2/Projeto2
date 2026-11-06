@@ -56,14 +56,12 @@ const FORMATO_DO_DIA_EM_BRASILIA = new Intl.DateTimeFormat('en-CA', {
 
 export const diaEmBrasilia = (dataIso) => FORMATO_DO_DIA_EM_BRASILIA.format(new Date(dataIso))
 
-// 49800 → "R$ 49.800,00"; valor ausente ou que não é número vira "R$ 0,00"
 export function formatarMoeda(valor) {
   if (valor === null || valor === undefined || Number.isNaN(Number(valor))) return 'R$ 0,00'
   return Number(valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 }
 
-// "15% acima do previsto" · "8% abaixo do orçamento" · "Igual ao previsto"; null quando falta um dos
-// valores (previsto zero não serve de base para a porcentagem)
+// previsto zero não serve de base para a porcentagem
 export function comparacaoComPrevisto(valor, previsto, referencia = 'previsto') {
   if (!(valor > 0) || !(previsto > 0)) return null
   const diferenca = ((valor - previsto) / previsto) * 100

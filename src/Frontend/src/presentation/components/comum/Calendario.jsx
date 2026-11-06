@@ -31,20 +31,12 @@ function diaDestinoDaTecla({ key, shiftKey }, dia) {
 }
 
 // clicar no título sobe de nível: dias → meses → anos; escolher um mês ou ano desce de volta
-export function Calendario({
-  valor,
-  aoSelecionar,
-  aoFechar,
-  semPassado = false,
-  minData = null,
-  periodo = null,
-}) {
-  // o foco entra no calendário, fica preso nele no Tab e volta para o botão que o abriu
+export function Calendario({ valor, aoSelecionar, aoFechar, semPassado = false, periodo = null }) {
   const containerRef = useFocoPreso()
   const dataSelecionada = paraDataLocal(valor)
   const hoje = new Date()
   hoje.setHours(0, 0, 0, 0)
-  const dataLimite = semPassado ? hoje : minData
+  const dataLimite = semPassado ? hoje : null
 
   const outraPonta = paraDataLocal(periodo?.outraPonta)
 

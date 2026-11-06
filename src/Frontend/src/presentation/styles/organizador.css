@@ -146,8 +146,7 @@
   background: var(--status-perigo-texto);
 }
 
-/* evento cancelado continua nos recentes, mas apagado: não tem mais o que planejar.
-   O apagado vem das cores secundárias (que passam 4,5:1), não de opacidade no link inteiro */
+/* apagado pelas cores secundárias (que passam 4,5:1), não por opacidade */
 .menu__evento--cancelado .menu__evento-texto strong {
   color: var(--texto-secundario);
 }
@@ -557,8 +556,6 @@
   font-size: 0.875rem;
   line-height: 1.45;
 }
-
-/* ---------- configurações ---------- */
 
 /* ---------- dúvidas ---------- */
 
@@ -1896,7 +1893,7 @@
 
 .grafico__rotulo {
   fill: var(--texto-terciario);
-  font-size: calc(11px * var(--escala-texto, 1)); /* acompanha o tamanho do texto */
+  font-size: calc(11px * var(--escala-texto, 1));
 }
 
 .grafico__rotulo--destaque {
@@ -2819,7 +2816,7 @@
   object-fit: cover;
 }
 
-/* ---------- aba Propostas (pages/organizador/EventoPropostas.jsx) ---------- */
+/* ---------- aba Propostas ---------- */
 .propostas-do-item {
   display: flex;
   flex-direction: column;
@@ -3027,7 +3024,7 @@
   }
 }
 
-/* ---------- proposta recebida (pages/organizador/PropostaRecebida.jsx) ---------- */
+/* ---------- proposta recebida (detalhe) ---------- */
 .proposta-recebida__fornecedor {
   display: flex;
   flex-direction: row;

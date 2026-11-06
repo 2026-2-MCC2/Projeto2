@@ -36,7 +36,7 @@ const STATUS_DO_FRONT_POR_STATUS_DO_BACKEND = {
 // a API diz se o evento ainda aceita edição, para a regra dos status finais ficar só no backend
 export const eventoPodeSerEditado = (evento) => evento?.raw?.is_editable ?? false
 
-export function mapearStatusBackend(statusBackend) {
+function mapearStatusBackend(statusBackend) {
   return STATUS_DO_FRONT_POR_STATUS_DO_BACKEND[statusBackend] ?? 'planejamento'
 }
 
@@ -78,7 +78,7 @@ export function formatarDataEHora(dataIso) {
   return `${dia} ${mes} ${ano}, ${horario}`
 }
 
-export function formatarPeriodoCurto(dataInicioIso, dataTerminoIso) {
+function formatarPeriodoCurto(dataInicioIso, dataTerminoIso) {
   if (!dataInicioIso) return ''
   const inicio = partesDaData(dataInicioIso)
   const termino = partesDaData(dataTerminoIso ?? dataInicioIso)
@@ -92,7 +92,6 @@ export function formatarPeriodoCurto(dataInicioIso, dataTerminoIso) {
     : `${inicio.dia}–${termino.dia} ${inicio.mes}`
 }
 
-// o consolidado (custos próprios + propostas aceitas) comparado com o teto de gastos do organizador
 function situacaoDoOrcamento(totalCustos, tetoDeGastos) {
   const teto = Number(tetoDeGastos) || null
   if (!teto) return { consolidado: formatarMoeda(totalCustos), teto: null }
@@ -118,7 +117,6 @@ function calcularDadosTicket(evento, totalCustos) {
     cenarioRef === 'minimum' ? publicoMin : cenarioRef === 'maximum' ? publicoMax : publicoExp
   const margemInvalida = margem >= 1
 
-  // ticket = custo total ÷ [público × (1 − margem)]
   const ticketPara = (publico) =>
     margem < 1 && totalCustos > 0 ? totalCustos / (publico * (1 - margem)) : 0
 
@@ -292,10 +290,7 @@ function calcularAndamento(statusBackend, internalCostsCount) {
   ]
 }
 
-/**
- * Converte um objeto Event do Backend para o formato esperado pelos componentes visuais do Frontend.
- */
-export function formatarEventoParaExibicao(evento, itensDeCotacao = evento.budget_items ?? []) {
+function formatarEventoParaExibicao(evento, itensDeCotacao = evento.budget_items ?? []) {
   if (!evento) return null
 
   const statusFront = mapearStatusBackend(evento.status)
@@ -378,7 +373,6 @@ export function formatarEventoParaExibicao(evento, itensDeCotacao = evento.budge
       resumo: `${periodo}  ·  ${evento.venue_name}, ${evento.city}  ·  ${publico} ${Number(evento.expected_audience) === 1 ? 'esperada' : 'esperadas'}`,
       resumoMobile: `${periodo} · ${STATUS_FRONTEND[statusFront]?.nome ?? 'Em planejamento'}`,
       dados: dadosExibicao,
-      dadosMobile: dadosExibicao,
       orcamento: situacaoDoOrcamento(totalCustos, evento.budget_limit),
       itens,
       totalDeItens: itens.length,
@@ -386,7 +380,6 @@ export function formatarEventoParaExibicao(evento, itensDeCotacao = evento.budge
       ticketEstimado,
       calculo,
       andamento,
-      comparacao: { itens: [] },
       custos: {
         totalProprios: formatarMoeda(totalCustosProprios),
         resumoMobile: `${linhasCustos.length} custos cadastrados`,
@@ -445,7 +438,6 @@ function periodoDoEvento(dados) {
   return { startDate: inicio.toISOString(), endDate: termino.toISOString() }
 }
 
-// público, margem e cenário de referência: o que entra no cálculo do ticket
 function parametrosDoTicket(dados) {
   const minAudience = Math.round(paraNumero(dados.publicoMinimo)) || 1
   const expectedAudience = Math.round(paraNumero(dados.publicoEsperado)) || minAudience
@@ -479,10 +471,7 @@ function custosProprios(dados) {
   })).filter((custo) => custo.amount > 0)
 }
 
-/**
- * Transforma dados do formulário de NovoEvento no payload esperado pelo POST/PUT /events da API.
- */
-export function montarPayloadEvento(dados) {
+function montarPayloadEvento(dados) {
   const { startDate, endDate } = periodoDoEvento(dados)
 
   const teto = paraNumero(dados.tetoDeGastos ?? '')
@@ -510,8 +499,7 @@ export function montarPayloadEvento(dados) {
   }
 }
 
-// Prévia da revisão do formulário: o mesmo cálculo do ticket, com os parâmetros digitados e o custo
-// que o evento já tem (na edição) somado aos custos próprios informados (na criação).
+// na edição, o custo já cadastrado no evento entra junto com os custos próprios digitados
 export function previaDoTicket(dados, custoJaCadastrado = 0) {
   const custoDoFormulario = custosProprios(dados).reduce((total, custo) => total + custo.amount, 0)
   const custoTotal = (Number(custoJaCadastrado) || 0) + custoDoFormulario
@@ -532,8 +520,7 @@ function formatarEGuardar(eventosDaApi, pedido) {
   return eventos
 }
 
-// A listagem não garante o total das propostas aceitas nem traz os itens: completa com a versão
-// detalhada já em memória ou, sem ela, guarda o evento como parcial, e carregarEvento busca o detalhe.
+// a listagem não traz os itens nem o total aceito: sem detalhe em memória, o evento fica parcial
 function formatarEGuardarDaLista(eventosDaLista, pedido) {
   const eventos = eventosDaLista.map((eventoDaLista) => {
     const detalhado = buscarEventoEmMemoria(eventoDaLista.event_key)
@@ -584,8 +571,6 @@ export function listarEventosRecentes(quantidade) {
   return recentesEmCache.carregamento
 }
 
-// busca todas as páginas para a lista nunca esconder eventos
-// a primeira página informa o total; as demais são buscadas juntas, e as telas são avisadas uma vez
 export async function listarTodosOsEventos() {
   const buscarPagina = (page) => api.get(montarBuscaDeEventos({ limit: EVENTOS_POR_PAGINA, page }))
 
@@ -607,10 +592,7 @@ export async function listarTodosOsEventos() {
   return formatarEGuardarDaLista([...eventosSemRepetir.values()], pedido)
 }
 
-/**
- * Busca um evento específico pela sua event_key.
- */
-export async function buscarEventoPorChave(eventKey) {
+async function buscarEventoPorChave(eventKey) {
   const pedido = iniciarPedido()
   const [evento, itensDeCotacao] = await Promise.all([
     api.get(`/events/${eventKey}`),
@@ -644,10 +626,7 @@ export function carregarEvento(eventKey) {
   return carregamentosEmAndamento.get(eventKey)
 }
 
-// Depois de uma mudança cuja resposta não traz o evento (aceite de proposta, itens de cotação), a
-// cópia em memória fica velha: a releitura começa já, e a próxima tela que abrir não espera os 15 s.
-// Uma falha na releitura não vira falha da mudança, que já foi salva: a tela diria que não salvou e
-// a pessoa repetiria (duplicando o item).
+// a falha na releitura é ignorada: a mudança já foi salva e repetir duplicaria o item
 export function relerEventoEmMemoria(eventKey) {
   ultimaBuscaPorChave.delete(eventKey)
   buscarEventoPorChave(eventKey)
@@ -655,9 +634,6 @@ export function relerEventoEmMemoria(eventKey) {
     .catch(() => {})
 }
 
-/**
- * Cria um novo evento no backend.
- */
 export async function criarEvento(dadosFormulario) {
   const payload = montarPayloadEvento(dadosFormulario)
   const pedido = iniciarPedido()
@@ -692,7 +668,6 @@ function horarioDoFormulario(dataIso, horarioSemPreencher) {
 const margemDoFormulario = (fracao) =>
   String(Number((Number(fracao) * 100).toFixed(2))).replace('.', ',')
 
-// o caminho inverso do montarPayloadEvento: preenche o formulário com o evento salvo
 export function eventoParaFormulario(eventoDaApi) {
   const numero = (valor) => (valor ? String(valor) : '')
 
@@ -740,7 +715,6 @@ const custoParaApi = ({ descricao, tipo, valor }) => ({
   amount: paraNumero(valor),
 })
 
-// as três respostas trazem o evento inteiro, com o total e o ticket já recalculados
 export async function incluirCustoProprio(eventKey, custo) {
   const pedido = iniciarPedido()
   const resposta = await api.post(caminhoDosCustos(eventKey), custoParaApi(custo))
@@ -795,9 +769,6 @@ function itemParaApi(item) {
   return dados
 }
 
-/**
- * Publica um evento para cotação de fornecedores (RF08).
- */
 export async function publicarEventoParaCotacao(eventKey) {
   const pedido = iniciarPedido()
   const resposta = await api.patch(`/events/${eventKey}/status`, { status: 'open_for_quotes' })

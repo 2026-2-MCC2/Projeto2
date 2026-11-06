@@ -3,7 +3,6 @@ import { Icone } from './Icone.jsx'
 import iconeOlho from '../../assets/comum/icone-olho.svg'
 import iconeOlhoFechado from '../../assets/comum/icone-olho-fechado.svg'
 
-// input de senha com o botão de olho para conferir o que foi digitado
 export function EntradaDeSenha(props) {
   const [visivel, setVisivel] = useState(false)
 

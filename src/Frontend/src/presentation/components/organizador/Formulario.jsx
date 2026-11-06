@@ -1,4 +1,3 @@
-// Peças de formulário da área do organizador.
 import { Icone } from '../comum/Icone.jsx'
 
 export function Campo({ rotulo, ajuda, as: Componente = 'label', children, ...props }) {

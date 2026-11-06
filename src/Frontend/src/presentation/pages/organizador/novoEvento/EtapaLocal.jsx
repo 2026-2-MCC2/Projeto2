@@ -7,9 +7,7 @@ const CAMPO_PUBLICO = { inputMode: 'numeric', 'data-validar': 'inteiro', require
 
 export function EtapaLocal({ campo, definir, atualizarCampos, isMobile }) {
   const [buscandoCep, setBuscandoCep] = useState(false)
-  // o endereço só é preenchido quando o CEP muda, para não apagar o número que a pessoa já digitou;
-  // volta a null quando o CEP fica incompleto ou a busca falha, para a próxima tentativa buscar de novo
-  // começa com o CEP que o formulário já tem (edição ou voltar de etapa), para não buscar de novo
+  // o endereço só é preenchido quando o CEP muda, para não apagar o número que a pessoa já digitou
   const ultimoCepBuscado = useRef(digitos(campo('cep').value) || null)
 
   async function preencherEndereco(cepDigitos) {

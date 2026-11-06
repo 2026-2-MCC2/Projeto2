@@ -3,7 +3,7 @@ import { Icone } from './Icone.jsx'
 import { Calendario } from './Calendario.jsx'
 import iconeCalendario from '../../assets/organizador/icone-eventos.svg'
 
-// O teclado numérico do celular não tem "/": as barras entram sozinhas ("18102026" → "18/10/2026").
+// o teclado numérico do celular não tem "/": as barras entram sozinhas
 function comBarras(texto) {
   const numeros = texto.replace(/\D/g, '').slice(0, 8)
   return [numeros.slice(0, 2), numeros.slice(2, 4), numeros.slice(4)].filter(Boolean).join('/')
@@ -15,8 +15,6 @@ function preencher(campo, valor) {
   campo.dispatchEvent(new Event('input', { bubbles: true }))
 }
 
-// semPassado: o calendário não deixa escolher datas antes de hoje
-// periodo: { ponta: 'inicio' | 'fim', outraPonta: 'dd/mm/aaaa' } pinta os dias entre as duas datas
 export function EntradaData({ onChange, semPassado = false, periodo = null, ...props }) {
   const texto = useRef(null)
   // a data digitada é lida ao abrir o calendário, fora da renderização (null = fechado)

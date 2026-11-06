@@ -1,6 +1,5 @@
 import { useRef, useState } from 'react'
 
-// No mobile a folha acompanha o dedo: puxar para baixo fecha, puxar para cima expande.
 export function useFolhaArrastavel(aoFechar) {
   const [expandida, setExpandida] = useState(false)
   const [arrasto, setArrasto] = useState(0)

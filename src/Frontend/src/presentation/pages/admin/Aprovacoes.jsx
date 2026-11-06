@@ -29,7 +29,6 @@ const CAMPOS = {
   enviadoEm: { rotulo: 'Enviado em', formatar: formatarData },
 }
 
-// no mobile a data de envio sai
 const ORDEM_DESKTOP = ['cnpj', 'categorias', 'email', 'telefone', 'enviadoEm']
 const ORDEM_MOBILE = ['cnpj', 'categorias', 'telefone', 'email']
 
@@ -135,7 +134,6 @@ function CartaoSolicitacao({ cadastro, bloqueado, aoDecidir }) {
 
 export function Aprovacoes() {
   const isMobile = useIsMobile()
-  // situacao: 'carregando' | 'erro' | 'pronto'
   const [lista, setLista] = useState({ situacao: 'carregando', cadastros: [], temMais: false })
   const [tentativa, setTentativa] = useState(0)
   const [atualizando, setAtualizando] = useState(false)

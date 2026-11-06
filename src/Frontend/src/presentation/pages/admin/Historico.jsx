@@ -3,8 +3,7 @@ import { Vazio } from '../../components/comum/EstadoDaTela.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
 import '../../styles/admin.css'
 
-// a API ainda não tem rota que liste as decisões do admin: em vez de registros de exemplo, a tela
-// avisa que o histórico não está disponível
+// a API ainda não tem rota que liste as decisões do admin
 export function Historico() {
   const isMobile = useIsMobile()
 

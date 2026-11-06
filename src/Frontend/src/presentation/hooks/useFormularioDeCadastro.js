@@ -34,8 +34,7 @@ const DADOS_INICIAIS = {
   confirmacaoSenha: '',
 }
 
-// O estado fica na página de cadastro, acima das versões desktop e mobile: girar o tablet e cruzar
-// o limite de 900px troca a tela sem apagar o que já foi preenchido.
+// acima das versões desktop e mobile: girar o tablet troca a tela sem apagar o que foi preenchido
 export function useFormularioDeCadastro() {
   const [etapa, setEtapa] = useState(1)
   const [dados, setDados] = useState(DADOS_INICIAIS)

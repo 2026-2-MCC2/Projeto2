@@ -67,10 +67,6 @@ export function usuarioAtual() {
   return lerSessao()?.usuario ?? null
 }
 
-export function perfilAtual() {
-  return usuarioAtual()?.perfil ?? null
-}
-
 export function rotaInicialDoPerfil(perfil) {
   return ROTAS_INICIAIS[perfil] ?? '/'
 }

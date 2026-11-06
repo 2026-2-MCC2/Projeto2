@@ -1,19 +1,11 @@
 import { diaEmBrasilia, digitos, normalizarCnpj } from './formatacao.js'
 
-// Regras de validação dos campos de formulário.
-// Cada regra recebe o texto digitado e devolve a mensagem de erro, ou '' quando o valor é válido.
-// Campo vazio não passa por aqui: quem exige o preenchimento é o atributo required do campo.
-
 const ESTADOS = [
   'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA',
   'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO',
 ] // prettier-ignore
 
-// "R$ 49.800,00" → 49800 · "20%" → 20 · texto que não é número → NaN
-// Com ponto e vírgula, o que vem por último é o decimal ("1.500,50" e "1,500.50" valem 1500,5).
-// Com um só tipo, ele é milhar quando se repete ou vem seguido de exatamente 3 dígitos ("1,500" e
-// "20.000"), e decimal quando vem seguido de 1 ou 2 dígitos ("1,5" e "12.5"). Com parte inteira 0
-// não há milhar: "0,500" vale 0,5.
+// separador único é milhar se repete ou vem seguido de 3 dígitos ("20.000"), senão é decimal ("12,5")
 export function paraNumero(texto) {
   const semSimbolos = texto.replace(/[R$\s%]/g, '')
   if (semSimbolos === '') return NaN
@@ -33,8 +25,7 @@ function casasDecimais(texto) {
   return decimal ? semSimbolos.length - semSimbolos.lastIndexOf(decimal) - 1 : 0
 }
 
-// porcentagem não tem milhar (a margem vai de 0 a 99): a vírgula ou o ponto é sempre o decimal,
-// então "2,125" vale 2,125% e não 2125%
+// porcentagem não tem milhar: "2,125" vale 2,125% e não 2125%
 export function paraPercentual(texto) {
   const semSimbolos = texto.replace(/[\s%]/g, '')
   if (!/^\d+([.,]\d+)?$/.test(semSimbolos)) return NaN
@@ -54,8 +45,7 @@ function separadorDecimal(texto) {
   return repetido || (tresDigitosDepois && !parteInteiraZero) ? null : separador
 }
 
-// "18/10/2026" → Date · data inexistente (31/02), fora do formato ou antes de 1900 → null
-// (o Date leva os anos 0 a 99 para 1900 a 1999: "01/01/0026" viraria 1926)
+// antes de 1900 vira null: o Date leva os anos 0 a 99 para 1900 a 1999
 export function paraData(texto) {
   const partes = texto.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
   if (!partes) return null
@@ -66,14 +56,12 @@ export function paraData(texto) {
   return data.getDate() === dia && data.getMonth() === mes - 1 ? data : null
 }
 
-// Date → "2026-10-18", o formato de data (sem horário) que a API recebe; usa o dia local da Date
 export function paraDataIso(data) {
   const doisDigitos = (numero) => String(numero).padStart(2, '0')
   return `${data.getFullYear()}-${doisDigitos(data.getMonth() + 1)}-${doisDigitos(data.getDate())}`
 }
 
-// Os dois últimos números do CNPJ são calculados a partir dos 12 primeiros caracteres, que podem
-// ter letras (CNPJ alfanumérico): na regra da Receita cada caractere vale o código ASCII menos 48.
+// CNPJ alfanumérico: na regra da Receita cada caractere vale o código ASCII menos 48
 function cnpjValido(caracteres) {
   if (!/^[A-Z0-9]{12}\d{2}$/.test(caracteres) || /^(.)\1+$/.test(caracteres)) return false
 
@@ -98,7 +86,6 @@ function inteiroPositivo(texto) {
   return /^\d+$/.test(numero) && Number(numero) > 0
 }
 
-// Regras usadas pelo atributo data-validar dos campos (ver presentation/hooks/useValidacao.js).
 export const REGRAS = {
   email: (texto) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(texto)
@@ -140,10 +127,7 @@ export const REGRAS = {
   },
 }
 
-// Regras que comparam dois campos.
-
-// Validade de uma proposta: até o dia em que o evento termina. O dia do fim é o de Brasília, o mesmo
-// que a API confere (toBrazilDateString); o "a partir de hoje" fica com a regra dataFutura.
+// o fim do evento é contado no dia de Brasília, como a API confere
 export function validarValidadeDaProposta(validade, fimDoEventoIso) {
   const data = paraData(validade)
   if (!data || !fimDoEventoIso) return ''

@@ -192,7 +192,6 @@ function CartaoUsuario({ usuario, ocupado, aoAgir }) {
 
 export function Usuarios() {
   const isMobile = useIsMobile()
-  // situacao: 'carregando' | 'erro' | 'pronto'
   const [lista, setLista] = useState({ situacao: 'carregando', usuarios: [], temMais: false })
   const [tentativa, setTentativa] = useState(0)
   const [busca, setBusca] = useState('')
