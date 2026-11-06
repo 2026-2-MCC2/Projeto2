@@ -65,6 +65,21 @@ export class ProposalRepository {
     )
   }
 
+  async getItemsForEventApproval(eventId) {
+    return sequelize.query(
+      `SELECT budget_item.budget_item_key AS item_key, budget_item.description,
+              EXISTS (
+                SELECT 1
+                FROM proposal
+                WHERE proposal.budget_item_id = budget_item.id AND proposal.status = 'accepted'
+              ) AS has_accepted_proposal
+       FROM budget_item
+       WHERE budget_item.event_id = :eventId
+       ORDER BY budget_item.created_at ASC, budget_item.id ASC`,
+      { replacements: { eventId }, transaction: this.session, type: QueryTypes.SELECT },
+    )
+  }
+
   // FOR SHARE lê o que já foi confirmado: a leitura comum usa a foto do começo da transação e não veria
   // um aceite gravado enquanto o envio esperava a trava do item
   async hasAcceptedProposal(budgetItemId) {

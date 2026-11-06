@@ -710,6 +710,13 @@ export async function cancelarEvento(eventKey, motivo) {
   return formatarEGuardar([resposta], pedido)[0]
 }
 
+export async function aprovarEvento(eventKey) {
+  const pedido = iniciarPedido()
+  const resposta = await api.patch(`/events/${eventKey}/status`, { status: 'closed' })
+  esquecerRecentes()
+  return formatarEGuardar([resposta], pedido)[0]
+}
+
 const caminhoDosCustos = (eventKey) => `/events/${eventKey}/internal-costs`
 
 const custoParaApi = ({ descricao, tipo, valor }) => ({

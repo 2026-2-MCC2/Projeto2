@@ -123,6 +123,29 @@ describe('Custos próprios do evento', () => {
     }
   })
 
+  test('evento aprovado não aceita mudar custos próprios', async () => {
+    const headers = await createOrganizer()
+    const event = await createEventWithoutCosts(headers)
+    const [, withCost] = await RequestGenerator.POST_event_internal_cost(event.event_key, ALVARA, headers)
+    const costKey = withCost.internal_costs[0].internal_cost_key
+    const supplier = await ObjectGenerator.createUserFixture({ profile: 'fornecedor', status: 'approved' })
+    fixtureUserKeys.push(supplier.userKey)
+    const item = await DbUtils.createBudgetItemFixture(event.event_key)
+    await DbUtils.createProposalFixture(item.itemKey, supplier.userKey, { status: 'accepted' })
+    await RequestGenerator.PATCH_event_status(event.event_key, { status: 'open_for_quotes' }, headers)
+    await RequestGenerator.PATCH_event_status(event.event_key, { status: 'closed' }, headers)
+
+    const attempts = [
+      RequestGenerator.POST_event_internal_cost(event.event_key, ALVARA, headers),
+      RequestGenerator.PUT_event_internal_cost(event.event_key, costKey, ALVARA, headers),
+      RequestGenerator.DELETE_event_internal_cost(event.event_key, costKey, headers),
+    ]
+    for (const [status, response] of await Promise.all(attempts)) {
+      assert.equal(status, 409)
+      assert.equal(response.code, 'EVP000020')
+    }
+  })
+
   test('fornecedor recebe 403 e sem token responde 401', async () => {
     const supplier = await ObjectGenerator.createUserFixture({ profile: 'fornecedor', status: 'approved' })
     fixtureUserKeys.push(supplier.userKey)

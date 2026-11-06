@@ -177,6 +177,14 @@ describe('POST /supplier/proposals/:proposal_key/photos', () => {
     assert.equal(acceptStatus, 200)
 
     const closed = await createScenario()
+    const otherSupplier = await createUser('fornecedor', 'Outro fornecedor RF10 Fotos')
+    const acceptedProposal = await ObjectGenerator.sendProposal(closed.event.event_key, closed.items[0].item_key, otherSupplier.headers)
+    const [closeProposalStatus] = await RequestGenerator.POST_event_proposal_accept(
+      closed.event.event_key,
+      acceptedProposal.proposal_key,
+      closed.organizer.headers,
+    )
+    assert.equal(closeProposalStatus, 200)
     const [closeStatus] = await RequestGenerator.PATCH_event_status(closed.event.event_key, { status: 'closed' }, closed.organizer.headers)
     assert.equal(closeStatus, 200)
 

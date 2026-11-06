@@ -33,7 +33,13 @@ async function decideByOrganizer({ organizer, event }, proposalKeyToAccept) {
   assert.equal(status, 200)
 }
 
-async function closeEvent({ organizer, event }) {
+async function closeEvent({ organizer, event, items }) {
+  const approvingSupplier = await createUser('fornecedor', 'Fornecedor de aprovação')
+  for (const item of items) {
+    const proposal = await ObjectGenerator.sendProposal(event.event_key, item.item_key, approvingSupplier.headers)
+    await decideByOrganizer({ organizer, event }, proposal.proposal_key)
+  }
+
   const [status] = await RequestGenerator.PATCH_event_status(event.event_key, { status: 'closed' }, organizer.headers)
   assert.equal(status, 200)
 }

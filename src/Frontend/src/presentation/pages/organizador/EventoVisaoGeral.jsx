@@ -9,6 +9,7 @@ import { useIsMobile } from '../../hooks/useIsMobile.js'
 import { useEvento } from '../../hooks/useEvento.js'
 import { toast } from '../../toasts.js'
 import {
+  aprovarEvento,
   cancelarEvento,
   eventoPodeSerEditado,
   publicarEventoParaCotacao,
@@ -37,6 +38,8 @@ export function EventoVisaoGeral() {
   const isMobile = useIsMobile()
   const [confirmandoPublicacao, setConfirmandoPublicacao] = useState(false)
   const [publicando, setPublicando] = useState(false)
+  const [confirmandoAprovacao, setConfirmandoAprovacao] = useState(false)
+  const [aprovando, setAprovando] = useState(false)
   const [confirmandoCancelamento, setConfirmandoCancelamento] = useState(false)
   const [cancelando, setCancelando] = useState(false)
   const [motivoDoCancelamento, setMotivoDoCancelamento] = useState('')
@@ -83,6 +86,19 @@ export function EventoVisaoGeral() {
     }
   }
 
+  async function confirmarAprovacao() {
+    setAprovando(true)
+    try {
+      await aprovarEvento(id)
+      toast.sucesso('Evento aprovado', { descricao: evento.nome })
+      setConfirmandoAprovacao(false)
+    } catch (falha) {
+      toast.erro('Não foi possível aprovar o evento', { descricao: falha.message })
+    } finally {
+      setAprovando(false)
+    }
+  }
+
   const podeEditar = eventoPodeSerEditado(evento)
 
   const acoes = (
@@ -111,6 +127,11 @@ export function EventoVisaoGeral() {
           Publicar para cotação
         </Botao>
       )}
+      {evento.status === 'cotacao' && (
+        <Botao type="button" onClick={() => setConfirmandoAprovacao(true)}>
+          Aprovar evento
+        </Botao>
+      )}
     </>
   )
 
@@ -131,6 +152,29 @@ export function EventoVisaoGeral() {
         ocupado: publicando,
       }}
       aoFechar={() => !publicando && setConfirmandoPublicacao(false)}
+    />
+  )
+
+  const modalDeAprovacao = confirmandoAprovacao && (
+    <Modal
+      icone={iconeConcluida}
+      titulo="Aprovar este evento?"
+      mensagem="Confira o custo consolidado e o ticket sugerido. Depois da aprovação, o evento não poderá ser alterado nem cancelado."
+      dados={[
+        { rotulo: 'Evento', valor: evento.nome },
+        { rotulo: 'Custo consolidado', valor: detalhe.orcamento.consolidado },
+        {
+          rotulo: `Ticket sugerido · ${detalhe.ticketEstimado.cenario.toLowerCase()}`,
+          valor: detalhe.ticketEstimado.valor,
+        },
+      ]}
+      acao={{
+        cancelar: 'Voltar',
+        confirmar: aprovando ? 'Aprovando...' : 'Aprovar evento',
+        aoConfirmar: confirmarAprovacao,
+        ocupado: aprovando,
+      }}
+      aoFechar={() => !aprovando && setConfirmandoAprovacao(false)}
     />
   )
 
@@ -315,6 +359,7 @@ export function EventoVisaoGeral() {
         {propostas}
         {ticket}
         {modalDePublicacao}
+        {modalDeAprovacao}
         {modalDeCancelamento}
       </EventoLayout>
     )
@@ -350,6 +395,7 @@ export function EventoVisaoGeral() {
       </div>
 
       {modalDePublicacao}
+      {modalDeAprovacao}
       {modalDeCancelamento}
     </EventoLayout>
   )

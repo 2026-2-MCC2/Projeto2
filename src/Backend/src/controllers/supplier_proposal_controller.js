@@ -165,8 +165,14 @@ export class SupplierProposalController extends BaseController {
     if (!reference) {
       throw new NotFoundProposal(proposalKey)
     }
+    if (reference.event_status === EVENT_STATUSES.CLOSED) {
+      throw new ProposalEventNotOpen()
+    }
     if (reference.status !== PROPOSAL_STATUSES.SENT) {
       throw new ProposalCannotBeChanged(reference.status)
+    }
+    if (reference.event_status !== EVENT_STATUSES.OPEN_FOR_QUOTES) {
+      throw new ProposalEventNotOpen()
     }
     if (firstFreePosition(await this.proposalRepository.getPhotos(reference.id)) === null) {
       throw new ProposalPhotoLimitReached(MAX_PHOTOS_PER_PROPOSAL)
@@ -257,6 +263,9 @@ export class SupplierProposalController extends BaseController {
       throw new NotFoundProposal(proposalKey)
     }
 
+    if (event.status === EVENT_STATUSES.CLOSED) {
+      throw new ProposalEventNotOpen()
+    }
     if (proposal.status !== PROPOSAL_STATUSES.SENT) {
       throw new ProposalCannotBeChanged(proposal.status)
     }

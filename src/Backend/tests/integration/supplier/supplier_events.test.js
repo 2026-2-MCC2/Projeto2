@@ -47,6 +47,12 @@ async function createEventWithItems(organizerHeaders, { name, categories, publis
     assert.equal(publishStatus, 200)
   }
   if (status) {
+    if (status === 'closed') {
+      const supplier = await createUser('fornecedor')
+      for (const item of items) {
+        await DbUtils.createProposalFixture(item.item_key, supplier.userKey, { status: 'accepted' })
+      }
+    }
     const [statusChange] = await RequestGenerator.PATCH_event_status(event.event_key, { status }, organizerHeaders)
     assert.equal(statusChange, 200)
   }

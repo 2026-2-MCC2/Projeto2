@@ -17,6 +17,7 @@ import {
   EventInvalidDate,
   EventExpectedAudienceLessThanMin,
   EventMaxAudienceLessThanExpected,
+  EventHasItemsWithoutAcceptedProposal,
   EventStatusConflict,
   InvalidParameter,
   NotFoundEvent,
@@ -279,6 +280,17 @@ export class EventController extends BaseController {
     }
     if (!isAllowedTransition) {
       throw new EventStatusConflict(STATUS_CONFLICT_MESSAGES[event.status])
+    }
+
+    if (newStatus === EVENT_STATUSES.CLOSED) {
+      const items = await this.proposalRepository.getItemsForEventApproval(event.id)
+      const pendingItems = items
+        .filter((item) => !Boolean(item.has_accepted_proposal))
+        .map(({ item_key, description }) => ({ item_key, description }))
+
+      if (items.length === 0 || pendingItems.length > 0) {
+        throw new EventHasItemsWithoutAcceptedProposal(pendingItems)
+      }
     }
 
     const isCanceling = newStatus === EVENT_STATUSES.CANCELED

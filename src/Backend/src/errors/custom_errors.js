@@ -269,6 +269,24 @@ export class EventStatusConflict extends ApiException {
   }
 }
 
+export class EventHasItemsWithoutAcceptedProposal extends ApiException {
+  static code = 'EVP000048'
+
+  constructor(pendingItems = []) {
+    const title = 'Event has items without accepted proposals'
+    const httpStatus = 409
+    const hasNoItems = pendingItems.length === 0
+    const description = hasNoItems
+      ? 'An event needs at least one budget item before it can be approved.'
+      : 'Every budget item needs an accepted proposal before the event can be approved.'
+    const translation = hasNoItems
+      ? 'Cadastre ao menos um item de custo antes de aprovar o evento.'
+      : 'Escolha uma proposta para todos os itens antes de aprovar o evento.'
+    const details = { pending_items: pendingItems }
+    super(title, EventHasItemsWithoutAcceptedProposal.code, httpStatus, description, translation, details)
+  }
+}
+
 export class EventInvalidDate extends ApiException {
   static code = 'EVP000027'
 
