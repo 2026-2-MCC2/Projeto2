@@ -28,8 +28,7 @@ const ETAPAS = [
 
 export function ComoFunciona() {
   const lista = useRef(null)
-  const caminho = useRef(null)
-  useLinhaDasEtapas(lista, caminho)
+  const caminho = useLinhaDasEtapas(lista)
   // os cards começam escondidos só pela classe --animar, que vem daqui: sem JS aparecem normais
   const cardsNaTela = useNaTela(lista, { limiar: 0.2 })
 

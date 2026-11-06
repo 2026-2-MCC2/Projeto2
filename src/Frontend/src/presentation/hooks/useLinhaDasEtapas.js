@@ -68,10 +68,12 @@ function desenhar(lista, caminho, medida) {
   )
 }
 
-// Linha que liga os números das etapas e se desenha com o scroll. Escreve direto no path e nas
-// classes dos itens (nada de setState por scroll). O scroll só é ouvido com a lista perto da tela.
+// Linha que liga os números das etapas e se desenha com o scroll. Recebe o ref da lista e devolve
+// o ref para pôr no <path>. Escreve direto no path e nas classes dos itens (nada de setState por
+// scroll). O scroll só é ouvido com a lista perto da tela.
 // Se algo falhar na medição, o path fica sem desenho e a página segue normal.
-export function useLinhaDasEtapas(listaRef, caminhoRef) {
+export function useLinhaDasEtapas(listaRef) {
+  const caminhoRef = useRef(null)
   const medida = useRef(null)
   const perto = useNaTela(listaRef, { limiar: 0, margem: '50% 0px', umaVez: false })
 
@@ -128,4 +130,6 @@ export function useLinhaDasEtapas(listaRef, caminhoRef) {
       window.removeEventListener('resize', agendar)
     }
   }, [perto, listaRef, caminhoRef])
+
+  return caminhoRef
 }
