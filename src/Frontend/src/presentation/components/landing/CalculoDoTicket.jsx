@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import {
   formatarInteiro as numero,
   formatarMoeda,
@@ -136,6 +136,28 @@ export function CalculoDoTicket() {
   const mudar = (chave) => (evento) =>
     mudarValores({ ...valores, [chave]: Number(evento.target.value) }, evento)
 
+  // leitor de tela: o preço é anunciado quando o usuário solta o slider, não a cada passo.
+  // O onChange do React dispara a cada passo (evento input); o change nativo só ao soltar
+  // (ou a cada tecla, no teclado). O ref tem o preço do último render, já atualizado quando
+  // o change chega, porque o useLayoutEffect roda junto com o render do input
+  const premissas = useRef(null)
+  const precoAtual = useRef(calculo.preco)
+  useLayoutEffect(() => {
+    precoAtual.current = calculo.preco
+  })
+  const [precoAnunciado, setPrecoAnunciado] = useState(calculo.preco)
+  useEffect(() => {
+    const lista = premissas.current
+    const anunciar = () => setPrecoAnunciado(precoAtual.current)
+    lista.addEventListener('change', anunciar)
+    return () => lista.removeEventListener('change', anunciar)
+  }, [])
+
+  const restaurar = (evento) => {
+    mudarValores(VALORES_INICIAIS, evento)
+    setPrecoAnunciado(calcularDosControles(VALORES_INICIAIS).preco)
+  }
+
   return (
     <section
       ref={secao}
@@ -154,7 +176,7 @@ export function CalculoDoTicket() {
 
         <p className="calculo-landing__formula">Ticket = Custo total ÷ [Público × (1 − Margem)]</p>
 
-        <dl className="calculo-landing__premissas">
+        <dl ref={premissas} className="calculo-landing__premissas">
           {CONTROLES.map(({ chave, nome, minimo, maximo, passo, formatar, contaNaEntrada }) => {
             const valor = valores[chave]
             const id = `calculo-landing-${chave}`
@@ -202,11 +224,7 @@ export function CalculoDoTicket() {
           </div>
         </dl>
 
-        <button
-          type="button"
-          className="calculo-landing__restaurar"
-          onClick={(evento) => mudarValores(VALORES_INICIAIS, evento)}
-        >
+        <button type="button" className="calculo-landing__restaurar" onClick={restaurar}>
           Restaurar exemplo
         </button>
       </div>
@@ -217,9 +235,12 @@ export function CalculoDoTicket() {
             <h3 className="calculo-landing__evento">{evento.nome}</h3>
             <p className="calculo-landing__apoio">Resultado por cenário de público</p>
           </div>
-          <p className="calculo-landing__preco">
-            <span>PREÇO SUGERIDO</span>
-            <strong ref={preco}>
+          {/* o que se vê fica fora do leitor de tela (o número muda a cada quadro);
+              ele ouve só o texto escondido, que muda ao soltar o slider */}
+          <p className="calculo-landing__preco" aria-live="polite">
+            <span aria-hidden="true">PREÇO SUGERIDO</span>
+            <span className="so-leitor">Preço sugerido: {formatarMoeda(precoAnunciado)}</span>
+            <strong ref={preco} aria-hidden="true">
               <NumeroAnimado
                 valor={alvo(calculo.preco)}
                 formato={formatarMoeda}
