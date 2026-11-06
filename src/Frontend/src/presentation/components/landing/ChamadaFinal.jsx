@@ -10,20 +10,40 @@ import { ROTA_DO_LOGIN } from '../../../application/sessao.js'
 // último dígito do "Nº 001": dá uma volta inteira e para no 1, como um contador mecânico
 const ROLO_DO_NUMERO = [...'012345678901']
 
+// manchas de luz do fundo, na ordem de pintura: a última fica por cima
+const MANCHAS = ['laranja', 'rosa', 'azul']
+
 // ingresso horizontal no desktop e vertical no mobile (canhoto embaixo)
 export function ChamadaFinal() {
   // o ingresso começa escondido só pela classe --animar, que vem daqui: sem JS aparece normal
   const secao = useRef(null)
   const naTela = useNaTela(secao)
+  // as manchas do fundo só se movem com a seção na tela, para poupar bateria
+  const auroraNaTela = useNaTela(secao, { limiar: 0, umaVez: false })
   // o canhoto começa a se destacar com o mouse ou o foco de teclado no botão principal
   const [destacando, eventosDoBotao] = useMouseOuFoco()
+
+  const classes = [
+    'chamada-landing chamada-landing--animar',
+    naTela && 'chamada-landing--visivel',
+    auroraNaTela && 'chamada-landing--aurora',
+    destacando && 'chamada-landing--destacando',
+  ]
 
   return (
     <section
       ref={secao}
-      className={`chamada-landing chamada-landing--animar${naTela ? ' chamada-landing--visivel' : ''}${destacando ? ' chamada-landing--destacando' : ''}`}
+      className={classes.filter(Boolean).join(' ')}
       aria-labelledby="chamada-titulo"
     >
+      {MANCHAS.map((mancha) => (
+        <span
+          key={mancha}
+          className={`chamada-landing__mancha chamada-landing__mancha--${mancha}`}
+          aria-hidden="true"
+        />
+      ))}
+
       <Ingresso
         orientacao="responsiva"
         className="chamada-landing__ingresso"

@@ -1672,14 +1672,72 @@
 
 /* fundo fixo (escuro nos dois temas), com os três brilhos do Figma em % da seção */
 .chamada-landing {
+  position: relative;
+  /* as manchas de luz ficam atrás do ingresso e não vazam nem criam rolagem */
+  isolation: isolate;
   display: flex;
   justify-content: center;
   padding: 104px max(32px, calc((100% - 1200px) / 2));
-  background:
-    radial-gradient(62.5% 50% at 43.75% 90%, rgb(10 80 174 / 25%), transparent),
-    radial-gradient(55.6% 35.7% at 5.6% 25%, rgb(249 23 136 / 22%), transparent),
-    radial-gradient(55.6% 35.7% at 88.9% 71.4%, rgb(254 117 36 / 28%), transparent),
-    var(--marca-preto);
+  overflow: clip;
+  background: var(--marca-preto);
+}
+
+/* manchas de luz do fundo, iguais nos dois temas. Cada uma tem o dobro do tamanho da seção para a
+   borda não aparecer ao andar, então os valores são metade dos da seção (tamanho) ou
+   (posição na seção + 50%) ÷ 2. O --_ate em % também é da camada: 12,5% = 25% da largura da seção */
+.chamada-landing__mancha {
+  position: absolute;
+  inset: -50%;
+  z-index: -1;
+  background: radial-gradient(var(--_tamanho) at var(--_centro), var(--_cor), transparent);
+  transform-origin: var(--_centro);
+  pointer-events: none;
+}
+
+.chamada-landing__mancha--laranja {
+  --_tamanho: 27.8% 17.85%;
+  --_centro: 69.45% 60.7%;
+  --_cor: rgb(254 117 36 / 28%);
+  --_ate: -12.5% -40px;
+  --_ida: 10s;
+  --_inicio: -6s;
+}
+
+.chamada-landing__mancha--rosa {
+  --_tamanho: 27.8% 17.85%;
+  --_centro: 27.8% 37.5%;
+  --_cor: rgb(249 23 136 / 22%);
+  --_ate: 12.5% 40px;
+  --_ida: 8s;
+}
+
+.chamada-landing__mancha--azul {
+  --_tamanho: 31.25% 25%;
+  --_centro: 46.875% 70%;
+  --_cor: rgb(10 80 174 / 25%);
+  --_ate: 2% -16px;
+  --_respiro: 1.05;
+  --_ida: 12s;
+}
+
+/* aurora: só translate e scale. A duração é a ida; com alternate, o ciclo é o dobro (16, 20 e 24s),
+   e os ciclos diferentes e o início adiantado do laranja nunca deixam as manchas em sincronia.
+   Fora da tela fica pausada: quem liga é a classe --aurora, do ChamadaFinal */
+@media (prefers-reduced-motion: no-preference) {
+  :root:not(.sem-movimento) .chamada-landing__mancha {
+    animation: chamada-aurora var(--_ida) ease-in-out var(--_inicio, 0s) infinite alternate paused;
+  }
+
+  :root:not(.sem-movimento) .chamada-landing--aurora .chamada-landing__mancha {
+    animation-play-state: running;
+  }
+}
+
+@keyframes chamada-aurora {
+  to {
+    translate: var(--_ate);
+    scale: var(--_respiro, 1.15);
+  }
 }
 
 .chamada-landing__ingresso {
