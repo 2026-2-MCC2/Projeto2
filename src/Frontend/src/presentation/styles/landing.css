@@ -920,12 +920,8 @@
   --ingresso-picote-recuo: 40px;
   /* 0 em repouso, 1 em destaque (mouse em cima ou foco dentro): os efeitos abaixo partem dele */
   --_ativo: 0;
-  /* drop-shadow segue os recortes e não tem espalhamento: menos opacidade imita o -8px do Figma.
-     Em destaque desce um pouco e ganha a cor do perfil */
-  --ingresso-sombra: drop-shadow(
-    0 calc(16px + var(--_ativo) * 6px) calc(20px + var(--_ativo) * 8px)
-      color-mix(in srgb, var(--perfil-cor) calc(var(--_ativo) * 30%), rgb(15 23 41 / 6%))
-  );
+  /* drop-shadow não tem espalhamento: menos opacidade imita o -8px do Figma */
+  --ingresso-sombra: drop-shadow(0 16px 20px rgb(15 23 41 / 6%));
 
   position: relative;
 }
@@ -1009,7 +1005,6 @@
   --_destaque: var(--texto-marca);
   --_destaque-fundo: var(--fundo-marca-suave);
   --perfil-gradiente: var(--gradiente-laranja);
-  --perfil-cor: var(--marca-laranja);
   /* de onde o cartão vem na entrada: organizador pela esquerda, fornecedor pela direita */
   --_entrada: -32px 0;
 }
@@ -1018,8 +1013,6 @@
   --_destaque: var(--texto-destaque);
   --_destaque-fundo: var(--status-alerta-fundo);
   --perfil-gradiente: var(--gradiente-azul);
-  /* o azul da marca some na sombra do tema escuro; o ciano aparece nos dois temas */
-  --perfil-cor: var(--marca-ciano);
   --_entrada: 32px 0;
 }
 
@@ -1035,8 +1028,7 @@
     transition:
       opacity 700ms cubic-bezier(0.2, 0.8, 0.2, 1) var(--_atraso-do-cartao, 0ms),
       translate 700ms cubic-bezier(0.2, 0.8, 0.2, 1) var(--_atraso-do-cartao, 0ms),
-      transform var(--_elevacao) ease-out,
-      filter var(--_elevacao) ease-out;
+      transform var(--_elevacao) ease-out;
   }
 
   :root:not(.sem-movimento) .perfis-landing--animar .perfil-landing--fornecedor {
@@ -1059,7 +1051,7 @@
 
   /* no botão secundário, claro, um brilho branco não apareceria */
   :root:not(.sem-movimento) .perfil-landing .botao-landing--secundario {
-    --_brilho: color-mix(in srgb, var(--perfil-cor) 25%, transparent);
+    --_brilho: color-mix(in srgb, var(--marca-ciano) 25%, transparent);
   }
 
   :root:not(.sem-movimento) .perfil-landing .botao-landing::after {
