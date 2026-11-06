@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { formatarMoeda, formatarPeriodo } from '../../../application/eventos.js'
+import { formatarDataEHora, formatarMoeda, formatarPeriodo } from '../../../application/eventos.js'
 import {
   buscarMinhaProposta,
   formatarValidade,
@@ -8,18 +8,38 @@ import {
   retirarProposta,
 } from '../../../application/propostas.js'
 import { descartarRascunho } from '../../../application/rascunhosDePropostas.js'
-import { formatarData } from '../../../domain/formatacao.js'
+import {
+  comparacaoComPrevisto,
+  formatarData,
+  formatarTelefone,
+} from '../../../domain/formatacao.js'
 import { Carregando, ErroNaTela, Vazio } from '../../components/comum/EstadoDaTela.jsx'
+import { Icone } from '../../components/comum/Icone.jsx'
 import { Modal } from '../../components/comum/Modal.jsx'
+import { TituloDaPagina } from '../../components/comum/TituloDaPagina.jsx'
 import { EtiquetaDaProposta } from '../../components/fornecedor/EtiquetaDaProposta.jsx'
 import { FotoDoServico } from '../../components/fornecedor/FotoDoServico.jsx'
+import { ObservacaoDoOrganizador } from '../../components/fornecedor/ObservacaoDoOrganizador.jsx'
 import { Cartao } from '../../components/organizador/Cartao.jsx'
 import { Botao } from '../../components/organizador/Formulario.jsx'
 import { OrganizadorLayout } from '../../components/organizador/OrganizadorLayout.jsx'
 import { toast } from '../../toasts.js'
-import iconeRetirar from '../../assets/admin/icone-modal-rejeitar.svg'
+import { useIsMobile } from '../../hooks/useIsMobile.js'
 import { ENTRAR_NA_EDICAO } from '../../hooks/usePropostaEmEdicao.js'
 import { useRenovarFotosVencidas } from '../../hooks/useRenovarFotosVencidas.js'
+import iconeRetirar from '../../assets/admin/icone-modal-rejeitar.svg'
+import iconeVoltar from '../../assets/organizador/icone-voltar.svg'
+import iconeAvancar from '../../assets/organizador/icone-avancar.svg'
+import iconeCalendario from '../../assets/fornecedor/icone-calendario.svg'
+import iconeLocal from '../../assets/fornecedor/icone-local.svg'
+import iconeFeito from '../../assets/fornecedor/icone-feito.svg'
+import iconeRecusado from '../../assets/fornecedor/icone-recusado.svg'
+import iconeInfo from '../../assets/fornecedor/icone-info.svg'
+import iconeEscolhida from '../../assets/fornecedor/icone-escolhida.svg'
+import iconeCancelado from '../../assets/fornecedor/icone-cancelado.svg'
+import iconePessoa from '../../assets/fornecedor/icone-pessoa.svg'
+import iconeEmail from '../../assets/fornecedor/icone-email.svg'
+import iconeTelefone from '../../assets/fornecedor/icone-telefone.svg'
 import '../../styles/fornecedor.css'
 
 const VOLTAR_PARA = '/fornecedor/propostas'
@@ -27,18 +47,8 @@ const VOLTAR_PARA = '/fornecedor/propostas'
 const TEXTOS_DA_DESCRICAO = [
   { campo: 'description', rotulo: 'O que está incluído' },
   { campo: 'not_included', rotulo: 'O que não está incluído' },
-  { campo: 'team', rotulo: 'Equipe envolvida' },
-  { campo: 'warranty', rotulo: 'Garantia ou substituição' },
   { campo: 'notes', rotulo: 'Observações' },
 ]
-
-const EXPLICACAO_DA_SITUACAO = {
-  sent: 'O organizador ainda não decidiu sobre as propostas deste item.',
-  under_review: 'O organizador está comparando as propostas recebidas para este item.',
-  accepted: 'O organizador escolheu a sua proposta para este item.',
-  rejected: 'O organizador escolheu outra proposta para este item.',
-  canceled: 'O organizador cancelou o evento e as propostas dele foram encerradas.',
-}
 
 function ModalRetirar({ proposta, retirando, aoConfirmar, aoFechar }) {
   return (
@@ -65,6 +75,7 @@ function ModalRetirar({ proposta, retirando, aoConfirmar, aoFechar }) {
 export function DetalheDaProposta() {
   const { proposalKey } = useParams()
   const navigate = useNavigate()
+  const isMobile = useIsMobile()
   const [tentativa, setTentativa] = useState(0)
   const [resultado, setResultado] = useState({ chave: null, proposta: null, erro: null })
   const [confirmandoRetirada, setConfirmandoRetirada] = useState(false)
@@ -148,22 +159,69 @@ export function DetalheDaProposta() {
   }
 
   const proposta = resultado.proposta
+  const { event: evento, item } = proposta
   const podeAlterar = propostaPodeSerAlterada(proposta)
-  const rotaDeEdicao = `/fornecedor/eventos/${proposta.event.event_key}/itens/${proposta.item.item_key}/propostas/etapa-1`
+  const acoes = podeAlterar && (
+    <div className="detalhe-da-proposta__acoes">
+      <Botao
+        type="button"
+        secundario
+        className="detalhe-da-proposta__retirar"
+        onClick={() => setConfirmandoRetirada(true)}
+      >
+        Retirar proposta
+      </Botao>
+      <Link
+        to={`/fornecedor/eventos/${evento.event_key}/itens/${item.item_key}/propostas/etapa-1`}
+        state={ENTRAR_NA_EDICAO}
+        className="botao"
+      >
+        Editar proposta
+      </Link>
+    </div>
+  )
 
-  return (
-    <OrganizadorLayout
-      perfil="fornecedor"
-      titulo={proposta.item.description}
-      sobreTitulo={`Minhas propostas · ${proposta.event.name}`}
-      apoio={`Proposta enviada em ${formatarData(proposta.sent_at)}`}
-      voltarPara={VOLTAR_PARA}
-    >
-      <div className="colunas detalhe-proposta">
+  const conteudo = (
+    <div className="detalhe-da-proposta">
+      {!isMobile && (
+        <header className="detalhe-da-proposta__cabecalho">
+          <div>
+            <Link to={VOLTAR_PARA} className="evento-topo__voltar" viewTransition>
+              <Icone src={iconeVoltar} />
+              Minhas propostas
+            </Link>
+            <div className="resumo-do-evento__nome">
+              <h1>{item.description}</h1>
+              <EtiquetaDaProposta status={proposta.status} />
+            </div>
+            <p className="detalhe-da-proposta__evento">
+              <span>
+                <Icone src={iconeCalendario} />
+                {evento.name} · {formatarPeriodo(evento.start_date, evento.end_date)}
+              </span>
+              <span>
+                <Icone src={iconeLocal} />
+                {evento.venue_name} · {evento.city}, {evento.state}
+              </span>
+            </p>
+          </div>
+          {acoes}
+        </header>
+      )}
+
+      {isMobile && (
+        <p className="detalhe-da-proposta__situacao-mobile">
+          <EtiquetaDaProposta status={proposta.status} />
+          Enviada em {formatarData(proposta.sent_at)}
+        </p>
+      )}
+
+      <AvisoDaProposta proposta={proposta} />
+      <LinhaDoTempo proposta={proposta} podeAlterar={podeAlterar} />
+
+      <div className="colunas">
         <div className="colunas__principal">
-          <Cartao titulo="Valores e prazos">
-            <LinhasDeDados linhas={valoresEPrazos(proposta)} />
-          </Cartao>
+          <SuaProposta proposta={proposta} />
 
           <Cartao titulo="Descrição enviada">
             <div className="detalhe-proposta__textos">
@@ -195,41 +253,32 @@ export function DetalheDaProposta() {
         </div>
 
         <aside className="colunas__lateral">
-          <Cartao titulo="Situação">
-            <div className="detalhe-proposta__situacao">
-              <EtiquetaDaProposta status={proposta.status} />
-              <p>{EXPLICACAO_DA_SITUACAO[proposta.status]}</p>
+          <ItemCotado proposta={proposta} />
+          {proposta.organizer_contact && (
+            <ContatoDoOrganizador contato={proposta.organizer_contact} />
+          )}
+          <dl className="detalhe-da-proposta__envio">
+            <div>
+              <dt>Enviada em</dt>
+              <dd>{formatarDataEHora(proposta.sent_at)}</dd>
             </div>
-            <LinhasDeDados
-              linhas={[
-                { rotulo: 'Enviada em', valor: formatarData(proposta.sent_at) },
-                {
-                  rotulo: 'Fim do evento',
-                  valor: formatarPeriodo(proposta.event.end_date, proposta.event.end_date),
-                },
-              ]}
-            />
-          </Cartao>
-
-          <div className="detalhe-proposta__acoes">
-            {podeAlterar && (
-              <>
-                <Link to={rotaDeEdicao} state={ENTRAR_NA_EDICAO} className="botao">
-                  Editar proposta
-                </Link>
-                <Botao type="button" secundario onClick={() => setConfirmandoRetirada(true)}>
-                  Retirar proposta
-                </Botao>
-              </>
-            )}
-            <Link to={VOLTAR_PARA} className="detalhe-proposta__voltar">
-              Voltar para a lista
-            </Link>
-          </div>
-
-          <AvisoDaProposta proposta={proposta} podeAlterar={podeAlterar} />
+          </dl>
         </aside>
       </div>
+
+      {isMobile && acoes}
+    </div>
+  )
+
+  return (
+    <OrganizadorLayout
+      perfil="fornecedor"
+      titulo={isMobile ? item.description : undefined}
+      apoio={`${evento.name} · ${formatarPeriodo(evento.start_date, evento.end_date)}`}
+      voltarPara={VOLTAR_PARA}
+    >
+      {!isMobile && <TituloDaPagina titulo={item.description} />}
+      {conteudo}
 
       {confirmandoRetirada && (
         <ModalRetirar
@@ -243,70 +292,225 @@ export function DetalheDaProposta() {
   )
 }
 
-function valoresEPrazos(proposta) {
-  return [
-    { rotulo: 'Valor da proposta', valor: formatarMoeda(proposta.amount) },
-    proposta.item.estimated_value != null && {
-      rotulo: 'Orçamento previsto pelo organizador',
-      valor: formatarMoeda(proposta.item.estimated_value),
+function passosDaProposta(proposta) {
+  const enviada = { nome: 'Enviada', apoio: formatarData(proposta.sent_at), estado: 'feito' }
+  if (proposta.status === 'canceled') {
+    return [
+      enviada,
+      { nome: 'Evento cancelado', apoio: 'O organizador cancelou o evento', estado: 'cancelado' },
+    ]
+  }
+
+  const emCotacao = proposta.event.status === 'open_for_quotes'
+  const analises = {
+    sent: {
+      nome: 'Em análise',
+      apoio: 'Quando o organizador começar a comparar',
+      estado: emCotacao ? 'proximo' : 'futuro',
     },
-    { rotulo: 'Validade da proposta', valor: formatarValidade(proposta.valid_until) },
-    { rotulo: 'Prazo de entrega ou montagem', valor: proposta.delivery_terms },
-    { rotulo: 'Condição de pagamento', valor: proposta.payment_terms },
-  ].filter(Boolean)
+    under_review: {
+      nome: 'Em análise',
+      apoio: 'O organizador está comparando as propostas',
+      estado: 'proximo',
+    },
+  }
+  const analise = analises[proposta.status] ?? {
+    nome: 'Em análise',
+    apoio: 'O organizador comparou as propostas',
+    estado: 'feito',
+  }
+
+  const decisoes = {
+    accepted: { nome: 'Aceita', apoio: 'Sua proposta foi escolhida', estado: 'feito' },
+    rejected: { nome: 'Recusada', apoio: 'Outra proposta foi escolhida', estado: 'recusado' },
+  }
+  const decisao = decisoes[proposta.status] ?? {
+    nome: 'Decisão',
+    apoio: 'O organizador escolhe uma proposta por item',
+    estado: 'futuro',
+  }
+
+  return [enviada, analise, decisao]
 }
 
-function LinhasDeDados({ linhas }) {
+const ICONE_DO_PASSO = { feito: iconeFeito, recusado: iconeRecusado, cancelado: iconeRecusado }
+
+function LinhaDoTempo({ proposta, podeAlterar }) {
+  const passos = passosDaProposta(proposta)
+  const nota = podeAlterar
+    ? 'Dá para editar ou retirar enquanto a proposta estiver Enviada e o evento em cotação.'
+    : proposta.status === 'sent' &&
+      'O evento não está mais em cotação: a proposta não pode ser editada nem retirada.'
+
   return (
-    <dl className="linhas-de-dados">
-      {linhas.map(({ rotulo, valor }) => (
-        <div key={rotulo}>
-          <dt>{rotulo}</dt>
-          <dd>{valor}</dd>
-        </div>
-      ))}
-    </dl>
+    <section className="linha-do-tempo" aria-label="Andamento da proposta">
+      <ol className="linha-do-tempo__passos">
+        {passos.map((passo, indice) => (
+          <li
+            key={passo.nome}
+            className={`linha-do-tempo__passo linha-do-tempo__passo--${passo.estado}`}
+          >
+            <span className="linha-do-tempo__marcador">
+              {ICONE_DO_PASSO[passo.estado] ? (
+                <Icone src={ICONE_DO_PASSO[passo.estado]} />
+              ) : (
+                indice + 1
+              )}
+            </span>
+            <span className="linha-do-tempo__texto">
+              <strong>{passo.nome}</strong>
+              <small>{passo.apoio}</small>
+            </span>
+          </li>
+        ))}
+      </ol>
+      {nota && (
+        <p className="linha-do-tempo__nota">
+          <Icone src={iconeInfo} />
+          {nota}
+        </p>
+      )}
+    </section>
   )
 }
 
-function contatoDoOrganizador({ name, email, phone }) {
-  return [name, email, phone].filter(Boolean).join(' · ')
-}
-
-function AvisoDaProposta({ proposta, podeAlterar }) {
-  const contato = proposta.organizer_contact && contatoDoOrganizador(proposta.organizer_contact)
-
+function AvisoDaProposta({ proposta }) {
+  if (proposta.status === 'accepted') {
+    return (
+      <Aviso tom="sucesso" icone={iconeEscolhida} titulo="Sua proposta foi escolhida!">
+        O valor entrou no orçamento do evento. Combine os próximos passos direto com o organizador.
+      </Aviso>
+    )
+  }
+  if (proposta.status === 'rejected') {
+    return (
+      <Aviso
+        tom="neutro"
+        icone={iconeRecusado}
+        titulo="O organizador escolheu outra proposta para este item."
+      >
+        Ela fica aqui só para consulta. Continue de olho em Eventos disponíveis.
+      </Aviso>
+    )
+  }
   if (proposta.status === 'canceled') {
     const motivo = proposta.event.cancellation_reason
     return (
-      <p className="aviso aviso--perigo" role="note">
-        O organizador cancelou o evento.
-        {motivo && ` Motivo: ${motivo.replace(/[.!]+$/, '')}.`}
+      <Aviso tom="perigo" icone={iconeCancelado} titulo="O organizador cancelou o evento.">
+        {motivo && `Motivo informado: “${motivo.replace(/[.!]+$/, '')}.” `}
         {/* o contato só vem para quem estava com a proposta aceita e pode ter tido custo */}
-        {contato && ` Se você já teve custos com este evento, fale com o organizador: ${contato}`}
-      </p>
+        {proposta.organizer_contact
+          ? 'Se você já teve custos com este evento, fale com o organizador pelo contato desta página.'
+          : 'Esta proposta foi encerrada e não precisa de nenhuma ação sua.'}
+      </Aviso>
     )
   }
-  if (proposta.status === 'accepted') {
-    return (
-      <p className="aviso aviso--sucesso" role="note">
-        Combine a entrega com o organizador{contato ? `: ${contato}` : '.'}
-      </p>
-    )
-  }
-  if (podeAlterar) {
-    return (
-      <p className="aviso aviso--alerta" role="note">
-        A edição e a retirada ficam disponíveis enquanto o organizador não decidir e o evento
-        estiver em cotação.
-      </p>
-    )
-  }
+  return null
+}
+
+function Aviso({ tom, icone, titulo, children }) {
   return (
-    <p className="aviso aviso--neutro" role="note">
-      {proposta.status === 'sent'
-        ? 'O evento não está mais em cotação: a proposta não pode ser editada nem retirada.'
-        : 'Esta proposta fica disponível só para consulta.'}
-    </p>
+    <div className={`aviso-da-proposta aviso-da-proposta--${tom}`} role="note">
+      <Icone src={icone} />
+      <div>
+        <strong>{titulo}</strong>
+        <p>{children}</p>
+      </div>
+    </div>
+  )
+}
+
+function SuaProposta({ proposta }) {
+  const previsto = proposta.item.estimated_value
+  const comparacao = comparacaoComPrevisto(proposta.amount, previsto)
+  const condicoes = [
+    ['Validade', formatarValidade(proposta.valid_until)],
+    ['Prazo de entrega ou montagem', proposta.delivery_terms],
+    ['Condição de pagamento', proposta.payment_terms],
+    ['Equipe envolvida', proposta.team],
+    ['Garantia ou substituição', proposta.warranty],
+  ].filter(([, valor]) => valor)
+
+  return (
+    <section className="cartao sua-proposta" aria-label="Sua proposta">
+      <div className="sua-proposta__valor">
+        <div>
+          <span>Valor proposto</span>
+          <strong>{formatarMoeda(proposta.amount)}</strong>
+        </div>
+        {comparacao && (
+          <p
+            className={`sua-proposta__comparacao${proposta.amount > previsto ? ' sua-proposta__comparacao--acima' : ''}`}
+          >
+            <strong>{comparacao}</strong>
+            Previsto: {formatarMoeda(previsto)}
+          </p>
+        )}
+      </div>
+      <dl className="linhas-de-dados">
+        {condicoes.map(([rotulo, valor]) => (
+          <div key={rotulo}>
+            <dt>{rotulo}</dt>
+            <dd>{valor}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  )
+}
+
+function ItemCotado({ proposta }) {
+  const { item, event: evento } = proposta
+  const dados = [
+    ['Categoria', item.category],
+    ['Tipo', item.type === 'product' ? 'Produto' : 'Serviço'],
+    ['Quantidade', Number(item.quantity).toLocaleString('pt-BR')],
+    item.estimated_value != null && ['Orçamento previsto', formatarMoeda(item.estimated_value)],
+  ].filter(Boolean)
+
+  return (
+    <Cartao titulo="Item cotado">
+      <dl className="linhas-de-dados linhas-de-dados--compactas">
+        {dados.map(([rotulo, valor]) => (
+          <div key={rotulo}>
+            <dt>{rotulo}</dt>
+            <dd>{valor}</dd>
+          </div>
+        ))}
+      </dl>
+      {item.notes && <ObservacaoDoOrganizador texto={item.notes} />}
+      {evento.status === 'open_for_quotes' && (
+        <Link to={`/fornecedor/eventos/${evento.event_key}`} className="link-com-seta">
+          Ver itens do evento
+          <Icone src={iconeAvancar} />
+        </Link>
+      )}
+    </Cartao>
+  )
+}
+
+function ContatoDoOrganizador({ contato }) {
+  return (
+    <section className="contato-do-organizador" aria-label="Contato do organizador">
+      <h2>Contato do organizador</h2>
+      <ul>
+        <li>
+          <Icone src={iconePessoa} />
+          <strong>{contato.name}</strong>
+        </li>
+        {contato.email && (
+          <li>
+            <Icone src={iconeEmail} />
+            <a href={`mailto:${contato.email}`}>{contato.email}</a>
+          </li>
+        )}
+        {contato.phone && (
+          <li>
+            <Icone src={iconeTelefone} />
+            <a href={`tel:${contato.phone}`}>{formatarTelefone(contato.phone)}</a>
+          </li>
+        )}
+      </ul>
+    </section>
   )
 }

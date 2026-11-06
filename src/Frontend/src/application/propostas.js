@@ -1,6 +1,6 @@
 import { api } from '../infrastructure/api.js'
 import { relerEventoEmMemoria } from './eventos.js'
-import { formatarMoeda } from '../domain/formatacao.js'
+import { diaEmBrasilia, formatarMoeda } from '../domain/formatacao.js'
 import { paraData, paraDataIso, paraNumero } from '../domain/validacao.js'
 
 export function buscarComparacaoDePropostas(eventKey) {
@@ -42,6 +42,13 @@ export function podeSerSelecionada(proposta, item, eventoEmCotacao) {
 export function formatarValidade(validade) {
   const [ano, mes, dia] = validade.split('-')
   return `${dia}/${mes}/${ano}`
+}
+
+const UM_DIA = 24 * 60 * 60 * 1000
+
+// a validade (AAAA-MM-DD) vale até o fim do dia; a conta usa o dia de hoje em Brasília, como a API
+export function diasAteVencer(validade) {
+  return Math.round((Date.parse(validade) - Date.parse(diaEmBrasilia(Date.now()))) / UM_DIA)
 }
 
 const STATUS_DA_PROPOSTA = {

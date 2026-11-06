@@ -1,24 +1,46 @@
+import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { formatarDataEHora, formatarMoeda, formatarPeriodo } from '../../../application/eventos.js'
+import {
+  formatarDataEHora,
+  formatarHorario,
+  formatarMoeda,
+  formatarPeriodo,
+} from '../../../application/eventos.js'
+import { comparacaoComPrevisto } from '../../../domain/formatacao.js'
 import { Carregando, ErroNaTela, Vazio } from '../../components/comum/EstadoDaTela.jsx'
 import { Icone } from '../../components/comum/Icone.jsx'
 import { TituloDaPagina } from '../../components/comum/TituloDaPagina.jsx'
+import { AbasDeFiltro } from '../../components/fornecedor/AbasDeFiltro.jsx'
 import { EtiquetaDaProposta } from '../../components/fornecedor/EtiquetaDaProposta.jsx'
-import { Cartao } from '../../components/organizador/Cartao.jsx'
+import { ObservacaoDoOrganizador } from '../../components/fornecedor/ObservacaoDoOrganizador.jsx'
 import { OrganizadorLayout } from '../../components/organizador/OrganizadorLayout.jsx'
 import { useEventoDisponivel } from '../../hooks/useEventoDisponivel.js'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
 import { ENTRAR_NA_EDICAO } from '../../hooks/usePropostaEmEdicao.js'
 import iconeVoltar from '../../assets/organizador/icone-voltar.svg'
+import iconeAvancar from '../../assets/organizador/icone-avancar.svg'
+import iconeCalendario from '../../assets/fornecedor/icone-calendario.svg'
+import iconeLocal from '../../assets/fornecedor/icone-local.svg'
+import iconePublico from '../../assets/fornecedor/icone-publico.svg'
+import iconeItens from '../../assets/fornecedor/icone-itens.svg'
+import iconeEnviar from '../../assets/comum/icone-enviar.svg'
+import iconeFeito from '../../assets/fornecedor/icone-feito.svg'
 import '../../styles/fornecedor.css'
 
 const LISTA_DE_EVENTOS = '/fornecedor/eventos'
 const pessoas = (quantidade) => Number(quantidade).toLocaleString('pt-BR')
 
+const FILTROS = {
+  todos: () => true,
+  falta: (item) => !item.my_proposal,
+  enviadas: (item) => Boolean(item.my_proposal),
+}
+
 export function EventoDisponivel() {
   const { id } = useParams()
   const isMobile = useIsMobile()
   const { carregando, evento, erro, tentarDeNovo } = useEventoDisponivel(id)
+  const [filtro, setFiltro] = useState('todos')
 
   if (carregando || erro) {
     return (
@@ -46,20 +68,60 @@ export function EventoDisponivel() {
     )
   }
 
-  const resumo = `${formatarPeriodo(evento.start_date, evento.end_date)} · ${evento.venue_name}, ${evento.city} — ${evento.state} · ${pessoas(evento.expected_audience)} pessoas esperadas`
+  const itens = evento.items
+  const enviadas = itens.filter(FILTROS.enviadas).length
+  const visiveis = itens.filter(FILTROS[filtro])
+
   const conteudo = (
-    <div className="colunas">
-      <div className="colunas__principal">
-        <ItensParaCotar eventKey={id} itens={evento.items} />
-      </div>
-      <aside className="colunas__lateral">
-        <SobreOEvento evento={evento} />
-        <p className="aviso aviso--neutro" role="note">
-          Você envia uma proposta por item. Enquanto o organizador não decidir, dá para editar ou
-          retirar a proposta.
-        </p>
-      </aside>
-    </div>
+    <>
+      <ResumoDoEvento evento={evento} faltam={itens.length - enviadas} comCabecalho={!isMobile} />
+
+      {itens.length === 0 ? (
+        <Vazio icone="eventos" titulo="Nenhum item nas suas categorias" />
+      ) : (
+        <>
+          <div className="itens-do-evento__filtros">
+            <AbasDeFiltro
+              rotulo="Filtrar itens"
+              ativa={filtro}
+              aoMudar={setFiltro}
+              abas={[
+                {
+                  chave: 'todos',
+                  rotulo: isMobile ? 'Todos' : 'Todos os itens',
+                  quantidade: itens.length,
+                },
+                { chave: 'falta', rotulo: 'Falta enviar', quantidade: itens.length - enviadas },
+                { chave: 'enviadas', rotulo: 'Enviadas', quantidade: enviadas },
+              ]}
+            />
+            <Andamento itens={itens} />
+          </div>
+
+          <div className="colunas">
+            <div className="colunas__principal">
+              {visiveis.length === 0 ? (
+                <p className="itens-do-evento__vazio">
+                  {filtro === 'falta'
+                    ? 'Você já enviou proposta para todos os itens deste evento.'
+                    : 'Você ainda não enviou proposta para nenhum item.'}
+                </p>
+              ) : (
+                <ul className="itens-do-evento">
+                  {visiveis.map((item) => (
+                    <CartaoDoItem key={item.item_key} eventKey={id} item={item} />
+                  ))}
+                </ul>
+              )}
+            </div>
+            <aside className="colunas__lateral">
+              <LocalEHorario evento={evento} />
+              <ComoFunciona />
+            </aside>
+          </div>
+        </>
+      )}
+    </>
   )
 
   if (isMobile) {
@@ -67,7 +129,7 @@ export function EventoDisponivel() {
       <OrganizadorLayout
         perfil="fornecedor"
         titulo={evento.name}
-        apoio={resumo}
+        apoio={['Em cotação', evento.organizer_name].filter(Boolean).join(' · ')}
         voltarPara={LISTA_DE_EVENTOS}
       >
         {conteudo}
@@ -78,120 +140,227 @@ export function EventoDisponivel() {
   return (
     <OrganizadorLayout perfil="fornecedor">
       <TituloDaPagina titulo={evento.name} />
-      <div className="evento-topo">
-        <div className="evento-topo__titulos">
-          <Link to={LISTA_DE_EVENTOS} className="evento-topo__voltar" viewTransition>
-            <Icone src={iconeVoltar} />
-            Eventos disponíveis
-          </Link>
-          <div className="evento-topo__nome">
-            <h1>{evento.name}</h1>
-            <span className="etiqueta etiqueta--cotacao">Em cotação</span>
-          </div>
-          <p className="evento-topo__resumo">{resumo}</p>
-        </div>
-      </div>
       {conteudo}
     </OrganizadorLayout>
   )
 }
 
-function ItensParaCotar({ eventKey, itens }) {
-  const comProposta = itens.filter((item) => item.my_proposal).length
+function ResumoDoEvento({ evento, faltam, comCabecalho }) {
+  const descricao = [
+    evento.description,
+    evento.organizer_name && `Organizado por ${evento.organizer_name}.`,
+  ]
+    .filter(Boolean)
+    .join(' ')
 
   return (
-    <Cartao
-      titulo="Itens para cotar"
-      complemento={
-        itens.length > 0 &&
-        `Você enviou proposta para ${comProposta} de ${itens.length} ${itens.length === 1 ? 'item' : 'itens'}`
-      }
-    >
-      {itens.length === 0 ? (
-        <Vazio icone="eventos" titulo="Nenhum item nas suas categorias" />
-      ) : (
-        <ul className="itens-para-cotar">
-          {itens.map((item) => (
-            <ItemParaCotar key={item.item_key} eventKey={eventKey} item={item} />
-          ))}
-        </ul>
+    <section className="resumo-do-evento" aria-label="Resumo do evento">
+      {comCabecalho && (
+        <>
+          <Link to={LISTA_DE_EVENTOS} className="evento-topo__voltar" viewTransition>
+            <Icone src={iconeVoltar} />
+            Eventos disponíveis
+          </Link>
+          <div className="resumo-do-evento__nome">
+            <h1>{evento.name}</h1>
+            <span className="etiqueta etiqueta--cotacao">Em cotação</span>
+          </div>
+        </>
       )}
-    </Cartao>
+      {descricao && <p className="resumo-do-evento__descricao">{descricao}</p>}
+
+      <dl className="resumo-do-evento__numeros">
+        <Numero
+          icone={iconeCalendario}
+          rotulo="Quando"
+          valor={formatarPeriodo(evento.start_date, evento.end_date)}
+          apoio={`${formatarHorario(evento.start_date)} às ${formatarHorario(evento.end_date)}`}
+        />
+        <Numero
+          icone={iconeLocal}
+          rotulo="Onde"
+          valor={evento.venue_name}
+          apoio={`${evento.city}, ${evento.state}`}
+        />
+        <Numero
+          icone={iconePublico}
+          rotulo="Público esperado"
+          valor={`${pessoas(evento.expected_audience)} pessoas`}
+          apoio={`De ${pessoas(evento.min_audience)} a ${pessoas(evento.max_audience)}`}
+        />
+        <Numero
+          icone={iconeItens}
+          rotulo="Itens para cotar"
+          valor={`${evento.items.length} ${evento.items.length === 1 ? 'item' : 'itens'}`}
+          apoio={faltam > 0 ? `${faltam} sem proposta sua` : 'Você cotou todos'}
+          destaque={faltam > 0}
+        />
+      </dl>
+    </section>
   )
 }
 
-function ItemParaCotar({ eventKey, item }) {
-  const proposta = item.my_proposal
+function Numero({ icone, rotulo, valor, apoio, destaque = false }) {
+  return (
+    <div
+      className={`resumo-do-evento__numero${destaque ? ' resumo-do-evento__numero--destaque' : ''}`}
+    >
+      <span className="resumo-do-evento__icone">
+        <Icone src={icone} />
+      </span>
+      <div>
+        <dt>{rotulo}</dt>
+        <dd>
+          <strong>{valor}</strong>
+          <small>{apoio}</small>
+        </dd>
+      </div>
+    </div>
+  )
+}
+
+const TRECHO_DA_SITUACAO = {
+  sent: 'enviada',
+  under_review: 'enviada',
+  accepted: 'aceita',
+  rejected: 'recusada',
+  canceled: 'recusada',
+}
+
+function Andamento({ itens }) {
+  const total = itens.length
+  const enviadas = itens.filter(FILTROS.enviadas).length
+  const quantos = (trecho) => itens.filter((item) => trechoDoItem(item) === trecho).length
 
   return (
-    <li className="item-para-cotar">
-      <div className="item-para-cotar__texto">
+    <div className="andamento-do-evento">
+      <span>
+        Você enviou {enviadas} de {total}
+      </span>
+      <span
+        className="andamento-do-evento__barra"
+        role="img"
+        aria-label={`${quantos('aceita')} aceitas, ${quantos('enviada')} aguardando, ${quantos('recusada')} recusadas e ${quantos('vazio')} sem proposta`}
+      >
+        {itens.map((item) => (
+          <span
+            key={item.item_key}
+            className={`andamento-do-evento__trecho andamento-do-evento__trecho--${trechoDoItem(item)}`}
+          />
+        ))}
+      </span>
+    </div>
+  )
+}
+
+const trechoDoItem = (item) =>
+  item.my_proposal ? TRECHO_DA_SITUACAO[item.my_proposal.status] : 'vazio'
+
+function CartaoDoItem({ eventKey, item }) {
+  const proposta = item.my_proposal
+  const comparacao = proposta && comparacaoComPrevisto(proposta.amount, item.estimated_value)
+
+  return (
+    <li className={`item-do-evento${proposta ? '' : ' item-do-evento--pendente'}`}>
+      <div className="item-do-evento__informacoes">
         <span className="fornecedor-evento__categorias">{item.category}</span>
         <h3>{item.description}</h3>
-        <p>
-          {item.type === 'product' ? 'Produto' : 'Serviço'} · Quantidade: {pessoas(item.quantity)}
-          {item.estimated_value != null &&
-            ` · Valor previsto: ${formatarMoeda(item.estimated_value)}`}
+        <p className="item-do-evento__detalhes">
+          <span>
+            {item.type === 'product' ? 'Produto' : 'Serviço'} · {pessoas(item.quantity)}{' '}
+            {item.quantity === 1 ? 'unidade' : 'unidades'}
+          </span>
+          {item.estimated_value != null && (
+            <strong>Previsto {formatarMoeda(item.estimated_value)}</strong>
+          )}
         </p>
-        {item.notes && <p className="item-para-cotar__observacao">{item.notes}</p>}
+        {item.notes && <ObservacaoDoOrganizador texto={item.notes} />}
       </div>
 
-      <div className="item-para-cotar__acao">
+      <div className="item-do-evento__proposta">
         {proposta ? (
           <>
-            <div className="item-para-cotar__proposta">
+            <div className="item-do-evento__topo">
+              <span>Sua proposta</span>
               <EtiquetaDaProposta status={proposta.status} />
-              <strong>{formatarMoeda(proposta.amount)}</strong>
             </div>
-            <Link
-              to={`/fornecedor/propostas/${proposta.proposal_key}`}
-              className="botao botao--secundario"
-            >
+            <strong className="item-do-evento__valor">{formatarMoeda(proposta.amount)}</strong>
+            {comparacao && (
+              <small
+                className={`item-do-evento__comparacao${proposta.amount > item.estimated_value ? ' item-do-evento__comparacao--acima' : ''}`}
+              >
+                {comparacao}
+              </small>
+            )}
+            <Link to={`/fornecedor/propostas/${proposta.proposal_key}`} className="link-com-seta">
               Ver proposta
+              <Icone src={iconeAvancar} />
             </Link>
           </>
         ) : (
-          <Link
-            to={`/fornecedor/eventos/${eventKey}/itens/${item.item_key}/propostas/etapa-1`}
-            state={ENTRAR_NA_EDICAO}
-            className="botao"
-          >
-            Enviar proposta
-          </Link>
+          <>
+            <span className="item-do-evento__rotulo">Sua proposta</span>
+            <p>Você ainda não enviou proposta para este item.</p>
+            <Link
+              to={`/fornecedor/eventos/${eventKey}/itens/${item.item_key}/propostas/etapa-1`}
+              state={ENTRAR_NA_EDICAO}
+              className="botao"
+            >
+              Enviar proposta
+            </Link>
+          </>
         )}
       </div>
     </li>
   )
 }
 
-function SobreOEvento({ evento }) {
+function LocalEHorario({ evento }) {
   const dados = [
-    { rotulo: 'CATEGORIA', valor: evento.category },
-    { rotulo: 'INÍCIO', valor: formatarDataEHora(evento.start_date) },
-    { rotulo: 'TÉRMINO', valor: formatarDataEHora(evento.end_date) },
-    {
-      rotulo: 'PÚBLICO (MÍN · ESPERADO · MÁX)',
-      valor: [evento.min_audience, evento.expected_audience, evento.max_audience]
-        .map(pessoas)
-        .join(' · '),
-    },
-    {
-      rotulo: 'LOCAL',
-      valor: `${evento.venue_name} — ${evento.address}, ${evento.city} — ${evento.state}`,
-    },
+    ['Início', formatarDataEHora(evento.start_date)],
+    ['Término', formatarDataEHora(evento.end_date)],
+    ['Local', evento.venue_name],
+    ['Endereço', evento.address],
+    ['Cidade', `${evento.city}, ${evento.state}`],
   ]
 
   return (
-    <Cartao titulo="Sobre o evento">
-      {evento.description && <p className="sobre-o-evento__descricao">{evento.description}</p>}
-      <div className="ficha ficha--empilhada">
-        {dados.map((dado) => (
-          <div key={dado.rotulo} className="ficha__dado">
-            <span>{dado.rotulo}</span>
-            <strong>{dado.valor}</strong>
+    <section className="cartao">
+      <div className="cartao__titulo">
+        <h2>Local e horário</h2>
+      </div>
+      <dl className="linhas-de-dados linhas-de-dados--compactas">
+        {dados.map(([rotulo, valor]) => (
+          <div key={rotulo}>
+            <dt>{rotulo}</dt>
+            <dd>{valor}</dd>
           </div>
         ))}
-      </div>
-    </Cartao>
+      </dl>
+    </section>
+  )
+}
+
+const PASSOS = [
+  [iconeEnviar, 'Envie uma proposta por item, com valor, validade e condições.'],
+  [iconeItens, 'Enquanto ela estiver Enviada, dá para editar ou retirar.'],
+  [iconeFeito, 'O organizador escolhe uma proposta por item.'],
+]
+
+function ComoFunciona() {
+  return (
+    <section className="como-funciona" aria-label="Como funciona">
+      <h2>Como funciona</h2>
+      <ol>
+        {PASSOS.map(([icone, texto]) => (
+          <li key={texto}>
+            <span className="como-funciona__icone">
+              <Icone src={icone} />
+            </span>
+            {texto}
+          </li>
+        ))}
+      </ol>
+    </section>
   )
 }
