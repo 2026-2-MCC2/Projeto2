@@ -1699,8 +1699,7 @@
   --_centro: 69.45% 60.7%;
   --_cor: rgb(254 117 36 / 28%);
   --_ate: -41.65% -40px;
-  --_ida: 7.5s;
-  --_inicio: -4s;
+  --_ida: 6s;
 }
 
 .chamada-landing__mancha--rosa {
@@ -1720,12 +1719,12 @@
   --_ida: 9s;
 }
 
-/* aurora: só translate e scale. A duração é a ida; com alternate, o ciclo é o dobro (12, 15 e 18s),
-   e os ciclos diferentes e o início adiantado do laranja nunca deixam as manchas em sincronia.
+/* aurora: só translate e scale. A duração é a ida; com alternate, o ciclo é o dobro. Rosa e laranja
+   têm a mesma duração e caminhos opostos: andam sempre em sentidos contrários e se cruzam no meio.
    Fora da tela fica pausada: quem liga é a classe --aurora, do ChamadaFinal */
 @media (prefers-reduced-motion: no-preference) {
   :root:not(.sem-movimento) .chamada-landing__mancha {
-    animation: chamada-aurora var(--_ida) ease-in-out var(--_inicio, 0s) infinite alternate paused;
+    animation: chamada-aurora var(--_ida) ease-in-out infinite alternate paused;
   }
 
   :root:not(.sem-movimento) .chamada-landing--aurora .chamada-landing__mancha {
