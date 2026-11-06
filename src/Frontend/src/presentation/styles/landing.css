@@ -1686,15 +1686,28 @@
   --ingresso-raio: 24px;
   --ingresso-recorte: 20px;
   --ingresso-fundo-canhoto: var(--marca-laranja);
-  --ingresso-picote-cor: rgb(255 255 255 / 70%);
+  --ingresso-picote-cor: #fff;
   --ingresso-picote-espessura: 2px;
   --ingresso-picote-traco: 8px;
   --ingresso-picote-espaco: 4px;
   --ingresso-picote-recuo: 28px;
   --ingresso-sombra: drop-shadow(0 30px 30px rgb(0 0 0 / 35%));
+  /* canhoto se destacando: para onde vai e em que ponto do picote ele gira. Abre de cima para baixo
+     no desktop e da esquerda para a direita no mobile, onde o picote fica em cima do canhoto */
+  --_separacao: 10px 0;
+  --_dobradica: left bottom;
 
   width: 100%;
   max-width: 1040px;
+}
+
+/* a opacidade em vez da cor do picote: a cor não tem transição, e 70% dá o mesmo branco de antes */
+.chamada-landing__ingresso .ingresso__parte--depois::before {
+  opacity: 0.7;
+}
+
+.chamada-landing--destacando .chamada-landing__ingresso .ingresso__parte--depois::before {
+  opacity: 1;
 }
 
 .chamada-landing__ingresso .ingresso__corpo {
@@ -1770,13 +1783,14 @@
   font-weight: 500;
 }
 
-/* último dígito do número: o "1" transparente guarda o lugar e o rolo passa por cima dele. O
-   clip-path corta só em cima e embaixo, para um dígito mais largo que o 1 não ser cortado dos lados */
+/* último dígito do número: o "1" transparente guarda o lugar e o rolo passa por cima dele. Corta só
+   em cima e embaixo, para um dígito mais largo que o 1 não ser cortado dos lados. Precisa ser
+   overflow: com clip-path a coluna do rolo ainda conta na rolagem da página quando o canhoto gira */
 .chamada-landing__digito {
   position: relative;
   display: inline-block;
+  overflow: visible clip;
   color: transparent;
-  clip-path: inset(0 -1em);
 }
 
 /* em repouso o rolo fica no último dígito (o 12º), então sem animação aparece 001 */
@@ -1838,6 +1852,27 @@
     translate: 0 12px;
   }
 
+  /* canhoto se destacando: 300ms na volta e um quique de 350ms na ida. Cada parte tem a própria
+     máscara, então cada uma leva a sua metade dos recortes ao se separar */
+  :root:not(.sem-movimento) .chamada-landing__ingresso .ingresso__canhoto {
+    transform-origin: var(--_dobradica);
+    transition:
+      translate 300ms ease,
+      rotate 300ms ease;
+  }
+
+  :root:not(.sem-movimento) .chamada-landing--destacando .ingresso__canhoto {
+    translate: var(--_separacao);
+    rotate: 3deg;
+    transition:
+      translate 350ms cubic-bezier(0.3, 1.4, 0.5, 1),
+      rotate 350ms cubic-bezier(0.3, 1.4, 0.5, 1);
+  }
+
+  :root:not(.sem-movimento) .chamada-landing__ingresso .ingresso__parte--depois::before {
+    transition: opacity 300ms ease;
+  }
+
   /* o número gira no fim da sequência, com o canhoto já aparecendo */
   :root:not(.sem-movimento) .chamada-landing--animar .chamada-landing__rolo {
     transition: translate 600ms cubic-bezier(0.2, 0.8, 0.2, 1) 900ms;
@@ -1859,6 +1894,8 @@
     --ingresso-raio: 20px;
     --ingresso-recorte: 16px;
     --ingresso-picote-recuo: 22px;
+    --_separacao: 0 10px;
+    --_dobradica: left top;
   }
 
   .chamada-landing__ingresso .ingresso__corpo {

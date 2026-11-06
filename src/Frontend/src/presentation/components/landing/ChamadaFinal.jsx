@@ -1,4 +1,5 @@
 import { useRef } from 'react'
+import { useMouseOuFoco } from '../../hooks/useMouseOuFoco.js'
 import { useNaTela } from '../../hooks/useNaTela.js'
 import { Icone } from '../comum/Icone.jsx'
 import { BotaoLanding } from './BotaoLanding.jsx'
@@ -14,11 +15,13 @@ export function ChamadaFinal() {
   // o ingresso começa escondido só pela classe --animar, que vem daqui: sem JS aparece normal
   const secao = useRef(null)
   const naTela = useNaTela(secao)
+  // o canhoto começa a se destacar com o mouse ou o foco de teclado no botão principal
+  const [destacando, eventosDoBotao] = useMouseOuFoco()
 
   return (
     <section
       ref={secao}
-      className={`chamada-landing chamada-landing--animar${naTela ? ' chamada-landing--visivel' : ''}`}
+      className={`chamada-landing chamada-landing--animar${naTela ? ' chamada-landing--visivel' : ''}${destacando ? ' chamada-landing--destacando' : ''}`}
       aria-labelledby="chamada-titulo"
     >
       <Ingresso
@@ -57,7 +60,9 @@ export function ChamadaFinal() {
           Cadastre-se e descubra o preço justo do ingresso antes de abrir as vendas.
         </p>
         <div className="chamada-landing__acoes" style={{ '--i': 3 }}>
-          <BotaoLanding para="/cadastro">Criar cadastro</BotaoLanding>
+          <BotaoLanding para="/cadastro" {...eventosDoBotao}>
+            Criar cadastro
+          </BotaoLanding>
           <BotaoLanding tipo="secundario" para={ROTA_DO_LOGIN}>
             Entrar na plataforma
           </BotaoLanding>
