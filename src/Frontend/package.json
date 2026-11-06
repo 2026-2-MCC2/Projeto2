@@ -12,6 +12,7 @@
     "preview": "vite preview",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
+    "test": "node --test",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
