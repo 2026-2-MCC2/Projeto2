@@ -46,6 +46,9 @@ export function ChamadaFinal() {
             </strong>
             <Icone src={codigoDeBarras} className="chamada-landing__barras" />
             <span className="chamada-landing__aviso">Acesso liberado após aprovação</span>
+            <span className="chamada-landing__carimbo" aria-hidden="true">
+              VÁLIDO
+            </span>
           </>
         }
       >
