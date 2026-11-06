@@ -1041,11 +1041,14 @@
     animation: perfil-contorno-gira 4s linear infinite var(--_giro, paused);
   }
 
-  /* brilho do botão, uma vez por destaque: atravessa em 700ms ao entrar e volta sem transição */
+  /* brilho do botão, uma vez por destaque: atravessa em 700ms ao entrar e volta sem transição.
+     Fica atrás do texto (isolation + z-index -1), e 10% é o máximo que mantém o texto branco
+     acima de 4,5:1 no azul do tema escuro */
   :root:not(.sem-movimento) .perfil-landing .botao-landing {
-    --_brilho: rgb(255 255 255 / 35%);
+    --_brilho: rgb(255 255 255 / 10%);
 
     position: relative;
+    isolation: isolate;
     overflow: hidden;
   }
 
@@ -1058,6 +1061,7 @@
     content: '';
     position: absolute;
     inset: 0;
+    z-index: -1;
     background: linear-gradient(100deg, transparent 30%, var(--_brilho) 50%, transparent 70%);
     transform: translateX(calc(-100% + var(--_ativo) * 200%));
     transition: transform calc(var(--_ativo) * 700ms) ease-out;
