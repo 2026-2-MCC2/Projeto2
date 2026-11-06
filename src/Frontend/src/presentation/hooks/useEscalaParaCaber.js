@@ -10,9 +10,10 @@ export function useEscalaParaCaber(largura) {
     const elemento = caixa.current
     if (!elemento) return
 
-    const observador = new ResizeObserver(([medida]) => {
-      setEscala(Math.min(1, medida.contentRect.width / largura))
-    })
+    const ajustar = (larguraDaCaixa) => setEscala(Math.min(1, larguraDaCaixa / largura))
+    // mede antes da primeira pintura para a ilustração não aparecer grande e depois encolher
+    ajustar(elemento.getBoundingClientRect().width)
+    const observador = new ResizeObserver(([medida]) => ajustar(medida.contentRect.width))
     observador.observe(elemento)
     return () => observador.disconnect()
   }, [largura])

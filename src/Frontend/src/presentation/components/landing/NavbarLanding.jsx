@@ -27,7 +27,8 @@ export function NavbarLanding() {
   useEffect(() => {
     if (!aberto) return
 
-    function aoClicarFora(evento) {
+    // clique ou foco do teclado fora do topo fecham o menu, que fica por cima da página
+    function aoSairDoTopo(evento) {
       if (!topo.current?.contains(evento.target)) setAberto(false)
     }
 
@@ -41,12 +42,14 @@ export function NavbarLanding() {
     const telaLarga = window.matchMedia(TELA_LARGA)
     const aoAlargar = (evento) => evento.matches && setAberto(false)
 
-    document.addEventListener('mousedown', aoClicarFora)
+    document.addEventListener('mousedown', aoSairDoTopo)
+    document.addEventListener('focusin', aoSairDoTopo)
     document.addEventListener('keydown', aoTeclar)
     telaLarga.addEventListener('change', aoAlargar)
 
     return () => {
-      document.removeEventListener('mousedown', aoClicarFora)
+      document.removeEventListener('mousedown', aoSairDoTopo)
+      document.removeEventListener('focusin', aoSairDoTopo)
       document.removeEventListener('keydown', aoTeclar)
       telaLarga.removeEventListener('change', aoAlargar)
     }

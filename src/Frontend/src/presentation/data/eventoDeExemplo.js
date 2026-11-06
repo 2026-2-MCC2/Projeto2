@@ -1,16 +1,21 @@
 import { formatarMoedaSemCentavos } from '../../domain/formatacao.js'
+import {
+  ingressosParaEquilibrio,
+  precoEmCentavos,
+  resultadoDoCenario,
+} from '../../domain/ticket.js'
 
-// as mesmas regras do cálculo do ticket do app: preço em centavos e equilíbrio arredondado para cima
 const custoTotal = 228500
 const margem = 0.2
 const publicoDeReferencia = 12000
-const precoSugerido = Math.round((custoTotal / (publicoDeReferencia * (1 - margem))) * 100) / 100
-const pontoDeEquilibrio = Math.ceil(custoTotal / precoSugerido - 1e-9)
+// ticket = custo total ÷ [público × (1 − margem)], como na tela de cálculo do app
+const precoSugerido = precoEmCentavos(custoTotal / (publicoDeReferencia * (1 - margem)))
+const pontoDeEquilibrio = ingressosParaEquilibrio(custoTotal, precoSugerido)
 
 const cenario = (nome, publico, referencia = false) => ({
   nome,
   publico,
-  resultado: Math.round(publico * precoSugerido - custoTotal),
+  resultado: Math.round(resultadoDoCenario(publico, precoSugerido, custoTotal)),
   referencia,
 })
 

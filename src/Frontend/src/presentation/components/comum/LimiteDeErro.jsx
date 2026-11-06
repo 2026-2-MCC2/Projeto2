@@ -1,5 +1,5 @@
 import { Component } from 'react'
-import { rotaDoInicio } from '../../../application/sessao.js'
+import { ROTA_DO_LOGIN, rotaDoInicio, usuarioAtual } from '../../../application/sessao.js'
 
 // classe por causa do getDerivedStateFromError
 export class LimiteDeErro extends Component {
@@ -21,7 +21,8 @@ export class LimiteDeErro extends Component {
         <title>Algo deu errado · TrocaTicket</title>
         <strong>Algo deu errado nesta página.</strong>
         <p>Recarregue a página. Se o problema continuar, volte ao início.</p>
-        <a href={rotaDoInicio()} className="botao">
+        {/* deslogado vai para o login: se a quebra foi na landing, voltar para ela repetiria o erro */}
+        <a href={usuarioAtual() ? rotaDoInicio() : ROTA_DO_LOGIN} className="botao">
           Voltar ao início
         </a>
       </main>

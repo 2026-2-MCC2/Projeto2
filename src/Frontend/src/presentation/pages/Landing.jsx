@@ -1,3 +1,6 @@
+import { useEffect } from 'react'
+import { Navigate, useLocation } from 'react-router-dom'
+import { rotaInicialDoPerfil, usuarioAtual } from '../../application/sessao.js'
 import { BotaoAcessibilidade } from '../components/comum/BotaoAcessibilidade.jsx'
 import { PularParaConteudo } from '../components/comum/PularParaConteudo.jsx'
 import { TituloDaPagina } from '../components/comum/TituloDaPagina.jsx'
@@ -11,9 +14,18 @@ import { Perfis } from '../components/landing/Perfis.jsx'
 import { RodapeLanding } from '../components/landing/RodapeLanding.jsx'
 import '../styles/landing.css'
 
-// Página principal do site ("/"): apresentação da TrocaTicket. Os ids das seções são as âncoras
-// do menu e do rodapé. Os botões flutuantes de tema e acessibilidade são os mesmos das outras telas.
+// os ids das seções são as âncoras do menu e do rodapé
 export function Landing() {
+  const { hash } = useLocation()
+  const usuario = usuarioAtual()
+
+  // a página chega depois (lazy), então o navegador não acha a âncora sozinho ao abrir /#secao
+  useEffect(() => {
+    if (hash) document.getElementById(decodeURIComponent(hash.slice(1)))?.scrollIntoView()
+  }, [hash])
+
+  if (usuario) return <Navigate to={rotaInicialDoPerfil(usuario.perfil)} replace />
+
   return (
     <div className="landing">
       <TituloDaPagina titulo="Planejamento e precificação de eventos" />
