@@ -7,6 +7,9 @@
   --marca-ciano: #04a5ed;
   --marca-rosa: #f91788;
   --marca-preto: #0c0c0c;
+  /* as duas cores de cada gradiente, usadas nos ingressos do hero e no contorno dos perfis */
+  --gradiente-laranja: var(--marca-laranja), var(--marca-rosa);
+  --gradiente-azul: var(--marca-azul), var(--marca-ciano);
   /* laranja para texto pequeno: o da marca dá 2,7:1 sobre o branco; este dá 5,2:1 */
   --texto-destaque: #b84a0e;
 
@@ -470,7 +473,7 @@
 .hero__ingresso--summit {
   --ingresso-recorte: 16px;
   --ingresso-picote-recuo: 22px;
-  --ingresso-fundo: linear-gradient(90deg, var(--marca-laranja), var(--marca-rosa));
+  --ingresso-fundo: linear-gradient(90deg, var(--gradiente-laranja));
   /* do centro do palco (330, 250) até o centro deste ingresso (402, 159), mais 40px abaixo */
   --entrada-x: -72px;
   --entrada-y: 131px;
@@ -496,7 +499,7 @@
 .hero__ingresso--festival {
   --ingresso-recorte: 18px;
   --ingresso-picote-recuo: 24px;
-  --ingresso-fundo: linear-gradient(90deg, var(--marca-azul), var(--marca-ciano));
+  --ingresso-fundo: linear-gradient(90deg, var(--gradiente-azul));
   /* do centro do palco (330, 250) até o centro deste ingresso (304, 300), mais 40px abaixo */
   --entrada-x: 26px;
   --entrada-y: -10px;
@@ -915,12 +918,77 @@
   --ingresso-raio: 20px;
   --ingresso-recorte: 13px;
   --ingresso-picote-recuo: 40px;
-  /* drop-shadow não tem espalhamento: menos opacidade imita o -8px do Figma */
-  --ingresso-sombra: drop-shadow(0 16px 20px rgb(15 23 41 / 6%));
+  /* 0 em repouso, 1 em destaque (mouse em cima ou foco dentro): os efeitos abaixo partem dele */
+  --_ativo: 0;
+  /* drop-shadow segue os recortes e não tem espalhamento: menos opacidade imita o -8px do Figma.
+     Em destaque desce um pouco e ganha a cor do perfil */
+  --ingresso-sombra: drop-shadow(
+    0 calc(16px + var(--_ativo) * 6px) calc(20px + var(--_ativo) * 8px)
+      color-mix(in srgb, var(--perfil-cor) calc(var(--_ativo) * 30%), rgb(15 23 41 / 6%))
+  );
+
+  position: relative;
+}
+
+.perfil-landing:focus-within {
+  --_ativo: 1;
+  --_giro: running;
+}
+
+/* só com mouse: no toque o :hover ficaria preso depois do dedo sair */
+@media (hover: hover) and (pointer: fine) {
+  .perfil-landing:hover {
+    --_ativo: 1;
+    --_giro: running;
+  }
+}
+
+/* o cartão sobe 6px: esta faixa cobre o espaço que fica embaixo, senão o mouse na borda de baixo
+   sairia do cartão, ele desceria e o hover ficaria piscando */
+.perfil-landing::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  right: 0;
+  left: 0;
+  height: calc(var(--_ativo) * 6px);
 }
 
 .perfil-landing .ingresso__parte {
   border: 1px solid var(--borda-padrao);
+}
+
+/* contorno em gradiente: a máscara da parte cortaria qualquer coisa maior que ela, então o contorno
+   é desenhado para dentro. A máscara deixa só um anel de 1,5px nas bordas de fora (conteúdo menos
+   a caixa inteira) e um arco em volta de cada recorte, nos mesmos pontos da máscara do Ingresso */
+.perfil-landing .ingresso__parte::after {
+  --_arco:
+    transparent var(--_recorte), #000 calc(var(--_recorte) + 0.5px),
+    #000 calc(var(--_recorte) + 2px), transparent calc(var(--_recorte) + 2.5px);
+
+  content: '';
+  position: absolute;
+  border-radius: inherit;
+  background: linear-gradient(var(--_angulo, 90deg), var(--perfil-gradiente));
+  mask:
+    radial-gradient(circle at var(--_corte-1), var(--_arco)),
+    radial-gradient(circle at var(--_corte-2), var(--_arco)),
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: add, add, exclude;
+  opacity: var(--_ativo);
+  pointer-events: none;
+}
+
+/* sem anel na borda que encosta no picote; o -1px cobre a borda cinza das outras três */
+.perfil-landing .ingresso__parte--antes::after {
+  inset: -1px -1px 0;
+  padding: 1.5px 1.5px 0;
+}
+
+.perfil-landing .ingresso__parte--depois::after {
+  inset: 0 -1px -1px;
+  padding: 0 1.5px 1.5px;
 }
 
 .perfil-landing .ingresso__corpo {
@@ -940,6 +1008,8 @@
 .perfil-landing--organizador {
   --_destaque: var(--texto-marca);
   --_destaque-fundo: var(--fundo-marca-suave);
+  --perfil-gradiente: var(--gradiente-laranja);
+  --perfil-cor: var(--marca-laranja);
   /* de onde o cartão vem na entrada: organizador pela esquerda, fornecedor pela direita */
   --_entrada: -32px 0;
 }
@@ -947,6 +1017,9 @@
 .perfil-landing--fornecedor {
   --_destaque: var(--texto-destaque);
   --_destaque-fundo: var(--status-alerta-fundo);
+  --perfil-gradiente: var(--gradiente-azul);
+  /* o azul da marca some na sombra do tema escuro; o ciano aparece nos dois temas */
+  --perfil-cor: var(--marca-ciano);
   --_entrada: 32px 0;
 }
 
@@ -954,15 +1027,49 @@
    aparecer (--visivel). Usa `translate`, não `transform`, para não brigar com o hover nem com
    outro transform. Com menos movimento (do sistema ou do site) aparecem direto */
 @media (prefers-reduced-motion: no-preference) {
+  /* o atraso vale só para a entrada; a elevação leva 300ms na ida e 400ms na volta */
   :root:not(.sem-movimento) .perfis-landing--animar .perfil-landing {
+    --_elevacao: calc(400ms - var(--_ativo) * 100ms);
+
+    transform: translateY(calc(var(--_ativo) * -6px));
     transition:
-      opacity 700ms cubic-bezier(0.2, 0.8, 0.2, 1),
-      translate 700ms cubic-bezier(0.2, 0.8, 0.2, 1);
+      opacity 700ms cubic-bezier(0.2, 0.8, 0.2, 1) var(--_atraso-do-cartao, 0ms),
+      translate 700ms cubic-bezier(0.2, 0.8, 0.2, 1) var(--_atraso-do-cartao, 0ms),
+      transform var(--_elevacao) ease-out,
+      filter var(--_elevacao) ease-out;
   }
 
   :root:not(.sem-movimento) .perfis-landing--animar .perfil-landing--fornecedor {
     --_atraso-do-cartao: 120ms;
-    transition-delay: var(--_atraso-do-cartao);
+  }
+
+  /* o contorno aparece com fade e o gradiente gira só em destaque (--_giro) */
+  :root:not(.sem-movimento) .perfil-landing .ingresso__parte::after {
+    transition: opacity 300ms ease-out;
+    animation: perfil-contorno-gira 4s linear infinite var(--_giro, paused);
+  }
+
+  /* brilho do botão, uma vez por destaque: atravessa em 700ms ao entrar e volta sem transição */
+  :root:not(.sem-movimento) .perfil-landing .botao-landing {
+    --_brilho: rgb(255 255 255 / 35%);
+
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* no botão secundário, claro, um brilho branco não apareceria */
+  :root:not(.sem-movimento) .perfil-landing .botao-landing--secundario {
+    --_brilho: color-mix(in srgb, var(--perfil-cor) 25%, transparent);
+  }
+
+  :root:not(.sem-movimento) .perfil-landing .botao-landing::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(100deg, transparent 30%, var(--_brilho) 50%, transparent 70%);
+    transform: translateX(calc(-100% + var(--_ativo) * 200%));
+    transition: transform calc(var(--_ativo) * 700ms) ease-out;
+    pointer-events: none;
   }
 
   :root:not(.sem-movimento) .perfis-landing--animar:not(.perfis-landing--visivel) .perfil-landing {
@@ -999,6 +1106,19 @@
   /* `scale` individual, para não brigar com outro transform do ícone */
   :root:not(.sem-movimento) .perfis-landing--visivel .perfil-landing__lista .icone {
     animation: perfil-check-pop 550ms ease-out var(--_atraso-do-item) both;
+  }
+}
+
+/* registrada para o ângulo poder ser animado; sem suporte, o gradiente só fica parado em 90deg */
+@property --_angulo {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 90deg;
+}
+
+@keyframes perfil-contorno-gira {
+  to {
+    --_angulo: 450deg;
   }
 }
 
