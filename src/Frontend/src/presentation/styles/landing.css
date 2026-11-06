@@ -1203,8 +1203,10 @@
   padding: 18px 20px 16px;
 }
 
+/* o canhoto é a referência (cqi) para o resultado encolher quando não cabe */
 .cenario-landing .ingresso__canhoto {
   padding: 14px 20px 18px;
+  container-type: inline-size;
 }
 
 /* o cenário de referência (o do preço sugerido) ganha a borda azul */
@@ -1232,8 +1234,12 @@
 }
 
 .cenario-landing__resultado {
+  /* largura média de um caractere, em em; folgada para caber também na fonte da leitura fácil */
+  --_largura-do-caractere: 0.7;
+
   display: block;
-  font-size: 1.4118rem; /* 24px */
+  /* 24px, ou menor quando o texto (--caracteres, do componente) não cabe na largura do canhoto */
+  font-size: min(1.4118rem, calc(100cqi / (var(--caracteres, 1) * var(--_largura-do-caractere))));
   font-weight: 700;
   letter-spacing: -0.01em;
   white-space: nowrap;

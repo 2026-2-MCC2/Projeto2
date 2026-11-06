@@ -60,7 +60,8 @@ const CENARIOS = [
 const INTERVALO_ENTRE_DESTAQUES_DO_PRECO = 400
 
 // troca a cor quando o cenário vira lucro ou prejuízo, com um pulse (menos na contagem de entrada)
-function ResultadoDoCenario({ valor, pulsarNaTroca }) {
+// `valorFinal` (sem animação) decide o tamanho da fonte, para ela não mudar a cada quadro do tween
+function ResultadoDoCenario({ valor, valorFinal, pulsarNaTroca }) {
   const elemento = useRef(null)
   const tipo = valor < 0 ? 'prejuizo' : 'lucro'
   const tipoAnterior = useRef(tipo)
@@ -75,6 +76,7 @@ function ResultadoDoCenario({ valor, pulsarNaTroca }) {
     <strong
       ref={elemento}
       className={`cenario-landing__resultado cenario-landing__resultado--${tipo}`}
+      style={{ '--caracteres': resultado(valorFinal).length }}
     >
       {resultado(valor)}
     </strong>
@@ -213,7 +215,11 @@ export function CalculoDoTicket() {
                 orientacao="vertical"
                 className={`cenario-landing${referencia ? ' cenario-landing--referencia' : ''}`}
                 canhoto={
-                  <ResultadoDoCenario valor={Math.round(naTela[chave])} pulsarNaTroca={!contando} />
+                  <ResultadoDoCenario
+                    valor={Math.round(naTela[chave])}
+                    valorFinal={cenario.resultado}
+                    pulsarNaTroca={!contando}
+                  />
                 }
               >
                 <span className="cenario-landing__nome">{nome}</span>
