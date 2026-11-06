@@ -1237,6 +1237,8 @@
   font-weight: 700;
   letter-spacing: -0.01em;
   white-space: nowrap;
+  /* o pulse da troca lucro/prejuízo cresce a partir do texto, que fica à esquerda */
+  transform-origin: left center;
 }
 
 .cenario-landing__resultado--prejuizo {
@@ -1283,11 +1285,36 @@
   background: var(--fundo-sutil);
 }
 
+/* o preenchimento tem a largura toda e anda com translateX até --progresso: anima só transform,
+   e a ponta continua redonda (scaleX achataria). O overflow da barra esconde o resto */
 .calculo-landing__barra span {
   display: block;
   height: 100%;
   border-radius: 99px;
   background: var(--acao-primaria);
+  transform: translateX(calc(var(--progresso, 0%) - 100%));
+}
+
+/* 1s para encher quando a seção aparece; depois, 300ms acompanhando os sliders */
+@media (prefers-reduced-motion: no-preference) {
+  .calculo-landing__barra span {
+    transition: transform 1s ease-out;
+  }
+
+  .calculo-landing__barra--acompanha span {
+    transition-duration: 300ms;
+  }
+}
+
+.calculo-landing__equilibrio--acima .calculo-landing__barra span {
+  background: var(--status-perigo-texto);
+}
+
+.calculo-landing__alerta {
+  margin: 0;
+  color: var(--status-perigo-texto);
+  font-size: 0.7647rem; /* 13px */
+  font-weight: 600;
 }
 
 /* abaixo disso o texto e o painel não cabem lado a lado: o texto vai para cima */
