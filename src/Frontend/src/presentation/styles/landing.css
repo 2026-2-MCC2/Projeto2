@@ -1733,9 +1733,12 @@ html:has(.landing) {
     linear-gradient(var(--texto-marca), var(--texto-marca)) center / 1.67px 11.67px no-repeat;
 }
 
-.pergunta-landing[open] .pergunta-landing__pergunta::after {
-  background: linear-gradient(var(--texto-marca), var(--texto-marca)) center / 11.67px 1.67px
-    no-repeat;
+/* aberta, o traço vertical encolhe até sumir e o ícone dá meia volta */
+.pergunta-landing--aberta .pergunta-landing__pergunta::after {
+  background-size:
+    11.67px 1.67px,
+    1.67px 0;
+  rotate: 180deg;
 }
 
 /* o foco global do projeto cobre botões e links; o summary precisa do mesmo contorno */
@@ -1744,11 +1747,51 @@ html:has(.landing) {
   outline-offset: 4px;
 }
 
+/* abre de 0fr a 1fr: a altura acompanha o texto sem precisar medir nada */
+.pergunta-landing__corpo {
+  display: grid;
+  grid-template-rows: 0fr;
+}
+
+.pergunta-landing--aberta .pergunta-landing__corpo {
+  grid-template-rows: 1fr;
+}
+
+.pergunta-landing__recorte {
+  min-height: 0;
+  overflow: hidden;
+}
+
 .pergunta-landing__resposta {
   margin: 10px 0 0;
   color: var(--texto-secundario);
   font-size: 0.9412rem; /* 16px */
   line-height: 1.5625; /* 25px */
+  opacity: 0;
+  translate: 0 -4px;
+}
+
+.pergunta-landing--aberta .pergunta-landing__resposta {
+  opacity: 1;
+  translate: 0 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :root:not(.sem-movimento) .pergunta-landing__corpo {
+    transition: grid-template-rows 300ms ease;
+  }
+
+  :root:not(.sem-movimento) .pergunta-landing__resposta {
+    transition:
+      opacity 300ms ease,
+      translate 300ms ease;
+  }
+
+  :root:not(.sem-movimento) .pergunta-landing__pergunta::after {
+    transition:
+      background-size 300ms ease,
+      rotate 300ms ease;
+  }
 }
 
 @media (max-width: 900px) {
