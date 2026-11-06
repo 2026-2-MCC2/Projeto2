@@ -56,7 +56,17 @@ describe('GET /supplier/proposals', () => {
     )
     assert.deepEqual(response.data[1], {
       proposal_key: proposal.proposal_key,
-      event: { event_key: event.event_key, name: event.name, status: 'open_for_quotes', cancellation_reason: null },
+      event: {
+        event_key: event.event_key,
+        name: event.name,
+        status: 'open_for_quotes',
+        cancellation_reason: null,
+        start_date: `${PayloadGenerator.dateFromToday(20)}T14:00:00.000Z`,
+        end_date: `${PayloadGenerator.dateFromToday(30)}T23:00:00.000Z`,
+        venue_name: 'Allianz Parque',
+        city: 'São Paulo',
+        state: 'SP',
+      },
       item: { item_key: items[0].item_key, description: 'Estrutura do evento', category: 'Estrutura' },
       amount: 1500,
       valid_until: PayloadGenerator.dateFromToday(7),
@@ -91,6 +101,44 @@ describe('GET /supplier/proposals', () => {
     assert.equal(page.data.length, 1)
     assert.equal(page.total, 2)
     assert.equal(page.is_last_page, false)
+  })
+
+  test('filtra por mais de um status separados por vírgula, nas duas formas de paginação', async () => {
+    const scenario = await createScenario()
+    const { supplier, event, items, proposal } = scenario
+    const second = await ObjectGenerator.sendProposal(event.event_key, items[1].item_key, supplier.headers)
+    await decideByOrganizer(scenario, second.proposal_key)
+
+    const [status, response] = await RequestGenerator.GET_supplier_proposals({ status: 'sent,under_review' }, supplier.headers)
+    const [bothStatus, both] = await RequestGenerator.GET_supplier_proposals({ status: 'sent,accepted', limit: 1 }, supplier.headers)
+    const [nextStatus, next] = await RequestGenerator.GET_supplier_proposals(
+      { status: 'sent,accepted', limit: 1, after: both.next_cursor },
+      supplier.headers,
+    )
+    const [invalidStatus, invalid] = await RequestGenerator.GET_supplier_proposals({ status: 'sent,inexistente' }, supplier.headers)
+    const [repeatedStatus, repeated] = await RequestGenerator.GET_supplier_proposals(
+      { status: 'sent,sent,accepted', after: both.next_cursor },
+      supplier.headers,
+    )
+
+    assert.equal(status, 200)
+    assert.deepEqual(
+      response.data.map((item) => item.proposal_key),
+      [proposal.proposal_key],
+    )
+    assert.equal(response.total, 1)
+    assert.equal(bothStatus, 200)
+    assert.equal(both.total, 2)
+    assert.equal(nextStatus, 200)
+    assert.equal(next.total, 2)
+    assert.deepEqual(
+      [...both.data, ...next.data].map((item) => item.proposal_key),
+      [second.proposal_key, proposal.proposal_key],
+    )
+    assert.equal(invalidStatus, 400)
+    assert.equal(invalid.code, 'APP000010')
+    assert.equal(repeatedStatus, 200)
+    assert.equal(repeated.total, 2)
   })
 
   test('status inválido responde 400, organizador 403 e sem token 401', async () => {
@@ -202,7 +250,9 @@ describe('GET /supplier/proposals/:proposal_key', () => {
     assert.equal(response.proposal_key, proposal.proposal_key)
     assert.equal(response.event.event_key, event.event_key)
     assert.equal(response.event.status, 'open_for_quotes')
+    assert.equal(response.event.start_date, `${PayloadGenerator.dateFromToday(20)}T14:00:00.000Z`)
     assert.equal(response.event.end_date, `${PayloadGenerator.dateFromToday(30)}T23:00:00.000Z`)
+    assert.equal(response.event.venue_name, 'Allianz Parque')
     assert.deepEqual(response.item, {
       item_key: items[0].item_key,
       description: 'Estrutura do evento',
@@ -210,6 +260,7 @@ describe('GET /supplier/proposals/:proposal_key', () => {
       type: 'service',
       quantity: 1,
       estimated_value: 2500,
+      notes: 'Inclui montagem',
     })
     for (const field of [
       'amount',

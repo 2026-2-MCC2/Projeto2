@@ -13,7 +13,9 @@ const TODAY_IN_BRAZIL = "DATE(CONVERT_TZ(UTC_TIMESTAMP(), '+00:00', '-03:00'))"
 const SUPPLIER_PROPOSAL_COLUMNS = `proposal.proposal_key, proposal.id AS position_id, proposal.amount,
        DATE_FORMAT(proposal.valid_until, '%Y-%m-%d') AS valid_until, proposal.status, proposal.selected, proposal.sent_at,
        event.event_key, event.name AS event_name, event.status AS event_status,
-       event.cancellation_reason AS event_cancellation_reason,
+       event.cancellation_reason AS event_cancellation_reason, event.start_date AS event_start_date,
+       event.end_date AS event_end_date, event.venue_name AS event_venue_name, event.city AS event_city,
+       event.state AS event_state,
        budget_item.budget_item_key AS item_key, budget_item.description AS item_description,
        item_category.name AS item_category`
 
@@ -21,6 +23,11 @@ const SUPPLIER_PROPOSAL_JOINS = `FROM proposal
        INNER JOIN budget_item ON budget_item.id = proposal.budget_item_id
        INNER JOIN event ON event.id = budget_item.event_id
        INNER JOIN item_category ON item_category.id = budget_item.category_id`
+
+// IN () vazio é inválido no MySQL: sem filtro, a lista recebe um valor que nunca é usado
+function statusFilter(statuses) {
+  return statuses?.length ? { allStatuses: false, statuses } : { allStatuses: true, statuses: [''] }
+}
 
 export class ProposalRepository {
   constructor(context) {
@@ -91,21 +98,21 @@ export class ProposalRepository {
     )
   }
 
-  // histórico do fornecedor, da proposta mais recente para a mais antiga; status opcional
-  async getSupplierProposals(supplierId, { status, limit, offset }) {
-    const replacements = { supplierId, status: status ?? null, limit, offset }
+  // histórico do fornecedor, da proposta mais recente para a mais antiga; filtro opcional por um ou mais status
+  async getSupplierProposals(supplierId, { statuses, limit, offset }) {
+    const replacements = { supplierId, ...statusFilter(statuses), limit, offset }
 
     const [countResult] = await sequelize.query(
       `SELECT COUNT(*) AS total
        FROM proposal
-       WHERE proposal.supplier_id = :supplierId AND (:status IS NULL OR proposal.status = :status)`,
+       WHERE proposal.supplier_id = :supplierId AND (:allStatuses OR proposal.status IN (:statuses))`,
       { replacements, transaction: this.session, type: QueryTypes.SELECT },
     )
 
     const proposals = await sequelize.query(
       `SELECT ${SUPPLIER_PROPOSAL_COLUMNS}
        ${SUPPLIER_PROPOSAL_JOINS}
-       WHERE proposal.supplier_id = :supplierId AND (:status IS NULL OR proposal.status = :status)
+       WHERE proposal.supplier_id = :supplierId AND (:allStatuses OR proposal.status IN (:statuses))
        ORDER BY proposal.sent_at DESC, proposal.id DESC
        LIMIT :limit OFFSET :offset`,
       { replacements, transaction: this.session, type: QueryTypes.SELECT },
@@ -115,18 +122,18 @@ export class ProposalRepository {
   }
 
   // paginação por cursor: proposta nova ou retirada no meio não desloca a lista; busca uma a mais para saber se há próxima página
-  async getSupplierProposalsAfter(supplierId, { status, limit, cursor }) {
+  async getSupplierProposalsAfter(supplierId, { statuses, limit, cursor }) {
     return sequelize.query(
       `SELECT ${SUPPLIER_PROPOSAL_COLUMNS}
        ${SUPPLIER_PROPOSAL_JOINS}
-       WHERE proposal.supplier_id = :supplierId AND (:status IS NULL OR proposal.status = :status)
+       WHERE proposal.supplier_id = :supplierId AND (:allStatuses OR proposal.status IN (:statuses))
          AND (proposal.sent_at < :sentAt OR (proposal.sent_at = :sentAt AND proposal.id < :proposalId))
        ORDER BY proposal.sent_at DESC, proposal.id DESC
        LIMIT :limitPlusOne`,
       {
         replacements: {
           supplierId,
-          status: status ?? null,
+          ...statusFilter(statuses),
           sentAt: cursor.sentAt,
           proposalId: cursor.proposalId,
           limitPlusOne: limit + 1,
@@ -150,7 +157,7 @@ export class ProposalRepository {
   async getSupplierProposalByKey(supplierId, proposalKey) {
     const proposals = await sequelize.query(
       `SELECT ${SUPPLIER_PROPOSAL_COLUMNS},
-              proposal.id, event.id AS event_id, event.end_date AS event_end_date,
+              proposal.id, event.id AS event_id, budget_item.notes AS item_notes,
               budget_item.type AS item_type, budget_item.quantity AS item_quantity,
               proposal.description, proposal.not_included, proposal.delivery_terms, proposal.payment_terms,
               proposal.team, proposal.warranty, proposal.notes, budget_item.estimated_value AS item_estimated_value,

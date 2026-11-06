@@ -181,6 +181,7 @@ describe('GET /supplier/events/:event_key', () => {
 
     assert.equal(status, 200)
     assert.equal(response.event_key, event.event_key)
+    assert.equal(response.organizer_name, 'RF03 Test User')
     assert.equal(response.items.length, 1)
     assert.equal(response.items[0].category, 'Estrutura')
     assert.equal(response.items[0].item_key, items[0].item_key)

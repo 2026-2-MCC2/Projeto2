@@ -68,8 +68,10 @@ export class SupplierEventRepository {
       `SELECT event.id, event.event_key, event.name, event.category, event.description,
               event.start_date, event.end_date, event.venue_name, event.address,
               event.city, event.state, event.min_audience, event.expected_audience,
-              event.max_audience, event.status
+              event.max_audience, event.status, organizer_user.name AS organizer_name
        FROM event
+       INNER JOIN organizer ON organizer.id = event.organizer_id
+       INNER JOIN user AS organizer_user ON organizer_user.id = organizer.user_id
        WHERE event.event_key = ?
          AND event.status = 'open_for_quotes'
          AND ${ORGANIZER_IS_APPROVED}
@@ -78,7 +80,7 @@ export class SupplierEventRepository {
            FROM budget_item
            INNER JOIN supplier_category ON supplier_category.category_id = budget_item.category_id
            WHERE budget_item.event_id = event.id AND supplier_category.supplier_id = ?
-         )${lock ? ' FOR SHARE' : ''}`,
+         )${lock ? ' FOR SHARE OF event' : ''}`,
       { replacements: [eventKey, supplierId], transaction: this.session, type: QueryTypes.SELECT },
     )
     return events[0] ?? null

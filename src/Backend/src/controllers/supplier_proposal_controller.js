@@ -83,19 +83,21 @@ export class SupplierProposalController extends BaseController {
   }
 
   async getProposals(userKey, { status, limit, page, after }) {
-    if (status !== undefined && !Object.values(PROPOSAL_STATUSES).includes(status)) {
-      throw new InvalidParameter(`The "status" parameter is invalid. Status ${status} does not exist.`)
+    const statuses = status === undefined ? [] : [...new Set(status.split(','))]
+    const invalid = statuses.find((value) => !Object.values(PROPOSAL_STATUSES).includes(value))
+    if (invalid !== undefined) {
+      throw new InvalidParameter(`The "status" parameter is invalid. Status ${invalid} does not exist.`)
     }
 
     const supplier = await getSupplierOfUser(this.userRepository, userKey)
     const counts = await this.proposalRepository.getSupplierProposalCounts(supplier.id)
 
     if (after !== undefined) {
-      return this.#getProposalsAfter(supplier.id, { status, limit, after }, counts)
+      return this.#getProposalsAfter(supplier.id, { statuses, limit, after }, counts)
     }
 
     const offset = page * limit
-    const { proposals, total } = await this.proposalRepository.getSupplierProposals(supplier.id, { status, limit, offset })
+    const { proposals, total } = await this.proposalRepository.getSupplierProposals(supplier.id, { statuses, limit, offset })
 
     const isLastPage = offset + proposals.length >= total
     return {
@@ -107,15 +109,15 @@ export class SupplierProposalController extends BaseController {
     }
   }
 
-  async #getProposalsAfter(supplierId, { status, limit, after }, counts) {
+  async #getProposalsAfter(supplierId, { statuses, limit, after }, counts) {
     const cursor = fromCursor(after)
-    const rows = await this.proposalRepository.getSupplierProposalsAfter(supplierId, { status, limit, cursor })
+    const rows = await this.proposalRepository.getSupplierProposalsAfter(supplierId, { statuses, limit, cursor })
     const page = rows.slice(0, limit)
     const isLastPage = rows.length <= limit
     const statusCounts = toStatusCounts(counts)
     return {
       data: SupplierProposalDto.fromList(page),
-      total: status ? statusCounts[status] : statusCounts.all,
+      total: statuses.length ? statuses.reduce((sum, value) => sum + statusCounts[value], 0) : statusCounts.all,
       is_last_page: isLastPage,
       next_cursor: isLastPage ? null : toCursor(page.at(-1)),
       counts: statusCounts,

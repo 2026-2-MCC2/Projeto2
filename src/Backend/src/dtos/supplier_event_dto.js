@@ -34,6 +34,7 @@ export class SupplierEventDto {
       expected_audience: Number(event.expected_audience),
       max_audience: Number(event.max_audience),
       status: event.status,
+      organizer_name: event.organizer_name,
       items: items.map((item) => ({
         item_key: item.item_key,
         category: item.category,

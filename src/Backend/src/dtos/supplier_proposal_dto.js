@@ -29,7 +29,7 @@ export class SupplierProposalDto {
   static fromDetail(proposal, photos) {
     return {
       proposal_key: proposal.proposal_key,
-      event: { ...eventOf(proposal), end_date: toIsoString(proposal.event_end_date) },
+      event: eventOf(proposal),
       item: {
         item_key: proposal.item_key,
         description: proposal.item_description,
@@ -37,6 +37,7 @@ export class SupplierProposalDto {
         type: proposal.item_type,
         quantity: Number(proposal.item_quantity),
         estimated_value: proposal.item_estimated_value === null ? null : Number(proposal.item_estimated_value),
+        notes: proposal.item_notes ?? null,
       },
       amount: Number(proposal.amount),
       description: proposal.description,
@@ -70,5 +71,10 @@ function eventOf(proposal) {
     name: proposal.event_name,
     status: proposal.event_status,
     cancellation_reason: proposal.event_cancellation_reason ?? null,
+    start_date: toIsoString(proposal.event_start_date),
+    end_date: toIsoString(proposal.event_end_date),
+    venue_name: proposal.event_venue_name,
+    city: proposal.event_city,
+    state: proposal.event_state,
   }
 }
