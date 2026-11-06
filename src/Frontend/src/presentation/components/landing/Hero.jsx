@@ -1,8 +1,9 @@
+import { useRef } from 'react'
 import { formatarMoeda } from '../../../domain/formatacao.js'
 import { Icone } from '../comum/Icone.jsx'
 import { EVENTO_DE_EXEMPLO as evento, NUMEROS_DO_EXEMPLO } from '../../data/eventoDeExemplo.js'
 import { useEscalaParaCaber } from '../../hooks/useEscalaParaCaber.js'
-import { useInclinacaoComMouse } from '../../hooks/useInclinacaoComMouse.js'
+import { useTilt } from '../../hooks/useTilt.js'
 import { BotaoLanding } from './BotaoLanding.jsx'
 import { Ingresso } from './Ingresso.jsx'
 import fotoShow from '../../assets/acesso/foto-show.jpg'
@@ -32,7 +33,8 @@ const DADOS_DO_FESTIVAL = [
 // O mouse é medido na camada que flutua (ela não inclina, então a caixa não treme);
 // as variáveis do tilt descem por herança.
 function IngressoDoHero({ variante, canhoto, children }) {
-  const camadaDoMouse = useInclinacaoComMouse()
+  const camadaDoMouse = useRef(null)
+  useTilt(camadaDoMouse)
 
   return (
     <div className={`hero__ingresso hero__ingresso--${variante}`}>

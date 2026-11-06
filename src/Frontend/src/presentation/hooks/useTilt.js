@@ -1,15 +1,17 @@
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 
 const INCLINACAO_MAXIMA = 10 // graus, para cada lado
+
+// só em aparelho com mouse (no toque o "hover" ficaria preso) e sem pedido de menos movimento
+const PODE_INCLINAR =
+  '(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)'
 
 // Segue o mouse sobre o elemento do ref e grava no estilo dele, uma vez por quadro:
 // --rx/--ry (inclinação em graus) e --mx/--my (posição do mouse em %). O CSS usa as variáveis;
 // o React não re-renderiza a cada movimento. Ao sair, a inclinação volta a 0.
-export function useInclinacaoComMouse() {
-  const alvo = useRef(null)
-
+export function useTilt(ref) {
   useEffect(() => {
-    const elemento = alvo.current
+    const elemento = ref.current
     if (!elemento) return
 
     let quadro = 0
@@ -26,9 +28,7 @@ export function useInclinacaoComMouse() {
       elemento.style.setProperty('--my', `${(y * 100).toFixed(1)}%`)
     }
 
-    // só mouse: no toque o "hover" ficaria preso depois do dedo sair
     const mover = (evento) => {
-      if (evento.pointerType !== 'mouse') return
       mouse = { x: evento.clientX, y: evento.clientY }
       if (!quadro) quadro = requestAnimationFrame(aplicar)
     }
@@ -40,14 +40,26 @@ export function useInclinacaoComMouse() {
       elemento.style.setProperty('--ry', '0deg')
     }
 
-    elemento.addEventListener('pointermove', mover)
-    elemento.addEventListener('pointerleave', sair)
-    return () => {
-      cancelAnimationFrame(quadro)
+    const ligar = () => {
+      elemento.addEventListener('pointermove', mover)
+      elemento.addEventListener('pointerleave', sair)
+    }
+
+    const desligar = () => {
       elemento.removeEventListener('pointermove', mover)
       elemento.removeEventListener('pointerleave', sair)
+      sair()
     }
-  }, [])
 
-  return alvo
+    // liga ou desliga se o aparelho mudar (mouse conectado, preferência de movimento trocada)
+    const consulta = window.matchMedia(PODE_INCLINAR)
+    const atualizar = () => (consulta.matches ? ligar() : desligar())
+    atualizar()
+    consulta.addEventListener('change', atualizar)
+
+    return () => {
+      consulta.removeEventListener('change', atualizar)
+      desligar()
+    }
+  }, [ref])
 }

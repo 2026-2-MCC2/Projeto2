@@ -376,9 +376,16 @@
   }
 }
 
+/* com prefers-reduced-motion: reduce nada disto vale: os ingressos aparecem direto na posição final */
 @media (prefers-reduced-motion: no-preference) {
   .hero__ingresso {
     animation: hero-ingresso-entrada 900ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    will-change: transform, opacity;
+  }
+
+  .hero__ingresso .ingresso-flutua,
+  .hero__ingresso .ingresso-tilt {
+    will-change: transform;
   }
 
   .hero__ingresso--summit {
@@ -396,7 +403,7 @@
     animation-delay: 1050ms;
   }
 
-  /* tilt 3D: --rx/--ry vêm do useInclinacaoComMouse. Com o mouse em cima a transição é curta,
+  /* tilt 3D: --rx/--ry vêm do useTilt. Com o mouse em cima a transição é curta,
      só para suavizar; ao sair vale a de 500ms e o ingresso volta reto devagar */
   :root:not(.sem-movimento) .hero__ingresso .ingresso-tilt {
     transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
@@ -439,8 +446,11 @@
   background-position: right top;
 }
 
-.hero__ingresso:hover .ingresso__parte::after {
-  opacity: 1;
+/* só com mouse, como o tilt (useTilt): no toque o :hover fica preso depois do dedo sair */
+@media (hover: hover) and (pointer: fine) {
+  .hero__ingresso:hover .ingresso__parte::after {
+    opacity: 1;
+  }
 }
 
 .hero__ingresso .ingresso__corpo {
