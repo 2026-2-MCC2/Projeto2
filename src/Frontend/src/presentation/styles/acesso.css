@@ -508,6 +508,100 @@
   }
 }
 
+/* estados do botão de entrar: o texto continua lá, transparente, e segura a largura e a altura */
+.acesso__botao--enviando,
+.acesso__botao--sucesso {
+  position: relative;
+}
+
+.acesso__botao--enviando:disabled,
+.acesso__botao--sucesso:disabled {
+  opacity: 1;
+}
+
+.acesso__botao--enviando .acesso__botao-texto,
+.acesso__botao--sucesso .acesso__botao-texto {
+  opacity: 0;
+}
+
+.acesso__botao--sucesso:disabled {
+  background: var(--status-sucesso-forte);
+}
+
+.acesso__giro {
+  position: absolute;
+  inset: 0;
+  width: 1.125rem;
+  height: 1.125rem;
+  margin: auto;
+  border: 2px solid rgb(255 255 255 / 35%);
+  border-top-color: var(--acao-sobre-primaria);
+  border-radius: 50%;
+  animation: girar 0.8s linear infinite;
+}
+
+.acesso__confirmado {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 1.125rem;
+}
+
+/* cadastro em análise não é erro: aviso neutro, sem tremida */
+.acesso__aviso {
+  --icone-cor: var(--status-alerta-texto);
+
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.75rem 0.875rem;
+  border: 1px solid var(--status-alerta-borda);
+  border-radius: var(--acesso-raio);
+  background: var(--status-alerta-fundo);
+  color: var(--status-alerta-texto);
+  font-size: 0.8125rem;
+}
+
+.acesso__aviso p {
+  margin: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :root:not(.sem-movimento) .acesso__botao--sucesso {
+    transition: background-color 150ms ease;
+  }
+
+  :root:not(.sem-movimento) .acesso__confirmado {
+    animation: acesso-confirmado 300ms ease-out;
+  }
+
+  :root:not(.sem-movimento) .acesso--animar .alerta-erro,
+  :root:not(.sem-movimento) .acesso--animar .acesso__aviso {
+    animation: acesso-retorno 200ms ease-out;
+  }
+}
+
+@keyframes acesso-confirmado {
+  0% {
+    scale: 0.6;
+  }
+
+  60% {
+    scale: 1.1;
+  }
+
+  100% {
+    scale: 1;
+  }
+}
+
+@keyframes acesso-retorno {
+  from {
+    opacity: 0;
+  }
+}
+
 /* entrada do login: --animar vem do AcessoLayout. É animação, não estado: nada fica sem foco ou sem
    clique, e o que recebe foco aparece na hora, sem esperar a fila. Com menos movimento, nada entra */
 @media (prefers-reduced-motion: no-preference) {
