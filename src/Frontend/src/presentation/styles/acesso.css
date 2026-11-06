@@ -112,6 +112,22 @@
   outline-offset: 1px;
 }
 
+/* só nas telas de acesso: este CSS continua carregado nas áreas logadas depois do login */
+.acesso .campo input:focus,
+.acesso .campo select:focus {
+  border-color: var(--acao-primaria);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--acao-primaria) 20%, transparent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :root:not(.sem-movimento) .acesso .campo input,
+  :root:not(.sem-movimento) .acesso .campo select {
+    transition:
+      border-color 200ms ease,
+      box-shadow 200ms ease;
+  }
+}
+
 /* ---------- botões e links ---------- */
 
 .acesso__botao {

@@ -1079,6 +1079,56 @@ button.calendario__titulo:focus-visible {
   outline-offset: 1px;
 }
 
+.entrada-de-senha__caps {
+  --icone-cor: var(--status-alerta-texto);
+
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--status-alerta-texto);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.entrada-de-senha__caps .icone {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* o olho pisca ao alternar, e o risco do olho fechado (o último traço do SVG) se desenha */
+@media (prefers-reduced-motion: no-preference) {
+  :root:not(.sem-movimento) .entrada-de-senha__olho--alternou .icone {
+    animation: entrada-de-senha-piscar 180ms ease-in-out;
+  }
+
+  :root:not(.sem-movimento) .entrada-de-senha__olho--alternou[aria-pressed='true'] path:last-child {
+    stroke-dasharray: 27;
+    animation: entrada-de-senha-risco 200ms ease-out;
+  }
+
+  :root:not(.sem-movimento) .entrada-de-senha__caps {
+    animation: entrada-de-senha-caps 150ms ease-out;
+  }
+}
+
+@keyframes entrada-de-senha-piscar {
+  50% {
+    scale: 1 0.1;
+  }
+}
+
+@keyframes entrada-de-senha-risco {
+  from {
+    stroke-dashoffset: 27;
+  }
+}
+
+@keyframes entrada-de-senha-caps {
+  from {
+    opacity: 0;
+  }
+}
+
 .detalhe-proposta__textos {
   display: flex;
   flex-direction: column;
