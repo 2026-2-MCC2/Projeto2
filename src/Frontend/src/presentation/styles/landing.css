@@ -1770,6 +1770,86 @@
   font-weight: 500;
 }
 
+/* último dígito do número: o "1" transparente guarda o lugar e o rolo passa por cima dele. O
+   clip-path corta só em cima e embaixo, para um dígito mais largo que o 1 não ser cortado dos lados */
+.chamada-landing__digito {
+  position: relative;
+  display: inline-block;
+  color: transparent;
+  clip-path: inset(0 -1em);
+}
+
+/* em repouso o rolo fica no último dígito (o 12º), então sem animação aparece 001 */
+.chamada-landing__rolo {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  color: var(--acao-sobre-primaria);
+  translate: -50% calc(-11 * 1lh);
+}
+
+.chamada-landing__rolo span {
+  display: block;
+  text-align: center;
+}
+
+/* entrada: escondido só com a classe --animar (posta pelo ChamadaFinal) e até a seção aparecer
+   (--visivel). Usa `translate` e `rotate`, não `transform`, para não brigar com outro transform.
+   Com menos movimento (do sistema ou do site) aparece direto */
+@media (prefers-reduced-motion: no-preference) {
+  :root:not(.sem-movimento) .chamada-landing--animar .chamada-landing__ingresso {
+    transition:
+      opacity 800ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      translate 800ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      rotate 800ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  :root:not(.sem-movimento)
+    .chamada-landing--animar:not(.chamada-landing--visivel)
+    .chamada-landing__ingresso {
+    opacity: 0;
+    translate: 0 32px;
+    rotate: -2deg;
+  }
+
+  /* conteúdo em sequência, depois de o ingresso começar a subir: 300ms + 90ms por item.
+     No canhoto entra o conteúdo, não a parte laranja, que faz parte do formato do ingresso */
+  :root:not(.sem-movimento) .chamada-landing--animar .ingresso__canhoto > * {
+    --i: 4;
+  }
+
+  :root:not(.sem-movimento) .chamada-landing--animar .ingresso__corpo > *,
+  :root:not(.sem-movimento) .chamada-landing--animar .ingresso__canhoto > * {
+    transition:
+      opacity 500ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      translate 500ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition-delay: calc(var(--i, 0) * 90ms + 300ms);
+  }
+
+  :root:not(.sem-movimento)
+    .chamada-landing--animar:not(.chamada-landing--visivel)
+    .ingresso__corpo
+    > *,
+  :root:not(.sem-movimento)
+    .chamada-landing--animar:not(.chamada-landing--visivel)
+    .ingresso__canhoto
+    > * {
+    opacity: 0;
+    translate: 0 12px;
+  }
+
+  /* o número gira no fim da sequência, com o canhoto já aparecendo */
+  :root:not(.sem-movimento) .chamada-landing--animar .chamada-landing__rolo {
+    transition: translate 600ms cubic-bezier(0.2, 0.8, 0.2, 1) 900ms;
+  }
+
+  :root:not(.sem-movimento)
+    .chamada-landing--animar:not(.chamada-landing--visivel)
+    .chamada-landing__rolo {
+    translate: -50% 0;
+  }
+}
+
 @media (max-width: 900px) {
   .chamada-landing {
     padding: 64px 20px;
