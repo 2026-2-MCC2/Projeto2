@@ -348,6 +348,32 @@
   color: #fff;
 }
 
+/* as camadas de animação e o ingresso ocupam a caixa inteira do .hero__ingresso */
+.hero__ingresso .ingresso-flutua,
+.hero__ingresso .ingresso-tilt,
+.hero__ingresso .ingresso {
+  height: 100%;
+}
+
+/* entrada em leque: sai do centro do palco, reto e menor, e abre até a rotação de cada um.
+   Só o "from": o fim é o próprio transform/opacity do ingresso, então a rotação final não muda */
+@keyframes hero-ingresso-entrada {
+  from {
+    opacity: 0;
+    transform: translate(var(--entrada-x), var(--entrada-y)) rotate(0deg) scale(0.9);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero__ingresso {
+    animation: hero-ingresso-entrada 900ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  .hero__ingresso--summit {
+    animation-delay: 150ms;
+  }
+}
+
 .hero__ingresso .ingresso__corpo {
   display: flex;
   flex-direction: column;
@@ -366,6 +392,9 @@
   --ingresso-recorte: 16px;
   --ingresso-picote-recuo: 22px;
   --ingresso-fundo: linear-gradient(90deg, var(--marca-laranja), var(--marca-rosa));
+  /* do centro do palco (330, 250) até o centro deste ingresso (402, 159), mais 40px abaixo */
+  --entrada-x: -72px;
+  --entrada-y: 131px;
 
   top: 44px;
   left: 132px;
@@ -387,6 +416,9 @@
   --ingresso-recorte: 18px;
   --ingresso-picote-recuo: 24px;
   --ingresso-fundo: linear-gradient(90deg, var(--marca-azul), var(--marca-ciano));
+  /* do centro do palco (330, 250) até o centro deste ingresso (304, 300), mais 40px abaixo */
+  --entrada-x: 26px;
+  --entrada-y: -10px;
 
   top: 170px;
   left: 14px;

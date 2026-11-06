@@ -26,6 +26,20 @@ const DADOS_DO_FESTIVAL = [
   { nome: 'SETOR', valor: 'Pista' },
 ]
 
+// uma camada por efeito, para um transform não apagar o outro:
+// posição + rotação + entrada → flutuar → tilt do mouse → o ingresso em si
+function IngressoDoHero({ variante, canhoto, children }) {
+  return (
+    <div className={`hero__ingresso hero__ingresso--${variante}`}>
+      <div className="ingresso-flutua">
+        <div className="ingresso-tilt">
+          <Ingresso canhoto={canhoto}>{children}</Ingresso>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function Hero() {
   const [caixaDosIngressos, escala] = useEscalaParaCaber(LARGURA_DOS_INGRESSOS)
 
@@ -67,16 +81,13 @@ export function Hero() {
       <div className="hero__visual" aria-hidden="true">
         <div className="hero__ingressos" ref={caixaDosIngressos}>
           <div className="hero__palco" style={{ '--escala': escala }}>
-            <Ingresso
-              className="hero__ingresso hero__ingresso--summit"
-              canhoto={<Icone src={codigoDeBarrasPequeno} />}
-            >
+            <IngressoDoHero variante="summit" canhoto={<Icone src={codigoDeBarrasPequeno} />}>
               <span className="hero__rotulo">TROCATICKET · INGRESSO</span>
               <strong className="hero__evento">Summit Corporativo Tech</strong>
-            </Ingresso>
+            </IngressoDoHero>
 
-            <Ingresso
-              className="hero__ingresso hero__ingresso--festival"
+            <IngressoDoHero
+              variante="festival"
               canhoto={
                 <>
                   <span className="hero__valor-rotulo">VALOR DO INGRESSO</span>
@@ -96,7 +107,7 @@ export function Hero() {
                   </div>
                 ))}
               </dl>
-            </Ingresso>
+            </IngressoDoHero>
           </div>
         </div>
 
