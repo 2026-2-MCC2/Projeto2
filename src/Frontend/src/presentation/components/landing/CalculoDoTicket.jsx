@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import { formatarMoeda, formatarMoedaSemCentavos } from '../../../domain/formatacao.js'
-import { EVENTO_DE_EXEMPLO as evento, NUMEROS_DO_EXEMPLO } from '../../data/eventoDeExemplo.js'
+import { calcularTicket } from '../../../utils/calcularTicket.js'
+import { EVENTO_DE_EXEMPLO as evento, VALORES_DO_EXEMPLO } from '../../data/eventoDeExemplo.js'
 import { CabecalhoDaSecao } from './CabecalhoDaSecao.jsx'
 import { Ingresso } from './Ingresso.jsx'
 
@@ -8,14 +10,53 @@ const numero = (valor) => valor.toLocaleString('pt-BR')
 // "− R$ 38.100" / "+ R$ 57.100": sinal sempre visível, com o menos tipográfico
 const resultado = (valor) => `${valor < 0 ? '−' : '+'} ${formatarMoedaSemCentavos(Math.abs(valor))}`
 
-const PREMISSAS = [
-  { nome: 'Custo total', valor: NUMEROS_DO_EXEMPLO.custoTotal },
-  { nome: 'Margem de lucro', valor: NUMEROS_DO_EXEMPLO.margem },
-  { nome: 'Ponto de equilíbrio', valor: NUMEROS_DO_EXEMPLO.equilibrio },
+// a margem fica em % inteiro nos controles; o range para em 60%, então nunca chega a 100%
+const VALORES_INICIAIS = {
+  custoTotal: VALORES_DO_EXEMPLO.custoTotal,
+  margem: Math.round(VALORES_DO_EXEMPLO.margem * 100),
+  publico: VALORES_DO_EXEMPLO.publico,
+}
+
+const CONTROLES = [
+  {
+    chave: 'custoTotal',
+    nome: 'Custo total',
+    minimo: 20000,
+    maximo: 1000000,
+    passo: 500,
+    formatar: formatarMoedaSemCentavos,
+  },
+  {
+    chave: 'margem',
+    nome: 'Margem de lucro',
+    minimo: 0,
+    maximo: 60,
+    passo: 1,
+    formatar: (valor) => `${valor}%`,
+  },
+  {
+    chave: 'publico',
+    nome: 'Público esperado',
+    minimo: 500,
+    maximo: 60000,
+    passo: 100,
+    formatar: (valor) => `${numero(valor)} pessoas`,
+  },
+]
+
+const CENARIOS = [
+  { chave: 'pessimista', nome: 'Pessimista' },
+  { chave: 'realista', nome: 'Realista', referencia: true },
+  { chave: 'otimista', nome: 'Otimista' },
 ]
 
 export function CalculoDoTicket() {
-  const vendidosParaPagar = (evento.pontoDeEquilibrio / evento.publicoMaximo) * 100
+  const [valores, setValores] = useState(VALORES_INICIAIS)
+  const calculo = calcularTicket({ ...valores, margem: valores.margem / 100 })
+  const { otimista } = calculo.cenarios
+
+  const mudar = (chave) => (evento) =>
+    setValores((atuais) => ({ ...atuais, [chave]: Number(evento.target.value) }))
 
   return (
     <section
@@ -35,13 +76,52 @@ export function CalculoDoTicket() {
         <p className="calculo-landing__formula">Ticket = Custo total ÷ [Público × (1 − Margem)]</p>
 
         <dl className="calculo-landing__premissas">
-          {PREMISSAS.map((premissa) => (
-            <div key={premissa.nome}>
-              <dt>{premissa.nome}</dt>
-              <dd>{premissa.valor}</dd>
-            </div>
-          ))}
+          {CONTROLES.map(({ chave, nome, minimo, maximo, passo, formatar }) => {
+            const valor = valores[chave]
+            const id = `calculo-landing-${chave}`
+
+            return (
+              <div key={chave} className="calculo-landing__controle">
+                <dt>
+                  <label htmlFor={id}>{nome}</label>
+                </dt>
+                <dd>
+                  {/* o leitor de tela já ouve o valor pelo aria-valuetext do range */}
+                  <span className="calculo-landing__valor" aria-hidden="true">
+                    {formatar(valor)}
+                  </span>
+                  <input
+                    type="range"
+                    id={id}
+                    className="calculo-landing__range"
+                    min={minimo}
+                    max={maximo}
+                    step={passo}
+                    value={valor}
+                    onChange={mudar(chave)}
+                    aria-valuetext={formatar(valor)}
+                    style={{
+                      '--preenchimento': `${((valor - minimo) / (maximo - minimo)) * 100}%`,
+                    }}
+                  />
+                </dd>
+              </div>
+            )
+          })}
+
+          <div>
+            <dt>Ponto de equilíbrio</dt>
+            <dd>{numero(calculo.equilibrio)} ingressos</dd>
+          </div>
         </dl>
+
+        <button
+          type="button"
+          className="calculo-landing__restaurar"
+          onClick={() => setValores(VALORES_INICIAIS)}
+        >
+          Restaurar exemplo
+        </button>
       </div>
 
       <div className="calculo-landing__painel">
@@ -52,41 +132,45 @@ export function CalculoDoTicket() {
           </div>
           <p className="calculo-landing__preco">
             <span>PREÇO SUGERIDO</span>
-            <strong>{formatarMoeda(evento.precoSugerido)}</strong>
+            <strong>{formatarMoeda(calculo.preco)}</strong>
           </p>
         </div>
 
         <ul className="calculo-landing__cenarios">
-          {evento.cenarios.map((cenario) => (
-            <Ingresso
-              key={cenario.nome}
-              elemento="li"
-              orientacao="vertical"
-              className={`cenario-landing${cenario.referencia ? ' cenario-landing--referencia' : ''}`}
-              canhoto={
-                <strong
-                  className={`cenario-landing__resultado cenario-landing__resultado--${cenario.resultado < 0 ? 'prejuizo' : 'lucro'}`}
-                >
-                  {resultado(cenario.resultado)}
-                </strong>
-              }
-            >
-              <span className="cenario-landing__nome">{cenario.nome}</span>
-              <span className="cenario-landing__publico">{numero(cenario.publico)} pessoas</span>
-            </Ingresso>
-          ))}
+          {CENARIOS.map(({ chave, nome, referencia }) => {
+            const cenario = calculo.cenarios[chave]
+
+            return (
+              <Ingresso
+                key={chave}
+                elemento="li"
+                orientacao="vertical"
+                className={`cenario-landing${referencia ? ' cenario-landing--referencia' : ''}`}
+                canhoto={
+                  <strong
+                    className={`cenario-landing__resultado cenario-landing__resultado--${cenario.resultado < 0 ? 'prejuizo' : 'lucro'}`}
+                  >
+                    {resultado(cenario.resultado)}
+                  </strong>
+                }
+              >
+                <span className="cenario-landing__nome">{nome}</span>
+                <span className="cenario-landing__publico">{numero(cenario.publico)} pessoas</span>
+              </Ingresso>
+            )
+          })}
         </ul>
 
         <div className="calculo-landing__equilibrio">
           <p className="calculo-landing__rotulos">
             <span>Ingressos vendidos para pagar o evento</span>
             <strong>
-              {numero(evento.pontoDeEquilibrio)} de {numero(evento.publicoMaximo)}
+              {numero(calculo.equilibrio)} de {numero(otimista.publico)}
             </strong>
           </p>
           {/* a barra repete o número escrito acima: fica fora do leitor de tela */}
           <div className="calculo-landing__barra" aria-hidden="true">
-            <span style={{ width: `${vendidosParaPagar}%` }} />
+            <span style={{ width: `${calculo.barraPercentual}%` }} />
           </div>
         </div>
       </div>

@@ -1045,6 +1045,87 @@
   font-weight: 600;
 }
 
+/* premissa com controle: nome e valor na mesma linha, o range embaixo na largura toda */
+.calculo-landing__premissas .calculo-landing__controle {
+  position: relative;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.calculo-landing__valor {
+  position: absolute;
+  top: 12px;
+  right: 0;
+}
+
+/* range: trilho escuro, preenchido no azul da barra até o valor (--preenchimento, do componente),
+   e um thumb de 22px para o toque. O Chrome/Safari e o Firefox não aceitam os pseudo-elementos
+   na mesma regra, então cada um tem a sua, lendo as mesmas variáveis */
+.calculo-landing__range {
+  --_trilho: linear-gradient(
+    to right,
+    var(--acao-primaria) var(--preenchimento),
+    var(--borda-forte) var(--preenchimento)
+  );
+  --_trilho-altura: 6px;
+  --_thumb: 22px;
+
+  width: 100%;
+  height: var(--_thumb);
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  appearance: none;
+}
+
+.calculo-landing__range::-webkit-slider-runnable-track {
+  height: var(--_trilho-altura);
+  border-radius: 99px;
+  background: var(--_trilho);
+}
+
+.calculo-landing__range::-moz-range-track {
+  height: var(--_trilho-altura);
+  border-radius: 99px;
+  background: var(--_trilho);
+}
+
+.calculo-landing__range::-webkit-slider-thumb {
+  box-sizing: border-box;
+  width: var(--_thumb);
+  height: var(--_thumb);
+  /* centraliza o thumb no trilho (no Firefox ele já vem centralizado) */
+  margin-top: calc((var(--_trilho-altura) - var(--_thumb)) / 2);
+  border: 3px solid var(--fundo-superficie);
+  border-radius: 50%;
+  background: var(--acao-primaria);
+  box-shadow: 0 1px 4px rgb(15 23 41 / 30%);
+  appearance: none;
+}
+
+.calculo-landing__range::-moz-range-thumb {
+  box-sizing: border-box;
+  width: var(--_thumb);
+  height: var(--_thumb);
+  border: 3px solid var(--fundo-superficie);
+  border-radius: 50%;
+  background: var(--acao-primaria);
+  box-shadow: 0 1px 4px rgb(15 23 41 / 30%);
+}
+
+.calculo-landing__restaurar {
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: var(--texto-marca);
+  font-family: inherit;
+  font-size: 0.8235rem; /* 14px */
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
 .calculo-landing__painel {
   display: flex;
   flex: 1 1 0;
