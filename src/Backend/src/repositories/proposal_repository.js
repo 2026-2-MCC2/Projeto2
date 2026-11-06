@@ -267,10 +267,22 @@ export class ProposalRepository {
   }
 
   async acceptByProposalKey(eventId, proposalKey) {
+    return this.#decideByProposalKey(eventId, proposalKey, 'accepted')
+  }
+
+  async rejectByProposalKey(eventId, proposalKey) {
+    return this.#decideByProposalKey(eventId, proposalKey, 'rejected')
+  }
+
+  async #decideByProposalKey(eventId, proposalKey, decision) {
     const proposalReferences = await sequelize.query(
-      `SELECT budget_item.id AS budget_item_id, proposal.status AS initial_status
+      `SELECT budget_item.id AS budget_item_id, proposal.status AS initial_status,
+              proposal.proposal_key, proposal.amount, budget_item.description AS item_description,
+              supplier_user.email AS supplier_email, supplier_user.name AS supplier_name
        FROM proposal
        INNER JOIN budget_item ON budget_item.id = proposal.budget_item_id
+       INNER JOIN supplier ON supplier.id = proposal.supplier_id
+       INNER JOIN user AS supplier_user ON supplier_user.id = supplier.user_id
        WHERE budget_item.event_id = :eventId AND proposal.proposal_key = :proposalKey
        LIMIT 1`,
       { replacements: { eventId, proposalKey }, transaction: this.session, type: QueryTypes.SELECT },
@@ -298,16 +310,27 @@ export class ProposalRepository {
     const proposal = proposals.find((candidate) => candidate.proposal_key === proposalKey)
     if (!proposal) return false
     if (proposal.status !== proposalReference.initial_status) throw new ProposalDecisionConflict()
-    if (Boolean(proposal.is_expired)) throw new ProposalExpired()
+    if (decision === 'rejected' && !['sent', 'under_review'].includes(proposal.status)) {
+      throw new ProposalDecisionConflict()
+    }
+    if (decision === 'accepted' && Boolean(proposal.is_expired)) throw new ProposalExpired()
 
-    await sequelize.query(
-      `UPDATE proposal
-       SET status = CASE WHEN proposal_key = :proposalKey THEN 'accepted' ELSE 'rejected' END,
-           selected = CASE WHEN proposal_key = :proposalKey THEN TRUE ELSE FALSE END
-       WHERE budget_item_id = :budgetItemId`,
-      { replacements: { proposalKey, budgetItemId }, transaction: this.session },
-    )
+    if (decision === 'accepted') {
+      await sequelize.query(
+        `UPDATE proposal
+         SET status = CASE WHEN proposal_key = :proposalKey THEN 'accepted' ELSE 'rejected' END,
+             selected = CASE WHEN proposal_key = :proposalKey THEN TRUE ELSE FALSE END
+         WHERE budget_item_id = :budgetItemId`,
+        { replacements: { proposalKey, budgetItemId }, transaction: this.session },
+      )
+      return true
+    }
 
-    return true
+    await sequelize.query(`UPDATE proposal SET status = 'rejected', selected = FALSE WHERE proposal_key = :proposalKey`, {
+      replacements: { proposalKey },
+      transaction: this.session,
+    })
+
+    return proposalReference
   }
 }
