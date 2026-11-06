@@ -2,6 +2,7 @@ import { formatarMoeda } from '../../../domain/formatacao.js'
 import { Icone } from '../comum/Icone.jsx'
 import { EVENTO_DE_EXEMPLO as evento, NUMEROS_DO_EXEMPLO } from '../../data/eventoDeExemplo.js'
 import { useEscalaParaCaber } from '../../hooks/useEscalaParaCaber.js'
+import { useInclinacaoComMouse } from '../../hooks/useInclinacaoComMouse.js'
 import { BotaoLanding } from './BotaoLanding.jsx'
 import { Ingresso } from './Ingresso.jsx'
 import fotoShow from '../../assets/acesso/foto-show.jpg'
@@ -27,11 +28,15 @@ const DADOS_DO_FESTIVAL = [
 ]
 
 // uma camada por efeito, para um transform não apagar o outro:
-// posição + rotação + entrada → flutuar → tilt do mouse → o ingresso em si
+// posição + rotação + entrada → flutuar → tilt do mouse → o ingresso em si.
+// O mouse é medido na camada que flutua (ela não inclina, então a caixa não treme);
+// as variáveis do tilt descem por herança.
 function IngressoDoHero({ variante, canhoto, children }) {
+  const camadaDoMouse = useInclinacaoComMouse()
+
   return (
     <div className={`hero__ingresso hero__ingresso--${variante}`}>
-      <div className="ingresso-flutua">
+      <div className="ingresso-flutua" ref={camadaDoMouse}>
         <div className="ingresso-tilt">
           <Ingresso canhoto={canhoto}>{children}</Ingresso>
         </div>

@@ -395,6 +395,52 @@
     animation-duration: 6s;
     animation-delay: 1050ms;
   }
+
+  /* tilt 3D: --rx/--ry vêm do useInclinacaoComMouse. Com o mouse em cima a transição é curta,
+     só para suavizar; ao sair vale a de 500ms e o ingresso volta reto devagar */
+  :root:not(.sem-movimento) .hero__ingresso .ingresso-tilt {
+    transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+    transition: transform 500ms ease-out;
+  }
+
+  :root:not(.sem-movimento) .hero__ingresso:hover .ingresso-tilt {
+    transition-duration: 100ms;
+  }
+}
+
+/* brilho holográfico: um ::after em cada parte, porque é a parte que tem a máscara dos recortes,
+   então o brilho segue os cantos e os furos do ingresso. O fundo tem o tamanho do ingresso inteiro
+   e fica preso na borda de fora de cada parte, para o brilho atravessar o picote sem emenda */
+.hero__ingresso .ingresso__parte::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      circle at var(--mx, 50%) var(--my, 50%),
+      rgb(255 255 255 / 35%),
+      transparent 45%
+    ),
+    linear-gradient(
+      115deg,
+      color-mix(in srgb, var(--marca-rosa) 25%, transparent),
+      color-mix(in srgb, var(--marca-azul) 25%, transparent),
+      color-mix(in srgb, var(--marca-laranja) 25%, transparent)
+    );
+  background-position: left top;
+  background-size: var(--ingresso-largura) var(--ingresso-altura);
+  mix-blend-mode: overlay;
+  opacity: 0;
+  transition: opacity 300ms ease-out;
+  pointer-events: none;
+}
+
+.hero__ingresso .ingresso__parte--depois::after {
+  background-position: right top;
+}
+
+.hero__ingresso:hover .ingresso__parte::after {
+  opacity: 1;
 }
 
 .hero__ingresso .ingresso__corpo {
@@ -418,11 +464,13 @@
   /* do centro do palco (330, 250) até o centro deste ingresso (402, 159), mais 40px abaixo */
   --entrada-x: -72px;
   --entrada-y: 131px;
+  --ingresso-largura: 540px;
+  --ingresso-altura: 230px;
 
   top: 44px;
   left: 132px;
-  width: 540px;
-  height: 230px;
+  width: var(--ingresso-largura);
+  height: var(--ingresso-altura);
   opacity: 0.95;
   transform: rotate(-7deg);
 }
@@ -442,11 +490,13 @@
   /* do centro do palco (330, 250) até o centro deste ingresso (304, 300), mais 40px abaixo */
   --entrada-x: 26px;
   --entrada-y: -10px;
+  --ingresso-largura: 580px;
+  --ingresso-altura: 260px;
 
   top: 170px;
   left: 14px;
-  width: 580px;
-  height: 260px;
+  width: var(--ingresso-largura);
+  height: var(--ingresso-altura);
   transform: rotate(4deg);
 }
 
