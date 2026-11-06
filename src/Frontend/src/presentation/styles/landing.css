@@ -1684,7 +1684,7 @@
 
 /* manchas de luz do fundo, iguais nos dois temas. Cada uma tem o dobro do tamanho da seção para a
    borda não aparecer ao andar, então os valores são metade dos da seção (tamanho) ou
-   (posição na seção + 50%) ÷ 2. O --_ate em % também é da camada: 12,5% = 25% da largura da seção */
+   (posição na seção + 50%) ÷ 2. O --_ate em % também é da camada: 44% = 88% da largura da seção, de uma ponta à outra */
 .chamada-landing__mancha {
   position: absolute;
   inset: -50%;
@@ -1698,17 +1698,17 @@
   --_tamanho: 27.8% 17.85%;
   --_centro: 69.45% 60.7%;
   --_cor: rgb(254 117 36 / 28%);
-  --_ate: -12.5% -40px;
-  --_ida: 10s;
-  --_inicio: -6s;
+  --_ate: -41.65% -40px;
+  --_ida: 7.5s;
+  --_inicio: -4s;
 }
 
 .chamada-landing__mancha--rosa {
   --_tamanho: 27.8% 17.85%;
   --_centro: 27.8% 37.5%;
   --_cor: rgb(249 23 136 / 22%);
-  --_ate: 12.5% 40px;
-  --_ida: 8s;
+  --_ate: 44% 40px;
+  --_ida: 6s;
 }
 
 .chamada-landing__mancha--azul {
@@ -1717,10 +1717,10 @@
   --_cor: rgb(10 80 174 / 25%);
   --_ate: 2% -16px;
   --_respiro: 1.05;
-  --_ida: 12s;
+  --_ida: 9s;
 }
 
-/* aurora: só translate e scale. A duração é a ida; com alternate, o ciclo é o dobro (16, 20 e 24s),
+/* aurora: só translate e scale. A duração é a ida; com alternate, o ciclo é o dobro (12, 15 e 18s),
    e os ciclos diferentes e o início adiantado do laranja nunca deixam as manchas em sincronia.
    Fora da tela fica pausada: quem liga é a classe --aurora, do ChamadaFinal */
 @media (prefers-reduced-motion: no-preference) {
