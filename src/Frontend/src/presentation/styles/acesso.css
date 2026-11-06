@@ -361,15 +361,47 @@
   justify-content: flex-end;
   flex: 0 1 42%;
   padding: 3.5rem;
-  background-size: cover;
-  background-position: center;
+  overflow: hidden;
   color: var(--acao-sobre-primaria);
 }
 
-.acesso__cor {
+.acesso__foto {
   position: absolute;
   inset: 0;
+  background-size: cover;
+  background-position: center;
+}
+
+/* 30% maior que o painel, para sobrar cor dos dois lados quando ela anda */
+.acesso__cor {
+  position: absolute;
+  inset: 0 -15%;
   mix-blend-mode: color;
+}
+
+/* feixes de luz: invisíveis até a animação, para não ficarem parados com menos movimento */
+.acesso__feixe {
+  position: absolute;
+  top: -30%;
+  left: 0;
+  width: 34%;
+  height: 160%;
+  background: linear-gradient(90deg, transparent, #fff, transparent);
+  opacity: 0;
+  filter: blur(18px);
+  rotate: 18deg;
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+.acesso__feixe--2 {
+  width: 22%;
+  rotate: 24deg;
+}
+
+.acesso__feixe--3 {
+  width: 28%;
+  rotate: 14deg;
 }
 
 .acesso__veu {
@@ -431,6 +463,65 @@
   margin: 0;
   opacity: 0.9;
   font-size: 0.875rem;
+}
+
+/* painel vivo: a foto aproxima, a cor anda e os feixes passam, em ritmos diferentes. Com menos
+   movimento (do sistema ou do site) fica tudo parado, sem feixes */
+@media (prefers-reduced-motion: no-preference) {
+  :root:not(.sem-movimento) .acesso__foto {
+    animation: acesso-foto 20s ease-in-out infinite alternate;
+  }
+
+  :root:not(.sem-movimento) .acesso__cor {
+    animation: acesso-cor 14s ease-in-out infinite alternate;
+  }
+
+  :root:not(.sem-movimento) .acesso__feixe {
+    opacity: 0.12;
+    animation: acesso-feixe 18s ease-in-out infinite alternate;
+  }
+
+  :root:not(.sem-movimento) .acesso__feixe--2 {
+    animation-duration: 22s;
+    animation-delay: -7s;
+  }
+
+  :root:not(.sem-movimento) .acesso__feixe--3 {
+    animation-duration: 26s;
+    animation-delay: -15s;
+  }
+}
+
+/* com a aba oculta não há por que gastar bateria */
+.acesso__painel--pausado * {
+  animation-play-state: paused !important;
+}
+
+@keyframes acesso-foto {
+  to {
+    transform: scale(1.08) translate(-1%, -1%);
+  }
+}
+
+@keyframes acesso-cor {
+  from {
+    translate: -10% 0;
+  }
+
+  to {
+    translate: 10% 0;
+  }
+}
+
+/* de fora do painel à esquerda até fora dele à direita, em % da largura do feixe */
+@keyframes acesso-feixe {
+  from {
+    translate: -180% 0;
+  }
+
+  to {
+    translate: 480% 0;
+  }
 }
 
 /* ---------- cadastro mobile em etapas ---------- */
@@ -592,6 +683,9 @@
     order: -1;
     flex: 0 0 210px;
     padding: 2.5rem 1.5rem 1.125rem;
+  }
+
+  .acesso__foto {
     background-position: bottom;
   }
 

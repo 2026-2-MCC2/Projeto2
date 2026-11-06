@@ -1,15 +1,6 @@
 /* Landing page (pages/Landing.jsx). */
 
 .landing {
-  /* coleção "Marca TrocaTicket" do Figma: cores fixas, iguais nos dois temas */
-  --marca-azul: #0a50ae;
-  --marca-laranja: #fe7524;
-  --marca-ciano: #04a5ed;
-  --marca-rosa: #f91788;
-  --marca-preto: #0c0c0c;
-  /* as duas cores de cada gradiente, usadas nos ingressos do hero e no contorno dos perfis */
-  --gradiente-laranja: var(--marca-laranja), var(--marca-rosa);
-  --gradiente-azul: var(--marca-azul), var(--marca-ciano);
   /* laranja para texto pequeno: o da marca dá 2,7:1 sobre o branco; este dá 5,2:1 */
   --texto-destaque: #b84a0e;
 
@@ -361,39 +352,6 @@ html:has(.landing) {
   font-weight: 700;
   line-height: 1.1034; /* 64px */
   letter-spacing: -0.025em;
-}
-
-.hero__destaque {
-  color: var(--marca-laranja);
-}
-
-/* gradiente dos ingressos no texto; sem suporte, ou no alto contraste, fica o laranja sólido */
-@supports (background-clip: text) or (-webkit-background-clip: text) {
-  :root:not(.alto-contraste) .hero__destaque {
-    background: linear-gradient(90deg, var(--gradiente-laranja), var(--marca-laranja)) 0 0 / 200%
-      100%;
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-
-  /* com a cor transparente, o texto selecionado sumiria */
-  :root:not(.alto-contraste) .hero__destaque::selection {
-    background: var(--marca-laranja);
-    color: var(--marca-preto);
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    :root:not(.sem-movimento, .alto-contraste) .hero__destaque {
-      animation: hero-destaque 6s ease-in-out infinite alternate;
-    }
-  }
-}
-
-@keyframes hero-destaque {
-  to {
-    background-position: 100% 0;
-  }
 }
 
 .hero__subtitulo {

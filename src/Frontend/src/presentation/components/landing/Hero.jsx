@@ -63,7 +63,7 @@ export function Hero() {
         </p>
 
         <h1 id="hero-titulo" className="hero__titulo">
-          Do orçamento ao <span className="hero__destaque">preço do ingresso.</span>
+          Do orçamento ao <span className="texto-em-gradiente">preço do ingresso.</span>
         </h1>
 
         <p className="hero__subtitulo">
