@@ -354,6 +354,35 @@ html:has(.landing) {
   color: var(--marca-laranja);
 }
 
+/* gradiente dos ingressos no texto; sem suporte, ou no alto contraste, fica o laranja sólido */
+@supports (background-clip: text) or (-webkit-background-clip: text) {
+  :root:not(.alto-contraste) .hero__destaque {
+    background: linear-gradient(90deg, var(--gradiente-laranja), var(--marca-laranja)) 0 0 / 200%
+      100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* com a cor transparente, o texto selecionado sumiria */
+  :root:not(.alto-contraste) .hero__destaque::selection {
+    background: var(--marca-laranja);
+    color: var(--marca-preto);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    :root:not(.sem-movimento, .alto-contraste) .hero__destaque {
+      animation: hero-destaque 6s ease-in-out infinite alternate;
+    }
+  }
+}
+
+@keyframes hero-destaque {
+  to {
+    background-position: 100% 0;
+  }
+}
+
 .hero__subtitulo {
   margin: 0;
   font-size: 1.1176rem; /* 19px */
