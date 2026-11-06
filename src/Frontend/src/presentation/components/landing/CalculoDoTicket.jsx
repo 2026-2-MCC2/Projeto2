@@ -1,17 +1,25 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { formatarMoeda, formatarMoedaSemCentavos } from '../../../domain/formatacao.js'
 import { calcularTicket } from '../../../utils/calcularTicket.js'
 import { EVENTO_DE_EXEMPLO as evento, VALORES_DO_EXEMPLO } from '../../data/eventoDeExemplo.js'
-import { useApareceuNaTela } from '../../hooks/useApareceuNaTela.js'
-import { useNumerosAnimados } from '../../hooks/useNumerosAnimados.js'
+import { useNaTela } from '../../hooks/useNaTela.js'
 import { pulsar, semMovimento } from '../../movimento.js'
 import { CabecalhoDaSecao } from './CabecalhoDaSecao.jsx'
 import { Ingresso } from './Ingresso.jsx'
+import { NumeroAnimado } from './NumeroAnimado.jsx'
 
 const numero = (valor) => valor.toLocaleString('pt-BR')
 
 // "− R$ 38.100" / "+ R$ 57.100": sinal sempre visível, com o menos tipográfico
 const resultado = (valor) => `${valor < 0 ? '−' : '+'} ${formatarMoedaSemCentavos(Math.abs(valor))}`
+
+// no meio da animação os números têm casas decimais: estes arredondam antes de formatar
+const inteiroAnimado = (valor) => numero(Math.round(valor))
+const resultadoAnimado = (valor) => resultado(Math.round(valor))
+
+// contagem de entrada (quando a seção aparece) e tween de cada mudança depois dela
+const DURACAO_DA_ENTRADA = 1200
+const DURACAO_DA_TROCA = 300
 
 // a margem fica em % inteiro nos controles; o range para em 99%, então nunca chega a 100%
 const VALORES_INICIAIS = {
@@ -31,6 +39,8 @@ const CONTROLES = [
     maximo: 1000000,
     passo: 500,
     formatar: formatarMoedaSemCentavos,
+    // o custo conta junto com os resultados na entrada; depois acompanha o slider direto
+    contaNaEntrada: true,
   },
   {
     chave: 'margem',
@@ -59,9 +69,9 @@ const CENARIOS = [
 // durante o arraste o preço muda a cada passo do slider: o destaque não repete antes disso
 const INTERVALO_ENTRE_DESTAQUES_DO_PRECO = 400
 
-// troca a cor quando o cenário vira lucro ou prejuízo, com um pulse (menos na contagem de entrada)
-// `valorFinal` (sem animação) decide o tamanho da fonte, para ela não mudar a cada quadro do tween
-function ResultadoDoCenario({ valor, valorFinal, pulsarNaTroca }) {
+// troca a cor quando o cenário vira lucro ou prejuízo, com um pulse (menos na contagem de entrada).
+// A cor e o tamanho da fonte seguem o valor final, não o animado: não mudam a cada quadro
+function ResultadoDoCenario({ valor, duracao, pulsarNaTroca }) {
   const elemento = useRef(null)
   const tipo = valor < 0 ? 'prejuizo' : 'lucro'
   const tipoAnterior = useRef(tipo)
@@ -76,34 +86,37 @@ function ResultadoDoCenario({ valor, valorFinal, pulsarNaTroca }) {
     <strong
       ref={elemento}
       className={`cenario-landing__resultado cenario-landing__resultado--${tipo}`}
-      style={{ '--caracteres': resultado(valorFinal).length }}
+      style={{ '--caracteres': resultado(valor).length }}
     >
-      {resultado(valor)}
+      <NumeroAnimado valor={valor} formato={resultadoAnimado} duracao={duracao} />
     </strong>
   )
 }
 
 export function CalculoDoTicket() {
+  // só os 3 sliders ficam em estado; o resto é derivado deles
   const [valores, setValores] = useState(VALORES_INICIAIS)
-  const calculo = calcularDosControles(valores)
-  const { pessimista, realista, otimista } = calculo.cenarios
+  const calculo = useMemo(() => calcularDosControles(valores), [valores])
+  const { otimista } = calculo.cenarios
   const acimaDoOtimista = calculo.equilibrio > otimista.publico
 
-  // os números contam quando 30% da seção aparece; com menos movimento já começam no valor certo
+  // os números ficam em 0 até 30% da seção aparecer e então contam até o valor;
+  // com menos movimento já começam no valor certo
   const secao = useRef(null)
-  const ativo = useApareceuNaTela(secao, 0.3) || semMovimento()
-  const [naTela, contando] = useNumerosAnimados(
-    {
-      custoTotal: valores.custoTotal,
-      preco: calculo.preco,
-      equilibrio: calculo.equilibrio,
-      pessimista: pessimista.resultado,
-      realista: realista.resultado,
-      otimista: otimista.resultado,
-    },
-    { ativo },
+  const ativo = useNaTela(secao) || semMovimento()
+  const [entradaTerminou, setEntradaTerminou] = useState(false)
+  useEffect(() => {
+    if (!ativo) return
+    const espera = setTimeout(() => setEntradaTerminou(true), DURACAO_DA_ENTRADA)
+    return () => clearTimeout(espera)
+  }, [ativo])
+  const contando = ativo && !entradaTerminou
+  const duracao = contando ? DURACAO_DA_ENTRADA : DURACAO_DA_TROCA
+  const alvo = (valor) => (ativo ? valor : 0)
+
+  const equilibrio = (
+    <NumeroAnimado valor={alvo(calculo.equilibrio)} formato={inteiroAnimado} duracao={duracao} />
   )
-  const equilibrioNaTela = numero(Math.round(naTela.equilibrio))
 
   // o destaque do preço sai do próprio evento que muda os valores (timeStamp em ms, como o rAF)
   const preco = useRef(null)
@@ -142,10 +155,8 @@ export function CalculoDoTicket() {
         <p className="calculo-landing__formula">Ticket = Custo total ÷ [Público × (1 − Margem)]</p>
 
         <dl className="calculo-landing__premissas">
-          {CONTROLES.map(({ chave, nome, minimo, maximo, passo, formatar }) => {
+          {CONTROLES.map(({ chave, nome, minimo, maximo, passo, formatar, contaNaEntrada }) => {
             const valor = valores[chave]
-            // na contagem de entrada o valor escrito conta junto; depois acompanha o slider direto
-            const valorNaTela = contando && chave in naTela ? Math.round(naTela[chave]) : valor
             const id = `calculo-landing-${chave}`
 
             return (
@@ -156,7 +167,15 @@ export function CalculoDoTicket() {
                 <dd>
                   {/* o leitor de tela já ouve o valor pelo aria-valuetext do range */}
                   <span className="calculo-landing__valor" aria-hidden="true">
-                    {formatar(valorNaTela)}
+                    {contaNaEntrada ? (
+                      <NumeroAnimado
+                        valor={alvo(valor)}
+                        formato={formatar}
+                        duracao={contando ? DURACAO_DA_ENTRADA : 0}
+                      />
+                    ) : (
+                      formatar(valor)
+                    )}
                   </span>
                   <input
                     type="range"
@@ -179,7 +198,7 @@ export function CalculoDoTicket() {
 
           <div>
             <dt>Ponto de equilíbrio</dt>
-            <dd>{equilibrioNaTela} ingressos</dd>
+            <dd>{equilibrio} ingressos</dd>
           </div>
         </dl>
 
@@ -200,7 +219,13 @@ export function CalculoDoTicket() {
           </div>
           <p className="calculo-landing__preco">
             <span>PREÇO SUGERIDO</span>
-            <strong ref={preco}>{formatarMoeda(naTela.preco)}</strong>
+            <strong ref={preco}>
+              <NumeroAnimado
+                valor={alvo(calculo.preco)}
+                formato={formatarMoeda}
+                duracao={duracao}
+              />
+            </strong>
           </p>
         </div>
 
@@ -216,8 +241,8 @@ export function CalculoDoTicket() {
                 className={`cenario-landing${referencia ? ' cenario-landing--referencia' : ''}`}
                 canhoto={
                   <ResultadoDoCenario
-                    valor={Math.round(naTela[chave])}
-                    valorFinal={cenario.resultado}
+                    valor={alvo(cenario.resultado)}
+                    duracao={duracao}
                     pulsarNaTroca={!contando}
                   />
                 }
@@ -235,7 +260,7 @@ export function CalculoDoTicket() {
           <p className="calculo-landing__rotulos">
             <span>Ingressos vendidos para pagar o evento</span>
             <strong>
-              {equilibrioNaTela} de {numero(otimista.publico)}
+              {equilibrio} de {numero(otimista.publico)}
             </strong>
           </p>
           {/* a barra repete o número escrito acima: fica fora do leitor de tela.
