@@ -4,6 +4,7 @@ import {
   acompanhamentoDoCadastro,
   entrar,
   rotaInicialDoPerfil,
+  ROTA_DO_LOGIN,
   usuarioAtual,
 } from '../../../application/sessao.js'
 import { AcessoLayout } from '../../components/acesso/AcessoLayout.jsx'
@@ -19,9 +20,9 @@ export function Login() {
   const [erro, setErro] = useState('')
   const validacao = useValidacao()
 
-  // perfil desconhecido cai em '/': sem a comparação, a tela redirecionaria para ela mesma sem parar
+  // perfil desconhecido cai no próprio login: sem a comparação, a tela redirecionaria para ela mesma sem parar
   const areaDoUsuarioLogado = rotaInicialDoPerfil(usuarioAtual()?.perfil)
-  if (areaDoUsuarioLogado !== '/') {
+  if (areaDoUsuarioLogado !== ROTA_DO_LOGIN) {
     return <Navigate to={areaDoUsuarioLogado} replace />
   }
 

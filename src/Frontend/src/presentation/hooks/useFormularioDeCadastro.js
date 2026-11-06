@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { validarConfirmacaoSenha } from '../../domain/validacao.js'
 import { useEnvioCadastro } from './useEnvioCadastro.js'
 import { useVerificacaoDeCnpj } from './useVerificacaoDeCnpj.js'
@@ -34,10 +35,19 @@ const DADOS_INICIAIS = {
   confirmacaoSenha: '',
 }
 
+// /cadastro?perfil=fornecedor já abre com o fornecedor marcado (os cartões da landing usam isso)
+function perfilPedido(perfil) {
+  return PERFIS_DO_CADASTRO.some((opcao) => opcao.id === perfil) ? perfil : DADOS_INICIAIS.perfil
+}
+
 // acima das versões desktop e mobile: girar o tablet troca a tela sem apagar o que foi preenchido
 export function useFormularioDeCadastro() {
   const [etapa, setEtapa] = useState(1)
-  const [dados, setDados] = useState(DADOS_INICIAIS)
+  const [parametros] = useSearchParams()
+  const [dados, setDados] = useState(() => ({
+    ...DADOS_INICIAIS,
+    perfil: perfilPedido(parametros.get('perfil')),
+  }))
   const { enviar, enviando, erro } = useEnvioCadastro()
   const { verificando, erroDoCnpj, cnpjEstaLivre, limparErroDoCnpj } = useVerificacaoDeCnpj()
 

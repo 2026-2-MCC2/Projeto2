@@ -70,3 +70,13 @@ export function comparacaoComPrevisto(valor, previsto, referencia = 'previsto') 
   const percentual = Math.abs(diferenca).toLocaleString('pt-BR', { maximumFractionDigits: 1 })
   return `${percentual}% ${diferenca > 0 ? 'acima' : 'abaixo'} do ${referencia}`
 }
+
+// 228500 → "R$ 228.500": para valores redondos, sem os centavos
+export function formatarMoedaSemCentavos(valor) {
+  return Number(valor).toLocaleString('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  })
+}

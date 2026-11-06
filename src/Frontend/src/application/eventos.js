@@ -7,6 +7,7 @@ import {
   iniciarPedido,
   limparEventosEmMemoria,
 } from './eventosEmMemoria.js'
+import { ingressosParaEquilibrio, precoEmCentavos, resultadoDoCenario } from '../domain/ticket.js'
 
 const CENARIOS_MAPA = {
   minimo: 'minimum',
@@ -166,22 +167,20 @@ function calcularDadosTicket(evento, totalCustos) {
     ],
   }
 
-  // o ingresso é cobrado em centavos: sem arredondar, 7.999,9999 ingressos virariam 8.001 no Math.ceil
-  const precoCobrado = Math.round(precoSugeridoNum * 100) / 100
+  const precoCobrado = precoEmCentavos(precoSugeridoNum)
   if (totalCustos <= 0 || precoCobrado <= 0) {
     return { precoSugerido, ticketEstimado, calculo: null }
   }
 
-  const TOLERANCIA_DO_PONTO_FLUTUANTE = 1e-9
-  const ingressosEquilibrio = Math.ceil(totalCustos / precoCobrado - TOLERANCIA_DO_PONTO_FLUTUANTE)
+  const ingressosEquilibrio = ingressosParaEquilibrio(totalCustos, precoCobrado)
   const receitaMin = publicoMin * precoCobrado
-  const resultadoMin = receitaMin - totalCustos
+  const resultadoMin = resultadoDoCenario(publicoMin, precoCobrado, totalCustos)
 
   const receitaExp = publicoExp * precoCobrado
-  const resultadoExp = receitaExp - totalCustos
+  const resultadoExp = resultadoDoCenario(publicoExp, precoCobrado, totalCustos)
 
   const receitaMax = publicoMax * precoCobrado
-  const resultadoMax = receitaMax - totalCustos
+  const resultadoMax = resultadoDoCenario(publicoMax, precoCobrado, totalCustos)
 
   const resultadoDoCenarioBase =
     cenarioRef === 'minimum' ? resultadoMin : cenarioRef === 'maximum' ? resultadoMax : resultadoExp

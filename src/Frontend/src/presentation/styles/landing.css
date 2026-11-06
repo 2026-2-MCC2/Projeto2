@@ -1,0 +1,1523 @@
+/* Landing page (pages/Landing.jsx). */
+
+.landing {
+  /* coleção "Marca TrocaTicket" do Figma: cores fixas, iguais nos dois temas */
+  --marca-azul: #0a50ae;
+  --marca-laranja: #fe7524;
+  --marca-ciano: #04a5ed;
+  --marca-rosa: #f91788;
+  --marca-preto: #0c0c0c;
+  /* laranja para texto pequeno: o da marca dá 2,7:1 sobre o branco; este dá 5,2:1 */
+  --texto-destaque: #b84a0e;
+
+  min-height: 100vh;
+  background: var(--fundo-superficie);
+  /* o Figma usa a entrelinha "normal" do Inter nos textos de uma linha; o body do projeto usa 1.35 */
+  line-height: normal;
+}
+
+/* no escuro o laranja da marca já tem contraste (6,2:1) */
+:root[data-tema='escuro'] .landing {
+  --texto-destaque: var(--marca-laranja);
+}
+
+/* rolagem suave até as âncoras do menu, menos para quem pediu menos movimento */
+@media (prefers-reduced-motion: no-preference) {
+  html:has(.landing):not(.sem-movimento) {
+    scroll-behavior: smooth;
+  }
+}
+
+/* ---------- botão (LP · Botão) ---------- */
+
+.botao-landing {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 13px 22px;
+  border: 0;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.8824rem; /* 15px */
+  font-weight: 600;
+  line-height: normal;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.botao-landing--primario {
+  background: var(--acao-primaria);
+  color: var(--acao-sobre-primaria);
+}
+
+.botao-landing--secundario {
+  border: 1px solid var(--borda-forte);
+  background: var(--fundo-superficie);
+  color: var(--texto-primario);
+}
+
+.botao-landing--contorno-claro {
+  border: 1px solid var(--acao-sobre-primaria);
+  background: transparent;
+  color: var(--acao-sobre-primaria);
+}
+
+@media (hover: hover) {
+  .botao-landing--primario:hover {
+    background: color-mix(in srgb, var(--acao-primaria) 88%, #000);
+  }
+
+  .botao-landing--secundario:hover {
+    background: var(--fundo-sutil);
+  }
+
+  .botao-landing--contorno-claro:hover {
+    background: rgb(255 255 255 / 10%);
+  }
+}
+
+/* ---------- navbar ---------- */
+
+.landing-topo {
+  position: relative;
+  z-index: 10; /* o menu aberto passa por cima do conteúdo, mas fica sob os botões flutuantes */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  /* conteúdo de 1200px centralizado: 120px de cada lado na tela de 1440px do Figma */
+  padding: 18px max(32px, calc((100% - 1200px) / 2));
+  border-bottom: 1px solid var(--borda-padrao);
+  background: var(--fundo-superficie);
+}
+
+.landing-topo__marca {
+  display: flex;
+  border-radius: 8px;
+}
+
+.landing-topo__logo {
+  --logo-altura: 54px;
+}
+
+/* o PNG do Figma já traz a margem do desenho; o negativo é mais justo e ganha o mesmo recuo */
+.logotipo-landing .logotipo__claro {
+  margin-left: 0;
+}
+
+.logotipo-landing .logotipo__negativo {
+  margin-left: 0.1em;
+}
+
+.landing-topo__alternar {
+  display: none;
+}
+
+.landing-topo__menu {
+  display: flex;
+  flex: 1;
+  align-items: center;
+}
+
+.landing-topo__links {
+  display: flex;
+  gap: clamp(24px, 2.5vw, 36px);
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+}
+
+.landing-topo__link {
+  border-radius: 4px;
+  color: var(--texto-secundario);
+  font-size: 0.8824rem; /* 15px */
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.landing-topo__acoes {
+  display: flex;
+  gap: 12px;
+}
+
+@media (hover: hover) {
+  .landing-topo__link:hover {
+    color: var(--texto-primario);
+  }
+}
+
+/* abaixo disso os links e os botões não cabem numa linha (o mesmo valor do NavbarLanding.jsx) */
+@media (max-width: 1100px) {
+  .landing-topo {
+    padding: 12px 16px 12px 20px;
+  }
+
+  .landing-topo__logo {
+    --logo-altura: 44px;
+  }
+
+  .landing-topo__alternar {
+    --icone-cor: var(--texto-primario);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    border: 1px solid var(--borda-padrao);
+    border-radius: 10px;
+    background: var(--fundo-superficie);
+    cursor: pointer;
+  }
+
+  /* o X reaproveitado tem 15px; aqui ocupa o mesmo espaço do ícone de menu */
+  .landing-topo__alternar .icone {
+    width: 24px;
+    height: 24px;
+  }
+
+  .landing-topo__menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    left: 0;
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 20px;
+    padding: 8px 20px 24px;
+    border-bottom: 1px solid var(--borda-padrao);
+    background: var(--fundo-superficie);
+    box-shadow: 0 12px 24px rgb(15 23 42 / 8%);
+  }
+
+  .landing-topo__menu--aberto {
+    display: flex;
+  }
+
+  .landing-topo__links {
+    flex-direction: column;
+    gap: 0;
+    margin: 0;
+  }
+
+  .landing-topo__link {
+    display: block;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--borda-padrao);
+    font-size: 1rem;
+  }
+
+  .landing-topo__acoes {
+    flex-direction: column;
+  }
+}
+
+/* ---------- hero ---------- */
+
+.hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 56px;
+  padding: 128px max(32px, calc((100% - 1200px) / 2)) 152px;
+  overflow: hidden;
+  color: var(--acao-sobre-primaria);
+}
+
+/* a foto e o gradiente são iguais nos dois temas: o hero é sempre escuro */
+.hero__fundo {
+  position: absolute;
+  inset: 0;
+  background: var(--marca-preto); /* enquanto a foto carrega */
+}
+
+.hero__foto {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero__fundo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgb(0 0 0 / 0%) 0%, rgb(5 5 10 / 55%) 100%),
+    linear-gradient(90deg, rgb(10 8 15 / 92%) 0%, rgb(13 8 13 / 72%) 55%, rgb(15 8 5 / 35%) 100%);
+}
+
+.hero__chamada,
+.hero__visual {
+  position: relative;
+  z-index: 1;
+}
+
+.hero__chamada {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 28px;
+  min-width: 0;
+}
+
+.hero__selo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 7px 14px 7px 12px;
+  border: 1px solid rgb(255 255 255 / 25%);
+  border-radius: 99px;
+  background: rgb(255 255 255 / 14%);
+  font-size: 0.7647rem; /* 13px */
+  font-weight: 500;
+}
+
+.hero__titulo {
+  margin: 0;
+  font-size: 3.4118rem; /* 58px */
+  font-weight: 700;
+  line-height: 1.1034; /* 64px */
+  letter-spacing: -0.025em;
+}
+
+.hero__destaque {
+  color: var(--marca-laranja);
+}
+
+.hero__subtitulo {
+  margin: 0;
+  font-size: 1.1176rem; /* 19px */
+  line-height: 1.579; /* 30px */
+  opacity: 0.88;
+}
+
+.hero__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.hero__aviso {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 0.7647rem; /* 13px */
+  color: rgb(255 255 255 / 70%);
+}
+
+/* ilustração: desenhada em 660 × 500 px e encolhida por inteiro (hooks/useEscalaParaCaber.js) */
+.hero__visual {
+  flex: 0 1 660px;
+  min-width: 0;
+}
+
+.hero__ingressos {
+  position: relative;
+  aspect-ratio: 660 / 500;
+}
+
+.hero__palco {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 660px;
+  height: 500px;
+  transform: scale(var(--escala, 1));
+  transform-origin: 0 0;
+}
+
+/* os ingressos imitam papel impresso: cores fixas, iguais nos dois temas */
+.hero__ingresso {
+  --ingresso-raio: 22px;
+  --ingresso-fundo-canhoto: #fff;
+  --ingresso-picote-cor: #cbd5e1;
+  --ingresso-picote-espessura: 2px;
+  --ingresso-picote-traco: 7px;
+  --ingresso-picote-espaco: 4px;
+  --ingresso-sombra: drop-shadow(0 28px 25px rgb(10 31 77 / 22%));
+
+  position: absolute;
+  color: #fff;
+}
+
+.hero__ingresso .ingresso__corpo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 30px 32px;
+}
+
+.hero__ingresso .ingresso__canhoto {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero__ingresso--summit {
+  --ingresso-recorte: 16px;
+  --ingresso-picote-recuo: 22px;
+  --ingresso-fundo: linear-gradient(90deg, var(--marca-laranja), var(--marca-rosa));
+
+  top: 44px;
+  left: 132px;
+  width: 540px;
+  height: 230px;
+  opacity: 0.95;
+  transform: rotate(-7deg);
+}
+
+.hero__ingresso--summit .ingresso__corpo {
+  gap: 8px;
+}
+
+.hero__ingresso--summit .ingresso__canhoto {
+  width: 160px;
+}
+
+.hero__ingresso--festival {
+  --ingresso-recorte: 18px;
+  --ingresso-picote-recuo: 24px;
+  --ingresso-fundo: linear-gradient(90deg, var(--marca-azul), var(--marca-ciano));
+
+  top: 170px;
+  left: 14px;
+  width: 580px;
+  height: 260px;
+  transform: rotate(4deg);
+}
+
+.hero__ingresso--festival .ingresso__corpo {
+  gap: 14px;
+}
+
+.hero__ingresso--festival .ingresso__canhoto {
+  gap: 6px;
+  width: 180px;
+}
+
+.hero__rotulo {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+}
+
+.hero__rotulo--pilula {
+  padding: 4px 10px;
+  border-radius: 99px;
+  background: rgb(255 255 255 / 18%);
+  letter-spacing: 0.12em;
+}
+
+.hero__evento {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.hero__ingresso--festival .hero__evento {
+  font-size: 26px;
+  line-height: 31px;
+}
+
+.hero__dados {
+  display: flex;
+  gap: 24px;
+  margin: 0;
+  padding-top: 6px;
+  font-weight: 600;
+}
+
+.hero__dados div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.hero__dados dt {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  opacity: 0.7;
+}
+
+.hero__dados dd {
+  margin: 0;
+  font-size: 14px;
+}
+
+/* no canhoto branco valem as cores do tema claro, mesmo no escuro */
+.hero__valor-rotulo {
+  color: #5f6b7d;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+}
+
+.hero__valor {
+  color: var(--marca-azul);
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+.hero__valor-apoio {
+  color: #4b5563;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.hero__etiquetas {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hero__etiqueta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px 10px 14px;
+  border: 1px solid var(--borda-padrao);
+  border-radius: 99px;
+  background: var(--fundo-superficie);
+  box-shadow: 0 10px 24px -6px rgb(15 23 41 / 10%);
+  color: var(--texto-secundario);
+  font-size: 0.7647rem; /* 13px */
+  white-space: nowrap;
+}
+
+.hero__etiqueta strong {
+  color: var(--texto-primario);
+  font-weight: 600;
+}
+
+.hero__etiqueta::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--_ponto);
+}
+
+.hero__etiqueta--custo {
+  --_ponto: var(--marca-laranja);
+}
+
+.hero__etiqueta--margem {
+  --_ponto: var(--status-sucesso-forte);
+}
+
+.hero__etiqueta--equilibrio {
+  --_ponto: var(--acao-primaria);
+}
+
+/* no desktop as etiquetas flutuam sobre os ingressos, nas posições do Figma (em % de 660 × 500) */
+@media (min-width: 901px) {
+  .hero__visual {
+    position: relative;
+  }
+
+  .hero__etiqueta {
+    position: absolute;
+  }
+
+  .hero__etiqueta--custo {
+    top: 8%;
+    left: 0;
+  }
+
+  .hero__etiqueta--margem {
+    top: 4.8%;
+    left: 71.2%;
+  }
+
+  .hero__etiqueta--equilibrio {
+    top: 88%;
+    left: 50%;
+  }
+}
+
+@media (max-width: 900px) {
+  .hero {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 36px;
+    padding: 40px 20px 56px;
+  }
+
+  .hero__chamada {
+    gap: 20px;
+  }
+
+  .hero__selo {
+    font-size: 0.7059rem; /* 12px */
+  }
+
+  .hero__titulo {
+    font-size: 2.2353rem; /* 38px */
+    line-height: 1.1579; /* 44px */
+    letter-spacing: -0.02em;
+  }
+
+  .hero__subtitulo {
+    font-size: 0.9412rem; /* 16px */
+    line-height: 1.5625; /* 25px */
+  }
+
+  .hero__visual {
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    gap: 36px;
+  }
+
+  /* no mobile o desenho corta o espaço que as etiquetas ocupavam embaixo */
+  .hero__ingressos {
+    aspect-ratio: 660 / 460;
+  }
+
+  .hero__etiquetas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}
+
+/* ---------- seções e cabeçalho da seção ---------- */
+
+/* conteúdo de 1200px centralizado, como a navbar e o hero */
+.landing__secao {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 56px;
+  padding: 112px max(32px, calc((100% - 1200px) / 2));
+}
+
+.cabecalho-secao {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.cabecalho-secao--centro {
+  align-items: center;
+  max-width: 760px;
+  text-align: center;
+}
+
+.cabecalho-secao__sobretitulo {
+  margin: 0;
+  color: var(--texto-destaque);
+  font-size: 0.7647rem; /* 13px */
+  font-weight: 600;
+  letter-spacing: 0.1em;
+}
+
+.cabecalho-secao__titulo {
+  margin: 0;
+  color: var(--texto-primario);
+  font-size: 2.4706rem; /* 42px */
+  font-weight: 700;
+  line-height: 1.1905; /* 50px */
+  letter-spacing: -0.015em;
+}
+
+.cabecalho-secao__subtitulo {
+  max-width: 640px;
+  margin: 0;
+  color: var(--texto-secundario);
+  font-size: 1.0588rem; /* 18px */
+  line-height: 1.5556; /* 28px */
+}
+
+/* ---------- como funciona ---------- */
+
+.etapas-landing {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* mini-ingresso "LP · Passo": canhoto em cima, recortes de 11px (padrão do Ingresso) */
+.etapa-landing {
+  --ingresso-fundo: var(--fundo-pagina);
+  --ingresso-fundo-canhoto: var(--fundo-marca-suave);
+}
+
+.etapa-landing .ingresso__corpo {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 24px 28px 28px;
+}
+
+.etapa-landing__numero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 72px;
+  margin: 0;
+  padding: 0 28px;
+  color: var(--texto-marca);
+}
+
+.etapa-landing__numero span {
+  font-size: 0.7059rem; /* 12px */
+  font-weight: 600;
+  letter-spacing: 0.14em;
+}
+
+.etapa-landing__numero strong {
+  font-size: 1.7647rem; /* 30px */
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.etapa-landing__titulo {
+  margin: 0;
+  color: var(--texto-primario);
+  font-size: 1.1176rem; /* 19px */
+  font-weight: 600;
+  line-height: 1.3684; /* 26px */
+}
+
+.etapa-landing__descricao {
+  margin: 0;
+  color: var(--texto-secundario);
+  font-size: 0.8824rem; /* 15px */
+  line-height: 1.5333; /* 23px */
+}
+
+/* entre o mobile e o desktop largo, 4 colunas ficam estreitas demais para o texto */
+@media (max-width: 1100px) {
+  .etapas-landing {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .landing__secao {
+    gap: 32px;
+    padding: 64px 20px;
+  }
+
+  .cabecalho-secao {
+    gap: 12px;
+  }
+
+  .cabecalho-secao__titulo {
+    font-size: 1.6471rem; /* 28px */
+    line-height: 1.1786; /* 33px */
+  }
+
+  .cabecalho-secao__subtitulo {
+    font-size: 0.9412rem; /* 16px */
+    line-height: 1.5625; /* 25px */
+  }
+}
+
+/* ---------- para quem é (perfis) ---------- */
+
+.landing__secao--sutil {
+  background: var(--fundo-pagina);
+}
+
+.perfis-landing {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  width: 100%;
+}
+
+/* o cartão é um Ingresso vertical: o picote separa o conteúdo do botão (o canhoto) */
+.perfil-landing {
+  --ingresso-raio: 20px;
+  --ingresso-recorte: 13px;
+  --ingresso-picote-recuo: 40px;
+  /* drop-shadow não tem espalhamento: menos opacidade imita o -8px do Figma */
+  --ingresso-sombra: drop-shadow(0 16px 20px rgb(15 23 41 / 6%));
+}
+
+.perfil-landing .ingresso__parte {
+  border: 1px solid var(--borda-padrao);
+}
+
+.perfil-landing .ingresso__corpo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+  padding: 40px 40px 24px;
+  border-bottom: 0;
+}
+
+.perfil-landing .ingresso__canhoto {
+  padding: 24px 40px 40px;
+  border-top: 0;
+}
+
+.perfil-landing--organizador {
+  --_destaque: var(--texto-marca);
+  --_destaque-fundo: var(--fundo-marca-suave);
+}
+
+.perfil-landing--fornecedor {
+  --_destaque: var(--texto-destaque);
+  --_destaque-fundo: var(--status-alerta-fundo);
+}
+
+.perfil-landing__topo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.perfil-landing__icone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: var(--_destaque-fundo);
+}
+
+.perfil-landing__rotulo {
+  margin: 0;
+  color: var(--_destaque);
+  font-size: 0.7647rem; /* 13px */
+  font-weight: 600;
+  letter-spacing: 0.1em;
+}
+
+.perfil-landing__titulo {
+  margin: 0;
+  color: var(--texto-primario);
+  font-size: 1.6471rem; /* 28px */
+  font-weight: 700;
+  line-height: 1.2857; /* 36px */
+  letter-spacing: -0.01em;
+}
+
+.perfil-landing__descricao {
+  margin: 0;
+  color: var(--texto-secundario);
+  font-size: 1rem; /* 17px */
+  line-height: 1.5294; /* 26px */
+}
+
+.perfil-landing__lista {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* o check acompanha a primeira linha quando o texto quebra */
+.perfil-landing__lista li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  color: var(--texto-primario);
+  font-size: 0.9412rem; /* 16px */
+  font-weight: 500;
+  line-height: 1.5; /* 24px */
+}
+
+.perfil-landing__lista .icone {
+  margin-top: 2px;
+}
+
+.perfil-landing--fornecedor .perfil-landing__lista .icone {
+  --icone-cor: var(--marca-laranja);
+}
+
+@media (max-width: 900px) {
+  .perfis-landing {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .perfil-landing {
+    --ingresso-picote-recuo: 24px;
+  }
+
+  .perfil-landing .ingresso__corpo {
+    gap: 20px;
+    padding: 28px 24px 20px;
+  }
+
+  .perfil-landing .ingresso__canhoto {
+    padding: 20px 24px 28px;
+  }
+
+  .perfil-landing__titulo {
+    font-size: 1.2941rem; /* 22px */
+    line-height: 1.5455; /* 34px */
+  }
+
+  .perfil-landing__descricao {
+    font-size: 0.9412rem; /* 16px */
+    line-height: 1.5625; /* 25px */
+  }
+}
+
+/* ---------- cálculo do ticket ---------- */
+
+.cabecalho-secao--esquerda {
+  align-items: flex-start;
+}
+
+.calculo-landing {
+  flex-direction: row;
+  gap: 72px;
+}
+
+.calculo-landing__texto {
+  display: flex;
+  flex: 0 0 480px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 28px;
+}
+
+.calculo-landing__formula {
+  margin: 0;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: var(--fundo-marca-suave);
+  color: var(--texto-marca);
+  font-size: 0.8824rem; /* 15px */
+  font-weight: 600;
+}
+
+.calculo-landing__premissas {
+  width: 100%;
+  margin: 0;
+  font-size: 0.8824rem; /* 15px */
+}
+
+.calculo-landing__premissas div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--borda-padrao);
+}
+
+.calculo-landing__premissas dt {
+  color: var(--texto-secundario);
+}
+
+.calculo-landing__premissas dd {
+  margin: 0;
+  color: var(--texto-primario);
+  font-weight: 600;
+}
+
+.calculo-landing__painel {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+  padding: 32px;
+  border: 1px solid var(--borda-padrao);
+  border-radius: 20px;
+  background: var(--fundo-pagina);
+}
+
+.calculo-landing__topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.calculo-landing__evento {
+  margin: 0 0 4px;
+  color: var(--texto-primario);
+  font-size: 1.0588rem; /* 18px */
+  font-weight: 600;
+}
+
+.calculo-landing__apoio {
+  margin: 0;
+  color: var(--texto-secundario);
+  font-size: 0.8235rem; /* 14px */
+}
+
+.calculo-landing__preco {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  margin: 0;
+}
+
+.calculo-landing__preco span {
+  color: var(--texto-terciario);
+  font-size: 0.6471rem; /* 11px */
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+.calculo-landing__preco strong {
+  color: var(--texto-marca);
+  font-size: 1.7647rem; /* 30px */
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.calculo-landing__cenarios {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* mini-ingresso "LP · Cenário": os recortes mostram o fundo do painel */
+.cenario-landing {
+  --ingresso-raio: 12px;
+  --ingresso-recorte: 9px;
+}
+
+.cenario-landing .ingresso__corpo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 18px 20px 16px;
+}
+
+.cenario-landing .ingresso__canhoto {
+  padding: 14px 20px 18px;
+}
+
+/* o cenário de referência (o do preço sugerido) ganha a borda azul */
+.cenario-landing--referencia .ingresso__parte {
+  border: 2px solid var(--acao-primaria);
+}
+
+.cenario-landing--referencia .ingresso__corpo {
+  border-bottom: 0;
+}
+
+.cenario-landing--referencia .ingresso__canhoto {
+  border-top: 0;
+}
+
+.cenario-landing__nome {
+  color: var(--texto-primario);
+  font-size: 0.8824rem; /* 15px */
+  font-weight: 600;
+}
+
+.cenario-landing__publico {
+  color: var(--texto-secundario);
+  font-size: 0.7647rem; /* 13px */
+}
+
+.cenario-landing__resultado {
+  display: block;
+  font-size: 1.4118rem; /* 24px */
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.cenario-landing__resultado--prejuizo {
+  color: var(--status-perigo-texto);
+}
+
+.cenario-landing__resultado--lucro {
+  color: var(--status-sucesso-texto);
+}
+
+.calculo-landing__equilibrio {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px 20px;
+  border: 1px solid var(--borda-padrao);
+  border-radius: 12px;
+  background: var(--fundo-superficie);
+}
+
+.calculo-landing__rotulos {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px 16px;
+  margin: 0;
+  font-size: 0.7647rem; /* 13px */
+}
+
+.calculo-landing__rotulos span {
+  color: var(--texto-secundario);
+  font-weight: 500;
+}
+
+.calculo-landing__rotulos strong {
+  color: var(--texto-marca);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.calculo-landing__barra {
+  height: 10px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: var(--fundo-sutil);
+}
+
+.calculo-landing__barra span {
+  display: block;
+  height: 100%;
+  border-radius: 99px;
+  background: var(--acao-primaria);
+}
+
+/* abaixo disso o texto e o painel não cabem lado a lado: o texto vai para cima */
+@media (max-width: 1100px) {
+  .calculo-landing {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .calculo-landing__texto {
+    flex: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .calculo-landing {
+    gap: 36px;
+  }
+
+  .calculo-landing__texto {
+    gap: 20px;
+  }
+
+  .calculo-landing__formula {
+    align-self: stretch;
+    font-size: 0.8235rem; /* 14px */
+  }
+
+  .calculo-landing__painel {
+    gap: 20px;
+    padding: 24px 20px;
+  }
+
+  .calculo-landing__evento {
+    font-size: 0.9412rem; /* 16px */
+  }
+}
+
+/* ---------- dúvidas frequentes ---------- */
+
+.duvidas-landing {
+  gap: 40px;
+}
+
+.duvidas-landing__lista {
+  width: 100%;
+  max-width: 800px;
+}
+
+.pergunta-landing {
+  padding: 24px 0;
+  border-bottom: 1px solid var(--borda-padrao);
+}
+
+.pergunta-landing__pergunta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-radius: 4px;
+  color: var(--texto-primario);
+  font-size: 1.0588rem; /* 18px */
+  font-weight: 600;
+  line-height: 1.4444; /* 26px */
+  list-style: none;
+  cursor: pointer;
+}
+
+.pergunta-landing__pergunta::-webkit-details-marker {
+  display: none;
+}
+
+/* "Ícone · Recolher" do Figma (traço de 20px); fechado, ganha o traço vertical e vira "+" */
+.pergunta-landing__pergunta::after {
+  content: '';
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  background:
+    linear-gradient(var(--texto-marca), var(--texto-marca)) center / 11.67px 1.67px no-repeat,
+    linear-gradient(var(--texto-marca), var(--texto-marca)) center / 1.67px 11.67px no-repeat;
+}
+
+.pergunta-landing[open] .pergunta-landing__pergunta::after {
+  background: linear-gradient(var(--texto-marca), var(--texto-marca)) center / 11.67px 1.67px
+    no-repeat;
+}
+
+/* o foco global do projeto cobre botões e links; o summary precisa do mesmo contorno */
+.pergunta-landing__pergunta:focus-visible {
+  outline: 2px solid var(--texto-marca);
+  outline-offset: 4px;
+}
+
+.pergunta-landing__resposta {
+  margin: 10px 0 0;
+  color: var(--texto-secundario);
+  font-size: 0.9412rem; /* 16px */
+  line-height: 1.5625; /* 25px */
+}
+
+@media (max-width: 900px) {
+  .duvidas-landing {
+    gap: 32px;
+  }
+}
+
+/* ---------- chamada final ---------- */
+
+/* fundo fixo (escuro nos dois temas), com os três brilhos do Figma em % da seção */
+.chamada-landing {
+  display: flex;
+  justify-content: center;
+  padding: 104px max(32px, calc((100% - 1200px) / 2));
+  background:
+    radial-gradient(62.5% 50% at 43.75% 90%, rgb(10 80 174 / 25%), transparent),
+    radial-gradient(55.6% 35.7% at 5.6% 25%, rgb(249 23 136 / 22%), transparent),
+    radial-gradient(55.6% 35.7% at 88.9% 71.4%, rgb(254 117 36 / 28%), transparent),
+    var(--marca-preto);
+}
+
+.chamada-landing__ingresso {
+  --ingresso-raio: 24px;
+  --ingresso-recorte: 20px;
+  --ingresso-fundo-canhoto: var(--marca-laranja);
+  --ingresso-picote-cor: rgb(255 255 255 / 70%);
+  --ingresso-picote-espessura: 2px;
+  --ingresso-picote-traco: 8px;
+  --ingresso-picote-espaco: 4px;
+  --ingresso-picote-recuo: 28px;
+  --ingresso-sombra: drop-shadow(0 30px 30px rgb(0 0 0 / 35%));
+
+  width: 100%;
+  max-width: 1040px;
+}
+
+.chamada-landing__ingresso .ingresso__corpo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 18px;
+  padding: 56px;
+}
+
+.chamada-landing__ingresso .ingresso__canhoto {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 280px;
+  padding: 24px;
+  color: var(--acao-sobre-primaria);
+  text-align: center;
+}
+
+.chamada-landing__sobretitulo {
+  margin: 0;
+  color: var(--texto-destaque);
+  font-size: 0.7059rem; /* 12px */
+  font-weight: 600;
+  letter-spacing: 0.14em;
+}
+
+.chamada-landing__titulo {
+  margin: 0;
+  color: var(--texto-primario);
+  font-size: 2.3529rem; /* 40px */
+  font-weight: 700;
+  line-height: 1.2; /* 48px */
+  letter-spacing: -0.015em;
+}
+
+.chamada-landing__subtitulo {
+  margin: 0;
+  color: var(--texto-secundario);
+  font-size: 1.0588rem; /* 18px */
+  line-height: 1.5556; /* 28px */
+}
+
+.chamada-landing__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-top: 6px;
+}
+
+.chamada-landing__entrada {
+  font-size: 0.7059rem; /* 12px */
+  font-weight: 600;
+  letter-spacing: 0.24em;
+}
+
+.chamada-landing__numero {
+  font-size: 2.5882rem; /* 44px */
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+/* branco sobre o laranja dá 2,7:1; a pílula escura leva o aviso a 5,4:1 (WCAG pede 4,5:1) */
+.chamada-landing__aviso {
+  padding: 4px 10px;
+  border-radius: 99px;
+  background: rgb(12 12 12 / 35%);
+  font-size: 0.7059rem; /* 12px */
+  font-weight: 500;
+}
+
+@media (max-width: 900px) {
+  .chamada-landing {
+    padding: 64px 20px;
+  }
+
+  .chamada-landing__ingresso {
+    --ingresso-raio: 20px;
+    --ingresso-recorte: 16px;
+    --ingresso-picote-recuo: 22px;
+  }
+
+  .chamada-landing__ingresso .ingresso__corpo {
+    gap: 14px;
+    padding: 28px 24px 30px;
+  }
+
+  .chamada-landing__ingresso .ingresso__canhoto {
+    gap: 8px;
+    width: auto;
+    padding: 16px 24px 20px;
+  }
+
+  .chamada-landing__sobretitulo {
+    font-size: 0.6471rem; /* 11px */
+    letter-spacing: 0.12em;
+  }
+
+  .chamada-landing__titulo {
+    font-size: 1.5294rem; /* 26px */
+    line-height: 1.1923; /* 31px */
+    letter-spacing: -0.01em;
+  }
+
+  .chamada-landing__subtitulo {
+    font-size: 0.8824rem; /* 15px */
+    line-height: 1.5333; /* 23px */
+  }
+
+  .chamada-landing__entrada {
+    font-size: 0.6471rem; /* 11px */
+  }
+
+  .chamada-landing__numero {
+    font-size: 2rem; /* 34px */
+  }
+
+  /* o código de barras do Figma mobile é mais baixo (140 × 32) */
+  .chamada-landing__barras {
+    width: 140px;
+    height: 32px;
+  }
+}
+
+/* ---------- rodapé ---------- */
+
+.rodape-landing {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+  padding: 64px max(32px, calc((100% - 1200px) / 2)) 40px;
+  border-top: 1px solid var(--borda-padrao);
+  background: var(--fundo-superficie);
+}
+
+.rodape-landing__topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 48px;
+}
+
+.rodape-landing__marca {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.rodape-landing__logo {
+  --logo-altura: 54px;
+}
+
+.rodape-landing__marca p {
+  margin: 0;
+  color: var(--texto-secundario);
+  font-size: 0.8235rem; /* 14px */
+}
+
+.rodape-landing__colunas {
+  display: flex;
+  gap: 80px;
+}
+
+.rodape-landing__coluna {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rodape-landing__titulo {
+  margin: 0;
+  color: var(--texto-primario);
+  font-size: 0.7647rem; /* 13px */
+  font-weight: 600;
+}
+
+.rodape-landing__coluna ul {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rodape-landing__coluna a {
+  border-radius: 4px;
+  color: var(--texto-secundario);
+  font-size: 0.8235rem; /* 14px */
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+@media (hover: hover) {
+  .rodape-landing__coluna a:hover {
+    color: var(--texto-primario);
+    text-decoration: underline;
+  }
+}
+
+.rodape-landing__base {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--borda-padrao);
+  color: var(--texto-terciario);
+  font-size: 0.7647rem; /* 13px */
+}
+
+.rodape-landing__base p {
+  margin: 0;
+}
+
+.rodape-landing__assinatura {
+  font-weight: 500;
+}
+
+/* nas telas em que a margem lateral fica pequena, os botões flutuantes (fixos no canto) cairiam
+   em cima da linha de base: o rodapé ganha espaço embaixo para eles */
+@media (max-width: 1264px) {
+  .rodape-landing {
+    padding-bottom: 104px;
+  }
+}
+
+@media (max-width: 900px) {
+  .rodape-landing {
+    gap: 32px;
+    padding: 48px 20px 104px;
+  }
+
+  .rodape-landing__topo {
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  .rodape-landing__colunas {
+    flex-wrap: wrap;
+    gap: 28px 40px;
+  }
+
+  .rodape-landing__base {
+    flex-direction: column;
+  }
+}
+
+/* ---------- celular (até 600px) ----------
+   O Figma só tem 390px e 1440px. Entre 601 e 900px (tablet) o layout já empilha, mas botões e
+   grades ainda cabem lado a lado; só no celular eles ocupam a largura toda, como no Figma mobile. */
+@media (max-width: 600px) {
+  .hero__acoes {
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .etapas-landing {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .perfil-landing .botao-landing {
+    width: 100%;
+  }
+
+  .calculo-landing__topo {
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .calculo-landing__preco {
+    align-items: flex-start;
+  }
+
+  .calculo-landing__cenarios {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .calculo-landing__rotulos {
+    flex-direction: column;
+  }
+
+  .chamada-landing__acoes {
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+  }
+}

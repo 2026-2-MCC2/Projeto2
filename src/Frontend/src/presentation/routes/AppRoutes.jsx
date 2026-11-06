@@ -8,6 +8,7 @@ import { RecuperarSenha } from '../pages/acesso/RecuperarSenha.jsx'
 import { RedefinirSenha } from '../pages/acesso/RedefinirSenha.jsx'
 import { CadastroPendente } from '../pages/acesso/CadastroPendente.jsx'
 import { AreaDoPerfil } from './AreaDoPerfil.jsx'
+import { ROTA_DO_LOGIN } from '../../application/sessao.js'
 
 // o lazy() espera export default, por isso cada página é pega pelo nome
 const paginasDe = (carregar) => (nome) =>
@@ -17,6 +18,9 @@ const doOrganizador = paginasDe(() => import('../pages/organizador/index.js'))
 const doFornecedor = paginasDe(() => import('../pages/fornecedor/index.js'))
 const doAdmin = paginasDe(() => import('../pages/admin/index.js'))
 const comuns = paginasDe(() => import('../pages/comuns.js'))
+
+// fora do pacote principal: quem entra direto numa área logada não baixa a landing
+const Landing = paginasDe(() => import('../pages/Landing.jsx'))('Landing')
 
 const Eventos = doOrganizador('Eventos')
 const NovoEvento = doOrganizador('NovoEvento')
@@ -46,7 +50,9 @@ export function AppRoutes() {
     <BrowserRouter>
       <Suspense fallback={<Carregando telaInteira />}>
         <Routes>
-          <Route path="/" element={<Login />} />
+          {/* a landing é a página principal; o login fica em /entrar */}
+          <Route path="/" element={<Landing />} />
+          <Route path={ROTA_DO_LOGIN} element={<Login />} />
           <Route path="/cadastro" element={<Cadastro />} />
           <Route path="/recuperar-senha" element={<RecuperarSenha />} />
           <Route path="/redefinir-senha" element={<RedefinirSenha />} />

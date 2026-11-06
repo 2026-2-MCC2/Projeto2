@@ -1,0 +1,139 @@
+/* Forma de ingresso (components/landing/Ingresso.jsx).
+   Cada parte recorta meio círculo nos dois cantos que encostam no picote (mask com radial-gradient),
+   então o recorte é um furo de verdade e mostra o fundo que estiver atrás, seja qual for.
+   Quem usa ajusta pelas variáveis, de preferência na classe passada em className:
+     --ingresso-raio             cantos externos (16px)
+     --ingresso-recorte          raio dos recortes (11px)
+     --ingresso-fundo            fundo do corpo (--fundo-superficie)
+     --ingresso-fundo-canhoto    fundo do canhoto (o mesmo do corpo)
+     --ingresso-picote-cor       cor do tracejado (--borda-forte)
+     --ingresso-picote-espessura 1.5px
+     --ingresso-picote-traco     comprimento de cada traço (6px)
+     --ingresso-picote-espaco    espaço entre os traços (5px)
+     --ingresso-picote-recuo     distância entre as pontas do tracejado e as bordas (0)
+     --ingresso-sombra           filtro de sombra, ex.: drop-shadow(0 30px 60px rgb(0 0 0 / 35%))
+   A sombra usa filter (e não box-shadow) porque a máscara cortaria o box-shadow. */
+
+.ingresso {
+  --_raio: var(--ingresso-raio, 16px);
+  --_recorte: var(--ingresso-recorte, 11px);
+  --_traco: var(--ingresso-picote-traco, 6px);
+  --_espaco: var(--ingresso-picote-espaco, 5px);
+
+  display: flex;
+  flex-direction: var(--_direcao);
+  filter: var(--ingresso-sombra, none);
+}
+
+/* canhoto à direita: o corte fica na borda direita do corpo e na esquerda do canhoto */
+.ingresso--horizontal,
+.ingresso--responsiva {
+  --_direcao: row;
+  --_mascara-tamanho: 100% 51%;
+  --_mascara-lado-1: top;
+  --_mascara-lado-2: bottom;
+  --_corte-antes-1: 100% 0;
+  --_corte-antes-2: 100% 100%;
+  --_corte-depois-1: 0 0;
+  --_corte-depois-2: 0 100%;
+  --_raio-antes: var(--_raio) 0 0 var(--_raio);
+  --_raio-depois: 0 var(--_raio) var(--_raio) 0;
+  --_picote-posicao: var(--ingresso-picote-recuo, 0px) auto var(--ingresso-picote-recuo, 0px) 0;
+  --_picote-largura: var(--ingresso-picote-espessura, 1.5px);
+  --_picote-altura: auto;
+  --_picote-sentido: to bottom;
+}
+
+/* canhoto embaixo: o corte fica na borda de baixo do corpo e na de cima do canhoto */
+.ingresso--vertical {
+  --_direcao: column;
+  --_mascara-tamanho: 51% 100%;
+  --_mascara-lado-1: left;
+  --_mascara-lado-2: right;
+  --_corte-antes-1: 0 100%;
+  --_corte-antes-2: 100% 100%;
+  --_corte-depois-1: 0 0;
+  --_corte-depois-2: 100% 0;
+  --_raio-antes: var(--_raio) var(--_raio) 0 0;
+  --_raio-depois: 0 0 var(--_raio) var(--_raio);
+  --_picote-posicao: 0 var(--ingresso-picote-recuo, 0px) auto var(--ingresso-picote-recuo, 0px);
+  --_picote-largura: auto;
+  --_picote-altura: var(--ingresso-picote-espessura, 1.5px);
+  --_picote-sentido: to right;
+}
+
+/* mesmo que .ingresso--vertical, no tamanho mobile (o mesmo 900px do useIsMobile) */
+@media (max-width: 900px) {
+  .ingresso--responsiva {
+    --_direcao: column;
+    --_mascara-tamanho: 51% 100%;
+    --_mascara-lado-1: left;
+    --_mascara-lado-2: right;
+    --_corte-antes-1: 0 100%;
+    --_corte-antes-2: 100% 100%;
+    --_corte-depois-1: 0 0;
+    --_corte-depois-2: 100% 0;
+    --_raio-antes: var(--_raio) var(--_raio) 0 0;
+    --_raio-depois: 0 0 var(--_raio) var(--_raio);
+    --_picote-posicao: 0 var(--ingresso-picote-recuo, 0px) auto var(--ingresso-picote-recuo, 0px);
+    --_picote-largura: auto;
+    --_picote-altura: var(--ingresso-picote-espessura, 1.5px);
+    --_picote-sentido: to right;
+  }
+}
+
+.ingresso__parte {
+  position: relative;
+  min-width: 0;
+  /* duas camadas, uma em cada metade, cada uma com um furo no seu canto */
+  mask:
+    radial-gradient(
+        circle at var(--_corte-1),
+        transparent var(--_recorte),
+        #000 calc(var(--_recorte) + 0.5px)
+      )
+      var(--_mascara-lado-1) / var(--_mascara-tamanho) no-repeat,
+    radial-gradient(
+        circle at var(--_corte-2),
+        transparent var(--_recorte),
+        #000 calc(var(--_recorte) + 0.5px)
+      )
+      var(--_mascara-lado-2) / var(--_mascara-tamanho) no-repeat;
+}
+
+.ingresso__parte--antes {
+  --_corte-1: var(--_corte-antes-1);
+  --_corte-2: var(--_corte-antes-2);
+  border-radius: var(--_raio-antes);
+}
+
+.ingresso__parte--depois {
+  --_corte-1: var(--_corte-depois-1);
+  --_corte-2: var(--_corte-depois-2);
+  border-radius: var(--_raio-depois);
+}
+
+/* o picote fica na borda da segunda parte, a que encosta no corte */
+.ingresso__parte--depois::before {
+  content: '';
+  position: absolute;
+  inset: var(--_picote-posicao);
+  width: var(--_picote-largura);
+  height: var(--_picote-altura);
+  background: repeating-linear-gradient(
+    var(--_picote-sentido),
+    var(--ingresso-picote-cor, var(--borda-forte)) 0 var(--_traco),
+    transparent var(--_traco) calc(var(--_traco) + var(--_espaco))
+  );
+  pointer-events: none;
+}
+
+.ingresso__corpo {
+  flex: 1 1 auto;
+  background: var(--ingresso-fundo, var(--fundo-superficie));
+}
+
+.ingresso__canhoto {
+  flex: 0 0 auto;
+  background: var(--ingresso-fundo-canhoto, var(--ingresso-fundo, var(--fundo-superficie)));
+}

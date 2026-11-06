@@ -4,6 +4,7 @@ import { pedirRedefinicaoDeSenha } from '../../../infrastructure/senha.js'
 import { AcessoLayout } from '../../components/acesso/AcessoLayout.jsx'
 import { RetornoDoEnvio } from '../../components/acesso/RetornoDoEnvio.jsx'
 import { useValidacao } from '../../hooks/useValidacao.js'
+import { ROTA_DO_LOGIN } from '../../../application/sessao.js'
 
 export function RecuperarSenha() {
   const [email, setEmail] = useState('')
@@ -36,7 +37,7 @@ export function RecuperarSenha() {
             <p>Enviamos o link de recuperação para o seu e-mail. Válido por 1 hora.</p>
           </header>
 
-          <Link to="/" className="acesso__botao">
+          <Link to={ROTA_DO_LOGIN} className="acesso__botao">
             Voltar para o login
           </Link>
         </>
@@ -68,7 +69,7 @@ export function RecuperarSenha() {
             </button>
           </form>
 
-          <Link to="/" className="acesso__link acesso__link--centro">
+          <Link to={ROTA_DO_LOGIN} className="acesso__link acesso__link--centro">
             Voltar para o login
           </Link>
         </>

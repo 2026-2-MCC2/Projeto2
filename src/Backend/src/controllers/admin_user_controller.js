@@ -71,8 +71,8 @@ function statusChangeEmail(user, oldStatus, reason) {
   const content = EmailTemplates.render(statusChangeTemplate(oldStatus, user.status), {
     nome: user.name,
     motivo: reason,
-    // o login fica na raiz do site
-    link: `${FRONT_URL}/`,
+    // a raiz do site é a landing; o e-mail leva direto para o login
+    link: `${FRONT_URL}/entrar`,
   })
   return { to: user.email, ...content }
 }
