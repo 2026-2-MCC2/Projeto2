@@ -56,10 +56,24 @@ const FORMATO_DO_DIA_EM_BRASILIA = new Intl.DateTimeFormat('en-CA', {
 
 export const diaEmBrasilia = (dataIso) => FORMATO_DO_DIA_EM_BRASILIA.format(new Date(dataIso))
 
+// formatadores criados uma vez: criar um a cada chamada (como faz o toLocaleString) pesa quando
+// os números mudam a cada quadro, como na contagem da landing
+const FORMATO_DA_MOEDA = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
+const FORMATO_DA_MOEDA_SEM_CENTAVOS = new Intl.NumberFormat('pt-BR', {
+  style: 'currency',
+  currency: 'BRL',
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 0,
+})
+const FORMATO_DO_INTEIRO = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 })
+
 export function formatarMoeda(valor) {
   if (valor === null || valor === undefined || Number.isNaN(Number(valor))) return 'R$ 0,00'
-  return Number(valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+  return FORMATO_DA_MOEDA.format(Number(valor))
 }
+
+// 9601 → "9.601" (com casas decimais, arredonda)
+export const formatarInteiro = (valor) => FORMATO_DO_INTEIRO.format(Number(valor))
 
 // previsto zero não serve de base para a porcentagem
 export function comparacaoComPrevisto(valor, previsto, referencia = 'previsto') {
@@ -73,10 +87,11 @@ export function comparacaoComPrevisto(valor, previsto, referencia = 'previsto') 
 
 // 228500 → "R$ 228.500": para valores redondos, sem os centavos
 export function formatarMoedaSemCentavos(valor) {
-  return Number(valor).toLocaleString('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  })
+  return FORMATO_DA_MOEDA_SEM_CENTAVOS.format(Number(valor))
 }
+
+// lucro ou prejuízo: "+ R$ 57.100" / "− R$ 38.100", sinal sempre visível e separado, com o menos
+// tipográfico (U+2212). O signDisplay do Intl não serve: ele cola o sinal e usa o hífen ("-R$ 38.100")
+const MENOS = '−'
+export const formatarResultado = (valor) =>
+  `${valor < 0 ? MENOS : '+'} ${formatarMoedaSemCentavos(Math.abs(valor))}`

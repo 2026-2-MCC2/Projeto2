@@ -1,5 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { formatarMoeda, formatarMoedaSemCentavos } from '../../../domain/formatacao.js'
+import {
+  formatarInteiro as numero,
+  formatarMoeda,
+  formatarMoedaSemCentavos,
+  formatarResultado as resultado,
+} from '../../../domain/formatacao.js'
 import { calcularTicket } from '../../../utils/calcularTicket.js'
 import { EVENTO_DE_EXEMPLO as evento, VALORES_DO_EXEMPLO } from '../../data/eventoDeExemplo.js'
 import { useNaTela } from '../../hooks/useNaTela.js'
@@ -8,13 +13,8 @@ import { CabecalhoDaSecao } from './CabecalhoDaSecao.jsx'
 import { Ingresso } from './Ingresso.jsx'
 import { NumeroAnimado } from './NumeroAnimado.jsx'
 
-const numero = (valor) => valor.toLocaleString('pt-BR')
-
-// "− R$ 38.100" / "+ R$ 57.100": sinal sempre visível, com o menos tipográfico
-const resultado = (valor) => `${valor < 0 ? '−' : '+'} ${formatarMoedaSemCentavos(Math.abs(valor))}`
-
-// no meio da animação os números têm casas decimais: estes arredondam antes de formatar
-const inteiroAnimado = (valor) => numero(Math.round(valor))
+// no meio da animação os números têm casas decimais: o resultado arredonda antes do sinal, para
+// −0,3 virar "+ R$ 0" e não "− R$ 0" (o numero já arredonda sozinho)
 const resultadoAnimado = (valor) => resultado(Math.round(valor))
 
 // contagem de entrada (quando a seção aparece) e tween de cada mudança depois dela
@@ -115,7 +115,7 @@ export function CalculoDoTicket() {
   const alvo = (valor) => (ativo ? valor : 0)
 
   const equilibrio = (
-    <NumeroAnimado valor={alvo(calculo.equilibrio)} formato={inteiroAnimado} duracao={duracao} />
+    <NumeroAnimado valor={alvo(calculo.equilibrio)} formato={numero} duracao={duracao} />
   )
 
   // o destaque do preço sai do próprio evento que muda os valores (timeStamp em ms, como o rAF)

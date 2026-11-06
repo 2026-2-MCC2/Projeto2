@@ -1,4 +1,4 @@
-import { formatarMoedaSemCentavos } from '../../domain/formatacao.js'
+import { formatarInteiro, formatarMoedaSemCentavos } from '../../domain/formatacao.js'
 import { calcularTicket } from '../../utils/calcularTicket.js'
 
 // valores do exemplo da landing: a calculadora do "Cálculo do ticket" começa (e restaura) neles
@@ -15,5 +15,5 @@ export const EVENTO_DE_EXEMPLO = {
 export const NUMEROS_DO_EXEMPLO = {
   custoTotal: formatarMoedaSemCentavos(VALORES_DO_EXEMPLO.custoTotal),
   margem: `${Math.round(VALORES_DO_EXEMPLO.margem * 100)}%`,
-  equilibrio: `${calculo.equilibrio.toLocaleString('pt-BR')} ingressos`,
+  equilibrio: `${formatarInteiro(calculo.equilibrio)} ingressos`,
 }
