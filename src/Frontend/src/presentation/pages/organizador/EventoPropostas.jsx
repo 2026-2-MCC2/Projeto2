@@ -278,6 +278,7 @@ function PropostasDoItem({
             <span>Valor</span>
             <span>Prazo de entrega</span>
             <span>Validade</span>
+            <span>Observações</span>
             <span />
           </div>
           {item.proposals.map((proposta) => (
@@ -345,6 +346,9 @@ function LinhaDeProposta({ eventKey, proposta, destaque, podeSelecionar, troca, 
       <strong>{formatarMoeda(proposta.amount)}</strong>
       <span>{proposta.delivery_terms}</span>
       <span>{formatarValidade(proposta.valid_until)}</span>
+      <span className="lista-propostas__observacoes">
+        {proposta.notes || 'Nenhuma observação'}
+      </span>
       <AcaoDaProposta
         rota={rota}
         destaque={destaque}
@@ -378,6 +382,10 @@ function CartaoDeProposta({ eventKey, proposta, destaque, podeSelecionar, troca,
         <div>
           <dt>Validade da proposta</dt>
           <dd>{formatarValidade(proposta.valid_until)}</dd>
+        </div>
+        <div className="cartao-proposta__observacoes">
+          <dt>Observações</dt>
+          <dd>{proposta.notes || 'Nenhuma observação'}</dd>
         </div>
       </dl>
 

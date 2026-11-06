@@ -17,6 +17,7 @@ import {
   EventInvalidDate,
   EventExpectedAudienceLessThanMin,
   EventMaxAudienceLessThanExpected,
+  EventHasItemsWithoutAcceptedProposal,
   EventStatusConflict,
   InvalidParameter,
   NotFoundEvent,
@@ -232,6 +233,29 @@ export class EventController extends BaseController {
     return this.#getProposalComparison(event)
   }
 
+  async rejectProposal(userKey, eventKey, proposalKey) {
+    const organizer = await this.#getOrganizerByUserKey(userKey)
+    const event = await this.eventRepository.getByKeyForUpdate(eventKey)
+
+    if (!event || event.organizer_id !== organizer.id) {
+      throw new NotFoundEvent(eventKey)
+    }
+    if (event.status !== EVENT_STATUSES.OPEN_FOR_QUOTES) {
+      throw new EventNotOpenForQuotes()
+    }
+
+    const rejectedProposal = await this.proposalRepository.rejectByProposalKey(event.id, proposalKey)
+    if (!rejectedProposal) {
+      throw new NotFoundProposal(proposalKey)
+    }
+
+    const organizerUser = await this.userRepository.getByKey(userKey)
+    const email = rejectedProposalEmail(rejectedProposal, event, organizerUser)
+    const comparison = await this.#getProposalComparison(event)
+
+    return { comparison, email }
+  }
+
   async updateEvent(userKey, eventKey, payload) {
     const organizer = await this.#getOrganizerByUserKey(userKey)
     // trava a linha: uma mudança de status ao mesmo tempo não escapa da checagem de status final
@@ -279,6 +303,17 @@ export class EventController extends BaseController {
     }
     if (!isAllowedTransition) {
       throw new EventStatusConflict(STATUS_CONFLICT_MESSAGES[event.status])
+    }
+
+    if (newStatus === EVENT_STATUSES.CLOSED) {
+      const items = await this.proposalRepository.getItemsForEventApproval(event.id)
+      const pendingItems = items
+        .filter((item) => !Boolean(item.has_accepted_proposal))
+        .map(({ item_key, description }) => ({ item_key, description }))
+
+      if (items.length === 0 || pendingItems.length > 0) {
+        throw new EventHasItemsWithoutAcceptedProposal(pendingItems)
+      }
     }
 
     const isCanceling = newStatus === EVENT_STATUSES.CANCELED
@@ -370,6 +405,18 @@ function canceledProposalEmail(proposal, event, organizer) {
     orientacao: wasAccepted
       ? `Para combinar qualquer custo que você já teve com este evento, fale com o organizador: ${organizer.contact}`
       : 'Como a proposta ainda não tinha sido aceita, você não precisa fazer nada.',
+    link: `${FRONT_URL}/fornecedor/propostas/${proposal.proposal_key}`,
+  })
+  return { to: proposal.supplier_email, ...content }
+}
+
+function rejectedProposalEmail(proposal, event, organizer) {
+  const content = EmailTemplates.render('proposal_rejected', {
+    nome: proposal.supplier_name,
+    evento: event.name,
+    organizador: organizer.name,
+    item: proposal.item_description,
+    valor: TextTools.formatCurrency(proposal.amount),
     link: `${FRONT_URL}/fornecedor/propostas/${proposal.proposal_key}`,
   })
   return { to: proposal.supplier_email, ...content }

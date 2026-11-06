@@ -269,6 +269,24 @@ export class EventStatusConflict extends ApiException {
   }
 }
 
+export class EventHasItemsWithoutAcceptedProposal extends ApiException {
+  static code = 'EVP000048'
+
+  constructor(pendingItems = []) {
+    const title = 'Event has items without accepted proposals'
+    const httpStatus = 409
+    const hasNoItems = pendingItems.length === 0
+    const description = hasNoItems
+      ? 'An event needs at least one budget item before it can be approved.'
+      : 'Every budget item needs an accepted proposal before the event can be approved.'
+    const translation = hasNoItems
+      ? 'Cadastre ao menos um item de custo antes de aprovar o evento.'
+      : 'Escolha uma proposta para todos os itens antes de aprovar o evento.'
+    const details = { pending_items: pendingItems }
+    super(title, EventHasItemsWithoutAcceptedProposal.code, httpStatus, description, translation, details)
+  }
+}
+
 export class EventInvalidDate extends ApiException {
   static code = 'EVP000027'
 
@@ -287,8 +305,8 @@ export class EventNotOpenForQuotes extends ApiException {
   constructor() {
     const title = 'Event is not open for quotes'
     const httpStatus = 409
-    const description = 'Proposals can only be accepted while the event is open for quotes.'
-    const translation = 'Só é possível aceitar propostas enquanto o evento está em cotação.'
+    const description = 'Proposal decisions can only be made while the event is open for quotes.'
+    const translation = 'Só é possível decidir propostas enquanto o evento está em cotação.'
     super(title, EventNotOpenForQuotes.code, httpStatus, description, translation)
   }
 }
@@ -323,8 +341,8 @@ export class ProposalDecisionConflict extends ApiException {
   constructor() {
     const title = 'Proposal was decided concurrently'
     const httpStatus = 409
-    const description = 'Another proposal for this item was accepted while this request was waiting.'
-    const translation = 'Outra proposta deste item foi aceita ao mesmo tempo. Atualize a tela e tente novamente.'
+    const description = 'The proposal was already decided or changed while this request was waiting.'
+    const translation = 'Esta proposta já foi decidida ou alterada. Atualize a tela e tente novamente.'
     super(title, ProposalDecisionConflict.code, httpStatus, description, translation)
   }
 }

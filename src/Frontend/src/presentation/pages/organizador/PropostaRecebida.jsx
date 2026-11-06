@@ -8,6 +8,7 @@ import {
   itemJaDecidido,
   menorPropostaDisponivel,
   podeSerSelecionada,
+  recusarPropostaDoEvento,
 } from '../../../application/propostas.js'
 import {
   comparacaoComPrevisto,
@@ -20,9 +21,11 @@ import { Cartao } from '../../components/organizador/Cartao.jsx'
 import { EventoLayout } from '../../components/organizador/EventoLayout.jsx'
 import { Botao } from '../../components/organizador/Formulario.jsx'
 import { ModalSelecionarProposta } from '../../components/organizador/ModalSelecionarProposta.jsx'
+import { Modal } from '../../components/comum/Modal.jsx'
 import { toast } from '../../toasts.js'
 import { useEvento } from '../../hooks/useEvento.js'
 import { useRenovarFotosVencidas } from '../../hooks/useRenovarFotosVencidas.js'
+import iconeRecusar from '../../assets/admin/icone-modal-rejeitar.svg'
 
 const TEXTOS_DA_PROPOSTA = [
   { campo: 'description', rotulo: 'O que está incluído' },
@@ -37,6 +40,8 @@ export function PropostaRecebida() {
   const [tentativa, setTentativa] = useState(0)
   const [confirmacaoAberta, setConfirmacaoAberta] = useState(false)
   const [salvando, setSalvando] = useState(false)
+  const [confirmacaoDeRecusaAberta, setConfirmacaoDeRecusaAberta] = useState(false)
+  const [recusando, setRecusando] = useState(false)
   const aoFalharFoto = useRenovarFotosVencidas(() => setTentativa((valor) => valor + 1))
   const { evento } = useEvento(id)
   const eventoEmCotacao = evento?.statusReal === 'open_for_quotes'
@@ -99,6 +104,7 @@ export function PropostaRecebida() {
   const temPrevisto = item.estimated_value > 0
   const troca = itemJaDecidido(item)
   const podeSelecionar = podeSerSelecionada(proposta, item, eventoEmCotacao)
+  const podeRecusar = eventoEmCotacao && ['sent', 'under_review'].includes(proposta.status)
 
   async function confirmarSelecao() {
     setSalvando(true)
@@ -118,6 +124,24 @@ export function PropostaRecebida() {
       }
     } finally {
       setSalvando(false)
+    }
+  }
+
+  async function confirmarRecusa() {
+    setRecusando(true)
+    try {
+      const atualizada = await recusarPropostaDoEvento(id, proposalKey)
+      setComparacao(atualizada)
+      setConfirmacaoDeRecusaAberta(false)
+      toast.sucesso('Proposta recusada', { descricao: proposta.supplier_name })
+    } catch (falha) {
+      toast.erro('Não foi possível recusar a proposta', { descricao: falha.message })
+      if (falha.status === 409) {
+        setConfirmacaoDeRecusaAberta(false)
+        setTentativa((valor) => valor + 1)
+      }
+    } finally {
+      setRecusando(false)
     }
   }
 
@@ -223,6 +247,16 @@ export function PropostaRecebida() {
                 {troca ? 'Trocar para esta proposta' : 'Selecionar proposta'}
               </Botao>
             )}
+            {podeRecusar && (
+              <Botao
+                type="button"
+                secundario
+                disabled={recusando}
+                onClick={() => setConfirmacaoDeRecusaAberta(true)}
+              >
+                Recusar proposta
+              </Botao>
+            )}
           </Cartao>
 
           {outras.length > 0 && (
@@ -253,6 +287,26 @@ export function PropostaRecebida() {
           salvando={salvando}
           aoConfirmar={confirmarSelecao}
           aoFechar={() => setConfirmacaoAberta(false)}
+        />
+      )}
+      {confirmacaoDeRecusaAberta && (
+        <Modal
+          icone={iconeRecusar}
+          corDoIcone="vermelho"
+          titulo="Recusar esta proposta?"
+          mensagem="A proposta será marcada como recusada. O custo consolidado do evento não muda."
+          dados={[
+            { rotulo: 'Fornecedor', valor: proposta.supplier_name },
+            { rotulo: 'Item', valor: item.description },
+            { rotulo: 'Valor', valor: formatarMoeda(proposta.amount) },
+          ]}
+          acao={{
+            cancelar: 'Voltar',
+            confirmar: recusando ? 'Recusando...' : 'Recusar proposta',
+            ocupado: recusando,
+            aoConfirmar: confirmarRecusa,
+          }}
+          aoFechar={() => !recusando && setConfirmacaoDeRecusaAberta(false)}
         />
       )}
     </EventoLayout>
@@ -289,6 +343,7 @@ function textoDaDiferenca(valor, previsto) {
 function textoDaDecisao(proposta, item, eventoEmCotacao) {
   if (proposta.status === 'canceled') return 'O evento foi cancelado e esta proposta foi encerrada.'
   if (proposta.status === 'accepted') return 'Esta é a proposta escolhida para o item.'
+  if (proposta.status === 'rejected') return 'Esta proposta foi recusada e continua disponível para consulta.'
   if (!eventoEmCotacao) return 'O evento não está mais em cotação: a escolha não pode mudar.'
   if (proposta.is_expired) return 'A validade passou: esta proposta não pode mais ser escolhida.'
   if (itemJaDecidido(item)) {

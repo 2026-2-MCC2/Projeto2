@@ -318,9 +318,12 @@ describe('DELETE /events/:event_key/items/:item_key', () => {
 
   test('evento encerrado bloqueia criação, edição e exclusão de itens', async () => {
     const headers = await createOrganizer()
+    const supplier = await ObjectGenerator.createUserFixture({ profile: 'fornecedor', status: 'approved' })
+    fixtureUserKeys.push(supplier.userKey)
     const event = await createEvent(headers)
     const [createStatus, item] = await createBudgetItem(event.event_key, headers)
     assert.equal(createStatus, 201)
+    await DbUtils.createProposalFixture(item.item_key, supplier.userKey, { status: 'accepted' })
     const [publishStatus] = await RequestGenerator.PATCH_event_status(event.event_key, { status: 'open_for_quotes' }, headers)
     assert.equal(publishStatus, 200)
     const [closeStatus] = await RequestGenerator.PATCH_event_status(event.event_key, { status: 'closed' }, headers)

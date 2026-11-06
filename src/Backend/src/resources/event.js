@@ -62,6 +62,16 @@ export class EventResource {
     res.status(200).json(comparison)
   }
 
+  async onPostProposalReject(req, res, eventKey, proposalKey) {
+    SecurityTools.requireProfile(req.context, [USER_PROFILES.ORGANIZER])
+
+    const controller = new EventController(req.context)
+    const { comparison, email } = await controller.rejectProposal(req.context.user.userKey, eventKey, proposalKey)
+
+    res.status(200).json(comparison)
+    EmailConnector.sendInBackground(email)
+  }
+
   async onPutByKey(req, res, eventKey) {
     SecurityTools.requireProfile(req.context, [USER_PROFILES.ORGANIZER])
     SchemaHandler.validate(req, 'put_events.json')

@@ -12,13 +12,25 @@ const fixtureUserKeys = []
 
 afterEach(async () => DbUtils.deleteUserFixtures(fixtureUserKeys.splice(0)))
 
+function createEventPayload() {
+  const startDate = new Date()
+  startDate.setDate(startDate.getDate() + 30)
+  const endDate = new Date(startDate)
+  endDate.setDate(endDate.getDate() + 2)
+
+  return PayloadGenerator.createEventPayload({
+    start_date: startDate.toISOString(),
+    end_date: endDate.toISOString(),
+  })
+}
+
 describe('PATCH /events/:event_key/status (RF08 - Publicação para cotação)', () => {
   test('validação de schema: status inválido ou campo extra responde 400', async () => {
     const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
     fixtureUserKeys.push(organizer.userKey)
     const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
 
-    const [, created] = await RequestGenerator.POST_events(PayloadGenerator.createEventPayload(), headers)
+    const [, created] = await RequestGenerator.POST_events(createEventPayload(), headers)
 
     // Status fora do enum
     const [statusInvalido, respInvalido] = await RequestGenerator.PATCH_event_status(
@@ -44,7 +56,7 @@ describe('PATCH /events/:event_key/status (RF08 - Publicação para cotação)',
     fixtureUserKeys.push(organizer.userKey)
     const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
 
-    const [, created] = await RequestGenerator.POST_events(PayloadGenerator.createEventPayload(), headers)
+    const [, created] = await RequestGenerator.POST_events(createEventPayload(), headers)
 
     const [status, response] = await RequestGenerator.PATCH_event_status(created.event_key, { status: 'open_for_quotes' }, headers)
 
@@ -57,7 +69,7 @@ describe('PATCH /events/:event_key/status (RF08 - Publicação para cotação)',
     fixtureUserKeys.push(organizer.userKey)
     const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
 
-    const [, created] = await RequestGenerator.POST_events(PayloadGenerator.createEventPayload(), headers)
+    const [, created] = await RequestGenerator.POST_events(createEventPayload(), headers)
 
     await RequestGenerator.PATCH_event_status(created.event_key, { status: 'canceled', reason: 'Local indisponível.' }, headers)
 
@@ -75,32 +87,92 @@ describe('PATCH /events/:event_key/status (RF08 - Publicação para cotação)',
     const headersA = TokenGenerator.authorizationHeader('organizador', { userKey: organizerA.userKey })
     const headersB = TokenGenerator.authorizationHeader('organizador', { userKey: organizerB.userKey })
 
-    const [, created] = await RequestGenerator.POST_events(PayloadGenerator.createEventPayload(), headersA)
+    const [, created] = await RequestGenerator.POST_events(createEventPayload(), headersA)
 
     const [status, response] = await RequestGenerator.PATCH_event_status(created.event_key, { status: 'open_for_quotes' }, headersB)
     assert.equal(status, 404)
     assert.equal(response.code, 'EVP000013')
   })
 
-  test('evento segue o fluxo rascunho, cotação e encerrado', async () => {
+  test('evento com todas as propostas aceitas segue o fluxo até aprovado', async () => {
+    const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
+    const supplier = await ObjectGenerator.createUserFixture({ profile: 'fornecedor', status: 'approved' })
+    fixtureUserKeys.push(organizer.userKey, supplier.userKey)
+    const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
+    const supplierHeaders = TokenGenerator.authorizationHeader('fornecedor', { userKey: supplier.userKey })
+    const [, created] = await RequestGenerator.POST_events(createEventPayload(), headers)
+    const item = await DbUtils.createBudgetItemFixture(created.event_key, { category: 'Estrutura' })
+
+    const [publishStatus] = await RequestGenerator.PATCH_event_status(created.event_key, { status: 'open_for_quotes' }, headers)
+    assert.equal(publishStatus, 200)
+
+    const [proposalStatus, proposal] = await RequestGenerator.POST_supplier_item_proposal(
+      created.event_key,
+      item.itemKey,
+      PayloadGenerator.createSupplierProposalPayload(),
+      supplierHeaders,
+    )
+    assert.equal(proposalStatus, 201)
+    const [acceptStatus] = await RequestGenerator.POST_event_proposal_accept(created.event_key, proposal.proposal_key, headers)
+    assert.equal(acceptStatus, 200)
+
+    const [status, response] = await RequestGenerator.PATCH_event_status(created.event_key, { status: 'closed' }, headers)
+    assert.equal(status, 200)
+    assert.equal(response.status, 'closed')
+    assert.equal(response.is_editable, false)
+  })
+
+  test('não aprova com item sem proposta aceita e mantém o evento em cotação', async () => {
+    const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
+    const supplier = await ObjectGenerator.createUserFixture({ profile: 'fornecedor', status: 'approved' })
+    fixtureUserKeys.push(organizer.userKey, supplier.userKey)
+    const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
+    const supplierHeaders = TokenGenerator.authorizationHeader('fornecedor', { userKey: supplier.userKey })
+    const [, created] = await RequestGenerator.POST_events(createEventPayload(), headers)
+    const item = await DbUtils.createBudgetItemFixture(created.event_key, {
+      category: 'Estrutura',
+      description: 'Iluminação',
+    })
+    await RequestGenerator.PATCH_event_status(created.event_key, { status: 'open_for_quotes' }, headers)
+    const [proposalStatus] = await RequestGenerator.POST_supplier_item_proposal(
+      created.event_key,
+      item.itemKey,
+      PayloadGenerator.createSupplierProposalPayload(),
+      supplierHeaders,
+    )
+    assert.equal(proposalStatus, 201)
+
+    const [status, error] = await RequestGenerator.PATCH_event_status(created.event_key, { status: 'closed' }, headers)
+    const [eventStatus, event] = await RequestGenerator.GET_event_by_key(created.event_key, headers)
+
+    assert.equal(status, 409)
+    assert.equal(error.code, 'EVP000048')
+    assert.equal(error.translation, 'Escolha uma proposta para todos os itens antes de aprovar o evento.')
+    assert.deepEqual(error.details.pending_items, [{ item_key: item.itemKey, description: 'Iluminação' }])
+    assert.equal(eventStatus, 200)
+    assert.equal(event.status, 'open_for_quotes')
+  })
+
+  test('não aprova evento sem itens de cotação', async () => {
     const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
     fixtureUserKeys.push(organizer.userKey)
     const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
-    const [, created] = await RequestGenerator.POST_events(PayloadGenerator.createEventPayload(), headers)
+    const [, created] = await RequestGenerator.POST_events(createEventPayload(), headers)
+    await RequestGenerator.PATCH_event_status(created.event_key, { status: 'open_for_quotes' }, headers)
 
-    for (const nextStatus of ['open_for_quotes', 'closed']) {
-      const [status, response] = await RequestGenerator.PATCH_event_status(created.event_key, { status: nextStatus }, headers)
-      assert.equal(status, 200)
-      assert.equal(response.status, nextStatus)
-    }
+    const [status, error] = await RequestGenerator.PATCH_event_status(created.event_key, { status: 'closed' }, headers)
+
+    assert.equal(status, 409)
+    assert.equal(error.code, 'EVP000048')
+    assert.equal(error.translation, 'Cadastre ao menos um item de custo antes de aprovar o evento.')
   })
 
   test('evento em rascunho ou em cotação pode ser cancelado', async () => {
     const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
     fixtureUserKeys.push(organizer.userKey)
     const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
-    const [, draft] = await RequestGenerator.POST_events(PayloadGenerator.createEventPayload(), headers)
-    const [, open] = await RequestGenerator.POST_events(PayloadGenerator.createEventPayload(), headers)
+    const [, draft] = await RequestGenerator.POST_events(createEventPayload(), headers)
+    const [, open] = await RequestGenerator.POST_events(createEventPayload(), headers)
     await RequestGenerator.PATCH_event_status(open.event_key, { status: 'open_for_quotes' }, headers)
 
     for (const event of [draft, open]) {
@@ -118,10 +190,16 @@ describe('PATCH /events/:event_key/status (RF08 - Publicação para cotação)',
     const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
     fixtureUserKeys.push(organizer.userKey)
     const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
-    const [, closed] = await RequestGenerator.POST_events(PayloadGenerator.createEventPayload(), headers)
+    const [, closed] = await RequestGenerator.POST_events(createEventPayload(), headers)
+    const supplier = await ObjectGenerator.createUserFixture({ profile: 'fornecedor', status: 'approved' })
+    fixtureUserKeys.push(supplier.userKey)
+    const closedItem = await DbUtils.createBudgetItemFixture(closed.event_key)
+    await DbUtils.createProposalFixture(closedItem.itemKey, supplier.userKey, {
+      status: 'accepted',
+    })
     await RequestGenerator.PATCH_event_status(closed.event_key, { status: 'open_for_quotes' }, headers)
     await RequestGenerator.PATCH_event_status(closed.event_key, { status: 'closed' }, headers)
-    const [, canceled] = await RequestGenerator.POST_events(PayloadGenerator.createEventPayload(), headers)
+    const [, canceled] = await RequestGenerator.POST_events(createEventPayload(), headers)
     await RequestGenerator.PATCH_event_status(canceled.event_key, { status: 'canceled', reason: 'Local indisponível.' }, headers)
 
     for (const event of [closed, canceled]) {
@@ -146,8 +224,8 @@ describe('PATCH /events/:event_key/status (RF08 - Publicação para cotação)',
     const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
     fixtureUserKeys.push(organizer.userKey)
     const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
-    const [, draft] = await RequestGenerator.POST_events(PayloadGenerator.createEventPayload(), headers)
-    const [, open] = await RequestGenerator.POST_events(PayloadGenerator.createEventPayload(), headers)
+    const [, draft] = await RequestGenerator.POST_events(createEventPayload(), headers)
+    const [, open] = await RequestGenerator.POST_events(createEventPayload(), headers)
     await RequestGenerator.PATCH_event_status(open.event_key, { status: 'open_for_quotes' }, headers)
 
     const invalidChanges = [
@@ -165,7 +243,7 @@ describe('PATCH /events/:event_key/status (RF08 - Publicação para cotação)',
     const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
     fixtureUserKeys.push(organizer.userKey)
     const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
-    const [, draft] = await RequestGenerator.POST_events(PayloadGenerator.createEventPayload(), headers)
+    const [, draft] = await RequestGenerator.POST_events(createEventPayload(), headers)
 
     const [status, response] = await RequestGenerator.PATCH_event_status(draft.event_key, { status: 'draft' }, headers)
 
@@ -178,7 +256,7 @@ describe('PATCH /events/:event_key/status (RF08 - Publicação para cotação)',
     const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
     fixtureUserKeys.push(organizer.userKey)
     const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
-    const [, created] = await RequestGenerator.POST_events(PayloadGenerator.createEventPayload(), headers)
+    const [, created] = await RequestGenerator.POST_events(createEventPayload(), headers)
 
     for (const payload of [
       { status: 'canceled' },
@@ -205,8 +283,13 @@ describe('PATCH /events/:event_key/status (RF08 - Publicação para cotação)',
     const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
     fixtureUserKeys.push(organizer.userKey)
     const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
-    const [, created] = await RequestGenerator.POST_events(PayloadGenerator.createEventPayload(), headers)
+    const [, created] = await RequestGenerator.POST_events(createEventPayload(), headers)
+    const supplier = await ObjectGenerator.createUserFixture({ profile: 'fornecedor', status: 'approved' })
+    fixtureUserKeys.push(supplier.userKey)
+    const item = await DbUtils.createBudgetItemFixture(created.event_key)
     await RequestGenerator.PATCH_event_status(created.event_key, { status: 'open_for_quotes' }, headers)
+    const proposal = await DbUtils.createProposalFixture(item.itemKey, supplier.userKey)
+    await RequestGenerator.POST_event_proposal_accept(created.event_key, proposal.proposalKey, headers)
 
     const results = await Promise.all([
       RequestGenerator.PATCH_event_status(created.event_key, { status: 'closed' }, headers),
@@ -220,7 +303,7 @@ describe('PATCH /events/:event_key/status (RF08 - Publicação para cotação)',
     const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
     fixtureUserKeys.push(organizer.userKey)
     const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
-    const [, created] = await RequestGenerator.POST_events(PayloadGenerator.createEventPayload(), headers)
+    const [, created] = await RequestGenerator.POST_events(createEventPayload(), headers)
     await RequestGenerator.PATCH_event_status(created.event_key, { status: 'open_for_quotes' }, headers)
 
     const [status, response] = await RequestGenerator.PATCH_event_status(created.event_key, { status: 'open_for_quotes' }, headers)
@@ -233,7 +316,7 @@ describe('PATCH /events/:event_key/status (RF08 - Publicação para cotação)',
     const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
     fixtureUserKeys.push(organizer.userKey)
     const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
-    const [, created] = await RequestGenerator.POST_events(PayloadGenerator.createEventPayload(), headers)
+    const [, created] = await RequestGenerator.POST_events(createEventPayload(), headers)
 
     const [status, response] = await RequestGenerator.PATCH_event_status(
       created.event_key,
@@ -252,7 +335,7 @@ describe('PATCH /events/:event_key/status (RF08 - Publicação para cotação)',
     )
     fixtureUserKeys.push(organizer.userKey, ...suppliers.map((supplier) => supplier.userKey))
     const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
-    const [, created] = await RequestGenerator.POST_events(PayloadGenerator.createEventPayload(), headers)
+    const [, created] = await RequestGenerator.POST_events(createEventPayload(), headers)
     const firstItem = await DbUtils.createBudgetItemFixture(created.event_key, { description: 'Som' })
     const secondItem = await DbUtils.createBudgetItemFixture(created.event_key, { description: 'Bar' })
     await RequestGenerator.PATCH_event_status(created.event_key, { status: 'open_for_quotes' }, headers)

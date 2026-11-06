@@ -14,6 +14,12 @@ export async function aceitarPropostaDoEvento(eventKey, proposalKey) {
   return comparacao
 }
 
+export async function recusarPropostaDoEvento(eventKey, proposalKey) {
+  const comparacao = await api.post(`/events/${eventKey}/proposals/${proposalKey}/reject`, {})
+  relerEventoEmMemoria(eventKey)
+  return comparacao
+}
+
 const STATUS_EM_ABERTO = ['sent', 'under_review']
 
 export function menorPropostaDisponivel(item) {
