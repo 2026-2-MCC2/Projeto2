@@ -1,5 +1,3 @@
-// Testes de integração do envio de proposta pelo fornecedor (RF10).
-
 import assert from 'node:assert/strict'
 import { afterEach, describe, test } from 'node:test'
 

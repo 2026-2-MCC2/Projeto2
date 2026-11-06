@@ -28,7 +28,6 @@ export class SupplierRepository {
     )
   }
 
-  // categories são nomes da tabela item_category
   async create({ userId, cnpj, phone, categories }) {
     const supplier = await Supplier.create(
       {

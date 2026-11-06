@@ -13,7 +13,6 @@ const PHONE_PATTERN = /^\d{10,11}$/
 
 const blankToNull = (text) => text?.trim() || null
 
-// a conta de quem está logado: dados da empresa, categorias do fornecedor e senha
 export class AccountController extends BaseController {
   constructor(context) {
     super(context, 'AccountController')
@@ -65,8 +64,7 @@ export class AccountController extends BaseController {
     return this.#commitAndGetCurrentUser(userKey)
   }
 
-  // trocar a senha encerra os outros logins e os links de redefinição ainda abertos; quem trocou recebe
-  // um token novo para continuar
+  // trocar a senha encerra os outros logins e os links de redefinição abertos; quem trocou recebe um token novo
   async changePassword(userKey, { current_password: currentPassword, new_password: newPassword }) {
     const user = await this.userRepository.getByKey(userKey)
     if (!(await SecurityTools.checkPassword(currentPassword, user.password_hash))) {

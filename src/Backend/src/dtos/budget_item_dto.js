@@ -1,8 +1,6 @@
-// Converte o modelo de item de custo no formato público da API.
-
 export class BudgetItemDTO {
-  static fromModel(item, { proposalsCount = 0, acceptedProposal = null } = {}) {
-    const acceptedProposalData = parseAcceptedProposal(item.accepted_proposal ?? acceptedProposal)
+  static fromModel(item) {
+    const acceptedProposalData = parseAcceptedProposal(item.accepted_proposal)
     return {
       item_key: item.budget_item_key,
       category: typeof item.category === 'string' ? item.category : item.category.name,
@@ -11,7 +9,7 @@ export class BudgetItemDTO {
       quantity: Number(item.quantity),
       estimated_value: item.estimated_value === null ? null : Number(item.estimated_value),
       notes: item.notes ?? null,
-      proposals_count: Number(item.proposals_count ?? proposalsCount),
+      proposals_count: Number(item.proposals_count ?? 0),
       accepted_proposal: acceptedProposalData,
     }
   }

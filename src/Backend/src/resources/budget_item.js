@@ -1,5 +1,3 @@
-// Rotas HTTP para criar itens de custo vinculados aos eventos do Organizador.
-
 import { USER_PROFILES } from '../constants.js'
 import { BudgetItemController } from '../controllers/budget_item_controller.js'
 import { SchemaHandler } from '../utils/schema_handler.js'

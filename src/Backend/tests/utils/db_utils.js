@@ -108,7 +108,6 @@ export class DbUtils {
     return DbUtils.getProfileDataByUserKey('organizer', ['cnpj', 'phone'], userKey)
   }
 
-  // categorias em ordem alfabética
   static async getSupplierByUserKey(userKey) {
     const supplier = await DbUtils.getProfileDataByUserKey('supplier', ['cnpj', 'phone'], userKey)
     if (supplier === null) {
@@ -256,8 +255,7 @@ export class DbUtils {
     }
   }
 
-  // cria um link direto no banco, sem passar pela espera entre pedidos; devolve o token do link.
-  // as datas usam o relógio do banco em UTC, como a API grava
+  // direto no banco, sem a espera entre pedidos; as datas usam o relógio do banco em UTC, como a API grava
   static async createPasswordResetToken(userKey, { expiresInSeconds = 3_600 } = {}) {
     const token = randomBytes(32).toString('base64url')
     const tokenHash = createHash('sha256').update(token).digest('hex')

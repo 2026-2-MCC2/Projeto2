@@ -1,10 +1,7 @@
-// Respostas das propostas do próprio fornecedor: chaves públicas, nunca ids internos do banco.
-
 import { PROPOSAL_STATUSES } from '../constants.js'
 import { toDateString, toIsoString } from './supplier_event_dto.js'
 
 export class SupplierProposalDto {
-  // resposta do envio: só a chave e o status
   static fromCreated(proposal) {
     return {
       proposal_key: proposal.proposal_key,
@@ -12,7 +9,6 @@ export class SupplierProposalDto {
     }
   }
 
-  // histórico (GET /supplier/proposals)
   static fromList(proposals) {
     return proposals.map((proposal) => ({
       proposal_key: proposal.proposal_key,
@@ -30,7 +26,6 @@ export class SupplierProposalDto {
     }))
   }
 
-  // detalhe com todos os campos da proposta (GET, PUT /supplier/proposals/:proposal_key)
   static fromDetail(proposal, photos) {
     return {
       proposal_key: proposal.proposal_key,
@@ -55,16 +50,13 @@ export class SupplierProposalDto {
       status: proposal.status,
       selected: Boolean(proposal.selected),
       sent_at: toIsoString(proposal.sent_at),
-      // [{ photo_key, url }] com a URL de leitura assinada (ver utils/proposal_photo_tools.js)
       photos: photos,
       organizer_contact: organizerContactOf(proposal),
     }
   }
 }
 
-// o contato do organizador só aparece quando o fornecedor precisa falar com ele: para combinar a
-// entrega da proposta aceita, ou os custos de uma proposta que estava aceita quando o evento foi
-// cancelado (o cancelamento mantém o selected). Proposta só enviada não teve nada combinado.
+// contato só para quem tem algo a combinar: proposta aceita, ou aceita antes do cancelamento (que mantém o selected)
 function organizerContactOf(proposal) {
   const wasChosen =
     proposal.status === PROPOSAL_STATUSES.ACCEPTED || (proposal.status === PROPOSAL_STATUSES.CANCELED && Boolean(proposal.selected))

@@ -50,10 +50,6 @@ function isExistingCalendarDate(isoText) {
   return calendarDate.getUTCMonth() === month - 1 && calendarDate.getUTCDate() === day
 }
 
-/**
- * Controller responsável pelas operações de eventos do Organizador (RF05, RF07, RF08).
- * Gerencia validações de negócio, isolamento por organizador e persistência transacional.
- */
 export class EventController extends BaseController {
   constructor(context) {
     super(context, 'event_controller')
@@ -64,13 +60,6 @@ export class EventController extends BaseController {
     this.proposalRepository = new ProposalRepository(context)
   }
 
-  /**
-   * Obtém o registro de organizador vinculado ao usuário logado.
-   * Garante o isolamento de tenant para que o organizador só manipule seus próprios eventos.
-   *
-   * @param {string} userKey Chave pública do usuário autenticado.
-   * @returns {Promise<import('../models/organizer.js').Organizer>}
-   */
   async #getOrganizerByUserKey(userKey) {
     const user = await this.userRepository.getByKey(userKey)
     if (!user) {
@@ -85,9 +74,6 @@ export class EventController extends BaseController {
     return organizer
   }
 
-  /**
-   * Valida coerência temporal entre início e término do evento.
-   */
   #validateDates(startDate, endDate) {
     if (!isExistingCalendarDate(startDate) || !isExistingCalendarDate(endDate)) {
       throw new EventInvalidDate()
@@ -98,9 +84,6 @@ export class EventController extends BaseController {
     }
   }
 
-  /**
-   * Valida faixas de público mínimo, esperado e máximo, além da capacidade do espaço.
-   */
   #validateAudience(minAudience, expectedAudience, maxAudience, venueCapacity) {
     if (expectedAudience < minAudience) {
       throw new EventExpectedAudienceLessThanMin()
@@ -115,9 +98,6 @@ export class EventController extends BaseController {
     }
   }
 
-  /**
-   * Campos que vêm do formulário iguais na criação e na edição, já limpos e normalizados.
-   */
   #buildEventFields(payload) {
     return {
       name: payload.name.trim(),
@@ -139,13 +119,6 @@ export class EventController extends BaseController {
     }
   }
 
-  /**
-   * Cria um novo evento e seus custos próprios iniciais (se informados).
-   *
-   * @param {string} userKey Chave do organizador.
-   * @param {object} payload Dados validados do evento.
-   * @returns {Promise<object>} DTO do evento criado.
-   */
   async createEvent(userKey, payload) {
     const organizer = await this.#getOrganizerByUserKey(userKey)
 
@@ -168,13 +141,6 @@ export class EventController extends BaseController {
     return EventDto.fromModel(createdEvent)
   }
 
-  /**
-   * Lista os eventos pertencentes ao organizador logado com filtros e paginação.
-   *
-   * @param {string} userKey Chave do organizador.
-   * @param {object} options Opções de busca e paginação.
-   * @returns {Promise<object>} Lista paginada de eventos.
-   */
   async getEventsList(userKey, { status, search, limit = 20, page = 0 } = {}) {
     if (status !== undefined && !Object.values(EVENT_STATUSES).includes(status)) {
       throw new InvalidParameter(`The "status" parameter is invalid. Status ${status} does not exist.`)
@@ -199,13 +165,6 @@ export class EventController extends BaseController {
     }
   }
 
-  /**
-   * Consulta os dados detalhados de um evento pelo seu UUID público.
-   *
-   * @param {string} userKey Chave do organizador autenticado.
-   * @param {string} eventKey UUID do evento.
-   * @returns {Promise<object>} DTO detalhado do evento.
-   */
   async getEventByKey(userKey, eventKey) {
     const organizer = await this.#getOrganizerByUserKey(userKey)
     const event = await this.eventRepository.getByKey(eventKey)
@@ -217,12 +176,6 @@ export class EventController extends BaseController {
     return EventDto.fromModel(event)
   }
 
-  /**
-   * Consulta as propostas dos itens de um evento pertencente ao organizador.
-   * @param {string} userKey Chave pública do organizador autenticado.
-   * @param {string} eventKey UUID público do evento.
-   * @returns {Promise<object>} Propostas agrupadas por item, com a validade indicada.
-   */
   async getEventProposals(userKey, eventKey) {
     const organizer = await this.#getOrganizerByUserKey(userKey)
     const event = await this.eventRepository.getByKey(eventKey)
@@ -234,15 +187,13 @@ export class EventController extends BaseController {
     return this.#getProposalComparison(event)
   }
 
-  // comparação das propostas do evento, com as fotos de cada uma (URL de leitura assinada). A leitura
-  // termina antes de assinar as URLs, para a conexão do banco voltar ao pool enquanto o GCS responde
+  // commit antes de assinar as URLs, para a conexão do banco voltar ao pool enquanto o GCS responde
   async #getProposalComparison(event) {
     const comparisonData = await this.#readProposalComparison(event)
     await this.session.commit()
     return this.#buildProposalComparison(event, comparisonData)
   }
 
-  // a leitura do banco fica separada de gerar as URLs, que pode ser lento (uma chamada por foto no GCS)
   async #readProposalComparison(event) {
     const rows = await this.proposalRepository.getByEventId(event.id)
     const photos = await this.proposalRepository.getPhotosByEventId(event.id)
@@ -261,13 +212,6 @@ export class EventController extends BaseController {
     return ProposalComparisonDTO.fromRows(event.event_key, rows, photosByProposalKey)
   }
 
-  /**
-   * Aceita uma proposta do evento e rejeita as concorrentes do mesmo item.
-   * @param {string} userKey Chave pública do organizador autenticado.
-   * @param {string} eventKey UUID público do evento.
-   * @param {string} proposalKey UUID público da proposta.
-   * @returns {Promise<object>} Comparação atualizada e custo consolidado.
-   */
   async acceptProposal(userKey, eventKey, proposalKey) {
     const organizer = await this.#getOrganizerByUserKey(userKey)
     const event = await this.eventRepository.getByKeyForUpdate(eventKey)
@@ -288,14 +232,6 @@ export class EventController extends BaseController {
     return this.#getProposalComparison(event)
   }
 
-  /**
-   * Atualiza as informações cadastrais e financeiras do evento.
-   *
-   * @param {string} userKey Chave do organizador autenticado.
-   * @param {string} eventKey UUID do evento.
-   * @param {object} payload Dados atualizados.
-   * @returns {Promise<object>} DTO do evento atualizado.
-   */
   async updateEvent(userKey, eventKey, payload) {
     const organizer = await this.#getOrganizerByUserKey(userKey)
     // trava a linha: uma mudança de status ao mesmo tempo não escapa da checagem de status final
@@ -324,14 +260,6 @@ export class EventController extends BaseController {
     return EventDto.fromModel(updatedEvent)
   }
 
-  /**
-   * Altera o status do evento (ex: de 'draft' para 'open_for_quotes' - RF08).
-   *
-   * @param {string} userKey Chave do organizador autenticado.
-   * @param {string} eventKey UUID do evento.
-   * @param {string} newStatus Novo status do evento.
-   * @returns {Promise<object>} DTO atualizado.
-   */
   async updateEventStatus(userKey, eventKey, newStatus, cancellationReason) {
     const organizer = await this.#getOrganizerByUserKey(userKey)
     // trava a linha: duas mudanças ao mesmo tempo não passam juntas pela checagem de transição
@@ -350,7 +278,7 @@ export class EventController extends BaseController {
       throw new EventCannotBePublished(event.status)
     }
     if (!isAllowedTransition) {
-      throw new EventStatusConflict(STATUS_CONFLICT_MESSAGES[event.status] ?? 'O status do evento não pode ser alterado.')
+      throw new EventStatusConflict(STATUS_CONFLICT_MESSAGES[event.status])
     }
 
     const isCanceling = newStatus === EVENT_STATUSES.CANCELED
@@ -375,9 +303,6 @@ export class EventController extends BaseController {
     return proposals
   }
 
-  /**
-   * Evento do organizador, travado e ainda editável, para mudar seus custos próprios.
-   */
   async #getEditableEventForUpdate(userKey, eventKey) {
     const organizer = await this.#getOrganizerByUserKey(userKey)
     const event = await this.eventRepository.getByKeyForUpdate(eventKey)

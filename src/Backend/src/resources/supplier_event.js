@@ -1,5 +1,3 @@
-// Rotas para fornecedores consultarem eventos e itens disponíveis para cotação e enviarem propostas.
-
 import { USER_PROFILES } from '../constants.js'
 import { SupplierEventController } from '../controllers/supplier_event_controller.js'
 import { SupplierProposalController } from '../controllers/supplier_proposal_controller.js'
@@ -30,11 +28,6 @@ export class SupplierEventResource {
     res.status(200).json(event)
   }
 
-  // POST /event_planning/supplier/events/:event_key/items/:item_key/proposals
-  //   201 { "proposal_key": "6f1c2a9e-...", "status": "sent" }
-  //   404 evento fora de cotação ou item que não é do evento ou de uma categoria do fornecedor
-  //   409 { "code": "EVP000038", ... } se o fornecedor já enviou proposta para o item
-  //   400 { "code": "EVP000039" | "EVP000040", ... } validade antes de hoje ou depois do fim do evento
   async onPostItemProposals(req, res, eventKey, itemKey) {
     // autorização antes do schema para outros perfis sempre receberem 403
     SecurityTools.requireProfile(req.context, [USER_PROFILES.SUPPLIER])

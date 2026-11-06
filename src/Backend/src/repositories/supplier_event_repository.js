@@ -1,5 +1,3 @@
-// Consultas dos eventos e itens que um fornecedor pode acessar por categoria.
-
 import { QueryTypes } from 'sequelize'
 
 import { sequelize } from '../connectors/database_connector.js'
@@ -64,9 +62,7 @@ export class SupplierEventRepository {
     return { events, total: Number(countResult.total) }
   }
 
-  // lock: trava só a linha do evento (FOR SHARE) até o commit, para ele não sair de cotação no meio do
-  // envio da proposta. O EXISTS das categorias não é travado; quem trava o item e a categoria do
-  // fornecedor é o getAvailableItem
+  // lock: FOR SHARE só no evento, para ele não sair de cotação no meio do envio; item e categoria são travados no getAvailableItem
   async getAvailableEvent(supplierId, eventKey, { lock = false } = {}) {
     const events = await sequelize.query(
       `SELECT event.id, event.event_key, event.name, event.category, event.description,
@@ -88,8 +84,7 @@ export class SupplierEventRepository {
     return events[0] ?? null
   }
 
-  // status e fim do evento de uma proposta, travado (FOR SHARE) para ele não sair de cotação
-  // enquanto a proposta é editada ou retirada; organizer_is_approved diz se o organizador ainda está aprovado
+  // FOR SHARE para o evento não sair de cotação enquanto a proposta é editada ou retirada
   async getEventForShare(eventId) {
     const events = await sequelize.query(
       `SELECT event.id, event.status, event.end_date, ${ORGANIZER_IS_APPROVED} AS organizer_is_approved
@@ -101,10 +96,8 @@ export class SupplierEventRepository {
     return event ? { ...event, organizer_is_approved: Boolean(Number(event.organizer_is_approved)) } : null
   }
 
-  // item do evento numa categoria que o fornecedor atende. O item fica travado (FOR UPDATE) para o
-  // organizador não editar, apagar ou aceitar proposta nele enquanto a proposta é gravada, e para os
-  // envios no mesmo item passarem um de cada vez: com FOR SHARE, dois envios juntos seguravam a trava
-  // de leitura do hasAcceptedProposal e travavam um ao outro (deadlock) no INSERT da proposta
+  // FOR UPDATE (não FOR SHARE) no item: envios simultâneos no mesmo item passam um de cada vez; com FOR SHARE,
+  // os dois seguravam a trava de leitura do hasAcceptedProposal e davam deadlock no INSERT da proposta
   async getAvailableItem(eventId, supplierId, itemKey) {
     const items = await sequelize.query(
       `SELECT budget_item.id, budget_item.budget_item_key AS item_key

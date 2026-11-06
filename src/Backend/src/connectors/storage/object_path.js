@@ -1,12 +1,7 @@
-// Caminho de um objeto guardado (ex.: proposals/6f1c2a9e-.../1-ab12cd.jpg), o mesmo nos dois drivers.
-// É ele que vai para o banco (proposal_photo.url), nunca uma URL pública.
-//
-// Só letras, números, "_" e "-" separados por "/", terminando em extensão: assim o caminho não
-// consegue sair da pasta local ("../"), não começa em "/" e cabe na coluna do banco.
-
 // proposal_photo.url é VARCHAR(500)
-export const MAX_OBJECT_PATH_LENGTH = 500
+const MAX_OBJECT_PATH_LENGTH = 500
 
+// sem ".." nem "/" no começo, para o caminho não sair da pasta local
 const OBJECT_PATH_PATTERN = /^[A-Za-z0-9_-]+(\/[A-Za-z0-9_-]+)*\.[A-Za-z0-9]{1,10}$/
 
 export function assertValidObjectPath(path) {

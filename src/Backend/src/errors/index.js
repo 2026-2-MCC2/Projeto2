@@ -1,6 +1,3 @@
-// Junta todos os erros. Em outros arquivos, importe daqui:
-//   import { NotFoundResource } from '../errors/index.js'
-
 import * as baseErrors from './base_error.js'
 import * as customErrors from './custom_errors.js'
 
@@ -8,7 +5,6 @@ export * from './base_error.js'
 export * from './custom_errors.js'
 export * from './api_error_handler.js'
 
-// Chamada no server.js: se dois erros usarem o mesmo código, a aplicação não sobe.
 export function errorVerification() {
   const allErrorClasses = [...Object.values(baseErrors), ...Object.values(customErrors)]
   const usedCodes = {}

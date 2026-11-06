@@ -1,5 +1,3 @@
-// Testes de integração da seleção de propostas e consolidação dos custos do evento.
-
 import assert from 'node:assert/strict'
 import { randomUUID } from 'node:crypto'
 import { afterEach, describe, test } from 'node:test'

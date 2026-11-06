@@ -59,7 +59,6 @@ export class Logger {
 
     if (this.context) {
       logJson.global_trace_id = this.context.globalTraceId
-      logJson.operations = this.context.operations
       // campo do cloud logging que agrupa os logs da mesma requisição
       if (this.context.cloudTraceId) {
         logJson['logging.googleapis.com/trace'] = `projects/${GCP_PROJECT_ID}/traces/${this.context.cloudTraceId}`

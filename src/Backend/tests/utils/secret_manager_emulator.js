@@ -1,10 +1,3 @@
-// Cria secrets no emulador local do Secret Manager.
-// O emulador guarda tudo em memória e começa vazio sempre que o container sobe; por isso o
-// tests/global_setup.js cria os secrets antes de todo "npm test".
-//
-// Exemplo:
-//   await SecretManagerEmulator.createSecret('jwt_secret', 'chave_local_apenas_para_desenvolvimento')
-
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager'
 import { credentials } from '@grpc/grpc-js'
 
@@ -19,7 +12,6 @@ export class SecretManagerEmulator {
     })
   }
 
-  // apaga o secret se já existir e cria de novo com o valor informado
   static async createSecret(secretName, secretValue) {
     const projectPath = `projects/${process.env.GCP_PROJECT_ID}`
     const secretPath = `${projectPath}/secrets/${secretName}`

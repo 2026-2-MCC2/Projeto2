@@ -28,10 +28,8 @@ export class AuthResource {
     res.status(200).json(loginDto)
   }
 
-  // responde igual exista ou não a conta, para ninguém descobrir quais e-mails estão cadastrados.
-  // O link é gravado dentro da requisição (no Cloud Run a CPU para depois da resposta, e um trabalho
-  // em segundo plano ficaria parado segurando a conta travada); para o tempo de resposta não revelar
-  // se a conta existe, a resposta nunca sai antes de FORGOT_PASSWORD_MIN_RESPONSE_MS
+  // responde igual, e nunca antes do tempo mínimo, exista ou não a conta, para não revelar quais e-mails têm cadastro;
+  // o link é gravado dentro da requisição porque no Cloud Run a CPU para depois da resposta
   async onPostEsqueciSenha(req, res) {
     SchemaHandler.validate(req, 'post_auth_esqueci_senha.json')
     const respondAt = Date.now() + FORGOT_PASSWORD_MIN_RESPONSE_MS

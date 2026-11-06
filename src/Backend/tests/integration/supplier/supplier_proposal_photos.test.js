@@ -1,5 +1,3 @@
-// Testes de integração das fotos das propostas, com o driver local de armazenamento (local.env).
-
 import assert from 'node:assert/strict'
 import { afterEach, describe, test } from 'node:test'
 

@@ -1,5 +1,3 @@
-// Testes de integração do custo consolidado usado no cálculo do ticket.
-
 import assert from 'node:assert/strict'
 import { afterEach, describe, test } from 'node:test'
 

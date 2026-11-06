@@ -1,5 +1,3 @@
-// Regras de acesso e composição das respostas dos eventos visíveis para fornecedores.
-
 import { NotFoundEvent } from '../errors/index.js'
 import { SupplierEventRepository } from '../repositories/supplier_event_repository.js'
 import { UserRepository } from '../repositories/user_repository.js'

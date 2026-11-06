@@ -1,5 +1,3 @@
-// Modelo Sequelize do item de custo vinculado a um evento e a uma categoria.
-
 import { DataTypes, Model } from 'sequelize'
 
 import { sequelize } from '../connectors/database_connector.js'

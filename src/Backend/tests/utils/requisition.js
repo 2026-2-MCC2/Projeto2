@@ -1,17 +1,3 @@
-// Faz requisições HTTP para a API que está rodando no Docker.
-//
-// Exemplo:
-//   const response = await ClientRequisition.send('GET', '/event_planning/health_check')
-//   response.responseStatus   204
-//   response.responseJson     body convertido de JSON (null se não tiver body)
-//   response.response         resposta completa, ex.: response.response.headers.get('server')
-//
-// Opções:
-//   payload      objeto enviado como JSON no body
-//   data         texto enviado como está no body (ex.: para testar JSON mal formado)
-//   headers      ex.: { Authorization: 'Bearer <token>' } (ver token_generator.js)
-//   queryParams  ex.: { limit: 2 } vira ?limit=2
-
 // endereço da API; se mudou a porta no docker-compose (API_PORT), os testes acompanham
 export const API_URL = process.env.API_URL ?? `http://localhost:${process.env.API_PORT ?? 3300}`
 
@@ -35,7 +21,7 @@ export class ClientRequisition {
   }
 }
 
-export class BaseConnectorResponse {
+class BaseConnectorResponse {
   constructor(response, responseText) {
     this.response = response
     this.responseStatus = response.status

@@ -1,5 +1,3 @@
-// Define a resposta pública dos eventos disponíveis para fornecedores, sem dados financeiros internos.
-
 export class SupplierEventDto {
   static fromList(events) {
     return events.map((event) => ({
@@ -57,7 +55,6 @@ export class SupplierEventDto {
   }
 }
 
-// também usadas pelo SupplierProposalDto (dtos/supplier_proposal_dto.js)
 export function toIsoString(value) {
   return value instanceof Date ? value.toISOString() : new Date(value).toISOString()
 }

@@ -25,7 +25,7 @@ export class AuthDTO {
   }
 
   static currentUser(user) {
-    const profileData = user?.organizer ?? user?.supplier ?? null
+    const profileData = user.organizer ?? user.supplier ?? null
 
     return {
       user_key: user.user_key,
@@ -38,7 +38,7 @@ export class AuthDTO {
       responsible_name: profileData?.responsible_name ?? null,
       city: profileData?.city ?? null,
       state: profileData?.state ?? null,
-      categories: user?.supplier?.categories?.map((category) => category.name).sort() ?? null,
+      categories: user.supplier?.categories?.map((category) => category.name).sort() ?? null,
     }
   }
 

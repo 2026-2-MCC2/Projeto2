@@ -1,8 +1,5 @@
-// Organiza e expõe apenas os dados necessários para comparar propostas.
-
 export class ProposalComparisonDTO {
-  // photosByProposalKey: { <proposal_key>: [{ photo_key, url }] }, com a URL de leitura já assinada
-  static fromRows(eventKey, rows, photosByProposalKey = {}) {
+  static fromRows(eventKey, rows, photosByProposalKey) {
     const itemsByKey = new Map()
 
     for (const row of rows) {

@@ -1,5 +1,3 @@
-// Testes de integração da consulta e comparação de propostas de um evento.
-
 import assert from 'node:assert/strict'
 import { afterEach, describe, test } from 'node:test'
 

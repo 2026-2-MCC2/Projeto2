@@ -1,22 +1,7 @@
-// Middleware: abre a sessão do banco no começo da requisição e fecha no fim.
-//
-// TRANSAÇÃO, COMMIT E ROLLBACK
-// A sessão é uma transação: um pacote de alterações no banco que vale "tudo ou nada". Exemplo:
-// criar a entidade e gravar o histórico de status. Se der erro no meio, não pode ficar só metade.
-//   commit    confirma: grava de vez tudo o que foi feito na transação
-//   rollback  cancela: desfaz tudo o que foi feito desde que a transação começou
-//
-// Como funciona aqui:
-//   processRequest:  abre a transação e guarda em req.context.dbSession
-//   no meio:         o controller usa this.session e chama await this.session.commit() para gravar
-//   processResponse: se ninguém fez commit, faz rollback. Também devolve a conexão para o pool.
-// Ou seja: se der erro no meio da requisição e o controller não chegar no commit, nada é gravado.
-
 import { DatabaseConnector } from '../connectors/database_connector.js'
 import { API_PREFIX, BYPASS_ENDPOINTS } from '../constants.js'
 
-// O envio de foto abre a própria transação, depois de receber o arquivo (openSessionAfterUpload).
-// Igual ao roteamento do Express: sem diferença de maiúscula e com barra no fim opcional
+// igual ao roteamento do Express: sem diferença de maiúscula e com barra no fim opcional
 const PHOTO_UPLOAD_PATH = new RegExp(`^${API_PREFIX}/supplier/proposals/[^/]+/photos/?$`, 'i')
 
 const isPhotoUpload = (req) => req.method === 'POST' && PHOTO_UPLOAD_PATH.test(req.path)

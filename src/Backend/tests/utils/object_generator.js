@@ -9,8 +9,7 @@ export class ObjectGenerator {
     return DbUtils.createUserFixture(options)
   }
 
-  // Evento futuro (começa daqui a 20 dias e termina daqui a 30) com um item por categoria, criado pela
-  // API como o organizador faz. Por padrão já fica em cotação, pronto para receber propostas.
+  // começa daqui a 20 dias e termina daqui a 30; por padrão já fica em cotação
   static async createEventWithItems(organizerHeaders, { categories = ['Estrutura'], publish = true } = {}) {
     const [eventStatus, event] = await RequestGenerator.POST_events(
       PayloadGenerator.createEventPayload({
@@ -40,7 +39,6 @@ export class ObjectGenerator {
     return { event, items }
   }
 
-  // proposta enviada pela API, já conferindo que deu certo
   static async sendProposal(eventKey, itemKey, supplierHeaders, overrides) {
     const [status, proposal] = await RequestGenerator.POST_supplier_item_proposal(
       eventKey,

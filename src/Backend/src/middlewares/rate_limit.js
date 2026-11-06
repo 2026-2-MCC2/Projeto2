@@ -1,17 +1,3 @@
-// Middleware: limita tentativas nas rotas que um robô usaria para adivinhar senhas, descobrir
-// e-mails e CNPJs cadastrados ou disparar e-mails. Passou do limite: 429 (EVP000049) com o header
-// Retry-After dizendo em quantos segundos pode tentar de novo.
-//
-//   por IP e rota       toda requisição conta (RATE_LIMIT_MAX_REQUESTS_PER_IP)
-//   por IP e e-mail     só senha errada conta, e um login certo zera
-//   (login)             (RATE_LIMIT_MAX_FAILED_LOGINS_PER_EMAIL)
-//
-// A contagem de senhas erradas é por IP e e-mail, não só por e-mail: a trava vem antes de conferir a
-// senha, então uma contagem só por e-mail deixaria qualquer um bloquear o login do dono da conta
-// errando a senha dele de outro lugar. Quem tenta de muitos IPs continua barrado pelo limite por IP.
-//
-// O IP vem de req.ip, que atrás do Cloud Run depende do "trust proxy" configurado em app.js.
-
 import {
   API_PREFIX,
   RATE_LIMIT_MAX_FAILED_LOGINS_PER_EMAIL,
@@ -34,6 +20,7 @@ const LIMITED_PATHS = new Set([
 ])
 
 const requestsPerIp = new RateLimiter({ maxHits: RATE_LIMIT_MAX_REQUESTS_PER_IP, windowSeconds: RATE_LIMIT_WINDOW_SECONDS })
+// por IP e e-mail, não só por e-mail: senão qualquer um bloquearia o login do dono da conta errando a senha dele
 const failedLoginsPerEmail = new RateLimiter({
   maxHits: RATE_LIMIT_MAX_FAILED_LOGINS_PER_EMAIL,
   windowSeconds: RATE_LIMIT_WINDOW_SECONDS,

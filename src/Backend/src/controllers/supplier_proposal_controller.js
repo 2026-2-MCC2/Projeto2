@@ -1,5 +1,3 @@
-// Regras das propostas do fornecedor: envio (RF10), histórico, detalhe, edição, retirada e fotos.
-
 import { UniqueConstraintError } from 'sequelize'
 
 import { StorageConnector } from '../connectors/storage/index.js'
@@ -45,8 +43,7 @@ export class SupplierProposalController extends BaseController {
     this.proposalRepository = new ProposalRepository(context)
   }
 
-  // Mesma visibilidade do SupplierEventController.getAvailableEvent: evento em cotação e item numa
-  // categoria do fornecedor. Evento ou item fora disso responde 404, sem revelar que eles existem.
+  // evento ou item fora da visibilidade do fornecedor responde 404, sem revelar que eles existem
   async createProposal(userKey, eventKey, itemKey, payload) {
     ensureAtMostTwoDecimals(payload.amount, 'amount')
     const supplier = await getSupplierOfUser(this.userRepository, userKey)
@@ -66,7 +63,6 @@ export class SupplierProposalController extends BaseController {
       throw new ProposalItemAlreadyDecided()
     }
 
-    // um fornecedor, uma proposta por item
     if (await this.proposalRepository.getBySupplierAndItem(supplier.id, item.id)) {
       throw new ProposalAlreadySent()
     }
@@ -131,7 +127,6 @@ export class SupplierProposalController extends BaseController {
     return this.#getProposalDetail(supplier.id, proposalKey)
   }
 
-  // mesmo schema e mesmas regras de validade do envio
   async updateProposal(userKey, proposalKey, payload) {
     ensureAtMostTwoDecimals(payload.amount, 'amount')
     const supplier = await getSupplierOfUser(this.userRepository, userKey)
@@ -144,8 +139,7 @@ export class SupplierProposalController extends BaseController {
     return this.#getProposalDetail(supplier.id, proposalKey)
   }
 
-  // O banco não tem status "retirada": a retirada apaga a proposta, e o fornecedor pode enviar outra
-  // para o item enquanto o evento estiver em cotação.
+  // não há status "retirada": a proposta é apagada e o fornecedor pode enviar outra enquanto o evento estiver em cotação
   async deleteProposal(userKey, proposalKey) {
     const supplier = await getSupplierOfUser(this.userRepository, userKey)
     const { proposal } = await this.#getChangeableProposal(supplier.id, proposalKey)
@@ -157,11 +151,7 @@ export class SupplierProposalController extends BaseController {
     await this.#removeFiles(photos.map((photo) => photo.url))
   }
 
-  // Foto nova da proposta (até 5). A conferência acontece duas vezes:
-  //   1. sem trava, antes de gravar o arquivo: proposta cheia ou que não muda mais é recusada na hora;
-  //   2. com a proposta travada, depois de gravar: pega duas fotos chegando ao mesmo tempo.
-  // O arquivo vai para o armazenamento entre as duas, para um envio lento não segurar o evento travado.
-  // Qualquer recusa ou falha depois de gravar o arquivo apaga o arquivo.
+  // confere sem trava antes de gravar o arquivo e de novo com trava depois, para um envio lento não segurar o evento travado
   async addPhoto(userKey, proposalKey, file) {
     const imageType = detectImageType(file.buffer)
     if (!imageType) {
@@ -197,14 +187,12 @@ export class SupplierProposalController extends BaseController {
       throw error
     }
 
-    // depois do commit a foto já está salva: a URL é assinada sem o evento travado. Se a assinatura
-    // falhar, a resposta continua 201 (sem url) para o fornecedor não reenviar e duplicar a foto
+    // se a assinatura falhar, a resposta continua 201 (sem url) para o fornecedor não reenviar e duplicar a foto
     const [photo] = await toPhotoResponses([{ url: path }])
     return photo
   }
 
-  // O registro sai primeiro (com commit) e o arquivo depois: se a remoção do arquivo falhar, sobra só
-  // um arquivo que nenhum registro aponta (fica no log), nunca um registro apontando para o nada.
+  // registro primeiro e arquivo depois: uma falha deixa só um arquivo órfão, nunca um registro apontando para o nada
   async deletePhoto(userKey, proposalKey, photoKey) {
     const supplier = await getSupplierOfUser(this.userRepository, userKey)
     const { proposal } = await this.#getChangeableProposal(supplier.id, proposalKey)
@@ -221,8 +209,7 @@ export class SupplierProposalController extends BaseController {
     await this.#removeFiles([photo.url])
   }
 
-  // Apagar arquivo é a última etapa: depois do commit, uma falha aqui não pode virar erro para o
-  // fornecedor (o banco já mudou). Fica registrada com o caminho, para a limpeza manual.
+  // depois do commit uma falha aqui não pode virar erro para o fornecedor: fica no log para limpeza manual
   async #removeFiles(paths) {
     for (const path of paths) {
       try {
@@ -235,14 +222,13 @@ export class SupplierProposalController extends BaseController {
     }
   }
 
-  // a leitura termina antes de assinar as URLs, para a conexão do banco voltar ao pool enquanto o GCS responde
+  // commit antes de assinar as URLs, para a conexão do banco voltar ao pool enquanto o GCS responde
   async #getProposalDetail(supplierId, proposalKey) {
     const detail = await this.#readProposalDetail(supplierId, proposalKey)
     await this.session.commit()
     return this.#buildProposalDetail(detail)
   }
 
-  // a leitura do banco fica separada de assinar as URLs, que pode ser lento (uma chamada por foto no GCS)
   async #readProposalDetail(supplierId, proposalKey) {
     const proposal = await this.proposalRepository.getSupplierProposalByKey(supplierId, proposalKey)
     if (!proposal) {
@@ -255,8 +241,7 @@ export class SupplierProposalController extends BaseController {
     return SupplierProposalDto.fromDetail(proposal, await toPhotoResponses(photos))
   }
 
-  // Só a proposta enviada, ainda não analisada, de um evento em cotação (com organizador aprovado) pode mudar. As travas seguem
-  // a ordem do aceite do organizador (evento, depois proposta), para os dois não se bloquearem.
+  // travas na mesma ordem do aceite do organizador (evento, depois proposta), para os dois não se bloquearem
   async #getChangeableProposal(supplierId, proposalKey) {
     const reference = await this.proposalRepository.getSupplierProposalByKey(supplierId, proposalKey)
     if (!reference) {
@@ -282,8 +267,7 @@ export class SupplierProposalController extends BaseController {
   }
 }
 
-// cursor da próxima página: a posição da última proposta mostrada (data de envio e o desempate de quem
-// foi enviada no mesmo segundo), em base64url. O front só repassa, não lê.
+// data de envio e id de desempate da última proposta mostrada; o front só repassa, não lê
 function toCursor(proposal) {
   return Buffer.from(JSON.stringify([new Date(proposal.sent_at).toISOString(), proposal.position_id])).toString('base64url')
 }
@@ -322,8 +306,7 @@ function toProposalFields(payload) {
   }
 }
 
-// "Hoje" é o dia de Brasília, como a validade vencida no ProposalRepository (TODAY_IN_BRAZIL) e como
-// o fornecedor vê na tela; em UTC, das 21h à meia-noite a validade de hoje seria recusada.
+// "hoje" é o dia de Brasília, como o fornecedor vê na tela; em UTC, das 21h à meia-noite a validade de hoje seria recusada
 function ensureValidUntilInsideEvent(validUntil, eventEndDate) {
   // o schema só confere o formato: 2026-02-31 passa por ele, mas não existe no calendário
   const validUntilDate = new Date(`${validUntil}T00:00:00.000Z`)
@@ -353,7 +336,6 @@ function toBrazilDateString(date) {
   return BRAZIL_DATE_FORMAT.format(date)
 }
 
-// campo opcional vazio ou só com espaços vira NULL no banco
 function optionalText(value) {
   return value?.trim() || null
 }

@@ -5,10 +5,6 @@ import { getParam, getParamAsInt } from '../utils/request_params.js'
 import { SchemaHandler } from '../utils/schema_handler.js'
 import { SecurityTools } from '../utils/security_tools.js'
 
-/**
- * Resource HTTP para a rota de eventos (RF05, RF07, RF08).
- * Gerencia autorização por perfil, validação de schema e delegação ao controller.
- */
 export class EventResource {
   async onPostList(req, res) {
     SecurityTools.requireProfile(req.context, [USER_PROFILES.ORGANIZER])

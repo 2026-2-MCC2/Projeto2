@@ -10,7 +10,7 @@ export const GIT_COMMIT = process.env.GIT_COMMIT ?? '$$GIT_COMMIT'
 export const PORT = Number(process.env.PORT ?? 3300)
 
 // local | test | production
-export const APP_ENV = process.env.APP_ENV ?? ''
+const APP_ENV = process.env.APP_ENV ?? ''
 export const IS_LOCAL = ['LOCAL', 'TEST'].includes(APP_ENV.toUpperCase())
 export const IS_PRODUCTION = APP_ENV.toUpperCase() === 'PRODUCTION'
 
@@ -20,7 +20,6 @@ export const GCP_PROJECT_ID = process.env.GCP_PROJECT_ID ?? ''
 
 export const DB_NAME = process.env.DB_NAME ?? ''
 export const DB_CREDENTIALS_SECRET_NAME = process.env.DB_CREDENTIALS_SECRET_NAME ?? ''
-// conexões abertas por instância da api
 export const DB_POOL_SIZE = Number(process.env.DB_POOL_SIZE ?? 5)
 
 // quem tem essa chave cria tokens válidos, por isso ela fica no secret manager e nunca no código
@@ -46,29 +45,20 @@ export const PASSWORD_RESET_COOLDOWN_SECONDS = Number(process.env.PASSWORD_RESET
 // esqueci-senha nunca responde antes disso, para o tempo não revelar se o e-mail tem conta
 export const FORGOT_PASSWORD_MIN_RESPONSE_MS = Number(process.env.FORGOT_PASSWORD_MIN_RESPONSE_MS ?? 500)
 
-// Limite de tentativas nas rotas de login, cadastro e senha (ver middlewares/rate_limit.js).
-// Fica na memória de cada instância: com até 3 instâncias no Cloud Run, o limite real pode chegar ao triplo.
+// na memória de cada instância: com até 3 instâncias no Cloud Run, o limite real pode chegar ao triplo
 export const RATE_LIMIT_WINDOW_SECONDS = Number(process.env.RATE_LIMIT_WINDOW_SECONDS ?? 900)
-// requisições por IP em cada rota limitada, dentro da janela. Folgado de propósito: numa rede com um IP
-// público só (Wi-Fi da faculdade, empresa, CGNAT da operadora) todo mundo divide a mesma cota; quem
-// segura a adivinhação de senha de uma conta é o limite por IP e e-mail, bem mais apertado
+// folgado de propósito: numa rede com um IP público só (faculdade, CGNAT) todo mundo divide a mesma cota
 export const RATE_LIMIT_MAX_REQUESTS_PER_IP = Number(process.env.RATE_LIMIT_MAX_REQUESTS_PER_IP ?? 300)
 // logins com senha errada para o mesmo e-mail vindos do mesmo IP; um login certo zera a contagem
 export const RATE_LIMIT_MAX_FAILED_LOGINS_PER_EMAIL = Number(process.env.RATE_LIMIT_MAX_FAILED_LOGINS_PER_EMAIL ?? 10)
 
 export const SECRET_MANAGER_EMULATOR_HOST = process.env.SECRET_MANAGER_EMULATOR_HOST ?? ''
 
-// Armazenamento de arquivos (fotos das propostas), ver connectors/storage/:
-//   local  pasta do servidor (desenvolvimento e testes); a própria API serve os arquivos
-//   gcs    bucket privado do Google Cloud Storage (produção), com URL assinada de leitura
-// Não entram no checkVariables: o deploy atual não as define, e só quem grava ou lê arquivo
-// precisa delas (o módulo confere na primeira vez que é usado).
+// local | gcs; fora do checkVariables porque só é conferido no primeiro uso do armazenamento
 export const STORAGE_DRIVER = process.env.STORAGE_DRIVER ?? ''
 export const GCS_BUCKET = process.env.GCS_BUCKET ?? ''
 export const STORAGE_LOCAL_DIR = process.env.STORAGE_LOCAL_DIR ?? ''
-// endereço público da rota que serve os arquivos locais, ex.: http://localhost:3300/event_planning/files
 export const STORAGE_LOCAL_PUBLIC_URL = process.env.STORAGE_LOCAL_PUBLIC_URL ?? ''
-// validade das URLs de leitura (assinadas no GCS, com assinatura da API no local)
 export const STORAGE_URL_EXPIRATION_SECONDS = Number(process.env.STORAGE_URL_EXPIRATION_SECONDS ?? 900)
 
 export const USER_PROFILES = Object.freeze({
@@ -106,12 +96,6 @@ export const REFERENCE_SCENARIOS = Object.freeze({
   MINIMUM: 'minimum',
   EXPECTED: 'expected',
   MAXIMUM: 'maximum',
-})
-
-export const INTERNAL_COST_TYPES = Object.freeze({
-  TAX: 'tax',
-  OPERATIONAL: 'operational',
-  OTHER: 'other',
 })
 
 // status da proposta (ENUM proposal.status do banco); só a enviada ainda pode ser editada ou retirada

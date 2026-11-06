@@ -1,7 +1,6 @@
 import { InvalidSchema } from '../errors/index.js'
 
-// O banco guarda dinheiro em DECIMAL(12,2): 0,001 seria arredondado para 0 e quebraria o CHECK de valor
-// positivo. O texto do número mostra as casas decimais sem o erro de ponto flutuante de uma conta (valor * 100).
+// DECIMAL(12,2) arredondaria 0,001 para 0 e quebraria o CHECK de valor positivo; o texto evita o erro de ponto flutuante
 const AT_MOST_TWO_DECIMALS = /^\d+(\.\d{1,2})?$/
 
 export function ensureAtMostTwoDecimals(value, fieldName) {

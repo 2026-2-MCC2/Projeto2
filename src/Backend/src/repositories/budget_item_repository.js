@@ -1,5 +1,3 @@
-// Consultas e gravações dos itens de custo e de suas categorias.
-
 import { randomUUID } from 'node:crypto'
 import { QueryTypes } from 'sequelize'
 

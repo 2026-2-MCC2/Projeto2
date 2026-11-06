@@ -1,5 +1,3 @@
-// Grava as propostas dos fornecedores e consulta as recebidas para os itens de um evento.
-
 import { randomUUID } from 'node:crypto'
 
 import { QueryTypes } from 'sequelize'
@@ -9,7 +7,7 @@ import { ProposalDecisionConflict, ProposalExpired } from '../errors/index.js'
 import { Proposal, ProposalPhoto } from '../models/index.js'
 
 // "hoje" no horário de Brasília (sem horário de verão desde 2019), o mesmo dia que o fornecedor vê na tela
-export const TODAY_IN_BRAZIL = "DATE(CONVERT_TZ(UTC_TIMESTAMP(), '+00:00', '-03:00'))"
+const TODAY_IN_BRAZIL = "DATE(CONVERT_TZ(UTC_TIMESTAMP(), '+00:00', '-03:00'))"
 
 // colunas e junções das propostas vistas pelo próprio fornecedor (histórico e detalhe)
 const SUPPLIER_PROPOSAL_COLUMNS = `proposal.proposal_key, proposal.id AS position_id, proposal.amount,
@@ -60,9 +58,8 @@ export class ProposalRepository {
     )
   }
 
-  // depois do aceite o item para de receber propostas; o organizador ainda troca entre as recebidas.
-  // FOR SHARE lê o que já foi confirmado: a leitura comum usa a foto do banco do começo da transação
-  // e não veria um aceite gravado enquanto o envio esperava a trava do item
+  // FOR SHARE lê o que já foi confirmado: a leitura comum usa a foto do começo da transação e não veria
+  // um aceite gravado enquanto o envio esperava a trava do item
   async hasAcceptedProposal(budgetItemId) {
     const [row] = await sequelize.query(
       `SELECT COUNT(*) AS accepted FROM proposal WHERE budget_item_id = :budgetItemId AND status = 'accepted' FOR SHARE`,
@@ -117,9 +114,7 @@ export class ProposalRepository {
     return { proposals, total: Number(countResult.total) }
   }
 
-  // próxima página a partir da última proposta mostrada: proposta nova ou retirada no meio não desloca
-  // a lista. Busca uma a mais para saber se ainda há página depois.
-  // o cursor guarda a posição da última mostrada (data e id), então funciona mesmo se ela for retirada
+  // paginação por cursor: proposta nova ou retirada no meio não desloca a lista; busca uma a mais para saber se há próxima página
   async getSupplierProposalsAfter(supplierId, { status, limit, cursor }) {
     return sequelize.query(
       `SELECT ${SUPPLIER_PROPOSAL_COLUMNS}
@@ -169,8 +164,7 @@ export class ProposalRepository {
     return proposals[0] ?? null
   }
 
-  // com lock, a leitura enxerga as fotos que outra requisição acabou de gravar (a leitura comum usa a
-  // foto do banco tirada no começo da transação)
+  // com lock, enxerga as fotos que outra requisição acabou de gravar (a leitura comum usa a foto do começo da transação)
   async getPhotos(proposalId, { lock = false } = {}) {
     const forUpdate = lock ? ' FOR UPDATE' : ''
     return sequelize.query(`SELECT position, url FROM proposal_photo WHERE proposal_id = :proposalId ORDER BY position ASC${forUpdate}`, {
@@ -187,7 +181,6 @@ export class ProposalRepository {
     )
   }
 
-  // a foto da proposta guardada num destes caminhos (um por formato aceito, ver proposal_photo_tools.js)
   async getPhotoByPaths(proposalId, paths) {
     return ProposalPhoto.findOne({ where: { proposal_id: proposalId, url: paths }, transaction: this.session })
   }
@@ -196,7 +189,6 @@ export class ProposalRepository {
     await photo.destroy({ transaction: this.session })
   }
 
-  // fotos de todas as propostas de um evento, para a comparação do organizador
   async getPhotosByEventId(eventId) {
     return sequelize.query(
       `SELECT proposal.proposal_key, proposal_photo.position, proposal_photo.url
@@ -228,7 +220,6 @@ export class ProposalRepository {
     await proposal.destroy({ transaction: this.session })
   }
 
-  // propostas ainda em jogo (enviada, em análise ou aceita), com o fornecedor que precisa saber do cancelamento.
   // trava só as propostas: as linhas de item, fornecedor e usuário da junção ficam livres
   async getOpenProposalsOfEventForUpdate(eventId) {
     return sequelize.query(

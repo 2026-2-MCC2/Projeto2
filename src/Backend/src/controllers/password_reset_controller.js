@@ -71,9 +71,8 @@ export class PasswordResetController extends BaseController {
     return { to: user.email, ...content }
   }
 
-  // Trava a conta antes do token, na mesma ordem da troca de senha logada e do pedido de link novo:
-  // na ordem inversa, as duas transações podiam esperar uma pela outra (deadlock). Por isso o token
-  // é lido sem trava só para achar a conta, e conferido de novo depois, já travado
+  // trava a conta antes do token, na mesma ordem da troca de senha e do pedido de link, para não haver deadlock;
+  // por isso o token é lido sem trava só para achar a conta e conferido de novo depois, já travado
   async resetPassword({ token, password }) {
     const tokenHash = hashToken(token)
     const candidate = await this.tokenRepository.getUsableByHash(tokenHash)

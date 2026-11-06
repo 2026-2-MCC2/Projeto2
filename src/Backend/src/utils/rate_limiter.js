@@ -1,13 +1,9 @@
-// Conta tentativas por chave (ex.: IP + rota) em janelas fixas de tempo, só na memória da instância.
-// A primeira tentativa abre a janela; ao fim dela a contagem recomeça do zero.
-
 export class RateLimiter {
   constructor({ maxHits, windowSeconds }) {
     this.maxHits = maxHits
     this.windowMs = windowSeconds * 1000
     this.windowsByKey = new Map()
 
-    // limpa as janelas vencidas de quem não voltou, para a memória não crescer sem fim;
     // unref para o timer não segurar o desligamento da aplicação
     setInterval(() => this.removeExpired(), this.windowMs).unref()
   }

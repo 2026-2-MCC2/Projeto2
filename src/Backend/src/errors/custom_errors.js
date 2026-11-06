@@ -128,7 +128,7 @@ export class InvalidPasswordResetToken extends ApiException {
 export class NotFoundEvent extends ApiException {
   static code = 'EVP000013'
 
-  constructor(eventKey = '') {
+  constructor(eventKey) {
     const title = 'Event not Found'
     const httpStatus = 404
     const description = `Event ${eventKey} was not found.`
@@ -188,7 +188,7 @@ export class EventCapacityLessThanMaxAudience extends ApiException {
 export class EventCannotBeModified extends ApiException {
   static code = 'EVP000020'
 
-  constructor(status = '') {
+  constructor(status) {
     const title = 'Event cannot be modified'
     const httpStatus = 409
     const description = `Events with status "${status}" cannot be modified.`
@@ -200,7 +200,7 @@ export class EventCannotBeModified extends ApiException {
 export class NotFoundBudgetItem extends ApiException {
   static code = 'EVP000028'
 
-  constructor(itemKey = '') {
+  constructor(itemKey) {
     const title = 'Budget item not Found'
     const httpStatus = 404
     const description = `Budget item ${itemKey} was not found.`
@@ -212,7 +212,7 @@ export class NotFoundBudgetItem extends ApiException {
 export class BudgetItemLocked extends ApiException {
   static code = 'EVP000029'
 
-  constructor(itemKey = '') {
+  constructor(itemKey) {
     const title = 'Budget item is locked'
     const httpStatus = 409
     const description = `Budget item ${itemKey} cannot be changed because it already has proposals.`
@@ -224,7 +224,7 @@ export class BudgetItemLocked extends ApiException {
 export class EventCannotBePublished extends ApiException {
   static code = 'EVP000021'
 
-  constructor(currentStatus = '') {
+  constructor(currentStatus) {
     const title = 'Event cannot be published'
     const httpStatus = 409
     const description = `Events with status "${currentStatus}" cannot be published for quotes.`
@@ -236,7 +236,7 @@ export class EventCannotBePublished extends ApiException {
 export class NotFoundOrganizer extends ApiException {
   static code = 'EVP000022'
 
-  constructor(userKey = '') {
+  constructor(userKey) {
     const title = 'Organizer profile not found'
     const httpStatus = 404
     const description = `Organizer profile for user ${userKey} was not found.`
@@ -248,7 +248,7 @@ export class NotFoundOrganizer extends ApiException {
 export class NotFoundInternalCost extends ApiException {
   static code = 'EVP000023'
 
-  constructor(costKey = '') {
+  constructor(costKey) {
     const title = 'Internal cost not found'
     const httpStatus = 404
     const description = `Internal cost ${costKey} was not found.`
@@ -296,7 +296,7 @@ export class EventNotOpenForQuotes extends ApiException {
 export class NotFoundProposal extends ApiException {
   static code = 'EVP000033'
 
-  constructor(proposalKey = '') {
+  constructor(proposalKey) {
     const title = 'Proposal not found'
     const httpStatus = 404
     const description = `Proposal ${proposalKey} was not found in this event.`
@@ -385,7 +385,7 @@ const PROPOSAL_LOCKED_TRANSLATIONS = {
 export class ProposalCannotBeChanged extends ApiException {
   static code = 'EVP000041'
 
-  constructor(status = '') {
+  constructor(status) {
     const title = 'Proposal cannot be changed'
     const httpStatus = 409
     const description = `A proposal with status ${status} can no longer be edited or withdrawn.`
@@ -445,7 +445,7 @@ export class ProposalPhotoTooLarge extends ApiException {
 export class NotFoundProposalPhoto extends ApiException {
   static code = 'EVP000046'
 
-  constructor(photoKey = '') {
+  constructor(photoKey) {
     const title = 'Proposal photo not Found'
     const httpStatus = 404
     const description = `Photo ${photoKey} was not found in this proposal.`
@@ -466,7 +466,6 @@ export class ProposalItemAlreadyDecided extends ApiException {
   }
 }
 
-// muitas tentativas em pouco tempo nas rotas de login, cadastro e senha (ver middlewares/rate_limit.js)
 export class TooManyAttempts extends ApiException {
   static code = 'EVP000049'
 

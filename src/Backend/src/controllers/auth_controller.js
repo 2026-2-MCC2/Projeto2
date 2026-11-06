@@ -35,7 +35,6 @@ export class AuthController extends BaseController {
     this.supplierRepository = new SupplierRepository(context)
   }
 
-  // RF01 (organizador) e RF02 (fornecedor)
   async register(payload) {
     const profileRegistration = this.getProfileRegistration(payload)
 

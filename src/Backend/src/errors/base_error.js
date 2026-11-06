@@ -1,25 +1,3 @@
-// Erros da API. Todo erro que a API devolve tem este formato:
-//   { "title": "Unauthorized", "description": "A valid login token is required.", "translation": "Sua sessão expirou ou você não está logado. Faça login novamente.", "code": "APP000401" }
-//
-// Para devolver um erro, basta dar throw em qualquer lugar (resource, controller, repository...):
-//   throw new NotFoundResource()
-// O throw interrompe o código na hora. O APIErrorHandler (api_error_handler.js) pega o erro e
-// responde com o status HTTP dele.
-//
-// Status HTTP de erro usados:
-//   400 Bad Request          o que foi enviado está errado (campo faltando, JSON mal formado)
-//   401 Unauthorized         não está logado (token ausente, inválido ou vencido)
-//   403 Forbidden            está logado, mas o perfil não tem permissão (ex.: fornecedor criando evento)
-//   404 Not Found            a rota ou o registro não existe
-//   405 Method Not Allowed   a rota existe, mas não aceita esse método (ex.: DELETE)
-//   409 Conflict             o pedido conflita com o estado atual (ex.: status que não pode mudar)
-//   413 Payload Too Large    o body passou do tamanho aceito
-//   429 Too Many Requests    tentativas demais em pouco tempo (login, cadastro, senha)
-//   500 Internal Error       bug na API; o detalhe vai para o log, não para quem chamou
-//
-// O "code" (ex.: APP000404) identifica exatamente qual erro foi, para quem chama a API poder tratar.
-// Aqui ficam os erros genéricos (prefixo APP). Erros de regra de negócio ficam em custom_errors.js.
-
 export class ApiException extends Error {
   constructor(title, code, httpStatus, description, translation, details = undefined) {
     super(description)
@@ -27,12 +5,10 @@ export class ApiException extends Error {
     this.code = code
     this.httpStatus = httpStatus
     this.description = description
-    // a tradução é a mensagem em português, pronta para o front-end mostrar ao usuário
     this.translation = translation
     this.details = details
   }
 
-  // é o que vira o body da resposta quando o erro é enviado com res.json()
   toJSON() {
     return {
       title: this.title,
@@ -81,8 +57,6 @@ export class NotFoundResource extends ApiException {
   }
 }
 
-// body inválido: não segue o JSON Schema, é um JSON mal formado ou um campo não passa numa regra de
-// formato que o schema não consegue expressar (ex.: telefone, dia que não existe no calendário)
 export class InvalidSchema extends ApiException {
   static code = 'APP000001'
 
@@ -93,8 +67,6 @@ export class InvalidSchema extends ApiException {
   }
 }
 
-// Não está logado: o header "Authorization: Bearer <token>" não veio, ou o token é inválido ou venceu.
-// O front-end deve mandar o usuário para a tela de login.
 export class Unauthorized extends ApiException {
   static code = 'APP000401'
 
@@ -107,8 +79,6 @@ export class Unauthorized extends ApiException {
   }
 }
 
-// Está logado, mas o perfil não pode usar esta rota (ex.: um fornecedor tentando criar evento).
-// Lançado pelo SecurityTools.requireProfile.
 export class ForbiddenProfile extends ApiException {
   static code = 'APP000403'
 
@@ -121,7 +91,6 @@ export class ForbiddenProfile extends ApiException {
   }
 }
 
-// parâmetro da query string inválido (ex.: ?limit=abc)
 export class InvalidParameter extends ApiException {
   static code = 'APP000010'
 
@@ -133,7 +102,6 @@ export class InvalidParameter extends ApiException {
   }
 }
 
-// body acima do limite (ver middlewares/input_output.js); a foto tem um erro próprio, com o limite dela
 export class PayloadTooLarge extends ApiException {
   static code = 'APP000413'
 

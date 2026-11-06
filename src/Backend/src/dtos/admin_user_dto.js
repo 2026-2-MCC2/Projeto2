@@ -8,7 +8,6 @@ export class AdminUserDTO {
     }
   }
 
-  // categories é null para organizador
   static registration(user) {
     const profileData = user.organizer ?? user.supplier ?? null
 

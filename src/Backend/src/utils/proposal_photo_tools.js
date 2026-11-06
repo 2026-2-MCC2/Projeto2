@@ -1,14 +1,3 @@
-// Ferramentas das fotos das propostas (proposal_photo), usadas pelo fornecedor e pelo organizador.
-//
-// O tipo da foto é conferido pelos primeiros bytes do arquivo (a "assinatura" do formato), não pela
-// extensão nem pelo Content-Type que o navegador mandou: os dois o usuário escolhe à vontade.
-//   JPG   FF D8 FF
-//   PNG   89 50 4E 47 0D 0A 1A 0A
-//   WebP  "RIFF" + 4 bytes de tamanho + "WEBP"
-//
-// O nome do objeto é gerado aqui (proposals/<proposal_key>/<photo_key>.<ext>), nunca o nome do
-// arquivo enviado. O photo_key é o UUID desse nome: a tabela não tem coluna própria para ele.
-
 import { randomUUID } from 'node:crypto'
 
 import { StorageConnector } from '../connectors/storage/index.js'
@@ -36,12 +25,13 @@ function startsWith(bytes, signature) {
   return bytes.length >= signature.length && signature.every((byte, index) => bytes[index] === byte)
 }
 
-// { extension, contentType } do formato real do arquivo, ou null se não for JPG, PNG nem WebP
+// pelos primeiros bytes, não pela extensão nem pelo Content-Type, que o usuário escolhe à vontade
 export function detectImageType(buffer) {
   const type = IMAGE_TYPES.find((candidate) => candidate.matches(buffer))
   return type ? { extension: type.extension, contentType: type.contentType } : null
 }
 
+// o photo_key só existe no nome do objeto: a tabela não tem coluna própria para ele
 export function buildPhotoPath(proposalKey, extension) {
   const photoKey = randomUUID()
   return { photoKey, path: `proposals/${proposalKey}/${photoKey}.${extension}` }
@@ -56,8 +46,7 @@ const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{
 
 export const isPhotoKey = (value) => UUID_PATTERN.test(value)
 
-// "proposals/<proposal_key>/<photo_key>.webp" → "<photo_key>"
-export function photoKeyFromPath(path) {
+function photoKeyFromPath(path) {
   return path
     .split('/')
     .pop()
@@ -75,8 +64,7 @@ export function firstFreePosition(photos) {
   return null
 }
 
-// fotos do banco → resposta da API, com a URL de leitura assinada (vale por pouco tempo). Uma foto
-// que não conseguiu link vem com url null: a proposta e as outras fotos continuam aparecendo
+// foto sem link vem com url null, para a proposta e as outras fotos continuarem aparecendo
 export async function toPhotoResponses(photos) {
   return Promise.all(photos.map(async (photo) => ({ photo_key: photoKeyFromPath(photo.url), url: await signedUrlOrNull(photo.url) })))
 }

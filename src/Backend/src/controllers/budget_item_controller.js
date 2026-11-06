@@ -1,5 +1,3 @@
-// Regras de negócio para cadastrar itens de custo nos eventos do Organizador.
-
 import { EVENT_STATUSES } from '../constants.js'
 import { BudgetItemDTO } from '../dtos/budget_item_dto.js'
 import {

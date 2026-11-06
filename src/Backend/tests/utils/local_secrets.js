@@ -3,7 +3,7 @@
 import { SecretManagerEmulator } from './secret_manager_emulator.js'
 
 // credenciais do MySQL do docker-compose; "db" é o nome do container do banco
-export const LOCAL_DB_CREDENTIALS = { username: 'my_user', password: 'my_pwd', host: 'db', port: 3306 }
+const LOCAL_DB_CREDENTIALS = { username: 'my_user', password: 'my_pwd', host: 'db', port: 3306 }
 
 // mysql do docker visto de fora do docker; a porta segue a DB_PORT do docker-compose
 export const LOCAL_DATABASE_URL = `mysql://${LOCAL_DB_CREDENTIALS.username}:${LOCAL_DB_CREDENTIALS.password}@localhost:${process.env.DB_PORT ?? 3306}/${process.env.DB_NAME ?? 'event_planning'}`

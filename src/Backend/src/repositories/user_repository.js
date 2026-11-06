@@ -75,7 +75,6 @@ export class UserRepository {
     )
   }
 
-  // busca um item a mais que o limite só para saber se existe próxima página
   async getRegistrationList(limit, offset, status) {
     const where = { profile: [USER_PROFILES.ORGANIZER, USER_PROFILES.SUPPLIER] }
     if (status !== undefined) {

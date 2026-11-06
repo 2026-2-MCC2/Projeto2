@@ -1,5 +1,3 @@
-// Testes de integração do cadastro de itens de custo em eventos.
-
 import assert from 'node:assert/strict'
 import { afterEach, describe, test } from 'node:test'
 

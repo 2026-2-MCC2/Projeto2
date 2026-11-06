@@ -1,5 +1,3 @@
-// Testes de integração do histórico, detalhe, edição e retirada das propostas do fornecedor.
-
 import assert from 'node:assert/strict'
 import { afterEach, describe, test } from 'node:test'
 
