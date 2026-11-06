@@ -46,14 +46,19 @@ export function Login() {
   }
 
   return (
-    <AcessoLayout tituloDaPagina="Entrar">
+    <AcessoLayout tituloDaPagina="Entrar" entrada>
+      {/* --i é a posição na fila da entrada; o logo, no AcessoLayout, é o 0 */}
       <header className="acesso__cabecalho">
-        <h1>Entrar na plataforma</h1>
-        <p>Planejamento, cotação e precificação de eventos.</p>
+        <h1 className="acesso__entra" style={{ '--i': 1 }}>
+          Entrar na plataforma
+        </h1>
+        <p className="acesso__entra" style={{ '--i': 2 }}>
+          Planejamento, cotação e precificação de eventos.
+        </p>
       </header>
 
       <form className="acesso__campos" onSubmit={aoEnviar} {...validacao}>
-        <label className="campo">
+        <label className="campo acesso__entra" style={{ '--i': 3 }}>
           <span>E-mail</span>
           <input
             type="email"
@@ -66,7 +71,7 @@ export function Login() {
           />
         </label>
 
-        <label className="campo">
+        <label className="campo acesso__entra" style={{ '--i': 4 }}>
           <span>Senha</span>
           <EntradaDeSenha
             autoComplete="current-password"
@@ -77,18 +82,23 @@ export function Login() {
           />
         </label>
 
-        <Link to="/recuperar-senha" className="acesso__link">
+        <Link to="/recuperar-senha" className="acesso__link acesso__entra" style={{ '--i': 5 }}>
           Esqueceu sua senha?
         </Link>
 
         <RetornoDoEnvio erro={erro} />
 
-        <button type="submit" className="acesso__botao" disabled={enviando}>
+        <button
+          type="submit"
+          className="acesso__botao acesso__entra"
+          style={{ '--i': 6 }}
+          disabled={enviando}
+        >
           {enviando ? 'Entrando...' : 'Entrar'}
         </button>
       </form>
 
-      <footer className="acesso__rodape">
+      <footer className="acesso__rodape acesso__entra" style={{ '--i': 7 }}>
         <Link to="/cadastro" className="acesso__link">
           Não tem conta? Criar cadastro
         </Link>

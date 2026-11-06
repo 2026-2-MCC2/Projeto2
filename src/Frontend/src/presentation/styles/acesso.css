@@ -492,6 +492,43 @@
   }
 }
 
+/* entrada do login: --animar vem do AcessoLayout. É animação, não estado: nada fica sem foco ou sem
+   clique, e o que recebe foco aparece na hora, sem esperar a fila. Com menos movimento, nada entra */
+@media (prefers-reduced-motion: no-preference) {
+  :root:not(.sem-movimento) .acesso--animar .acesso__entra {
+    animation: acesso-entra 500ms cubic-bezier(0.2, 0.8, 0.2, 1) calc(var(--i, 0) * 70ms) both;
+  }
+
+  /* duração zero encerra a animação; sem ela (animation: none), ao perder o foco ela recomeçaria */
+  :root:not(.sem-movimento) .acesso--animar .acesso__entra:focus-within {
+    animation-duration: 0s;
+    animation-delay: 0s;
+  }
+
+  :root:not(.sem-movimento) .acesso--animar .acesso__palavra {
+    animation: acesso-palavra 500ms cubic-bezier(0.2, 0.8, 0.2, 1) calc(var(--p) * 60ms + 300ms)
+      both;
+  }
+}
+
+.acesso__palavra {
+  display: inline-block;
+}
+
+@keyframes acesso-entra {
+  from {
+    opacity: 0;
+    translate: 0 16px;
+  }
+}
+
+@keyframes acesso-palavra {
+  from {
+    opacity: 0;
+    translate: 0 8px;
+  }
+}
+
 /* com a aba oculta não há por que gastar bateria */
 .acesso__painel--pausado * {
   animation-play-state: paused !important;
