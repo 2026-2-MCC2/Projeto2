@@ -1,12 +1,6 @@
 /* Landing page (pages/Landing.jsx). */
 
 .landing {
-  /* coleção "Marca TrocaTicket" do Figma: cores fixas, iguais nos dois temas */
-  --marca-azul: #0a50ae;
-  --marca-laranja: #fe7524;
-  --marca-ciano: #04a5ed;
-  --marca-rosa: #f91788;
-  --marca-preto: #0c0c0c;
   /* laranja para texto pequeno: o da marca dá 2,7:1 sobre o branco; este dá 5,2:1 */
   --texto-destaque: #b84a0e;
 
@@ -83,16 +77,84 @@
 /* ---------- navbar ---------- */
 
 .landing-topo {
-  position: relative;
+  /* folga em cima e embaixo, e quanto dela sai de cada lado quando a página rola */
+  --_folga: 18px;
+  --_recolhe: 10px;
+
+  position: sticky;
+  top: 0;
   z-index: 10; /* o menu aberto passa por cima do conteúdo, mas fica sob os botões flutuantes */
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
   /* conteúdo de 1200px centralizado: 120px de cada lado na tela de 1440px do Figma */
-  padding: 18px max(32px, calc((100% - 1200px) / 2));
+  padding: var(--_folga) max(32px, calc((100% - 1200px) / 2));
   border-bottom: 1px solid var(--borda-padrao);
   background: var(--fundo-superficie);
+}
+
+/* com o header fixo, as âncoras do menu param abaixo dele */
+html:has(.landing) {
+  scroll-padding-top: 88px;
+}
+
+/* barra de progresso de leitura, sobre a linha de baixo do header (useProgressoDeLeitura) */
+.landing-topo__progresso {
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--gradiente-laranja));
+  transform: scaleX(0);
+  transform-origin: left;
+  pointer-events: none;
+}
+
+/* parado 24px abaixo do topo da página: quando sai da tela, o header fica "rolado" */
+.landing-topo__sentinela {
+  position: absolute;
+  top: 24px;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+
+/* o margin devolve a altura que o padding perde: a página não sobe junto com o header, e o estado
+   não fica ligando e desligando perto do limite. 85% é o mínimo que mantém os links acima de 4,5:1
+   sobre qualquer seção, nos dois temas */
+.landing-topo--rolado {
+  margin-bottom: calc(var(--_recolhe) * 2);
+  padding-block: calc(var(--_folga) - var(--_recolhe));
+  background: color-mix(in srgb, var(--fundo-superficie) 85%, transparent);
+  box-shadow: 0 6px 18px rgb(15 23 42 / 8%);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .landing-topo--rolado {
+    background: color-mix(in srgb, var(--fundo-superficie) 96%, transparent);
+  }
+}
+
+.landing-topo--rolado .landing-topo__logo {
+  scale: 0.9;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :root:not(.sem-movimento) .landing-topo {
+    transition:
+      background-color 250ms ease,
+      box-shadow 250ms ease,
+      padding 250ms ease,
+      margin-bottom 250ms ease;
+  }
+
+  :root:not(.sem-movimento) .landing-topo__logo {
+    transition: scale 250ms ease;
+  }
 }
 
 .landing-topo__marca {
@@ -102,6 +164,8 @@
 
 .landing-topo__logo {
   --logo-altura: 54px;
+
+  transform-origin: left center;
 }
 
 /* o PNG do Figma já traz a margem do desenho; o negativo é mais justo e ganha o mesmo recuo */
@@ -154,7 +218,10 @@
 /* abaixo disso os links e os botões não cabem numa linha (o mesmo valor do NavbarLanding.jsx) */
 @media (max-width: 1100px) {
   .landing-topo {
-    padding: 12px 16px 12px 20px;
+    --_folga: 12px;
+    --_recolhe: 6px;
+
+    padding-inline: 20px 16px;
   }
 
   .landing-topo__logo {
@@ -287,10 +354,6 @@
   letter-spacing: -0.025em;
 }
 
-.hero__destaque {
-  color: var(--marca-laranja);
-}
-
 .hero__subtitulo {
   margin: 0;
   font-size: 1.1176rem; /* 19px */
@@ -348,6 +411,111 @@
   color: #fff;
 }
 
+/* as camadas de animação e o ingresso ocupam a caixa inteira do .hero__ingresso */
+.hero__ingresso .ingresso-flutua,
+.hero__ingresso .ingresso-tilt,
+.hero__ingresso .ingresso {
+  height: 100%;
+}
+
+/* entrada em leque: sai do centro do palco, reto e menor, e abre até a rotação de cada um.
+   Só o "from": o fim é o próprio transform/opacity do ingresso, então a rotação final não muda */
+@keyframes hero-ingresso-entrada {
+  from {
+    opacity: 0;
+    transform: translate(var(--entrada-x), var(--entrada-y)) rotate(0deg) scale(0.9);
+  }
+}
+
+/* depois da entrada, cada ingresso sobe e desce 6px sem parar */
+@keyframes hero-ingresso-flutua {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+/* com prefers-reduced-motion: reduce nada disto vale: os ingressos aparecem direto na posição final */
+@media (prefers-reduced-motion: no-preference) {
+  .hero__ingresso {
+    animation: hero-ingresso-entrada 900ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    will-change: transform, opacity;
+  }
+
+  .hero__ingresso .ingresso-flutua,
+  .hero__ingresso .ingresso-tilt {
+    will-change: transform;
+  }
+
+  .hero__ingresso--summit {
+    animation-delay: 150ms;
+  }
+
+  /* o delay é o fim da entrada de cada um (150ms + 900ms no summit); as durações diferentes
+     deixam os dois desencontrados */
+  .hero__ingresso .ingresso-flutua {
+    animation: hero-ingresso-flutua 7.5s ease-in-out 900ms infinite alternate;
+  }
+
+  .hero__ingresso--summit .ingresso-flutua {
+    animation-duration: 6s;
+    animation-delay: 1050ms;
+  }
+
+  /* tilt 3D: --rx/--ry vêm do useTilt. Com o mouse em cima a transição é curta,
+     só para suavizar; ao sair vale a de 500ms e o ingresso volta reto devagar */
+  :root:not(.sem-movimento) .hero__ingresso .ingresso-tilt {
+    transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+    transition: transform 500ms ease-out;
+  }
+
+  :root:not(.sem-movimento) .hero__ingresso:hover .ingresso-tilt {
+    transition-duration: 100ms;
+  }
+}
+
+/* brilho holográfico: um ::after em cada parte, porque é a parte que tem a máscara dos recortes,
+   então o brilho segue os cantos e os furos do ingresso. O fundo tem o tamanho do ingresso inteiro
+   e fica preso na borda de fora de cada parte, para o brilho atravessar o picote sem emenda */
+.hero__ingresso .ingresso__parte::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      circle at var(--mx, 50%) var(--my, 50%),
+      rgb(255 255 255 / 35%),
+      transparent 45%
+    ),
+    linear-gradient(
+      115deg,
+      color-mix(in srgb, var(--marca-rosa) 25%, transparent),
+      color-mix(in srgb, var(--marca-azul) 25%, transparent),
+      color-mix(in srgb, var(--marca-laranja) 25%, transparent)
+    );
+  background-position: left top;
+  background-size: var(--ingresso-largura) var(--ingresso-altura);
+  mix-blend-mode: overlay;
+  opacity: 0;
+  transition: opacity 300ms ease-out;
+  pointer-events: none;
+}
+
+.hero__ingresso .ingresso__parte--depois::after {
+  background-position: right top;
+}
+
+/* só com mouse, como o tilt (useTilt): no toque o :hover fica preso depois do dedo sair */
+@media (hover: hover) and (pointer: fine) {
+  .hero__ingresso:hover .ingresso__parte::after {
+    opacity: 1;
+  }
+}
+
 .hero__ingresso .ingresso__corpo {
   display: flex;
   flex-direction: column;
@@ -365,12 +533,17 @@
 .hero__ingresso--summit {
   --ingresso-recorte: 16px;
   --ingresso-picote-recuo: 22px;
-  --ingresso-fundo: linear-gradient(90deg, var(--marca-laranja), var(--marca-rosa));
+  --ingresso-fundo: linear-gradient(90deg, var(--gradiente-laranja));
+  /* do centro do palco (330, 250) até o centro deste ingresso (402, 159), mais 40px abaixo */
+  --entrada-x: -72px;
+  --entrada-y: 131px;
+  --ingresso-largura: 540px;
+  --ingresso-altura: 230px;
 
   top: 44px;
   left: 132px;
-  width: 540px;
-  height: 230px;
+  width: var(--ingresso-largura);
+  height: var(--ingresso-altura);
   opacity: 0.95;
   transform: rotate(-7deg);
 }
@@ -386,12 +559,17 @@
 .hero__ingresso--festival {
   --ingresso-recorte: 18px;
   --ingresso-picote-recuo: 24px;
-  --ingresso-fundo: linear-gradient(90deg, var(--marca-azul), var(--marca-ciano));
+  --ingresso-fundo: linear-gradient(90deg, var(--gradiente-azul));
+  /* do centro do palco (330, 250) até o centro deste ingresso (304, 300), mais 40px abaixo */
+  --entrada-x: 26px;
+  --entrada-y: -10px;
+  --ingresso-largura: 580px;
+  --ingresso-altura: 260px;
 
   top: 170px;
   left: 14px;
-  width: 580px;
-  height: 260px;
+  width: var(--ingresso-largura);
+  height: var(--ingresso-altura);
   transform: rotate(4deg);
 }
 
@@ -642,6 +820,10 @@
 /* ---------- como funciona ---------- */
 
 .etapas-landing {
+  /* referência da linha das etapas; o isolation deixa a linha atrás dos cards sem ir para
+     trás do fundo da seção */
+  position: relative;
+  isolation: isolate;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 24px;
@@ -649,6 +831,55 @@
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+/* linha que liga os números (useLinhaDasEtapas): absoluta, não ocupa célula do grid, e fica
+   atrás dos cards, aparecendo nos espaços entre eles */
+.etapas-landing__linha {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.etapas-landing__linha svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.etapas-landing__caminho {
+  fill: none;
+  stroke: var(--marca-laranja);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+/* número já alcançado pela linha: laranja de texto (o da marca não tem contraste no canhoto) */
+.etapa-landing--alcancada .etapa-landing__numero strong {
+  color: var(--texto-destaque);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .etapa-landing__numero strong {
+    transition: color 300ms ease-out;
+  }
+
+  /* entrada dos cards: escondidos só com a classe --animar (posta pelo ComoFunciona) e até a
+     lista aparecer (--visivel). Usa `translate`, não `transform`, para não brigar com outro
+     transform do card. Com menos movimento (do sistema ou do site) aparecem direto */
+  :root:not(.sem-movimento) .etapas-landing--animar .etapa-landing {
+    transition:
+      opacity 600ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      translate 600ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition-delay: calc(var(--i, 0) * 100ms);
+  }
+
+  :root:not(.sem-movimento) .etapas-landing--animar:not(.etapas-landing--visivel) .etapa-landing {
+    opacity: 0;
+    translate: 0 24px;
+  }
 }
 
 /* mini-ingresso "LP · Passo": canhoto em cima, recortes de 11px (padrão do Ingresso) */
@@ -747,12 +978,73 @@
   --ingresso-raio: 20px;
   --ingresso-recorte: 13px;
   --ingresso-picote-recuo: 40px;
+  /* 0 em repouso, 1 em destaque (mouse em cima ou foco dentro): os efeitos abaixo partem dele */
+  --_ativo: 0;
   /* drop-shadow não tem espalhamento: menos opacidade imita o -8px do Figma */
   --ingresso-sombra: drop-shadow(0 16px 20px rgb(15 23 41 / 6%));
+
+  position: relative;
+}
+
+.perfil-landing:focus-within {
+  --_ativo: 1;
+  --_giro: running;
+}
+
+/* só com mouse: no toque o :hover ficaria preso depois do dedo sair */
+@media (hover: hover) and (pointer: fine) {
+  .perfil-landing:hover {
+    --_ativo: 1;
+    --_giro: running;
+  }
+}
+
+/* o cartão sobe 6px: esta faixa cobre o espaço que fica embaixo, senão o mouse na borda de baixo
+   sairia do cartão, ele desceria e o hover ficaria piscando */
+.perfil-landing::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  right: 0;
+  left: 0;
+  height: calc(var(--_ativo) * 6px);
 }
 
 .perfil-landing .ingresso__parte {
   border: 1px solid var(--borda-padrao);
+}
+
+/* contorno em gradiente: a máscara da parte cortaria qualquer coisa maior que ela, então o contorno
+   é desenhado para dentro. A máscara deixa só um anel de 1,5px nas bordas de fora (conteúdo menos
+   a caixa inteira) e um arco em volta de cada recorte, nos mesmos pontos da máscara do Ingresso */
+.perfil-landing .ingresso__parte::after {
+  --_arco:
+    transparent var(--_recorte), #000 calc(var(--_recorte) + 0.5px),
+    #000 calc(var(--_recorte) + 2px), transparent calc(var(--_recorte) + 2.5px);
+
+  content: '';
+  position: absolute;
+  border-radius: inherit;
+  background: linear-gradient(var(--_angulo, 90deg), var(--perfil-gradiente));
+  mask:
+    radial-gradient(circle at var(--_corte-1), var(--_arco)),
+    radial-gradient(circle at var(--_corte-2), var(--_arco)),
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: add, add, exclude;
+  opacity: var(--_ativo);
+  pointer-events: none;
+}
+
+/* sem anel na borda que encosta no picote; o -1px cobre a borda cinza das outras três */
+.perfil-landing .ingresso__parte--antes::after {
+  inset: -1px -1px 0;
+  padding: 1.5px 1.5px 0;
+}
+
+.perfil-landing .ingresso__parte--depois::after {
+  inset: 0 -1px -1px;
+  padding: 0 1.5px 1.5px;
 }
 
 .perfil-landing .ingresso__corpo {
@@ -772,11 +1064,132 @@
 .perfil-landing--organizador {
   --_destaque: var(--texto-marca);
   --_destaque-fundo: var(--fundo-marca-suave);
+  --perfil-gradiente: var(--gradiente-laranja);
+  /* de onde o cartão vem na entrada: organizador pela esquerda, fornecedor pela direita */
+  --_entrada: -32px 0;
 }
 
 .perfil-landing--fornecedor {
   --_destaque: var(--texto-destaque);
   --_destaque-fundo: var(--status-alerta-fundo);
+  --perfil-gradiente: var(--gradiente-azul);
+  --_entrada: 32px 0;
+}
+
+/* entrada dos cartões: escondidos só com a classe --animar (posta pelo Perfis) e até a lista
+   aparecer (--visivel). Usa `translate`, não `transform`, para não brigar com o hover nem com
+   outro transform. Com menos movimento (do sistema ou do site) aparecem direto */
+@media (prefers-reduced-motion: no-preference) {
+  /* o atraso vale só para a entrada; a elevação leva 300ms na ida e 400ms na volta */
+  :root:not(.sem-movimento) .perfis-landing--animar .perfil-landing {
+    --_elevacao: calc(400ms - var(--_ativo) * 100ms);
+
+    transform: translateY(calc(var(--_ativo) * -6px));
+    transition:
+      opacity 700ms cubic-bezier(0.2, 0.8, 0.2, 1) var(--_atraso-do-cartao, 0ms),
+      translate 700ms cubic-bezier(0.2, 0.8, 0.2, 1) var(--_atraso-do-cartao, 0ms),
+      transform var(--_elevacao) ease-out;
+  }
+
+  :root:not(.sem-movimento) .perfis-landing--animar .perfil-landing--fornecedor {
+    --_atraso-do-cartao: 120ms;
+  }
+
+  /* o contorno aparece com fade e o gradiente gira só em destaque (--_giro) */
+  :root:not(.sem-movimento) .perfil-landing .ingresso__parte::after {
+    transition: opacity 300ms ease-out;
+    animation: perfil-contorno-gira 4s linear infinite var(--_giro, paused);
+  }
+
+  /* brilho do botão, uma vez por destaque: atravessa em 700ms ao entrar e volta sem transição.
+     Fica atrás do texto (isolation + z-index -1), e 10% é o máximo que mantém o texto branco
+     acima de 4,5:1 no azul do tema escuro */
+  :root:not(.sem-movimento) .perfil-landing .botao-landing {
+    --_brilho: rgb(255 255 255 / 10%);
+
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+  }
+
+  /* no botão secundário, claro, um brilho branco não apareceria */
+  :root:not(.sem-movimento) .perfil-landing .botao-landing--secundario {
+    --_brilho: color-mix(in srgb, var(--marca-ciano) 25%, transparent);
+  }
+
+  :root:not(.sem-movimento) .perfil-landing .botao-landing::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(100deg, transparent 30%, var(--_brilho) 50%, transparent 70%);
+    transform: translateX(calc(-100% + var(--_ativo) * 200%));
+    transition: transform calc(var(--_ativo) * 700ms) ease-out;
+    pointer-events: none;
+  }
+
+  :root:not(.sem-movimento) .perfis-landing--animar:not(.perfis-landing--visivel) .perfil-landing {
+    opacity: 0;
+    translate: var(--_entrada);
+  }
+
+  /* itens da lista: um por vez depois que o cartão entrou (500ms + 150ms por item, somados ao
+     atraso do cartão), e o ✓ de cada um dá um pop junto com o item */
+  :root:not(.sem-movimento) .perfis-landing--animar .perfil-landing__lista li {
+    --_atraso-do-item: calc(var(--i, 0) * 150ms + 500ms + var(--_atraso-do-cartao, 0ms));
+
+    transition:
+      opacity 700ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      translate 700ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition-delay: var(--_atraso-do-item);
+  }
+
+  :root:not(.sem-movimento)
+    .perfis-landing--animar:not(.perfis-landing--visivel)
+    .perfil-landing__lista
+    li {
+    opacity: 0;
+    translate: 0 8px;
+  }
+
+  :root:not(.sem-movimento)
+    .perfis-landing--animar:not(.perfis-landing--visivel)
+    .perfil-landing__lista
+    .icone {
+    scale: 0.4;
+  }
+
+  /* `scale` individual, para não brigar com outro transform do ícone */
+  :root:not(.sem-movimento) .perfis-landing--visivel .perfil-landing__lista .icone {
+    animation: perfil-check-pop 550ms ease-out var(--_atraso-do-item) both;
+  }
+}
+
+/* registrada para o ângulo poder ser animado; sem suporte, o gradiente só fica parado em 90deg */
+@property --_angulo {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 90deg;
+}
+
+@keyframes perfil-contorno-gira {
+  to {
+    --_angulo: 450deg;
+  }
+}
+
+@keyframes perfil-check-pop {
+  0% {
+    scale: 0.4;
+  }
+
+  60% {
+    scale: 1.15;
+  }
+
+  100% {
+    scale: 1;
+  }
 }
 
 .perfil-landing__topo {
@@ -853,8 +1266,10 @@
     gap: 20px;
   }
 
+  /* numa coluna só, os dois sobem em vez de vir dos lados */
   .perfil-landing {
     --ingresso-picote-recuo: 24px;
+    --_entrada: 0 24px;
   }
 
   .perfil-landing .ingresso__corpo {
@@ -928,6 +1343,87 @@
   margin: 0;
   color: var(--texto-primario);
   font-weight: 600;
+}
+
+/* premissa com controle: nome e valor na mesma linha, o range embaixo na largura toda */
+.calculo-landing__premissas .calculo-landing__controle {
+  position: relative;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.calculo-landing__valor {
+  position: absolute;
+  top: 12px;
+  right: 0;
+}
+
+/* range: trilho escuro, preenchido no azul da barra até o valor (--preenchimento, do componente),
+   e um thumb de 22px para o toque. O Chrome/Safari e o Firefox não aceitam os pseudo-elementos
+   na mesma regra, então cada um tem a sua, lendo as mesmas variáveis */
+.calculo-landing__range {
+  --_trilho: linear-gradient(
+    to right,
+    var(--acao-primaria) var(--preenchimento),
+    var(--borda-forte) var(--preenchimento)
+  );
+  --_trilho-altura: 6px;
+  --_thumb: 22px;
+
+  width: 100%;
+  height: var(--_thumb);
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  appearance: none;
+}
+
+.calculo-landing__range::-webkit-slider-runnable-track {
+  height: var(--_trilho-altura);
+  border-radius: 99px;
+  background: var(--_trilho);
+}
+
+.calculo-landing__range::-moz-range-track {
+  height: var(--_trilho-altura);
+  border-radius: 99px;
+  background: var(--_trilho);
+}
+
+.calculo-landing__range::-webkit-slider-thumb {
+  box-sizing: border-box;
+  width: var(--_thumb);
+  height: var(--_thumb);
+  /* centraliza o thumb no trilho (no Firefox ele já vem centralizado) */
+  margin-top: calc((var(--_trilho-altura) - var(--_thumb)) / 2);
+  border: 3px solid var(--fundo-superficie);
+  border-radius: 50%;
+  background: var(--acao-primaria);
+  box-shadow: 0 1px 4px rgb(15 23 41 / 30%);
+  appearance: none;
+}
+
+.calculo-landing__range::-moz-range-thumb {
+  box-sizing: border-box;
+  width: var(--_thumb);
+  height: var(--_thumb);
+  border: 3px solid var(--fundo-superficie);
+  border-radius: 50%;
+  background: var(--acao-primaria);
+  box-shadow: 0 1px 4px rgb(15 23 41 / 30%);
+}
+
+.calculo-landing__restaurar {
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: var(--texto-marca);
+  font-family: inherit;
+  font-size: 0.8235rem; /* 14px */
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
 }
 
 .calculo-landing__painel {
@@ -1007,8 +1503,10 @@
   padding: 18px 20px 16px;
 }
 
+/* o canhoto é a referência (cqi) para o resultado encolher quando não cabe */
 .cenario-landing .ingresso__canhoto {
   padding: 14px 20px 18px;
+  container-type: inline-size;
 }
 
 /* o cenário de referência (o do preço sugerido) ganha a borda azul */
@@ -1036,11 +1534,17 @@
 }
 
 .cenario-landing__resultado {
+  /* largura média de um caractere, em em; folgada para caber também na fonte da leitura fácil */
+  --_largura-do-caractere: 0.7;
+
   display: block;
-  font-size: 1.4118rem; /* 24px */
+  /* 24px, ou menor quando o texto (--caracteres, do componente) não cabe na largura do canhoto */
+  font-size: min(1.4118rem, calc(100cqi / (var(--caracteres, 1) * var(--_largura-do-caractere))));
   font-weight: 700;
   letter-spacing: -0.01em;
   white-space: nowrap;
+  /* o pulse da troca lucro/prejuízo cresce a partir do texto, que fica à esquerda */
+  transform-origin: left center;
 }
 
 .cenario-landing__resultado--prejuizo {
@@ -1087,11 +1591,36 @@
   background: var(--fundo-sutil);
 }
 
+/* o preenchimento tem a largura toda e anda com translateX até --progresso: anima só transform,
+   e a ponta continua redonda (scaleX achataria). O overflow da barra esconde o resto */
 .calculo-landing__barra span {
   display: block;
   height: 100%;
   border-radius: 99px;
   background: var(--acao-primaria);
+  transform: translateX(calc(var(--progresso, 0%) - 100%));
+}
+
+/* 1s para encher quando a seção aparece; depois, 300ms acompanhando os sliders */
+@media (prefers-reduced-motion: no-preference) {
+  .calculo-landing__barra span {
+    transition: transform 1s ease-out;
+  }
+
+  .calculo-landing__barra--acompanha span {
+    transition-duration: 300ms;
+  }
+}
+
+.calculo-landing__equilibrio--acima .calculo-landing__barra span {
+  background: var(--status-perigo-texto);
+}
+
+.calculo-landing__alerta {
+  margin: 0;
+  color: var(--status-perigo-texto);
+  font-size: 0.7647rem; /* 13px */
+  font-weight: 600;
 }
 
 /* abaixo disso o texto e o painel não cabem lado a lado: o texto vai para cima */
@@ -1175,9 +1704,12 @@
     linear-gradient(var(--texto-marca), var(--texto-marca)) center / 1.67px 11.67px no-repeat;
 }
 
-.pergunta-landing[open] .pergunta-landing__pergunta::after {
-  background: linear-gradient(var(--texto-marca), var(--texto-marca)) center / 11.67px 1.67px
-    no-repeat;
+/* aberta, o traço vertical encolhe até sumir e o ícone dá meia volta */
+.pergunta-landing--aberta .pergunta-landing__pergunta::after {
+  background-size:
+    11.67px 1.67px,
+    1.67px 0;
+  rotate: 180deg;
 }
 
 /* o foco global do projeto cobre botões e links; o summary precisa do mesmo contorno */
@@ -1186,11 +1718,51 @@
   outline-offset: 4px;
 }
 
+/* abre de 0fr a 1fr: a altura acompanha o texto sem precisar medir nada */
+.pergunta-landing__corpo {
+  display: grid;
+  grid-template-rows: 0fr;
+}
+
+.pergunta-landing--aberta .pergunta-landing__corpo {
+  grid-template-rows: 1fr;
+}
+
+.pergunta-landing__recorte {
+  min-height: 0;
+  overflow: hidden;
+}
+
 .pergunta-landing__resposta {
   margin: 10px 0 0;
   color: var(--texto-secundario);
   font-size: 0.9412rem; /* 16px */
   line-height: 1.5625; /* 25px */
+  opacity: 0;
+  translate: 0 -4px;
+}
+
+.pergunta-landing--aberta .pergunta-landing__resposta {
+  opacity: 1;
+  translate: 0 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :root:not(.sem-movimento) .pergunta-landing__corpo {
+    transition: grid-template-rows 300ms ease;
+  }
+
+  :root:not(.sem-movimento) .pergunta-landing__resposta {
+    transition:
+      opacity 300ms ease,
+      translate 300ms ease;
+  }
+
+  :root:not(.sem-movimento) .pergunta-landing__pergunta::after {
+    transition:
+      background-size 300ms ease,
+      rotate 300ms ease;
+  }
 }
 
 @media (max-width: 900px) {
@@ -1203,29 +1775,99 @@
 
 /* fundo fixo (escuro nos dois temas), com os três brilhos do Figma em % da seção */
 .chamada-landing {
+  position: relative;
+  /* as manchas de luz ficam atrás do ingresso e não vazam nem criam rolagem */
+  isolation: isolate;
   display: flex;
   justify-content: center;
   padding: 104px max(32px, calc((100% - 1200px) / 2));
-  background:
-    radial-gradient(62.5% 50% at 43.75% 90%, rgb(10 80 174 / 25%), transparent),
-    radial-gradient(55.6% 35.7% at 5.6% 25%, rgb(249 23 136 / 22%), transparent),
-    radial-gradient(55.6% 35.7% at 88.9% 71.4%, rgb(254 117 36 / 28%), transparent),
-    var(--marca-preto);
+  overflow: clip;
+  background: var(--marca-preto);
+}
+
+/* manchas de luz do fundo, iguais nos dois temas. Cada uma tem o dobro do tamanho da seção para a
+   borda não aparecer ao andar, então os valores são metade dos da seção (tamanho) ou
+   (posição na seção + 50%) ÷ 2. O --_ate em % também é da camada: 44% = 88% da largura da seção, de uma ponta à outra */
+.chamada-landing__mancha {
+  position: absolute;
+  inset: -50%;
+  z-index: -1;
+  background: radial-gradient(var(--_tamanho) at var(--_centro), var(--_cor), transparent);
+  transform-origin: var(--_centro);
+  pointer-events: none;
+}
+
+.chamada-landing__mancha--laranja {
+  --_tamanho: 27.8% 17.85%;
+  --_centro: 69.45% 60.7%;
+  --_cor: rgb(254 117 36 / 28%);
+  --_ate: -41.65% -40px;
+  --_ida: 6s;
+}
+
+.chamada-landing__mancha--rosa {
+  --_tamanho: 27.8% 17.85%;
+  --_centro: 27.8% 37.5%;
+  --_cor: rgb(249 23 136 / 22%);
+  --_ate: 44% 40px;
+  --_ida: 6s;
+}
+
+.chamada-landing__mancha--azul {
+  --_tamanho: 31.25% 25%;
+  --_centro: 46.875% 70%;
+  --_cor: rgb(10 80 174 / 25%);
+  --_ate: 2% -16px;
+  --_respiro: 1.05;
+  --_ida: 9s;
+}
+
+/* aurora: só translate e scale. A duração é a ida; com alternate, o ciclo é o dobro. Rosa e laranja
+   têm a mesma duração e caminhos opostos: andam sempre em sentidos contrários e se cruzam no meio.
+   Fora da tela fica pausada: quem liga é a classe --aurora, do ChamadaFinal */
+@media (prefers-reduced-motion: no-preference) {
+  :root:not(.sem-movimento) .chamada-landing__mancha {
+    animation: chamada-aurora var(--_ida) ease-in-out infinite alternate paused;
+  }
+
+  :root:not(.sem-movimento) .chamada-landing--aurora .chamada-landing__mancha {
+    animation-play-state: running;
+  }
+}
+
+@keyframes chamada-aurora {
+  to {
+    translate: var(--_ate);
+    scale: var(--_respiro, 1.15);
+  }
 }
 
 .chamada-landing__ingresso {
   --ingresso-raio: 24px;
   --ingresso-recorte: 20px;
   --ingresso-fundo-canhoto: var(--marca-laranja);
-  --ingresso-picote-cor: rgb(255 255 255 / 70%);
+  --ingresso-picote-cor: #fff;
   --ingresso-picote-espessura: 2px;
   --ingresso-picote-traco: 8px;
   --ingresso-picote-espaco: 4px;
   --ingresso-picote-recuo: 28px;
   --ingresso-sombra: drop-shadow(0 30px 30px rgb(0 0 0 / 35%));
+  /* canhoto se destacando: para onde vai e em que ponto do picote ele gira. Abre de cima para baixo
+     no desktop e da esquerda para a direita no mobile, onde o picote fica em cima do canhoto */
+  --_separacao: 10px 0;
+  --_dobradica: left bottom;
 
   width: 100%;
   max-width: 1040px;
+}
+
+/* a opacidade em vez da cor do picote: a cor não tem transição, e 70% dá o mesmo branco de antes */
+.chamada-landing__ingresso .ingresso__parte--depois::before {
+  opacity: 0.7;
+}
+
+.chamada-landing--destacando .chamada-landing__ingresso .ingresso__parte--depois::before {
+  opacity: 1;
 }
 
 .chamada-landing__ingresso .ingresso__corpo {
@@ -1301,6 +1943,175 @@
   font-weight: 500;
 }
 
+/* último dígito do número: o "1" transparente guarda o lugar e o rolo passa por cima dele. Corta só
+   em cima e embaixo, para um dígito mais largo que o 1 não ser cortado dos lados. Precisa ser
+   overflow: com clip-path a coluna do rolo ainda conta na rolagem da página quando o canhoto gira */
+.chamada-landing__digito {
+  position: relative;
+  display: inline-block;
+  overflow: visible clip;
+  color: transparent;
+}
+
+/* em repouso o rolo fica no último dígito (o 12º), então sem animação aparece 001 */
+.chamada-landing__rolo {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  color: var(--acao-sobre-primaria);
+  translate: -50% calc(-11 * 1lh);
+}
+
+.chamada-landing__rolo span {
+  display: block;
+  text-align: center;
+}
+
+/* carimbo decorativo no canto livre do canhoto, longe do aviso. O multiply tinge o laranja do fundo,
+   e o ruído da máscara (SVG inline, sem imagem externa) abre as falhas de tinta gasta */
+.chamada-landing__carimbo {
+  position: absolute;
+  top: 26px;
+  right: 22px;
+  padding: 3px 10px;
+  border: 5px double currentColor;
+  border-radius: 8px;
+  color: var(--marca-laranja);
+  font-size: 0.8235rem; /* 14px */
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  opacity: 0.85;
+  pointer-events: none;
+  rotate: -12deg;
+  mix-blend-mode: multiply;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='60'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 5 0 0 0 -1.4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@keyframes chamada-carimbada {
+  0% {
+    opacity: 0;
+    scale: 1.8;
+  }
+
+  70% {
+    opacity: 0.85;
+    scale: 0.92;
+  }
+
+  100% {
+    opacity: 0.85;
+    scale: 1;
+  }
+}
+
+@keyframes chamada-tranco {
+  50% {
+    translate: 0 2px;
+  }
+}
+
+/* entrada: escondido só com a classe --animar (posta pelo ChamadaFinal) e até a seção aparecer
+   (--visivel). Usa `translate` e `rotate`, não `transform`, para não brigar com outro transform.
+   Com menos movimento (do sistema ou do site) aparece direto */
+@media (prefers-reduced-motion: no-preference) {
+  :root:not(.sem-movimento) .chamada-landing--animar .chamada-landing__ingresso {
+    transition:
+      opacity 800ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      translate 800ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      rotate 800ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  :root:not(.sem-movimento)
+    .chamada-landing--animar:not(.chamada-landing--visivel)
+    .chamada-landing__ingresso {
+    opacity: 0;
+    translate: 0 32px;
+    rotate: -2deg;
+  }
+
+  /* conteúdo em sequência, depois de o ingresso começar a subir: 300ms + 90ms por item.
+     No canhoto entra o conteúdo, não a parte laranja, que faz parte do formato do ingresso */
+  :root:not(.sem-movimento) .chamada-landing--animar .ingresso__canhoto > * {
+    --i: 4;
+  }
+
+  :root:not(.sem-movimento) .chamada-landing--animar .ingresso__corpo > *,
+  :root:not(.sem-movimento)
+    .chamada-landing--animar
+    .ingresso__canhoto
+    > :not(.chamada-landing__carimbo) {
+    transition:
+      opacity 500ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      translate 500ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition-delay: calc(var(--i, 0) * 90ms + 300ms);
+  }
+
+  :root:not(.sem-movimento)
+    .chamada-landing--animar:not(.chamada-landing--visivel)
+    .ingresso__corpo
+    > *,
+  :root:not(.sem-movimento)
+    .chamada-landing--animar:not(.chamada-landing--visivel)
+    .ingresso__canhoto
+    > :not(.chamada-landing__carimbo) {
+    opacity: 0;
+    translate: 0 12px;
+  }
+
+  /* carimbada depois de o número parar (900ms + 600ms). A classe --visivel nunca sai, então a
+     animação roda uma vez só, e o hover do botão não a repete */
+  :root:not(.sem-movimento) .chamada-landing--animar {
+    --_carimbada: 1550ms;
+  }
+
+  :root:not(.sem-movimento)
+    .chamada-landing--animar:not(.chamada-landing--visivel)
+    .chamada-landing__carimbo {
+    opacity: 0;
+  }
+
+  :root:not(.sem-movimento) .chamada-landing--visivel .chamada-landing__carimbo {
+    animation: chamada-carimbada 400ms ease-in var(--_carimbada) both;
+  }
+
+  /* o tranco cai no impacto, a 70% dos 400ms da carimbada */
+  :root:not(.sem-movimento) .chamada-landing--visivel .chamada-landing__ingresso {
+    animation: chamada-tranco 120ms ease-out calc(var(--_carimbada) + 280ms);
+  }
+
+  /* canhoto se destacando: 300ms na volta e um quique de 350ms na ida. Cada parte tem a própria
+     máscara, então cada uma leva a sua metade dos recortes ao se separar */
+  :root:not(.sem-movimento) .chamada-landing__ingresso .ingresso__canhoto {
+    transform-origin: var(--_dobradica);
+    transition:
+      translate 300ms ease,
+      rotate 300ms ease;
+  }
+
+  :root:not(.sem-movimento) .chamada-landing--destacando .ingresso__canhoto {
+    translate: var(--_separacao);
+    rotate: 3deg;
+    transition:
+      translate 350ms cubic-bezier(0.3, 1.4, 0.5, 1),
+      rotate 350ms cubic-bezier(0.3, 1.4, 0.5, 1);
+  }
+
+  :root:not(.sem-movimento) .chamada-landing__ingresso .ingresso__parte--depois::before {
+    transition: opacity 300ms ease;
+  }
+
+  /* o número gira no fim da sequência, com o canhoto já aparecendo */
+  :root:not(.sem-movimento) .chamada-landing--animar .chamada-landing__rolo {
+    transition: translate 600ms cubic-bezier(0.2, 0.8, 0.2, 1) 900ms;
+  }
+
+  :root:not(.sem-movimento)
+    .chamada-landing--animar:not(.chamada-landing--visivel)
+    .chamada-landing__rolo {
+    translate: -50% 0;
+  }
+}
+
 @media (max-width: 900px) {
   .chamada-landing {
     padding: 64px 20px;
@@ -1310,6 +2121,8 @@
     --ingresso-raio: 20px;
     --ingresso-recorte: 16px;
     --ingresso-picote-recuo: 22px;
+    --_separacao: 0 10px;
+    --_dobradica: left top;
   }
 
   .chamada-landing__ingresso .ingresso__corpo {
@@ -1345,6 +2158,16 @@
 
   .chamada-landing__numero {
     font-size: 2rem; /* 34px */
+  }
+
+  /* menor e mais perto da borda para não encostar no número; abaixo do recorte do canto */
+  .chamada-landing__carimbo {
+    top: 30px;
+    right: 8px;
+    padding: 1px 5px;
+    border-width: 4px;
+    font-size: 0.6471rem; /* 11px */
+    letter-spacing: 0.1em;
   }
 
   /* o código de barras do Figma mobile é mais baixo (140 × 32) */

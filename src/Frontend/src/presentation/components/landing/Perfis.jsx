@@ -1,3 +1,5 @@
+import { useRef } from 'react'
+import { useNaTela } from '../../hooks/useNaTela.js'
 import { Icone } from '../comum/Icone.jsx'
 import { BotaoLanding } from './BotaoLanding.jsx'
 import { CabecalhoDaSecao } from './CabecalhoDaSecao.jsx'
@@ -42,6 +44,10 @@ const PERFIS = [
 ]
 
 export function Perfis() {
+  // os cartões começam escondidos só pela classe --animar, que vem daqui: sem JS aparecem normais
+  const lista = useRef(null)
+  const naTela = useNaTela(lista, { limiar: 0.2 })
+
   return (
     <section className="landing__secao landing__secao--sutil" aria-labelledby="perfis-titulo">
       <CabecalhoDaSecao
@@ -51,7 +57,10 @@ export function Perfis() {
         subtitulo="Cada cadastro tem um perfil, e o perfil define o que você faz na plataforma."
       />
 
-      <div className="perfis-landing">
+      <div
+        ref={lista}
+        className={`perfis-landing perfis-landing--animar${naTela ? ' perfis-landing--visivel' : ''}`}
+      >
         {PERFIS.map((perfil) => (
           <Ingresso
             key={perfil.id}
@@ -79,8 +88,9 @@ export function Perfis() {
             <p className="perfil-landing__descricao">{perfil.descricao}</p>
 
             <ul className="perfil-landing__lista">
-              {perfil.itens.map((item) => (
-                <li key={item}>
+              {perfil.itens.map((item, indice) => (
+                // posição na fila da entrada dos itens: cada um espera 80ms a mais
+                <li key={item} style={{ '--i': indice }}>
                   <Icone src={iconeCheck} />
                   {item}
                 </li>

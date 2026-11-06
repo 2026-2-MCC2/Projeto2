@@ -1,7 +1,9 @@
+import { useRef } from 'react'
 import { formatarMoeda } from '../../../domain/formatacao.js'
 import { Icone } from '../comum/Icone.jsx'
 import { EVENTO_DE_EXEMPLO as evento, NUMEROS_DO_EXEMPLO } from '../../data/eventoDeExemplo.js'
 import { useEscalaParaCaber } from '../../hooks/useEscalaParaCaber.js'
+import { useTilt } from '../../hooks/useTilt.js'
 import { BotaoLanding } from './BotaoLanding.jsx'
 import { Ingresso } from './Ingresso.jsx'
 import fotoShow from '../../assets/acesso/foto-show.jpg'
@@ -26,6 +28,25 @@ const DADOS_DO_FESTIVAL = [
   { nome: 'SETOR', valor: 'Pista' },
 ]
 
+// uma camada por efeito, para um transform não apagar o outro:
+// posição + rotação + entrada → flutuar → tilt do mouse → o ingresso em si.
+// O mouse é medido na camada que flutua (ela não inclina, então a caixa não treme);
+// as variáveis do tilt descem por herança.
+function IngressoDoHero({ variante, canhoto, children }) {
+  const camadaDoMouse = useRef(null)
+  useTilt(camadaDoMouse)
+
+  return (
+    <div className={`hero__ingresso hero__ingresso--${variante}`}>
+      <div className="ingresso-flutua" ref={camadaDoMouse}>
+        <div className="ingresso-tilt">
+          <Ingresso canhoto={canhoto}>{children}</Ingresso>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function Hero() {
   const [caixaDosIngressos, escala] = useEscalaParaCaber(LARGURA_DOS_INGRESSOS)
 
@@ -42,7 +63,7 @@ export function Hero() {
         </p>
 
         <h1 id="hero-titulo" className="hero__titulo">
-          Do orçamento ao <span className="hero__destaque">preço do ingresso.</span>
+          Do orçamento ao <span className="texto-em-gradiente">preço do ingresso.</span>
         </h1>
 
         <p className="hero__subtitulo">
@@ -67,16 +88,13 @@ export function Hero() {
       <div className="hero__visual" aria-hidden="true">
         <div className="hero__ingressos" ref={caixaDosIngressos}>
           <div className="hero__palco" style={{ '--escala': escala }}>
-            <Ingresso
-              className="hero__ingresso hero__ingresso--summit"
-              canhoto={<Icone src={codigoDeBarrasPequeno} />}
-            >
+            <IngressoDoHero variante="summit" canhoto={<Icone src={codigoDeBarrasPequeno} />}>
               <span className="hero__rotulo">TROCATICKET · INGRESSO</span>
               <strong className="hero__evento">Summit Corporativo Tech</strong>
-            </Ingresso>
+            </IngressoDoHero>
 
-            <Ingresso
-              className="hero__ingresso hero__ingresso--festival"
+            <IngressoDoHero
+              variante="festival"
               canhoto={
                 <>
                   <span className="hero__valor-rotulo">VALOR DO INGRESSO</span>
@@ -96,7 +114,7 @@ export function Hero() {
                   </div>
                 ))}
               </dl>
-            </Ingresso>
+            </IngressoDoHero>
           </div>
         </div>
 

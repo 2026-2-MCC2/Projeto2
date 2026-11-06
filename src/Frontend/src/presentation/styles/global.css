@@ -4,6 +4,16 @@
   font-size: calc(17px * var(--escala-texto, 1));
   color-scheme: light;
 
+  /* coleção "Marca TrocaTicket" do Figma: cores fixas, iguais nos dois temas */
+  --marca-azul: #0a50ae;
+  --marca-laranja: #fe7524;
+  --marca-ciano: #04a5ed;
+  --marca-rosa: #f91788;
+  --marca-preto: #0c0c0c;
+  /* as duas cores de cada gradiente, usadas nos ingressos do hero e no contorno dos perfis */
+  --gradiente-laranja: var(--marca-laranja), var(--marca-rosa);
+  --gradiente-azul: var(--marca-azul), var(--marca-ciano);
+
   --fundo-pagina: #f6f8fb;
   --fundo-superficie: #fff;
   --fundo-sutil: #f1f4f9;
@@ -1069,6 +1079,56 @@ button.calendario__titulo:focus-visible {
   outline-offset: 1px;
 }
 
+.entrada-de-senha__caps {
+  --icone-cor: var(--status-alerta-texto);
+
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--status-alerta-texto);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.entrada-de-senha__caps .icone {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* o olho pisca ao alternar, e o risco do olho fechado (o último traço do SVG) se desenha */
+@media (prefers-reduced-motion: no-preference) {
+  :root:not(.sem-movimento) .entrada-de-senha__olho--alternou .icone {
+    animation: entrada-de-senha-piscar 180ms ease-in-out;
+  }
+
+  :root:not(.sem-movimento) .entrada-de-senha__olho--alternou[aria-pressed='true'] path:last-child {
+    stroke-dasharray: 27;
+    animation: entrada-de-senha-risco 200ms ease-out;
+  }
+
+  :root:not(.sem-movimento) .entrada-de-senha__caps {
+    animation: entrada-de-senha-caps 150ms ease-out;
+  }
+}
+
+@keyframes entrada-de-senha-piscar {
+  50% {
+    scale: 1 0.1;
+  }
+}
+
+@keyframes entrada-de-senha-risco {
+  from {
+    stroke-dashoffset: 27;
+  }
+}
+
+@keyframes entrada-de-senha-caps {
+  from {
+    opacity: 0;
+  }
+}
+
 .detalhe-proposta__textos {
   display: flex;
   flex-direction: column;
@@ -1113,6 +1173,40 @@ button.calendario__titulo:focus-visible {
   margin: 0;
   font-weight: 500;
   text-align: right;
+}
+
+/* destaque de título em fundo escuro: gradiente dos ingressos em movimento. Sem suporte, ou no alto
+   contraste, fica o laranja sólido */
+.texto-em-gradiente {
+  color: var(--marca-laranja);
+}
+
+@supports (background-clip: text) or (-webkit-background-clip: text) {
+  :root:not(.alto-contraste) .texto-em-gradiente {
+    background: linear-gradient(90deg, var(--gradiente-laranja), var(--marca-laranja)) 0 0 / 200%
+      100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* com a cor transparente, o texto selecionado sumiria */
+  :root:not(.alto-contraste) .texto-em-gradiente::selection {
+    background: var(--marca-laranja);
+    color: var(--marca-preto);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    :root:not(.sem-movimento, .alto-contraste) .texto-em-gradiente {
+      animation: texto-em-gradiente 6s ease-in-out infinite alternate;
+    }
+  }
+}
+
+@keyframes texto-em-gradiente {
+  to {
+    background-position: 100% 0;
+  }
 }
 
 .so-leitor {

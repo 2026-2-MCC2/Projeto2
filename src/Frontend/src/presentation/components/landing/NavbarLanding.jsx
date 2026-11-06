@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useNaTela } from '../../hooks/useNaTela.js'
+import { useProgressoDeLeitura } from '../../hooks/useProgressoDeLeitura.js'
 import { Icone } from '../comum/Icone.jsx'
 import { BotaoLanding } from './BotaoLanding.jsx'
 import { Logotipo } from '../comum/Logotipo.jsx'
@@ -57,46 +59,61 @@ export function NavbarLanding() {
 
   const fechar = () => setAberto(false)
 
+  // rolou quando o sentinela, parado 24px abaixo do topo da página, sai da tela
+  const sentinela = useRef(null)
+  const noTopo = useNaTela(sentinela, { limiar: 0, umaVez: false, inicial: true })
+
+  const progresso = useRef(null)
+  useProgressoDeLeitura(progresso)
+
   return (
-    <header className="landing-topo" ref={topo}>
-      <Link to="/" className="landing-topo__marca">
-        <Logotipo imagemClara={logotipoDaLanding} className="logotipo-landing landing-topo__logo" />
-      </Link>
+    <>
+      <span ref={sentinela} className="landing-topo__sentinela" aria-hidden="true" />
+      <header className={`landing-topo${noTopo ? '' : ' landing-topo--rolado'}`} ref={topo}>
+        <Link to="/" className="landing-topo__marca">
+          <Logotipo
+            imagemClara={logotipoDaLanding}
+            className="logotipo-landing landing-topo__logo"
+          />
+        </Link>
 
-      <button
-        ref={alternar}
-        type="button"
-        className="landing-topo__alternar"
-        aria-label="Menu"
-        aria-expanded={aberto}
-        aria-controls="landing-menu"
-        onClick={() => setAberto((estava) => !estava)}
-      >
-        <Icone src={aberto ? iconeFechar : iconeMenu} />
-      </button>
+        <button
+          ref={alternar}
+          type="button"
+          className="landing-topo__alternar"
+          aria-label="Menu"
+          aria-expanded={aberto}
+          aria-controls="landing-menu"
+          onClick={() => setAberto((estava) => !estava)}
+        >
+          <Icone src={aberto ? iconeFechar : iconeMenu} />
+        </button>
 
-      <nav
-        id="landing-menu"
-        aria-label="Principal"
-        className={`landing-topo__menu${aberto ? ' landing-topo__menu--aberto' : ''}`}
-      >
-        <ul className="landing-topo__links">
-          {LINKS.map((link) => (
-            <li key={link.ancora}>
-              <a href={link.ancora} className="landing-topo__link" onClick={fechar}>
-                {link.nome}
-              </a>
-            </li>
-          ))}
-        </ul>
+        <nav
+          id="landing-menu"
+          aria-label="Principal"
+          className={`landing-topo__menu${aberto ? ' landing-topo__menu--aberto' : ''}`}
+        >
+          <ul className="landing-topo__links">
+            {LINKS.map((link) => (
+              <li key={link.ancora}>
+                <a href={link.ancora} className="landing-topo__link" onClick={fechar}>
+                  {link.nome}
+                </a>
+              </li>
+            ))}
+          </ul>
 
-        <div className="landing-topo__acoes">
-          <BotaoLanding tipo="secundario" para={ROTA_DO_LOGIN}>
-            Entrar
-          </BotaoLanding>
-          <BotaoLanding para="/cadastro">Criar cadastro</BotaoLanding>
-        </div>
-      </nav>
-    </header>
+          <div className="landing-topo__acoes">
+            <BotaoLanding tipo="secundario" para={ROTA_DO_LOGIN}>
+              Entrar
+            </BotaoLanding>
+            <BotaoLanding para="/cadastro">Criar cadastro</BotaoLanding>
+          </div>
+        </nav>
+
+        <span ref={progresso} className="landing-topo__progresso" aria-hidden="true" />
+      </header>
+    </>
   )
 }

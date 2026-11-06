@@ -112,6 +112,22 @@
   outline-offset: 1px;
 }
 
+/* só nas telas de acesso: este CSS continua carregado nas áreas logadas depois do login */
+.acesso .campo input:focus,
+.acesso .campo select:focus {
+  border-color: var(--acao-primaria);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--acao-primaria) 20%, transparent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :root:not(.sem-movimento) .acesso .campo input,
+  :root:not(.sem-movimento) .acesso .campo select {
+    transition:
+      border-color 200ms ease,
+      box-shadow 200ms ease;
+  }
+}
+
 /* ---------- botões e links ---------- */
 
 .acesso__botao {
@@ -361,15 +377,47 @@
   justify-content: flex-end;
   flex: 0 1 42%;
   padding: 3.5rem;
-  background-size: cover;
-  background-position: center;
+  overflow: hidden;
   color: var(--acao-sobre-primaria);
 }
 
-.acesso__cor {
+.acesso__foto {
   position: absolute;
   inset: 0;
+  background-size: cover;
+  background-position: center;
+}
+
+/* 30% maior que o painel, para sobrar cor dos dois lados quando ela anda */
+.acesso__cor {
+  position: absolute;
+  inset: 0 -15%;
   mix-blend-mode: color;
+}
+
+/* feixes de luz: invisíveis até a animação, para não ficarem parados com menos movimento */
+.acesso__feixe {
+  position: absolute;
+  top: -30%;
+  left: 0;
+  width: 34%;
+  height: 160%;
+  background: linear-gradient(90deg, transparent, #fff, transparent);
+  opacity: 0;
+  filter: blur(18px);
+  rotate: 18deg;
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+.acesso__feixe--2 {
+  width: 22%;
+  rotate: 24deg;
+}
+
+.acesso__feixe--3 {
+  width: 28%;
+  rotate: 14deg;
 }
 
 .acesso__veu {
@@ -431,6 +479,196 @@
   margin: 0;
   opacity: 0.9;
   font-size: 0.875rem;
+}
+
+/* painel vivo: a foto aproxima, a cor anda e os feixes passam, em ritmos diferentes. Com menos
+   movimento (do sistema ou do site) fica tudo parado, sem feixes */
+@media (prefers-reduced-motion: no-preference) {
+  :root:not(.sem-movimento) .acesso__foto {
+    animation: acesso-foto 20s ease-in-out infinite alternate;
+  }
+
+  :root:not(.sem-movimento) .acesso__cor {
+    animation: acesso-cor 14s ease-in-out infinite alternate;
+  }
+
+  :root:not(.sem-movimento) .acesso__feixe {
+    opacity: 0.12;
+    animation: acesso-feixe 18s ease-in-out infinite alternate;
+  }
+
+  :root:not(.sem-movimento) .acesso__feixe--2 {
+    animation-duration: 22s;
+    animation-delay: -7s;
+  }
+
+  :root:not(.sem-movimento) .acesso__feixe--3 {
+    animation-duration: 26s;
+    animation-delay: -15s;
+  }
+}
+
+/* estados do botão de entrar: o texto continua lá, transparente, e segura a largura e a altura */
+.acesso__botao--enviando,
+.acesso__botao--sucesso {
+  position: relative;
+}
+
+.acesso__botao--enviando:disabled,
+.acesso__botao--sucesso:disabled {
+  opacity: 1;
+}
+
+.acesso__botao--enviando .acesso__botao-texto,
+.acesso__botao--sucesso .acesso__botao-texto {
+  opacity: 0;
+}
+
+.acesso__botao--sucesso:disabled {
+  background: var(--status-sucesso-forte);
+}
+
+.acesso__giro {
+  position: absolute;
+  inset: 0;
+  width: 1.125rem;
+  height: 1.125rem;
+  margin: auto;
+  border: 2px solid rgb(255 255 255 / 35%);
+  border-top-color: var(--acao-sobre-primaria);
+  border-radius: 50%;
+  animation: girar 0.8s linear infinite;
+}
+
+.acesso__confirmado {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 1.125rem;
+}
+
+/* cadastro em análise não é erro: aviso neutro, sem tremida */
+.acesso__aviso {
+  --icone-cor: var(--status-alerta-texto);
+
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.75rem 0.875rem;
+  border: 1px solid var(--status-alerta-borda);
+  border-radius: var(--acesso-raio);
+  background: var(--status-alerta-fundo);
+  color: var(--status-alerta-texto);
+  font-size: 0.8125rem;
+}
+
+.acesso__aviso p {
+  margin: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :root:not(.sem-movimento) .acesso__botao--sucesso {
+    transition: background-color 150ms ease;
+  }
+
+  :root:not(.sem-movimento) .acesso__confirmado {
+    animation: acesso-confirmado 300ms ease-out;
+  }
+
+  :root:not(.sem-movimento) .acesso--animar .alerta-erro,
+  :root:not(.sem-movimento) .acesso--animar .acesso__aviso {
+    animation: acesso-retorno 200ms ease-out;
+  }
+}
+
+@keyframes acesso-confirmado {
+  0% {
+    scale: 0.6;
+  }
+
+  60% {
+    scale: 1.1;
+  }
+
+  100% {
+    scale: 1;
+  }
+}
+
+@keyframes acesso-retorno {
+  from {
+    opacity: 0;
+  }
+}
+
+/* entrada do login: --animar vem do AcessoLayout. É animação, não estado: nada fica sem foco ou sem
+   clique, e o que recebe foco aparece na hora, sem esperar a fila. Com menos movimento, nada entra */
+@media (prefers-reduced-motion: no-preference) {
+  :root:not(.sem-movimento) .acesso--animar .acesso__entra {
+    animation: acesso-entra 500ms cubic-bezier(0.2, 0.8, 0.2, 1) calc(var(--i, 0) * 70ms) both;
+  }
+
+  /* duração zero encerra a animação; sem ela (animation: none), ao perder o foco ela recomeçaria */
+  :root:not(.sem-movimento) .acesso--animar .acesso__entra:focus-within {
+    animation-duration: 0s;
+    animation-delay: 0s;
+  }
+
+  :root:not(.sem-movimento) .acesso--animar .acesso__palavra {
+    animation: acesso-palavra 500ms cubic-bezier(0.2, 0.8, 0.2, 1) calc(var(--p) * 60ms + 300ms)
+      both;
+  }
+}
+
+.acesso__palavra {
+  display: inline-block;
+}
+
+@keyframes acesso-entra {
+  from {
+    opacity: 0;
+    translate: 0 16px;
+  }
+}
+
+@keyframes acesso-palavra {
+  from {
+    opacity: 0;
+    translate: 0 8px;
+  }
+}
+
+/* com a aba oculta não há por que gastar bateria */
+.acesso__painel--pausado * {
+  animation-play-state: paused !important;
+}
+
+@keyframes acesso-foto {
+  to {
+    transform: scale(1.08) translate(-1%, -1%);
+  }
+}
+
+@keyframes acesso-cor {
+  from {
+    translate: -10% 0;
+  }
+
+  to {
+    translate: 10% 0;
+  }
+}
+
+/* de fora do painel à esquerda até fora dele à direita, em % da largura do feixe */
+@keyframes acesso-feixe {
+  from {
+    translate: -180% 0;
+  }
+
+  to {
+    translate: 480% 0;
+  }
 }
 
 /* ---------- cadastro mobile em etapas ---------- */
@@ -592,6 +830,9 @@
     order: -1;
     flex: 0 0 210px;
     padding: 2.5rem 1.5rem 1.125rem;
+  }
+
+  .acesso__foto {
     background-position: bottom;
   }
 

@@ -38,6 +38,11 @@ const SITUACOES_POR_CODIGO = {
   EVP000011: 'bloqueado',
 }
 
+export const credencialInvalida = (falhaNoLogin) => falhaNoLogin.codigo === 'EVP000008'
+
+export const cadastroEmAnalise = (falhaNoLogin) =>
+  SITUACOES_POR_CODIGO[falhaNoLogin.codigo] === 'pendente'
+
 // login barrado por cadastro pendente ou rejeitado: dados para a tela de acompanhamento, ou null
 export function acompanhamentoDoCadastro(falhaNoLogin) {
   const situacao = SITUACOES_POR_CODIGO[falhaNoLogin.codigo]
