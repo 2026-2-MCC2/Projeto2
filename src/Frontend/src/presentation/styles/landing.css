@@ -757,6 +757,10 @@
 /* ---------- como funciona ---------- */
 
 .etapas-landing {
+  /* referência da linha das etapas; o isolation deixa a linha atrás dos cards sem ir para
+     trás do fundo da seção */
+  position: relative;
+  isolation: isolate;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 24px;
@@ -764,6 +768,40 @@
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+/* linha que liga os números (useLinhaDasEtapas): absoluta, não ocupa célula do grid, e fica
+   atrás dos cards, aparecendo nos espaços entre eles */
+.etapas-landing__linha {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.etapas-landing__linha svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.etapas-landing__caminho {
+  fill: none;
+  stroke: var(--marca-laranja);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+/* número já alcançado pela linha: laranja de texto (o da marca não tem contraste no canhoto) */
+.etapa-landing--alcancada .etapa-landing__numero strong {
+  color: var(--texto-destaque);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .etapa-landing__numero strong {
+    transition: color 300ms ease-out;
+  }
 }
 
 /* mini-ingresso "LP · Passo": canhoto em cima, recortes de 11px (padrão do Ingresso) */

@@ -1,3 +1,5 @@
+import { useRef } from 'react'
+import { useLinhaDasEtapas } from '../../hooks/useLinhaDasEtapas.js'
 import { CabecalhoDaSecao } from './CabecalhoDaSecao.jsx'
 import { Ingresso } from './Ingresso.jsx'
 
@@ -24,6 +26,10 @@ const ETAPAS = [
 ]
 
 export function ComoFunciona() {
+  const lista = useRef(null)
+  const caminho = useRef(null)
+  useLinhaDasEtapas(lista, caminho)
+
   return (
     <section id="como-funciona" className="landing__secao" aria-labelledby="como-funciona-titulo">
       <CabecalhoDaSecao
@@ -33,14 +39,15 @@ export function ComoFunciona() {
         subtitulo="Tudo o que antes ficava espalhado em planilhas e conversas, agora em um só lugar."
       />
 
-      <ol className="etapas-landing">
+      <ol ref={lista} className="etapas-landing">
         {ETAPAS.map((etapa, indice) => (
           <Ingresso
             key={etapa.titulo}
             elemento="li"
             orientacao="vertical"
             canhotoNoInicio
-            className="etapa-landing"
+            // a linha das etapas já começa no número da primeira
+            className={`etapa-landing${indice === 0 ? ' etapa-landing--alcancada' : ''}`}
             canhoto={
               <p className="etapa-landing__numero">
                 <span>ETAPA</span>
@@ -52,6 +59,13 @@ export function ComoFunciona() {
             <p className="etapa-landing__descricao">{etapa.descricao}</p>
           </Ingresso>
         ))}
+
+        {/* fio que liga os números, atrás dos cards (só um <li> pode ser filho do <ol>) */}
+        <li className="etapas-landing__linha" aria-hidden="true">
+          <svg>
+            <path ref={caminho} className="etapas-landing__caminho" />
+          </svg>
+        </li>
       </ol>
     </section>
   )
