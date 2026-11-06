@@ -21,15 +21,17 @@ const caminhoEntre = (pontos) =>
     .join(' ')
 
 // Mede o centro do número de cada etapa (relativo à lista), monta o path e guarda em que fração
-// do comprimento total fica cada ponto, somando o comprimento dos trechos
+// do comprimento total fica cada ponto, somando o comprimento dos trechos.
+// A posição do card vem do layout (offsetLeft/Top, relativos à lista, que é position: relative),
+// que ignora o translate da entrada dos cards; o número é medido dentro do próprio card
 function medir(lista, caminho) {
-  const caixa = lista.getBoundingClientRect()
   const etapas = [...lista.querySelectorAll('.etapa-landing')]
   const pontos = etapas.map((etapa) => {
+    const card = etapa.getBoundingClientRect()
     const numero = etapa.querySelector('.etapa-landing__numero strong').getBoundingClientRect()
     return {
-      x: numero.left - caixa.left + numero.width / 2,
-      y: numero.top - caixa.top + numero.height / 2,
+      x: etapa.offsetLeft + numero.left - card.left + numero.width / 2,
+      y: etapa.offsetTop + numero.top - card.top + numero.height / 2,
     }
   })
 

@@ -1,5 +1,6 @@
 import { useRef } from 'react'
 import { useLinhaDasEtapas } from '../../hooks/useLinhaDasEtapas.js'
+import { useNaTela } from '../../hooks/useNaTela.js'
 import { CabecalhoDaSecao } from './CabecalhoDaSecao.jsx'
 import { Ingresso } from './Ingresso.jsx'
 
@@ -29,6 +30,8 @@ export function ComoFunciona() {
   const lista = useRef(null)
   const caminho = useRef(null)
   useLinhaDasEtapas(lista, caminho)
+  // os cards começam escondidos só pela classe --animar, que vem daqui: sem JS aparecem normais
+  const cardsNaTela = useNaTela(lista, { limiar: 0.2 })
 
   return (
     <section id="como-funciona" className="landing__secao" aria-labelledby="como-funciona-titulo">
@@ -39,7 +42,10 @@ export function ComoFunciona() {
         subtitulo="Tudo o que antes ficava espalhado em planilhas e conversas, agora em um só lugar."
       />
 
-      <ol ref={lista} className="etapas-landing">
+      <ol
+        ref={lista}
+        className={`etapas-landing etapas-landing--animar${cardsNaTela ? ' etapas-landing--visivel' : ''}`}
+      >
         {ETAPAS.map((etapa, indice) => (
           <Ingresso
             key={etapa.titulo}
@@ -48,6 +54,8 @@ export function ComoFunciona() {
             canhotoNoInicio
             // a linha das etapas já começa no número da primeira
             className={`etapa-landing${indice === 0 ? ' etapa-landing--alcancada' : ''}`}
+            // posição na fila da entrada: cada card espera 100ms a mais que o anterior
+            style={{ '--i': indice }}
             canhoto={
               <p className="etapa-landing__numero">
                 <span>ETAPA</span>
