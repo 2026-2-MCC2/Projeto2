@@ -108,6 +108,19 @@ html:has(.landing) {
   scroll-padding-top: 88px;
 }
 
+/* barra de progresso de leitura, sobre a linha de baixo do header (useProgressoDeLeitura) */
+.landing-topo__progresso {
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--gradiente-laranja));
+  transform: scaleX(0);
+  transform-origin: left;
+  pointer-events: none;
+}
+
 /* parado 24px abaixo do topo da página: quando sai da tela, o header fica "rolado" */
 .landing-topo__sentinela {
   position: absolute;

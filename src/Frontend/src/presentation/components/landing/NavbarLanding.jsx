@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useNaTela } from '../../hooks/useNaTela.js'
+import { useProgressoDeLeitura } from '../../hooks/useProgressoDeLeitura.js'
 import { Icone } from '../comum/Icone.jsx'
 import { BotaoLanding } from './BotaoLanding.jsx'
 import { Logotipo } from '../comum/Logotipo.jsx'
@@ -62,6 +63,9 @@ export function NavbarLanding() {
   const sentinela = useRef(null)
   const noTopo = useNaTela(sentinela, { limiar: 0, umaVez: false, inicial: true })
 
+  const progresso = useRef(null)
+  useProgressoDeLeitura(progresso)
+
   return (
     <>
       <span ref={sentinela} className="landing-topo__sentinela" aria-hidden="true" />
@@ -107,6 +111,8 @@ export function NavbarLanding() {
             <BotaoLanding para="/cadastro">Criar cadastro</BotaoLanding>
           </div>
         </nav>
+
+        <span ref={progresso} className="landing-topo__progresso" aria-hidden="true" />
       </header>
     </>
   )
