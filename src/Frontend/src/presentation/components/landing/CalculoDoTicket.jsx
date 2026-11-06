@@ -13,7 +13,7 @@ const numero = (valor) => valor.toLocaleString('pt-BR')
 // "− R$ 38.100" / "+ R$ 57.100": sinal sempre visível, com o menos tipográfico
 const resultado = (valor) => `${valor < 0 ? '−' : '+'} ${formatarMoedaSemCentavos(Math.abs(valor))}`
 
-// a margem fica em % inteiro nos controles; o range para em 60%, então nunca chega a 100%
+// a margem fica em % inteiro nos controles; o range para em 99%, então nunca chega a 100%
 const VALORES_INICIAIS = {
   custoTotal: VALORES_DO_EXEMPLO.custoTotal,
   margem: Math.round(VALORES_DO_EXEMPLO.margem * 100),
@@ -36,7 +36,7 @@ const CONTROLES = [
     chave: 'margem',
     nome: 'Margem de lucro',
     minimo: 0,
-    maximo: 60,
+    maximo: 99,
     passo: 1,
     formatar: (valor) => `${valor}%`,
   },
