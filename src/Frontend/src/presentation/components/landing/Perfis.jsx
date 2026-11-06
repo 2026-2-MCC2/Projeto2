@@ -88,8 +88,9 @@ export function Perfis() {
             <p className="perfil-landing__descricao">{perfil.descricao}</p>
 
             <ul className="perfil-landing__lista">
-              {perfil.itens.map((item) => (
-                <li key={item}>
+              {perfil.itens.map((item, indice) => (
+                // posição na fila da entrada dos itens: cada um espera 80ms a mais
+                <li key={item} style={{ '--i': indice }}>
                   <Icone src={iconeCheck} />
                   {item}
                 </li>
