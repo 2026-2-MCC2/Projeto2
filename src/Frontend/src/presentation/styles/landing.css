@@ -86,16 +86,71 @@
 /* ---------- navbar ---------- */
 
 .landing-topo {
-  position: relative;
+  /* folga em cima e embaixo, e quanto dela sai de cada lado quando a página rola */
+  --_folga: 18px;
+  --_recolhe: 10px;
+
+  position: sticky;
+  top: 0;
   z-index: 10; /* o menu aberto passa por cima do conteúdo, mas fica sob os botões flutuantes */
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
   /* conteúdo de 1200px centralizado: 120px de cada lado na tela de 1440px do Figma */
-  padding: 18px max(32px, calc((100% - 1200px) / 2));
+  padding: var(--_folga) max(32px, calc((100% - 1200px) / 2));
   border-bottom: 1px solid var(--borda-padrao);
   background: var(--fundo-superficie);
+}
+
+/* com o header fixo, as âncoras do menu param abaixo dele */
+html:has(.landing) {
+  scroll-padding-top: 88px;
+}
+
+/* parado 24px abaixo do topo da página: quando sai da tela, o header fica "rolado" */
+.landing-topo__sentinela {
+  position: absolute;
+  top: 24px;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+
+/* o margin devolve a altura que o padding perde: a página não sobe junto com o header, e o estado
+   não fica ligando e desligando perto do limite. 85% é o mínimo que mantém os links acima de 4,5:1
+   sobre qualquer seção, nos dois temas */
+.landing-topo--rolado {
+  margin-bottom: calc(var(--_recolhe) * 2);
+  padding-block: calc(var(--_folga) - var(--_recolhe));
+  background: color-mix(in srgb, var(--fundo-superficie) 85%, transparent);
+  box-shadow: 0 6px 18px rgb(15 23 42 / 8%);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .landing-topo--rolado {
+    background: color-mix(in srgb, var(--fundo-superficie) 96%, transparent);
+  }
+}
+
+.landing-topo--rolado .landing-topo__logo {
+  scale: 0.9;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :root:not(.sem-movimento) .landing-topo {
+    transition:
+      background-color 250ms ease,
+      box-shadow 250ms ease,
+      padding 250ms ease,
+      margin-bottom 250ms ease;
+  }
+
+  :root:not(.sem-movimento) .landing-topo__logo {
+    transition: scale 250ms ease;
+  }
 }
 
 .landing-topo__marca {
@@ -105,6 +160,8 @@
 
 .landing-topo__logo {
   --logo-altura: 54px;
+
+  transform-origin: left center;
 }
 
 /* o PNG do Figma já traz a margem do desenho; o negativo é mais justo e ganha o mesmo recuo */
@@ -157,7 +214,10 @@
 /* abaixo disso os links e os botões não cabem numa linha (o mesmo valor do NavbarLanding.jsx) */
 @media (max-width: 1100px) {
   .landing-topo {
-    padding: 12px 16px 12px 20px;
+    --_folga: 12px;
+    --_recolhe: 6px;
+
+    padding-inline: 20px 16px;
   }
 
   .landing-topo__logo {

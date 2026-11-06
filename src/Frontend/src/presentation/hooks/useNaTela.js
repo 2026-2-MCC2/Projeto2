@@ -8,9 +8,13 @@ const PASSOS = Array.from({ length: 11 }, (_, indice) => indice / 10)
 // parte visível ocupa `limiar` da altura da tela. `margem` é o rootMargin do IntersectionObserver
 // (ex.: '50% 0px' conta como na tela meia tela antes de ele aparecer).
 // Com `umaVez` (padrão), fica true na primeira vez e não volta mais a false; sem, acompanha a
-// entrada e a saída. Sem IntersectionObserver no navegador, considera que está na tela.
-export function useNaTela(ref, { limiar = 0.3, margem = '0px', umaVez = true } = {}) {
-  const [naTela, setNaTela] = useState(() => !('IntersectionObserver' in window))
+// entrada e a saída. `inicial` é o valor até a primeira medição. Sem IntersectionObserver no
+// navegador, considera que está na tela.
+export function useNaTela(
+  ref,
+  { limiar = 0.3, margem = '0px', umaVez = true, inicial = false } = {},
+) {
+  const [naTela, setNaTela] = useState(() => inicial || !('IntersectionObserver' in window))
   const jaApareceu = umaVez && naTela
 
   useEffect(() => {
