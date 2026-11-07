@@ -10,15 +10,22 @@ export class UserStatusMiddleware {
       return
     }
 
-    const user = await new UserRepository(req.context).getByKey(req.context.user.userKey)
-    if (user === null || user.status !== 'approved' || user.profile !== req.context.user.profile) {
-      throw new ForbiddenProfile()
-    }
-
-    if (wasIssuedBeforePasswordChange(req.context.user.issuedAt, user.password_changed_at)) {
-      throw new Unauthorized()
-    }
+    await ensureActiveUser(req.context, req.context.user)
   }
+}
+
+// também usado na autenticação do WebSocket, que não passa pelos middlewares
+export async function ensureActiveUser(context, tokenUser) {
+  const user = await new UserRepository(context).getByKey(tokenUser.userKey)
+  if (user === null || user.status !== 'approved' || user.profile !== tokenUser.profile) {
+    throw new ForbiddenProfile()
+  }
+
+  if (wasIssuedBeforePasswordChange(tokenUser.issuedAt, user.password_changed_at)) {
+    throw new Unauthorized()
+  }
+
+  return user
 }
 
 // trocar a senha encerra os logins abertos antes da troca; o iat do JWT vem em segundos

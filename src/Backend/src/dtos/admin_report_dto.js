@@ -50,6 +50,7 @@ export class AdminReportDTO {
         under_review: Number(event.review_proposal_count),
         accepted: Number(event.accepted_proposal_count),
         rejected: Number(event.rejected_proposal_count),
+        withdrawn: Number(event.withdrawn_proposal_count),
       },
       values: {
         estimated_items_total: String(event.estimated_items_total),

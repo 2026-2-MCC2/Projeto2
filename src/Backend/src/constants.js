@@ -45,7 +45,7 @@ export const PASSWORD_RESET_COOLDOWN_SECONDS = Number(process.env.PASSWORD_RESET
 // esqueci-senha nunca responde antes disso, para o tempo não revelar se o e-mail tem conta
 export const FORGOT_PASSWORD_MIN_RESPONSE_MS = Number(process.env.FORGOT_PASSWORD_MIN_RESPONSE_MS ?? 500)
 
-// na memória de cada instância: com até 3 instâncias no Cloud Run, o limite real pode chegar ao triplo
+// na memória da instância; o Cloud Run roda uma só (--max-instances=1, exigido pelo hub do WebSocket)
 export const RATE_LIMIT_WINDOW_SECONDS = Number(process.env.RATE_LIMIT_WINDOW_SECONDS ?? 900)
 // folgado de propósito: numa rede com um IP público só (faculdade, CGNAT) todo mundo divide a mesma cota
 export const RATE_LIMIT_MAX_REQUESTS_PER_IP = Number(process.env.RATE_LIMIT_MAX_REQUESTS_PER_IP ?? 300)
@@ -98,13 +98,15 @@ export const REFERENCE_SCENARIOS = Object.freeze({
   MAXIMUM: 'maximum',
 })
 
-// status da proposta (ENUM proposal.status do banco); só a enviada ainda pode ser editada ou retirada
+// status da proposta (ENUM proposal.status do banco); só a enviada ainda pode ser editada ou retirada,
+// e a retirada (withdrawn) fica guardada com a conversa e volta a ser enviada se o fornecedor reenviar
 export const PROPOSAL_STATUSES = Object.freeze({
   SENT: 'sent',
   UNDER_REVIEW: 'under_review',
   ACCEPTED: 'accepted',
   REJECTED: 'rejected',
   CANCELED: 'canceled',
+  WITHDRAWN: 'withdrawn',
 })
 
 // rotas de infraestrutura: não passam pelos middlewares de log, login e banco

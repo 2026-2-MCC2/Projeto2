@@ -1,14 +1,17 @@
 import { FRONT_URL, USER_PROFILES, USER_STATUSES } from '../constants.js'
 import { AdminUserDTO } from '../dtos/admin_user_dto.js'
 import { ForbiddenProfile, InvalidParameter, NotFoundUser, UserStatusConflict } from '../errors/index.js'
+import { NotificationRepository } from '../repositories/notification_repository.js'
 import { UserRepository } from '../repositories/user_repository.js'
 import { EmailTemplates } from '../utils/email_templates.js'
+import { pendingRegistrationLink } from '../utils/notification_drafts.js'
 import { BaseController } from './base_controller.js'
 
 export class AdminUserController extends BaseController {
   constructor(context) {
     super(context, 'AdminUserController')
     this.userRepository = new UserRepository(context)
+    this.notificationRepository = new NotificationRepository(context)
   }
 
   async getRegistrationList(limit, offset, status) {
@@ -55,10 +58,23 @@ export class AdminUserController extends BaseController {
       throw new ForbiddenProfile()
     }
 
+    // a notificação do cadastro fica lida para todos os admins; o aviso faz os sininhos abertos atualizarem
+    let pushes = []
+    if (oldStatus === USER_STATUSES.PENDING) {
+      await this.notificationRepository.markAsReadByLink('user_pending', pendingRegistrationLink(updatedUser.user_key))
+      const admins = await this.userRepository.getApprovedAdmins()
+      pushes = admins.map((admin) => ({ userKey: admin.user_key, data: { type: 'notifications_changed' } }))
+    }
+
     const userDto = AdminUserDTO.statusUpdate(updatedUser)
     await this.session.commit()
 
-    return { userDto, email: statusChangeEmail(updatedUser, oldStatus, cleanReason) }
+    return {
+      userDto,
+      email: statusChangeEmail(updatedUser, oldStatus, cleanReason),
+      pushes,
+      disconnectUserKey: newStatus === USER_STATUSES.BLOCKED ? updatedUser.user_key : null,
+    }
   }
 }
 

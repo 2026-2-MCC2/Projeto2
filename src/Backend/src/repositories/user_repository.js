@@ -63,6 +63,14 @@ export class UserRepository {
     })
   }
 
+  async getApprovedAdmins() {
+    return User.findAll({
+      attributes: ['id', 'user_key'],
+      where: { profile: 'admin', status: 'approved' },
+      transaction: this.session,
+    })
+  }
+
   // a conta nasce pending e só acessa depois da aprovação do admin
   async create({ name, email, passwordHash, profile }) {
     return User.create(

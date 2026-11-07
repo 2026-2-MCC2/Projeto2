@@ -43,6 +43,8 @@ export class SupplierEventDto {
         quantity: Number(item.quantity),
         estimated_value: item.estimated_value === null ? null : Number(item.estimated_value),
         notes: item.notes ?? null,
+        // o organizador já escolheu uma proposta (de qualquer fornecedor): o item não aceita mais envio
+        decided: Boolean(Number(item.decided)),
         my_proposal: item.proposal_key
           ? {
               proposal_key: item.proposal_key,

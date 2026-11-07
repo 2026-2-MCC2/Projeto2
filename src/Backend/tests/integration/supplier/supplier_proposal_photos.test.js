@@ -278,7 +278,7 @@ describe('DELETE /supplier/proposals/:proposal_key/photos/:photo_key', () => {
 })
 
 describe('Fotos na retirada e na leitura das propostas', () => {
-  test('retirar a proposta apaga os arquivos das fotos', async () => {
+  test('retirar a proposta mantém as fotos, que continuam no detalhe', async () => {
     const scenario = await createScenario()
     const [, first] = await upload(scenario)
     const [, second] = await upload(scenario, photo(ImageFixtures.JPG, 'b.jpg', 'image/jpeg'))
@@ -286,8 +286,12 @@ describe('Fotos na retirada e na leitura das propostas', () => {
     const [status] = await RequestGenerator.DELETE_supplier_proposal(scenario.proposal.proposal_key, scenario.supplier.headers)
 
     assert.equal(status, 204)
-    assert.equal((await download(first.url)).status, 404)
-    assert.equal((await download(second.url)).status, 404)
+    const [, detail] = await RequestGenerator.GET_supplier_proposal_by_key(scenario.proposal.proposal_key, scenario.supplier.headers)
+    assert.deepEqual(
+      detail.photos.map((item) => item.photo_key),
+      [first.photo_key, second.photo_key],
+    )
+    assert.equal((await download(detail.photos[0].url)).status, 200)
   })
 
   test('o dono vê as fotos no detalhe e o organizador na comparação, com URLs que abrem', async () => {

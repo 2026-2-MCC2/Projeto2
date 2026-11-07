@@ -93,9 +93,11 @@ export class ProposalRepository {
     return Number(row.accepted) > 0
   }
 
-  async getBySupplierAndItem(supplierId, budgetItemId) {
+  // lock: o reenvio trava a retirada até o commit, para dois envios juntos não reativarem duas vezes
+  async getBySupplierAndItem(supplierId, budgetItemId, { lock = false } = {}) {
     return Proposal.findOne({
       where: { supplier_id: supplierId, budget_item_id: budgetItemId },
+      ...(lock && { lock: this.session.LOCK.UPDATE }),
       transaction: this.session,
     })
   }
@@ -226,6 +228,29 @@ export class ProposalRepository {
     )
   }
 
+  // os dois lados da proposta (fornecedor e organizador) com o contexto usado na conversa e nas notificações;
+  // lockEvent: FOR SHARE no evento, para ele não sair de cotação no meio do fluxo
+  async getProposalParties(proposalKeys, { lockEvent = false } = {}) {
+    if (proposalKeys.length === 0) return []
+    return sequelize.query(
+      `SELECT proposal.id, proposal.proposal_key, proposal.amount, proposal.status,
+              budget_item.description AS item_description,
+              event.event_key, event.name AS event_name, event.status AS event_status,
+              supplier_user.id AS supplier_user_id, supplier_user.user_key AS supplier_user_key, supplier_user.name AS supplier_name, supplier_user.status AS supplier_status,
+              organizer_user.id AS organizer_user_id, organizer_user.user_key AS organizer_user_key, organizer_user.name AS organizer_name, organizer_user.status AS organizer_status
+       FROM proposal
+       INNER JOIN budget_item ON budget_item.id = proposal.budget_item_id
+       INNER JOIN event ON event.id = budget_item.event_id
+       INNER JOIN supplier ON supplier.id = proposal.supplier_id
+       INNER JOIN user AS supplier_user ON supplier_user.id = supplier.user_id
+       INNER JOIN organizer ON organizer.id = event.organizer_id
+       INNER JOIN user AS organizer_user ON organizer_user.id = organizer.user_id
+       WHERE proposal.proposal_key IN (:proposalKeys)
+       ORDER BY proposal.id${lockEvent ? ' FOR SHARE OF event' : ''}`,
+      { replacements: { proposalKeys }, transaction: this.session, type: QueryTypes.SELECT },
+    )
+  }
+
   // trava a proposta até o commit: um aceite do organizador ao mesmo tempo espera, e vice-versa
   async getSupplierProposalForUpdate(supplierId, proposalKey) {
     return Proposal.findOne({
@@ -240,9 +265,10 @@ export class ProposalRepository {
     await proposal.save({ transaction: this.session })
   }
 
-  // as fotos da proposta saem junto (ON DELETE CASCADE em proposal_photo)
-  async delete(proposal) {
-    await proposal.destroy({ transaction: this.session })
+  // reenvio de uma proposta retirada: volta a ser enviada, não selecionada, com a data do novo envio
+  async reactivate(proposal, fields) {
+    proposal.set({ ...fields, status: PROPOSAL_STATUSES.SENT, selected: false, sent_at: new Date() })
+    await proposal.save({ transaction: this.session })
   }
 
   // trava só as propostas: as linhas de item, fornecedor e usuário da junção ficam livres
@@ -269,13 +295,15 @@ export class ProposalRepository {
     })
   }
 
+  // devolve as propostas que mudaram de status (a aceita e as recusadas junto), ou null
   async acceptByProposalKey(eventId, proposalKey) {
     const decisao = await this.#lockForDecision(eventId, proposalKey)
-    if (!decisao) return false
+    if (!decisao) return null
     const { proposal, proposals, budgetItemId } = decisao
 
     // a recusa feita pelo organizador vale enquanto o item não tem escolha; depois disso, só troca
     const itemDecided = proposals.some((candidate) => candidate.status === 'accepted')
+    if (proposal.status === PROPOSAL_STATUSES.WITHDRAWN) throw new ProposalDecisionConflict()
     if (proposal.status === 'rejected' && !itemDecided) throw new ProposalDecisionConflict()
     if (Boolean(proposal.is_expired)) throw new ProposalExpired()
 
@@ -283,10 +311,18 @@ export class ProposalRepository {
       `UPDATE proposal
        SET status = CASE WHEN proposal_key = :proposalKey THEN 'accepted' ELSE 'rejected' END,
            selected = CASE WHEN proposal_key = :proposalKey THEN TRUE ELSE FALSE END
-       WHERE budget_item_id = :budgetItemId`,
+       WHERE budget_item_id = :budgetItemId AND status <> 'withdrawn'`,
       { replacements: { proposalKey, budgetItemId }, transaction: this.session },
     )
-    return true
+
+    // a retirada não é recusada junto: continua como o fornecedor deixou
+    const others = proposals.filter(
+      (candidate) => candidate.proposal_key !== proposalKey && candidate.status !== PROPOSAL_STATUSES.WITHDRAWN,
+    )
+    return {
+      acceptedKeys: proposal.status === 'accepted' ? [] : [proposalKey],
+      rejectedKeys: others.filter((candidate) => candidate.status !== 'rejected').map((candidate) => candidate.proposal_key),
+    }
   }
 
   // devolve a proposta recusada (com fornecedor, item e valor da linha travada) ou null

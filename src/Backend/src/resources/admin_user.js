@@ -1,5 +1,6 @@
 import { USER_PROFILES } from '../constants.js'
 import { EmailConnector } from '../connectors/email_connector.js'
+import { WebSocketHub } from '../connectors/websocket_hub.js'
 import { AdminUserController } from '../controllers/admin_user_controller.js'
 import { PasswordResetController } from '../controllers/password_reset_controller.js'
 import { getParam, getParamAsInt } from '../utils/request_params.js'
@@ -45,10 +46,12 @@ export class AdminUserResource {
 
     const controller = new AdminUserController(req.context)
     const { status, reason } = req.context.media
-    const { userDto, email } = await controller.changeStatus(userKey, status, reason)
+    const { userDto, email, pushes, disconnectUserKey } = await controller.changeStatus(userKey, status, reason)
 
     res.status(202).json(userDto)
     EmailConnector.sendInBackground(email)
+    WebSocketHub.send(pushes)
+    if (disconnectUserKey) WebSocketHub.closeUser(disconnectUserKey)
   }
 
   async onPostPasswordResetByKey(req, res, userKey) {

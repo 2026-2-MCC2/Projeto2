@@ -1,5 +1,6 @@
 import { create } from './app.js'
 import { DatabaseConnector } from './connectors/database_connector.js'
+import { WebSocketHub } from './connectors/websocket_hub.js'
 import { checkVariables, PORT } from './constants.js'
 import { errorVerification } from './errors/index.js'
 import { Logger } from './utils/logger.js'
@@ -18,10 +19,12 @@ function main() {
     }
     logger.info(`Listening on port ${PORT}`)
   })
+  WebSocketHub.attach(server)
 
   // o Cloud Run manda SIGTERM antes de desligar uma instância
   async function shutdown(signal) {
     logger.info(`${signal} received, shutting down`)
+    WebSocketHub.close()
     server.close()
     await DatabaseConnector.close()
   }

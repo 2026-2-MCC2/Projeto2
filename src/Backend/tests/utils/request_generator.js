@@ -256,4 +256,44 @@ export class RequestGenerator {
     const response = await ClientRequisition.send('POST', '/event_planning/auth/verificar-cnpj', { payload: payload })
     return [response.responseStatus, response.responseJson]
   }
+
+  static async GET_notifications(params = {}, headers = {}) {
+    const response = await ClientRequisition.send('GET', '/event_planning/notifications', { headers, queryParams: params })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async PATCH_notification_read(notificationKey, headers = {}) {
+    const response = await ClientRequisition.send('PATCH', `/event_planning/notifications/${notificationKey}/read`, { headers })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async POST_notifications_read_all(headers = {}) {
+    const response = await ClientRequisition.send('POST', '/event_planning/notifications/read-all', { headers })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async GET_proposal_messages(proposalKey, headers = {}) {
+    const response = await ClientRequisition.send('GET', `/event_planning/proposals/${proposalKey}/messages`, { headers })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async POST_proposal_message(proposalKey, payload, headers = {}) {
+    const response = await ClientRequisition.send('POST', `/event_planning/proposals/${proposalKey}/messages`, { payload, headers })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async POST_proposal_messages_read(proposalKey, headers = {}) {
+    const response = await ClientRequisition.send('POST', `/event_planning/proposals/${proposalKey}/messages/read`, { headers })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async GET_conversations(headers = {}) {
+    const response = await ClientRequisition.send('GET', '/event_planning/conversations', { headers })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async GET_messages_unread(headers = {}) {
+    const response = await ClientRequisition.send('GET', '/event_planning/messages/unread', { headers })
+    return [response.responseStatus, response.responseJson]
+  }
 }

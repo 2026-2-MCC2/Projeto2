@@ -120,7 +120,9 @@ export class SupplierEventRepository {
               budget_item.description, budget_item.type, budget_item.quantity,
               budget_item.estimated_value, budget_item.notes,
               my_proposal.proposal_key, my_proposal.status AS proposal_status,
-              my_proposal.amount AS proposal_amount, my_proposal.valid_until AS proposal_valid_until
+              my_proposal.amount AS proposal_amount, my_proposal.valid_until AS proposal_valid_until,
+              EXISTS (SELECT 1 FROM proposal AS accepted
+                      WHERE accepted.budget_item_id = budget_item.id AND accepted.status = 'accepted') AS decided
        FROM budget_item
        INNER JOIN item_category ON item_category.id = budget_item.category_id
        INNER JOIN supplier_category ON supplier_category.category_id = item_category.id
@@ -129,6 +131,22 @@ export class SupplierEventRepository {
        WHERE budget_item.event_id = :eventId AND supplier_category.supplier_id = :supplierId
        ORDER BY budget_item.created_at ASC, budget_item.id ASC`,
       { replacements: { eventId, supplierId }, transaction: this.session, type: QueryTypes.SELECT },
+    )
+  }
+
+  // fornecedores aprovados que atendem a categoria de algum item do evento, com quantos itens e quais categorias
+  async getSuppliersMatchingEvent(eventId) {
+    return sequelize.query(
+      `SELECT supplier_user.id AS user_id, supplier_user.user_key, COUNT(budget_item.id) AS items_count,
+              GROUP_CONCAT(DISTINCT item_category.name ORDER BY item_category.name SEPARATOR '|') AS categories
+       FROM budget_item
+       INNER JOIN item_category ON item_category.id = budget_item.category_id
+       INNER JOIN supplier_category ON supplier_category.category_id = budget_item.category_id
+       INNER JOIN supplier ON supplier.id = supplier_category.supplier_id
+       INNER JOIN user AS supplier_user ON supplier_user.id = supplier.user_id
+       WHERE budget_item.event_id = :eventId AND supplier_user.status = 'approved'
+       GROUP BY supplier_user.id, supplier_user.user_key`,
+      { replacements: { eventId }, transaction: this.session, type: QueryTypes.SELECT },
     )
   }
 }

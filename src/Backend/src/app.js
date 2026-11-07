@@ -18,11 +18,13 @@ import {
   AdminUserResource,
   AuthResource,
   BudgetItemResource,
+  ConversationResource,
   EventResource,
   HealthCheckResource,
   HomeResource,
   LocalFileResource,
   MeResource,
+  NotificationResource,
   SinkResource,
   SupplierEventResource,
   SupplierProposalResource,
@@ -108,6 +110,17 @@ export function create() {
   addRoute(app, `${API_PREFIX}/supplier/proposals/:proposal_key`, supplierProposalResource, 'ByKey')
   addRoute(app, `${API_PREFIX}/supplier/proposals/:proposal_key/photos`, supplierProposalResource, 'Photos')
   addRoute(app, `${API_PREFIX}/supplier/proposals/:proposal_key/photos/:photo_key`, supplierProposalResource, 'PhotosByKey')
+
+  const notificationResource = new NotificationResource()
+  addRoute(app, `${API_PREFIX}/notifications`, notificationResource, 'List')
+  addRoute(app, `${API_PREFIX}/notifications/read-all`, notificationResource, 'ReadAll')
+  addRoute(app, `${API_PREFIX}/notifications/:notification_key/read`, notificationResource, 'Read')
+
+  const conversationResource = new ConversationResource()
+  addRoute(app, `${API_PREFIX}/proposals/:proposal_key/messages`, conversationResource, 'Messages')
+  addRoute(app, `${API_PREFIX}/proposals/:proposal_key/messages/read`, conversationResource, 'MessagesRead')
+  addRoute(app, `${API_PREFIX}/messages/unread`, conversationResource, 'Unread')
+  addRoute(app, `${API_PREFIX}/conversations`, conversationResource, 'Conversations')
 
   const sinkResource = new SinkResource()
   addSink(app, sinkResource)
