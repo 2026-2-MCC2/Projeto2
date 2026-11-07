@@ -114,7 +114,7 @@ CREATE TABLE internal_cost(
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     internal_cost_key               CHAR(36) NOT NULL,
     event_id                        INT NOT NULL,
-    type                            ENUM('tax', 'operational', 'other') NOT NULL,
+    type                            ENUM('tax', 'operational', 'variable', 'other') NOT NULL,
     description                     VARCHAR(255) NOT NULL,
     amount                          DECIMAL(12,2) NOT NULL,
     created_at                      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

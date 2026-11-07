@@ -1,13 +1,16 @@
 import { useState } from 'react'
-import { criarItemDeCotacao, incluirCustoProprio } from '../../application/eventos.js'
+import {
+  criarItemDeCotacao,
+  incluirCustoProprio,
+  NOME_DO_TIPO_DE_CUSTO,
+} from '../../application/eventos.js'
 import { paraNumero } from '../../domain/validacao.js'
 import { toast } from '../toasts.js'
 
-export const TIPOS_DE_CUSTO = [
-  { valor: 'tax', nome: 'Fiscal' },
-  { valor: 'operational', nome: 'Operacional' },
-  { valor: 'other', nome: 'Outros' },
-]
+export const TIPOS_DE_CUSTO = Object.entries(NOME_DO_TIPO_DE_CUSTO).map(([valor, nome]) => ({
+  valor,
+  nome,
+}))
 
 const ITEM_EM_BRANCO = {
   descricao: '',

@@ -28,6 +28,12 @@ São três módulos: o **Organizador** cadastra eventos, itens de custo e parâm
 
 > `Ticket = Custo Total / [Público × (1 − Margem)]`
 
+- **Ticket-alvo:** a fórmula acima, para os públicos mínimo, esperado e máximo; o cenário de referência escolhido pelo Organizador vira o preço sugerido.
+- **Ticket de equilíbrio:** `Custo Total / Público`, o preço que só paga o custo (margem zero).
+- **Ponto de equilíbrio:** `⌈Custo Total / Preço sugerido⌉`, quantos ingressos precisam ser vendidos para cobrir o custo.
+- **Arredondamento:** o preço é arredondado para centavos antes das contas; o ponto de equilíbrio é arredondado para cima, porque não existe meio ingresso.
+- **Validações:** a margem precisa ser menor que 100% e o público mínimo ≤ esperado ≤ máximo; sem custos cadastrados, o cálculo fica indisponível.
+
 O MVP não vende ingressos nem processa pagamentos, e cada evento tem um único tipo de ingresso.
 
 ## 🎯 Funcionalidades
@@ -40,14 +46,14 @@ O MVP não vende ingressos nem processa pagamentos, e cada evento tem um único 
 | RF04 | Autenticação e perfis               | Acesso restrito conforme o perfil.                  |
 | RF05 | Cadastro de eventos                 | Período, local, público mínimo e máximo.            |
 | RF06 | Itens de composição de custo        | Estrutura, alimentação, segurança e outros.         |
-| RF07 | Custos próprios do evento           | Custos fiscais e operacionais, sem cotação.         |
+| RF07 | Custos próprios do evento           | Fiscais, operacionais, variáveis e outros.          |
 | RF08 | Publicação para cotação             | Abre o evento para os Fornecedores aprovados.       |
 | RF09 | Consulta de eventos pelo Fornecedor | Lista os eventos abertos para proposta.             |
 | RF10 | Envio de propostas                  | Valor, descrição, validade e observações.           |
 | RF11 | Comparação de propostas             | Compara as propostas recebidas por item.            |
 | RF12 | Consolidação do orçamento           | Propostas escolhidas formam o custo do evento.      |
 | RF13 | Cálculo do ticket                   | Cenários de público mínimo, esperado e máximo.      |
-| RF14 | Visão administrativa e relatórios   | Usuários, eventos, propostas e valores.             |
+| RF14 | Visão administrativa e relatórios   | Relatórios e histórico das aprovações.              |
 
 ## 🛠 Estrutura de pastas
 
