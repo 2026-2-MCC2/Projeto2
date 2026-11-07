@@ -46,7 +46,8 @@
 
 .visao-geral__valor {
   color: var(--texto-primario);
-  font-size: 1.5rem;
+  /* acompanha a largura para valores como R$ 316.500,00 caberem numa linha no card */
+  font-size: clamp(1.125rem, 1.7vw, 1.5rem);
   font-weight: 600;
   line-height: 1.2;
   overflow-wrap: anywhere;
@@ -60,7 +61,7 @@
 .visao-geral__filtros {
   display: grid;
   grid-template-columns:
-    minmax(12rem, 1.4fr) minmax(12rem, 1.4fr) repeat(2, minmax(9rem, 0.8fr))
+    minmax(0, 1.4fr) minmax(0, 1.4fr) repeat(2, minmax(8.75rem, 0.8fr))
     auto;
   align-items: end;
   gap: 0.75rem;
