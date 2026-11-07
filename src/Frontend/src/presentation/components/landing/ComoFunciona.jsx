@@ -52,7 +52,7 @@ export function ComoFunciona() {
             orientacao="vertical"
             canhotoNoInicio
             // a linha das etapas já começa no número da primeira
-            className={`etapa-landing${indice === 0 ? ' etapa-landing--alcancada' : ''}`}
+            className="etapa-landing"
             // posição na fila da entrada: cada card espera 100ms a mais que o anterior
             style={{ '--i': indice }}
             canhoto={

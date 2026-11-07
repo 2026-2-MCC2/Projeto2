@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { semMovimento } from '../movimento.js'
 
 const INCLINACAO_MAXIMA = 10 // graus, para cada lado
 
@@ -6,9 +7,8 @@ const INCLINACAO_MAXIMA = 10 // graus, para cada lado
 const PODE_INCLINAR =
   '(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)'
 
-// Segue o mouse sobre o elemento do ref e grava no estilo dele, uma vez por quadro:
-// --rx/--ry (inclinação em graus) e --mx/--my (posição do mouse em %). O CSS usa as variáveis;
-// o React não re-renderiza a cada movimento. Ao sair, a inclinação volta a 0.
+// grava --rx/--ry (inclinação) e --mx/--my (posição do mouse) no estilo, uma vez por quadro,
+// sem re-renderizar o React; ao sair, a inclinação volta a 0
 export function useTilt(ref) {
   useEffect(() => {
     const elemento = ref.current
@@ -29,6 +29,8 @@ export function useTilt(ref) {
     }
 
     const mover = (evento) => {
+      // o "menos movimento" do painel de acessibilidade do site não passa pela media query
+      if (semMovimento()) return
       mouse = { x: evento.clientX, y: evento.clientY }
       if (!quadro) quadro = requestAnimationFrame(aplicar)
     }

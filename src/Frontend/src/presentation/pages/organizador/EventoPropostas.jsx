@@ -346,9 +346,7 @@ function LinhaDeProposta({ eventKey, proposta, destaque, podeSelecionar, troca, 
       <strong>{formatarMoeda(proposta.amount)}</strong>
       <span>{proposta.delivery_terms}</span>
       <span>{formatarValidade(proposta.valid_until)}</span>
-      <span className="lista-propostas__observacoes">
-        {proposta.notes || 'Nenhuma observação'}
-      </span>
+      <span className="lista-propostas__observacoes">{proposta.notes || 'Nenhuma observação'}</span>
       <AcaoDaProposta
         rota={rota}
         destaque={destaque}

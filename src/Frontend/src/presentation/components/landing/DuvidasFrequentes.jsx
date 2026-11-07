@@ -31,19 +31,31 @@ const PERGUNTAS = [
   },
 ]
 
-// mesmo padrão da página Dúvidas da área logada: <details>/<summary>, que já abre e fecha
-// com teclado e anuncia o estado aberto/fechado sem precisar de aria-expanded.
-// O <details> fechado some na hora, então o open e a animação têm estados separados: ao abrir, o
-// open vem antes (dois quadros, para o navegador pintar o estado fechado); ao fechar, depois
+const TEMPO_MAXIMO_DO_FECHAMENTO = 600
+
+// <details> fechado some na hora: ao abrir, o open vem antes da animação; ao fechar, depois dela
 function Pergunta({ pergunta, resposta, inicial }) {
   const [montada, setMontada] = useState(inicial)
   const [aberta, setAberta] = useState(inicial)
   const quadro = useRef(0)
-  // só um fechamento animado tira o open: a transição de 0,01ms do "menos movimento" também
-  // dispara transitionend, e podia fechar uma pergunta que acabou de reabrir
+  // só um fechamento animado tira o open: o "menos movimento" também dispara transitionend
   const fechando = useRef(false)
+  const reserva = useRef(0)
 
-  useEffect(() => () => cancelAnimationFrame(quadro.current), [])
+  useEffect(
+    () => () => {
+      cancelAnimationFrame(quadro.current)
+      clearTimeout(reserva.current)
+    },
+    [],
+  )
+
+  const terminarDeFechar = () => {
+    clearTimeout(reserva.current)
+    if (!fechando.current) return
+    fechando.current = false
+    setMontada(false)
+  }
 
   const alternar = (evento) => {
     evento.preventDefault()
@@ -51,11 +63,17 @@ function Pergunta({ pergunta, resposta, inicial }) {
 
     if (aberta) {
       setAberta(false)
-      if (semMovimento()) setMontada(false)
-      else fechando.current = true
+      if (semMovimento()) {
+        setMontada(false)
+        return
+      }
+      fechando.current = true
+      // navegador que não anima a altura nunca manda o transitionend
+      reserva.current = setTimeout(terminarDeFechar, TEMPO_MAXIMO_DO_FECHAMENTO)
       return
     }
 
+    clearTimeout(reserva.current)
     fechando.current = false
     setMontada(true)
     quadro.current = requestAnimationFrame(() => {
@@ -64,9 +82,7 @@ function Pergunta({ pergunta, resposta, inicial }) {
   }
 
   const aoTerminarDeFechar = (evento) => {
-    if (evento.propertyName !== 'grid-template-rows' || !fechando.current) return
-    fechando.current = false
-    setMontada(false)
+    if (evento.propertyName === 'grid-template-rows') terminarDeFechar()
   }
 
   // a busca da página (Ctrl+F) abre o <details> sem passar pelo clique

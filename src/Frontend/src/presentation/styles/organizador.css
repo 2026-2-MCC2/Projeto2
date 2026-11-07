@@ -3119,7 +3119,9 @@
 
 .lista-propostas__linha {
   display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(0, 0.8fr) minmax(0, 1.1fr) minmax(0, 0.8fr) minmax(0, 2fr) 10rem;
+  grid-template-columns:
+    minmax(0, 1.6fr) minmax(0, 0.8fr) minmax(0, 1.1fr) minmax(0, 0.8fr) minmax(0, 2fr)
+    10rem;
   align-items: center;
   gap: 1rem;
   padding: 0.875rem 1.25rem;

@@ -6,7 +6,6 @@ import { useNaTela } from './useNaTela.js'
 // e termina de se desenhar quando o fundo dela chega a 50%
 const INICIO = 0.8
 const FIM = 0.5
-const ALCANCADA = 'etapa-landing--alcancada'
 
 // Curvas que ligam os pontos na ordem: cada trecho sai e chega na vertical, então vira um "S"
 // quando muda de linha no grid e fica reto quando os pontos estão na mesma linha ou coluna
@@ -20,10 +19,8 @@ const caminhoEntre = (pontos) =>
     })
     .join(' ')
 
-// Mede o centro do número de cada etapa (relativo à lista), monta o path e guarda em que fração
-// do comprimento total fica cada ponto, somando o comprimento dos trechos.
-// A posição do card vem do layout (offsetLeft/Top, relativos à lista, que é position: relative),
-// que ignora o translate da entrada dos cards; o número é medido dentro do próprio card
+// mede o centro do número de cada etapa e em que fração da linha ele fica; o card vem do
+// offsetLeft/Top, que ignora o translate da entrada, e o número é medido dentro dele
 function medir(lista, caminho) {
   const etapas = [...lista.querySelectorAll('.etapa-landing')]
   const pontos = etapas.map((etapa) => {
@@ -64,14 +61,12 @@ function desenhar(lista, caminho, medida) {
   const progresso = semMovimento() ? 1 : progressoDoScroll(lista)
   caminho.style.strokeDashoffset = `${medida.comprimento * (1 - progresso)}`
   medida.etapas.forEach((etapa, indice) =>
-    etapa.classList.toggle(ALCANCADA, progresso >= medida.fracoes[indice] - 0.001),
+    etapa.toggleAttribute('data-alcancada', progresso >= medida.fracoes[indice] - 0.001),
   )
 }
 
-// Linha que liga os números das etapas e se desenha com o scroll. Recebe o ref da lista e devolve
-// o ref para pôr no <path>. Escreve direto no path e nas classes dos itens (nada de setState por
-// scroll). O scroll só é ouvido com a lista perto da tela.
-// Se algo falhar na medição, o path fica sem desenho e a página segue normal.
+// linha entre os números das etapas que se desenha com a rolagem, escrevendo direto no path e no
+// data-alcancada dos itens (sem setState por scroll); se a medição falhar, a página segue sem ela
 export function useLinhaDasEtapas(listaRef) {
   const caminhoRef = useRef(null)
   const medida = useRef(null)

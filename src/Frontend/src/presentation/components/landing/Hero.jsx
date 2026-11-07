@@ -28,10 +28,8 @@ const DADOS_DO_FESTIVAL = [
   { nome: 'SETOR', valor: 'Pista' },
 ]
 
-// uma camada por efeito, para um transform não apagar o outro:
-// posição + rotação + entrada → flutuar → tilt do mouse → o ingresso em si.
-// O mouse é medido na camada que flutua (ela não inclina, então a caixa não treme);
-// as variáveis do tilt descem por herança.
+// uma camada por efeito (entrada → flutuar → tilt), para um transform não apagar o outro; o mouse
+// é medido na camada que flutua, que não inclina, e as variáveis do tilt descem por herança
 function IngressoDoHero({ variante, canhoto, children }) {
   const camadaDoMouse = useRef(null)
   useTilt(camadaDoMouse)

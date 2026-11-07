@@ -1,25 +1,21 @@
 import { useEffect, useState } from 'react'
 
-// avisos a cada 10% visível, para conferir as duas condições abaixo
+// avisos a cada 10% visível; com limiar 0 basta saber se entrou
 const PASSOS = Array.from({ length: 11 }, (_, indice) => indice / 10)
+const TEM_OBSERVADOR = typeof window !== 'undefined' && 'IntersectionObserver' in window
 
-// Diz se `limiar` (0 a 1) do elemento do ref está na tela. Num elemento mais alto que a tela
-// (a seção no celular) a fração visível talvez nunca chegue ao limiar, então também vale quando a
-// parte visível ocupa `limiar` da altura da tela. `margem` é o rootMargin do IntersectionObserver
-// (ex.: '50% 0px' conta como na tela meia tela antes de ele aparecer).
-// Com `umaVez` (padrão), fica true na primeira vez e não volta mais a false; sem, acompanha a
-// entrada e a saída. `inicial` é o valor até a primeira medição. Sem IntersectionObserver no
-// navegador, considera que está na tela.
+// se `limiar` do elemento está na tela (ou ocupa `limiar` da altura dela, em elementos mais altos que a tela);
+// com `umaVez` fica true para sempre. Sem IntersectionObserver no navegador, conta como na tela
 export function useNaTela(
   ref,
   { limiar = 0.3, margem = '0px', umaVez = true, inicial = false } = {},
 ) {
-  const [naTela, setNaTela] = useState(() => inicial || !('IntersectionObserver' in window))
+  const [naTela, setNaTela] = useState(() => inicial || !TEM_OBSERVADOR)
   const jaApareceu = umaVez && naTela
 
   useEffect(() => {
     const elemento = ref.current
-    if (!elemento || jaApareceu) return
+    if (!elemento || jaApareceu || !TEM_OBSERVADOR) return
 
     const observador = new IntersectionObserver(
       ([entrada]) => {
@@ -36,7 +32,7 @@ export function useNaTela(
         setNaTela(true)
         observador.disconnect()
       },
-      { threshold: PASSOS, rootMargin: margem },
+      { threshold: limiar === 0 ? 0 : PASSOS, rootMargin: margem },
     )
     observador.observe(elemento)
     return () => observador.disconnect()

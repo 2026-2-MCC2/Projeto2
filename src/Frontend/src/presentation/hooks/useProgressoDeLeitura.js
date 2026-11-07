@@ -1,8 +1,7 @@
 import { useEffect } from 'react'
 
-// Estica o elemento do ref (transform: scaleX) conforme a página é rolada, escrevendo direto no
-// estilo, uma vez por quadro. Refaz a conta quando a altura da página muda sem scroll, como ao abrir
-// uma resposta do FAQ ou trocar a fonte, além de quando a janela muda de tamanho.
+// estica a barra (scaleX) conforme a rolagem, uma vez por quadro; refaz a conta também quando a
+// altura da página muda sem rolar, como ao abrir uma resposta das dúvidas
 export function useProgressoDeLeitura(ref) {
   useEffect(() => {
     const barra = ref.current
@@ -22,14 +21,14 @@ export function useProgressoDeLeitura(ref) {
     agendar()
     window.addEventListener('scroll', agendar, { passive: true })
     window.addEventListener('resize', agendar, { passive: true })
-    const observador = new ResizeObserver(agendar)
-    observador.observe(document.body)
+    const observador = 'ResizeObserver' in window ? new ResizeObserver(agendar) : null
+    observador?.observe(document.body)
 
     return () => {
       cancelAnimationFrame(quadro)
       window.removeEventListener('scroll', agendar)
       window.removeEventListener('resize', agendar)
-      observador.disconnect()
+      observador?.disconnect()
     }
   }, [ref])
 }

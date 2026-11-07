@@ -255,6 +255,9 @@ html:has(.landing) {
     flex-direction: column;
     align-items: stretch;
     gap: 20px;
+    max-height: calc(100dvh - 100%);
+    overflow-y: auto;
+    overscroll-behavior: contain;
     padding: 8px 20px 24px;
     border-bottom: 1px solid var(--borda-padrao);
     background: var(--fundo-superficie);
@@ -857,7 +860,8 @@ html:has(.landing) {
 }
 
 /* número já alcançado pela linha: laranja de texto (o da marca não tem contraste no canhoto) */
-.etapa-landing--alcancada .etapa-landing__numero strong {
+.etapa-landing:first-of-type .etapa-landing__numero strong,
+.etapa-landing[data-alcancada] .etapa-landing__numero strong {
   color: var(--texto-destaque);
 }
 
@@ -1610,17 +1614,6 @@ html:has(.landing) {
   .calculo-landing__barra--acompanha span {
     transition-duration: 300ms;
   }
-}
-
-.calculo-landing__equilibrio--acima .calculo-landing__barra span {
-  background: var(--status-perigo-texto);
-}
-
-.calculo-landing__alerta {
-  margin: 0;
-  color: var(--status-perigo-texto);
-  font-size: 0.7647rem; /* 13px */
-  font-weight: 600;
 }
 
 /* abaixo disso o texto e o painel não cabem lado a lado: o texto vai para cima */

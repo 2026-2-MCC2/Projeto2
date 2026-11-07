@@ -5,7 +5,7 @@ import {
   formatarMoedaSemCentavos,
   formatarResultado as resultado,
 } from '../../../domain/formatacao.js'
-import { calcularTicket } from '../../../utils/calcularTicket.js'
+import { calcularTicket } from '../../../domain/ticket.js'
 import { EVENTO_DE_EXEMPLO as evento, VALORES_DO_EXEMPLO } from '../../data/eventoDeExemplo.js'
 import { useNaTela } from '../../hooks/useNaTela.js'
 import { pulsar, semMovimento } from '../../movimento.js'
@@ -71,7 +71,7 @@ const INTERVALO_ENTRE_DESTAQUES_DO_PRECO = 400
 
 // troca a cor quando o cenário vira lucro ou prejuízo, com um pulse (menos na contagem de entrada).
 // A cor e o tamanho da fonte seguem o valor final, não o animado: não mudam a cada quadro
-function ResultadoDoCenario({ valor, duracao, pulsarNaTroca }) {
+function ResultadoDoCenario({ valor, valorReal, duracao, pulsarNaTroca }) {
   const elemento = useRef(null)
   const tipo = valor < 0 ? 'prejuizo' : 'lucro'
   const tipoAnterior = useRef(tipo)
@@ -88,7 +88,10 @@ function ResultadoDoCenario({ valor, duracao, pulsarNaTroca }) {
       className={`cenario-landing__resultado cenario-landing__resultado--${tipo}`}
       style={{ '--caracteres': resultado(valor).length }}
     >
-      <NumeroAnimado valor={valor} formato={resultadoAnimado} duracao={duracao} />
+      <span aria-hidden="true">
+        <NumeroAnimado valor={valor} formato={resultadoAnimado} duracao={duracao} />
+      </span>
+      <span className="so-leitor">{resultado(valorReal)}</span>
     </strong>
   )
 }
@@ -98,7 +101,6 @@ export function CalculoDoTicket() {
   const [valores, setValores] = useState(VALORES_INICIAIS)
   const calculo = useMemo(() => calcularDosControles(valores), [valores])
   const { otimista } = calculo.cenarios
-  const acimaDoOtimista = calculo.equilibrio > otimista.publico
 
   // os números ficam em 0 até 30% da seção aparecer e então contam até o valor;
   // com menos movimento já começam no valor certo
@@ -114,32 +116,33 @@ export function CalculoDoTicket() {
   const duracao = contando ? DURACAO_DA_ENTRADA : DURACAO_DA_TROCA
   const alvo = (valor) => (ativo ? valor : 0)
 
+  // o número visível começa em 0 para a contagem; o leitor de tela ouve sempre o valor real
   const equilibrio = (
-    <NumeroAnimado valor={alvo(calculo.equilibrio)} formato={numero} duracao={duracao} />
+    <>
+      <span aria-hidden="true">
+        <NumeroAnimado valor={alvo(calculo.equilibrio)} formato={numero} duracao={duracao} />
+      </span>
+      <span className="so-leitor">{numero(calculo.equilibrio)}</span>
+    </>
   )
 
-  // o destaque do preço sai do próprio evento que muda os valores (timeStamp em ms, como o rAF)
   const preco = useRef(null)
+  const precoAnterior = useRef(calculo.preco)
   const ultimoDestaque = useRef(-Infinity)
-  const destacarPreco = (novosValores, instante) => {
-    if (calcularDosControles(novosValores).preco === calculo.preco) return
-    if (instante - ultimoDestaque.current < INTERVALO_ENTRE_DESTAQUES_DO_PRECO) return
-    ultimoDestaque.current = instante
+  useEffect(() => {
+    if (precoAnterior.current === calculo.preco) return
+    precoAnterior.current = calculo.preco
+    const agora = performance.now()
+    if (agora - ultimoDestaque.current < INTERVALO_ENTRE_DESTAQUES_DO_PRECO) return
+    ultimoDestaque.current = agora
     pulsar(preco.current, { escala: 1.04, duracao: 300 })
-  }
-
-  const mudarValores = (novosValores, evento) => {
-    setValores(novosValores)
-    destacarPreco(novosValores, evento.timeStamp)
-  }
+  }, [calculo.preco])
 
   const mudar = (chave) => (evento) =>
-    mudarValores({ ...valores, [chave]: Number(evento.target.value) }, evento)
+    setValores({ ...valores, [chave]: Number(evento.target.value) })
 
-  // leitor de tela: o preço é anunciado quando o usuário solta o slider, não a cada passo.
-  // O onChange do React dispara a cada passo (evento input); o change nativo só ao soltar
-  // (ou a cada tecla, no teclado). O ref tem o preço do último render, já atualizado quando
-  // o change chega, porque o useLayoutEffect roda junto com o render do input
+  // o preço é anunciado ao soltar o slider (change nativo), não a cada passo (onChange do React);
+  // o ref já tem o preço desse render quando o change chega
   const premissas = useRef(null)
   const precoAtual = useRef(calculo.preco)
   useLayoutEffect(() => {
@@ -153,8 +156,8 @@ export function CalculoDoTicket() {
     return () => lista.removeEventListener('change', anunciar)
   }, [])
 
-  const restaurar = (evento) => {
-    mudarValores(VALORES_INICIAIS, evento)
+  const restaurar = () => {
+    setValores(VALORES_INICIAIS)
     setPrecoAnunciado(calcularDosControles(VALORES_INICIAIS).preco)
   }
 
@@ -263,6 +266,7 @@ export function CalculoDoTicket() {
                 canhoto={
                   <ResultadoDoCenario
                     valor={alvo(cenario.resultado)}
+                    valorReal={cenario.resultado}
                     duracao={duracao}
                     pulsarNaTroca={!contando}
                   />
@@ -275,9 +279,7 @@ export function CalculoDoTicket() {
           })}
         </ul>
 
-        <div
-          className={`calculo-landing__equilibrio${acimaDoOtimista ? ' calculo-landing__equilibrio--acima' : ''}`}
-        >
+        <div className="calculo-landing__equilibrio">
           <p className="calculo-landing__rotulos">
             <span>Ingressos vendidos para pagar o evento</span>
             <strong>
@@ -292,9 +294,6 @@ export function CalculoDoTicket() {
           >
             <span style={{ '--progresso': `${ativo ? calculo.barraPercentual : 0}%` }} />
           </div>
-          {acimaDoOtimista && (
-            <p className="calculo-landing__alerta">Equilíbrio acima do cenário otimista</p>
-          )}
         </div>
       </div>
     </section>

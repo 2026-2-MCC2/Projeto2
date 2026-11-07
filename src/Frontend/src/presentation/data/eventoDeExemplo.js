@@ -1,5 +1,5 @@
 import { formatarInteiro, formatarMoedaSemCentavos } from '../../domain/formatacao.js'
-import { calcularTicket } from '../../utils/calcularTicket.js'
+import { calcularTicket } from '../../domain/ticket.js'
 
 // valores do exemplo da landing: a calculadora do "Cálculo do ticket" começa (e restaura) neles
 export const VALORES_DO_EXEMPLO = { custoTotal: 228500, margem: 0.2, publico: 12000 }

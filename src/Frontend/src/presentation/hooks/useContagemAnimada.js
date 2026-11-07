@@ -3,10 +3,8 @@ import { semMovimento } from '../movimento.js'
 
 const easeOutCubic = (t) => 1 - (1 - t) ** 3
 
-// Leva o número da tela até `valorAlvo` em `duracao` ms (easeOutCubic, com requestAnimationFrame).
-// Se o alvo muda no meio, a animação anterior é cancelada e a nova começa do número que está na
-// tela, então arrastar rápido não faz o número pular nem tremer.
-// Com duração 0 ou com menos movimento, o número vai direto ao alvo.
+// leva o número até o alvo em `duracao` ms; um alvo novo no meio continua do número que está na tela,
+// então arrastar rápido não faz pular. Com duração 0 ou menos movimento, vai direto
 export function useContagemAnimada(valorAlvo, { duracao = 300 } = {}) {
   const [naTela, setNaTela] = useState(valorAlvo)
   const ultimoNaTela = useRef(valorAlvo)
@@ -14,8 +12,10 @@ export function useContagemAnimada(valorAlvo, { duracao = 300 } = {}) {
 
   useEffect(() => {
     if (direto) {
+      // a tela mostra o alvo direto; o estado acompanha para não voltar velho se o movimento religar
       ultimoNaTela.current = valorAlvo
-      return
+      const quadro = requestAnimationFrame(() => setNaTela(valorAlvo))
+      return () => cancelAnimationFrame(quadro)
     }
     const origem = ultimoNaTela.current
     if (origem === valorAlvo) return

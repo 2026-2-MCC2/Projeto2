@@ -6,7 +6,7 @@ export function ObservacaoDoOrganizador({ texto }) {
     <p className="observacao-do-organizador">
       <Icone src={iconeMensagem} />
       <span>
-        <span className="oculto-visualmente">Observação do organizador: </span>
+        <span className="so-leitor">Observação do organizador: </span>
         {texto}
       </span>
     </p>
