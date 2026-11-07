@@ -700,22 +700,17 @@ export function eventoParaFormulario(eventoDaApi) {
   }
 }
 
-export async function cancelarEvento(eventKey, motivo) {
+async function mudarStatusDoEvento(eventKey, corpo) {
   const pedido = iniciarPedido()
-  const resposta = await api.patch(`/events/${eventKey}/status`, {
-    status: 'canceled',
-    reason: motivo,
-  })
+  const resposta = await api.patch(`/events/${eventKey}/status`, corpo)
   esquecerRecentes()
   return formatarEGuardar([resposta], pedido)[0]
 }
 
-export async function aprovarEvento(eventKey) {
-  const pedido = iniciarPedido()
-  const resposta = await api.patch(`/events/${eventKey}/status`, { status: 'closed' })
-  esquecerRecentes()
-  return formatarEGuardar([resposta], pedido)[0]
-}
+export const cancelarEvento = (eventKey, motivo) =>
+  mudarStatusDoEvento(eventKey, { status: 'canceled', reason: motivo })
+
+export const aprovarEvento = (eventKey) => mudarStatusDoEvento(eventKey, { status: 'closed' })
 
 const caminhoDosCustos = (eventKey) => `/events/${eventKey}/internal-costs`
 
@@ -779,9 +774,5 @@ function itemParaApi(item) {
   return dados
 }
 
-export async function publicarEventoParaCotacao(eventKey) {
-  const pedido = iniciarPedido()
-  const resposta = await api.patch(`/events/${eventKey}/status`, { status: 'open_for_quotes' })
-  esquecerRecentes()
-  return formatarEGuardar([resposta], pedido)[0]
-}
+export const publicarEventoParaCotacao = (eventKey) =>
+  mudarStatusDoEvento(eventKey, { status: 'open_for_quotes' })

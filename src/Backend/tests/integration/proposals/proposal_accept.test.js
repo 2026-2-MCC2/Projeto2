@@ -117,6 +117,30 @@ describe('POST /events/:event_key/proposals/:proposal_key/accept', () => {
     assert.equal(proposals.find((proposal) => proposal.proposal_key === secondProposal.proposalKey).status, 'accepted')
   })
 
+  test('proposta recusada pelo organizador só volta como troca, com o item já decidido', async () => {
+    const { organizer, event, firstProposal, secondProposal } = await createSelectionScenario()
+    await RequestGenerator.POST_event_proposal_reject(event.event_key, firstProposal.proposalKey, organizer.headers)
+
+    const [blockedStatus, blocked] = await RequestGenerator.POST_event_proposal_accept(
+      event.event_key,
+      firstProposal.proposalKey,
+      organizer.headers,
+    )
+    await RequestGenerator.POST_event_proposal_accept(event.event_key, secondProposal.proposalKey, organizer.headers)
+    const [switchStatus, switched] = await RequestGenerator.POST_event_proposal_accept(
+      event.event_key,
+      firstProposal.proposalKey,
+      organizer.headers,
+    )
+
+    assert.equal(blockedStatus, 409)
+    assert.equal(blocked.code, 'EVP000035')
+    assert.equal(switchStatus, 200)
+    const proposals = switched.items[0].proposals
+    assert.equal(proposals.find((proposal) => proposal.proposal_key === firstProposal.proposalKey).status, 'accepted')
+    assert.equal(proposals.find((proposal) => proposal.proposal_key === secondProposal.proposalKey).status, 'rejected')
+  })
+
   test('recusa proposta vencida sem alterar as propostas do item', async () => {
     const { organizer, event, item } = await createSelectionScenario()
     const expiredProposal = await createProposal(item.itemKey, 'Fornecedor vencido', {

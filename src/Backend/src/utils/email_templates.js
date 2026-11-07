@@ -7,11 +7,7 @@ const LOGO_PATH = fileURLToPath(new URL('logo.png', TEMPLATES_PATH))
 const cache = new Map()
 
 function readTemplate(fileName) {
-  if (!cache.has(fileName)) {
-    const template = readFileSync(new URL(fileName, TEMPLATES_PATH), 'utf8')
-    const commentPattern = fileName.endsWith('.html') ? /^<!--[^]*?-->\s*/ : /^# [^\n]*\n/
-    cache.set(fileName, template.replace(commentPattern, ''))
-  }
+  if (!cache.has(fileName)) cache.set(fileName, readFileSync(new URL(fileName, TEMPLATES_PATH), 'utf8'))
   return cache.get(fileName)
 }
 

@@ -1,2 +1,1 @@
-# Assunto do aviso enviado ao fornecedor quando sua proposta é recusada.
 Sua proposta para o evento {{evento}} foi recusada

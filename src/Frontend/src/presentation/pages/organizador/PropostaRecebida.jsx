@@ -343,7 +343,8 @@ function textoDaDiferenca(valor, previsto) {
 function textoDaDecisao(proposta, item, eventoEmCotacao) {
   if (proposta.status === 'canceled') return 'O evento foi cancelado e esta proposta foi encerrada.'
   if (proposta.status === 'accepted') return 'Esta é a proposta escolhida para o item.'
-  if (proposta.status === 'rejected') return 'Esta proposta foi recusada e continua disponível para consulta.'
+  if (proposta.status === 'rejected' && !itemJaDecidido(item))
+    return 'Esta proposta foi recusada e continua disponível para consulta.'
   if (!eventoEmCotacao) return 'O evento não está mais em cotação: a escolha não pode mudar.'
   if (proposta.is_expired) return 'A validade passou: esta proposta não pode mais ser escolhida.'
   if (itemJaDecidido(item)) {

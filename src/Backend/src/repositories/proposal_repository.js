@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto'
 import { QueryTypes } from 'sequelize'
 
 import { sequelize } from '../connectors/database_connector.js'
+import { PROPOSAL_STATUSES } from '../constants.js'
 import { ProposalDecisionConflict, ProposalExpired } from '../errors/index.js'
 import { Proposal, ProposalPhoto } from '../models/index.js'
 
@@ -65,6 +66,7 @@ export class ProposalRepository {
     )
   }
 
+  // FOR SHARE lê o que já foi confirmado: um item criado enquanto a aprovação esperava a trava do evento entra na conta
   async getItemsForEventApproval(eventId) {
     return sequelize.query(
       `SELECT budget_item.budget_item_key AS item_key, budget_item.description,
@@ -75,7 +77,8 @@ export class ProposalRepository {
               ) AS has_accepted_proposal
        FROM budget_item
        WHERE budget_item.event_id = :eventId
-       ORDER BY budget_item.created_at ASC, budget_item.id ASC`,
+       ORDER BY budget_item.created_at ASC, budget_item.id ASC
+       FOR SHARE`,
       { replacements: { eventId }, transaction: this.session, type: QueryTypes.SELECT },
     )
   }
@@ -267,70 +270,77 @@ export class ProposalRepository {
   }
 
   async acceptByProposalKey(eventId, proposalKey) {
-    return this.#decideByProposalKey(eventId, proposalKey, 'accepted')
+    const decisao = await this.#lockForDecision(eventId, proposalKey)
+    if (!decisao) return false
+    const { proposal, proposals, budgetItemId } = decisao
+
+    // a recusa feita pelo organizador vale enquanto o item não tem escolha; depois disso, só troca
+    const itemDecided = proposals.some((candidate) => candidate.status === 'accepted')
+    if (proposal.status === 'rejected' && !itemDecided) throw new ProposalDecisionConflict()
+    if (Boolean(proposal.is_expired)) throw new ProposalExpired()
+
+    await sequelize.query(
+      `UPDATE proposal
+       SET status = CASE WHEN proposal_key = :proposalKey THEN 'accepted' ELSE 'rejected' END,
+           selected = CASE WHEN proposal_key = :proposalKey THEN TRUE ELSE FALSE END
+       WHERE budget_item_id = :budgetItemId`,
+      { replacements: { proposalKey, budgetItemId }, transaction: this.session },
+    )
+    return true
   }
 
+  // devolve a proposta recusada (com fornecedor, item e valor da linha travada) ou null
   async rejectByProposalKey(eventId, proposalKey) {
-    return this.#decideByProposalKey(eventId, proposalKey, 'rejected')
-  }
-
-  async #decideByProposalKey(eventId, proposalKey, decision) {
-    const proposalReferences = await sequelize.query(
-      `SELECT budget_item.id AS budget_item_id, proposal.status AS initial_status,
-              proposal.proposal_key, proposal.amount, budget_item.description AS item_description,
-              supplier_user.email AS supplier_email, supplier_user.name AS supplier_name
-       FROM proposal
-       INNER JOIN budget_item ON budget_item.id = proposal.budget_item_id
-       INNER JOIN supplier ON supplier.id = proposal.supplier_id
-       INNER JOIN user AS supplier_user ON supplier_user.id = supplier.user_id
-       WHERE budget_item.event_id = :eventId AND proposal.proposal_key = :proposalKey
-       LIMIT 1`,
-      { replacements: { eventId, proposalKey }, transaction: this.session, type: QueryTypes.SELECT },
-    )
-    const proposalReference = proposalReferences[0]
-    const budgetItemId = proposalReference?.budget_item_id
-    if (budgetItemId === undefined) return false
-
-    const lockedItems = await sequelize.query(`SELECT id FROM budget_item WHERE id = :budgetItemId AND event_id = :eventId FOR UPDATE`, {
-      replacements: { budgetItemId, eventId },
-      transaction: this.session,
-      type: QueryTypes.SELECT,
-    })
-    if (lockedItems.length === 0) return false
-
-    const proposals = await sequelize.query(
-      `SELECT proposal_key, status,
-              CASE WHEN valid_until < ${TODAY_IN_BRAZIL} THEN TRUE ELSE FALSE END AS is_expired
-       FROM proposal
-       WHERE budget_item_id = :budgetItemId
-       ORDER BY id ASC
-       FOR UPDATE`,
-      { replacements: { budgetItemId }, transaction: this.session, type: QueryTypes.SELECT },
-    )
-    const proposal = proposals.find((candidate) => candidate.proposal_key === proposalKey)
-    if (!proposal) return false
-    if (proposal.status !== proposalReference.initial_status) throw new ProposalDecisionConflict()
-    if (decision === 'rejected' && !['sent', 'under_review'].includes(proposal.status)) {
+    const decisao = await this.#lockForDecision(eventId, proposalKey)
+    if (!decisao) return null
+    if (![PROPOSAL_STATUSES.SENT, PROPOSAL_STATUSES.UNDER_REVIEW].includes(decisao.proposal.status)) {
       throw new ProposalDecisionConflict()
-    }
-    if (decision === 'accepted' && Boolean(proposal.is_expired)) throw new ProposalExpired()
-
-    if (decision === 'accepted') {
-      await sequelize.query(
-        `UPDATE proposal
-         SET status = CASE WHEN proposal_key = :proposalKey THEN 'accepted' ELSE 'rejected' END,
-             selected = CASE WHEN proposal_key = :proposalKey THEN TRUE ELSE FALSE END
-         WHERE budget_item_id = :budgetItemId`,
-        { replacements: { proposalKey, budgetItemId }, transaction: this.session },
-      )
-      return true
     }
 
     await sequelize.query(`UPDATE proposal SET status = 'rejected', selected = FALSE WHERE proposal_key = :proposalKey`, {
       replacements: { proposalKey },
       transaction: this.session,
     })
+    return decisao.proposal
+  }
 
-    return proposalReference
+  // trava o item e as propostas dele; o status lido antes da trava precisa continuar o mesmo
+  async #lockForDecision(eventId, proposalKey) {
+    const [reference] = await sequelize.query(
+      `SELECT budget_item.id AS budget_item_id, proposal.status AS initial_status
+       FROM proposal
+       INNER JOIN budget_item ON budget_item.id = proposal.budget_item_id
+       WHERE budget_item.event_id = :eventId AND proposal.proposal_key = :proposalKey
+       LIMIT 1`,
+      { replacements: { eventId, proposalKey }, transaction: this.session, type: QueryTypes.SELECT },
+    )
+    const budgetItemId = reference?.budget_item_id
+    if (budgetItemId === undefined) return null
+
+    const lockedItems = await sequelize.query(`SELECT id FROM budget_item WHERE id = :budgetItemId AND event_id = :eventId FOR UPDATE`, {
+      replacements: { budgetItemId, eventId },
+      transaction: this.session,
+      type: QueryTypes.SELECT,
+    })
+    if (lockedItems.length === 0) return null
+
+    const proposals = await sequelize.query(
+      `SELECT proposal.proposal_key, proposal.status, proposal.amount,
+              CASE WHEN proposal.valid_until < ${TODAY_IN_BRAZIL} THEN TRUE ELSE FALSE END AS is_expired,
+              budget_item.description AS item_description,
+              supplier_user.email AS supplier_email, supplier_user.name AS supplier_name
+       FROM proposal
+       INNER JOIN budget_item ON budget_item.id = proposal.budget_item_id
+       INNER JOIN supplier ON supplier.id = proposal.supplier_id
+       INNER JOIN user AS supplier_user ON supplier_user.id = supplier.user_id
+       WHERE proposal.budget_item_id = :budgetItemId
+       ORDER BY proposal.id ASC
+       FOR UPDATE OF proposal`,
+      { replacements: { budgetItemId }, transaction: this.session, type: QueryTypes.SELECT },
+    )
+    const proposal = proposals.find((candidate) => candidate.proposal_key === proposalKey)
+    if (!proposal) return null
+    if (proposal.status !== reference.initial_status) throw new ProposalDecisionConflict()
+    return { proposal, proposals, budgetItemId }
   }
 }

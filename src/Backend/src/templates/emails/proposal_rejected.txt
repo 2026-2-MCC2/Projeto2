@@ -1,4 +1,3 @@
-# Mensagem em texto simples para avisar o fornecedor da recusa da proposta.
 Olá, {{nome}}.
 
 O organizador {{organizador}} recusou sua proposta para o evento {{evento}}.
