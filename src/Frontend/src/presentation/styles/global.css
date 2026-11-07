@@ -882,6 +882,7 @@ button.calendario__titulo:focus-visible {
 
 .passos {
   display: flex;
+  container-type: inline-size;
   flex: 0 0 auto;
   align-items: center;
   align-self: flex-start;
@@ -959,6 +960,13 @@ button.calendario__titulo:focus-visible {
   margin: 0 0.75rem;
   border-radius: 2px;
   background: var(--borda-padrao);
+}
+
+/* sem espaço para todos os nomes: só a etapa atual mostra o nome, as outras ficam com o número */
+@container (max-width: 640px) {
+  .passos__item:not(.passos__item--atual) .passos__rotulo {
+    display: none;
+  }
 }
 
 .passos--marca .passos__item:not(.passos__item--futura) strong {

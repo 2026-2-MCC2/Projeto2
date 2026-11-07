@@ -1,6 +1,6 @@
 import { lerSessao, limparSessao, ROTA_DO_LOGIN } from './armazenamentoDaSessao.js'
 
-const URL_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3300/event_planning'
+export const URL_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3300/event_planning'
 
 // no login, 401 é senha errada e 403 é cadastro em análise: a tela mostra o erro em vez de encerrar a sessão
 const CAMINHO_DO_LOGIN = '/auth/login'
@@ -53,7 +53,7 @@ function sessaoPerdeuValidade(erro) {
 }
 
 // o recarregamento completo descarta também o que estivesse na tela
-function encerrarSessaoVencida() {
+export function encerrarSessaoVencida() {
   limparSessao()
   if (window.location.pathname !== ROTA_DO_LOGIN) {
     window.location.assign(ROTA_DO_LOGIN)

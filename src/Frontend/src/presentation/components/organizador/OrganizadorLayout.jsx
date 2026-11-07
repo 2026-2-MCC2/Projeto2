@@ -7,6 +7,9 @@ import { ModalSair } from '../comum/ModalSair.jsx'
 import { Icone } from '../comum/Icone.jsx'
 import { TituloDaPagina } from '../comum/TituloDaPagina.jsx'
 import { PularParaConteudo } from '../comum/PularParaConteudo.jsx'
+import { SinoDeNotificacoes } from '../notificacoes/SinoDeNotificacoes.jsx'
+import { ContadorDeNaoLidas } from '../notificacoes/ContadorDeNaoLidas.jsx'
+import { useTempoReal } from '../../hooks/useTempoReal.jsx'
 import simbolo from '../../assets/organizador/simbolo.png'
 import iconeSair from '../../assets/organizador/icone-sair.svg'
 import iconeVoltar from '../../assets/organizador/icone-voltar.svg'
@@ -14,6 +17,7 @@ import iconeDuvidas from '../../assets/comum/icone-duvidas.svg'
 import iconeEventos from '../../assets/organizador/icone-eventos.svg'
 import iconeAjustes from '../../assets/organizador/icone-ajustes.svg'
 import iconePropostas from '../../assets/fornecedor/icone-propostas.svg'
+import iconeChats from '../../assets/comum/icone-chats.svg'
 import iconeAprovacoes from '../../assets/admin/icone-aprovacoes.svg'
 import iconeUsuarios from '../../assets/admin/icone-usuarios.svg'
 import iconeHistorico from '../../assets/admin/icone-historico.svg'
@@ -23,11 +27,13 @@ import '../../styles/organizador.css'
 const ABAS = {
   organizador: [
     { rota: '/organizador/eventos', nome: 'Eventos', icone: iconeEventos },
+    { rota: '/organizador/chats', nome: 'Chats', icone: iconeChats, comMensagens: true },
     { rota: '/organizador/configuracoes', nome: 'Ajustes', icone: iconeAjustes },
   ],
   fornecedor: [
     { rota: '/fornecedor/eventos', nome: 'Eventos', icone: iconeEventos },
     { rota: '/fornecedor/propostas', nome: 'Propostas', icone: iconePropostas },
+    { rota: '/fornecedor/chats', nome: 'Chats', icone: iconeChats, comMensagens: true },
     { rota: '/fornecedor/configuracoes', nome: 'Ajustes', icone: iconeAjustes },
   ],
   admin: [
@@ -62,6 +68,8 @@ export function OrganizadorLayout({
   const abas = ABAS[perfil] ?? ABAS.organizador
   const classeDoPerfil = `${organizador ? '' : ` organizador--${perfil}`}${minhasPropostasFornecedor ? ' organizador--fornecedor-propostas' : ''}`
   const [confirmandoSaida, setConfirmandoSaida] = useState(false)
+  const { mensagensNaoLidas } = useTempoReal()
+  const mostrarSino = pathname !== `/${perfil}/notificacoes`
 
   const modalDeSaida = confirmandoSaida && <ModalSair aoFechar={() => setConfirmandoSaida(false)} />
   const tituloDaPagina = titulo && <TituloDaPagina titulo={titulo} />
@@ -92,6 +100,7 @@ export function OrganizadorLayout({
                   <p>
                     TrocaTicket <span>· Gestão</span>
                   </p>
+                  {mostrarSino && <SinoDeNotificacoes perfil={perfil} />}
                 </div>
               )}
 
@@ -113,6 +122,8 @@ export function OrganizadorLayout({
                   {(apoioMobile || apoio) && <p>{apoioMobile || apoio}</p>}
                 </div>
                 <div className="topo__acoes">
+                  {/* sem a linha da marca (tela com voltar), o sino fica junto das ações */}
+                  {mostrarSino && voltarPara && <SinoDeNotificacoes perfil={perfil} />}
                   <Link
                     to={`/${perfil}/duvidas`}
                     className="acessibilidade acessibilidade--topo"
@@ -155,6 +166,13 @@ export function OrganizadorLayout({
               >
                 <span className="aba__marcador">
                   <Icone src={aba.icone} />
+                  {aba.comMensagens && (
+                    <ContadorDeNaoLidas
+                      total={mensagensNaoLidas.total}
+                      maximo={9}
+                      className="aba__contador"
+                    />
+                  )}
                 </span>
                 <span className="aba__nome">{aba.nome}</span>
               </NavLink>

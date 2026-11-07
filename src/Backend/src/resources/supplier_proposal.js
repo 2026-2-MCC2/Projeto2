@@ -1,6 +1,7 @@
 import multer from 'multer'
 
 import { USER_PROFILES } from '../constants.js'
+import { WebSocketHub } from '../connectors/websocket_hub.js'
 import { SupplierProposalController } from '../controllers/supplier_proposal_controller.js'
 import { InvalidProposalPhoto, ProposalPhotoTooLarge } from '../errors/index.js'
 import { MAX_PHOTO_BYTES, MAX_PHOTO_MEGABYTES } from '../utils/proposal_photo_tools.js'
@@ -39,18 +40,20 @@ export class SupplierProposalResource {
     SchemaHandler.validate(req, 'post_supplier_proposal.json')
 
     const controller = new SupplierProposalController(req.context)
-    const proposal = await controller.updateProposal(req.context.user.userKey, proposalKey, req.context.media)
+    const { proposal, pushes } = await controller.updateProposal(req.context.user.userKey, proposalKey, req.context.media)
 
     res.status(200).json(proposal)
+    WebSocketHub.send(pushes)
   }
 
   async onDeleteByKey(req, res, proposalKey) {
     SecurityTools.requireProfile(req.context, [USER_PROFILES.SUPPLIER])
 
     const controller = new SupplierProposalController(req.context)
-    await controller.deleteProposal(req.context.user.userKey, proposalKey)
+    const pushes = await controller.deleteProposal(req.context.user.userKey, proposalKey)
 
     res.status(204).end()
+    WebSocketHub.send(pushes)
   }
 
   async onPostPhotos(req, res, proposalKey) {

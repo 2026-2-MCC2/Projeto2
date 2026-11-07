@@ -1,0 +1,500 @@
+/* ---------- conversa da proposta: gaveta no desktop, tela cheia no celular ---------- */
+
+.botao-da-conversa {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.botao-da-conversa .icone {
+  width: 16px;
+  height: 16px;
+}
+
+.botao-da-conversa__contador {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.375rem;
+  border-radius: 999px;
+  background: var(--acao-perigo);
+  color: #fff;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.conversa-camada {
+  position: fixed;
+  z-index: 60;
+  inset: 0;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.conversa-camada__fundo {
+  position: absolute;
+  inset: 0;
+  background: rgb(15 23 42 / 0.4);
+  animation: conversa-aparecer 0.2s ease;
+}
+
+.conversa {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(440px, 100%);
+  height: 100%;
+  background: var(--fundo-pagina);
+  box-shadow: -12px 0 32px rgb(15 23 42 / 0.16);
+  color: var(--texto-primario);
+  animation: conversa-entrar 0.25s ease;
+}
+
+.conversa:focus {
+  outline: none;
+}
+
+.conversa-camada--tela-cheia .conversa {
+  width: 100%;
+  box-shadow: none;
+  animation: none;
+}
+
+@keyframes conversa-entrar {
+  from {
+    transform: translateX(32px);
+    opacity: 0;
+  }
+}
+
+@keyframes conversa-aparecer {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .conversa,
+  .conversa-camada__fundo {
+    animation: none;
+  }
+}
+
+.conversa__topo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.125rem 1.25rem;
+  border-bottom: 1px solid var(--borda-padrao);
+  background: var(--fundo-superficie);
+}
+
+.conversa-camada--tela-cheia .conversa__topo {
+  padding: max(0.875rem, env(safe-area-inset-top)) 1rem 0.875rem;
+}
+
+.conversa__avatar {
+  position: relative;
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--fundo-marca-suave);
+  color: var(--texto-marca);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.conversa__ponto-online {
+  position: absolute;
+  right: 1px;
+  bottom: 1px;
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--fundo-superficie);
+  border-radius: 50%;
+  background: var(--status-sucesso-forte);
+}
+
+.conversa__quem {
+  flex: 1;
+  min-width: 0;
+}
+
+.conversa__quem h2 {
+  overflow: hidden;
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.conversa__quem p {
+  margin: 0.125rem 0 0;
+  color: var(--texto-secundario);
+  font-size: 0.75rem;
+}
+
+.conversa__quem .conversa__online {
+  color: var(--status-sucesso-texto);
+}
+
+.conversa__icone-botao {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--texto-secundario);
+  cursor: pointer;
+}
+
+.conversa__icone-botao:hover {
+  background: var(--fundo-sutil);
+  color: var(--texto-primario);
+}
+
+.conversa__icone-botao:focus-visible,
+.conversa__enviar:focus-visible,
+.conversa__tentar:focus-visible {
+  outline: 2px solid var(--acao-primaria);
+  outline-offset: 2px;
+}
+
+.conversa__contexto {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.625rem 1.25rem;
+  border-bottom: 1px solid var(--borda-padrao);
+  background: var(--fundo-sutil);
+}
+
+.conversa__contexto > div {
+  min-width: 0;
+}
+
+.conversa__contexto small,
+.conversa__contexto p {
+  display: block;
+  overflow: hidden;
+  margin: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.conversa__contexto small {
+  color: var(--texto-terciario);
+  font-size: 0.6875rem;
+}
+
+.conversa__contexto p {
+  color: var(--texto-secundario);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.conversa__ver-proposta {
+  display: inline-block;
+  margin-top: 0.125rem;
+  color: var(--texto-marca);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.conversa__ver-proposta:hover {
+  text-decoration: underline;
+}
+
+.conversa__situacao {
+  flex-shrink: 0;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  background: var(--fundo-superficie);
+  color: var(--texto-primario);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.conversa__situacao--accepted {
+  background: var(--status-sucesso-fundo);
+  color: var(--status-sucesso-texto);
+}
+
+.conversa__situacao--under_review {
+  background: var(--fundo-marca-suave);
+  color: var(--texto-marca);
+}
+
+.conversa__situacao--rejected,
+.conversa__situacao--canceled {
+  background: var(--status-perigo-fundo);
+  color: var(--status-perigo-texto);
+}
+
+.conversa__situacao--withdrawn {
+  border: 1px dashed var(--borda-forte);
+  background: var(--fundo-sutil);
+  color: var(--texto-terciario);
+}
+
+.conversa__estado {
+  display: grid;
+  flex: 1;
+  place-items: center;
+  padding: 1.5rem;
+}
+
+.conversa__mensagens {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.625rem;
+  overflow-y: auto;
+  padding: 1.25rem;
+  overscroll-behavior: contain;
+}
+
+/* com poucas mensagens elas ficam junto da caixa de envio, como no Figma */
+.conversa__mensagens > :first-child {
+  margin-top: auto;
+}
+
+.conversa__vazia {
+  margin: 0 auto;
+  max-width: 18rem;
+  color: var(--texto-terciario);
+  font-size: 0.8125rem;
+  text-align: center;
+}
+
+.conversa__dia {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.conversa__separador {
+  align-self: center;
+  padding: 0.1875rem 0.625rem;
+  border-radius: 999px;
+  background: var(--fundo-superficie);
+  color: var(--texto-secundario);
+  font-size: 0.6875rem;
+  font-weight: 500;
+}
+
+.conversa__mensagem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-width: 82%;
+  padding: 0.625rem 0.75rem 0.4375rem;
+  border-radius: 12px;
+}
+
+.conversa__mensagem p {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.conversa__mensagem--outro {
+  align-self: flex-start;
+  border: 1px solid var(--borda-padrao);
+  background: var(--fundo-superficie);
+}
+
+.conversa__mensagem--minha {
+  align-self: flex-end;
+  background: var(--acao-primaria);
+  color: var(--acao-sobre-primaria);
+}
+
+.conversa__mensagem--erro {
+  background: var(--status-perigo-fundo);
+  color: var(--status-perigo-texto);
+}
+
+.conversa__hora {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-end;
+  gap: 0.25rem;
+  color: var(--texto-terciario);
+  font-size: 0.625rem;
+}
+
+.conversa__mensagem--minha .conversa__hora {
+  color: rgb(255 255 255 / 0.78);
+}
+
+.conversa__mensagem--erro .conversa__hora {
+  color: var(--status-perigo-texto);
+}
+
+.conversa__marca {
+  display: inline-flex;
+}
+
+.conversa__marca .icone {
+  width: auto;
+  height: 11px;
+}
+
+.conversa__marca--lida {
+  color: #b9dcff;
+}
+
+.conversa__tentar {
+  align-self: flex-end;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.conversa__digitando {
+  margin: 0;
+  color: var(--texto-terciario);
+  font-size: 0.75rem;
+  font-style: italic;
+}
+
+.conversa__motivo {
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+  gap: 0.375rem;
+  margin: 0.25rem 0 0;
+  padding: 0.3125rem 0.75rem;
+  border-radius: 999px;
+  background: var(--status-perigo-fundo);
+  color: var(--status-perigo-texto);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.conversa__motivo .icone {
+  width: 13px;
+  height: 13px;
+}
+
+.conversa__envio {
+  padding: 0.75rem 1rem 0.875rem;
+  border-top: 1px solid var(--borda-padrao);
+  background: var(--fundo-superficie);
+}
+
+.conversa-camada--tela-cheia .conversa__envio {
+  padding-bottom: max(0.875rem, env(safe-area-inset-bottom));
+}
+
+.conversa__campo {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  padding: 0.375rem 0.375rem 0.375rem 0.875rem;
+  border: 1px solid var(--borda-campo);
+  border-radius: 12px;
+  background: var(--fundo-superficie);
+}
+
+.conversa__campo:focus-within {
+  border-color: var(--acao-primaria);
+  box-shadow: 0 0 0 3px var(--fundo-marca-suave);
+}
+
+.conversa__campo textarea {
+  flex: 1;
+  min-height: 1.5rem;
+  padding: 0.5rem 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--texto-primario);
+  font: inherit;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  resize: none;
+}
+
+.conversa__campo textarea::placeholder {
+  color: var(--texto-terciario);
+}
+
+.conversa__enviar {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: var(--acao-primaria);
+  color: var(--acao-sobre-primaria);
+  cursor: pointer;
+}
+
+.conversa__enviar:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.conversa__dica {
+  margin: 0.5rem 0 0;
+  color: var(--texto-terciario);
+  font-size: 0.6875rem;
+  line-height: 1.35;
+}
+
+.conversa__encerrada {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin: 0.75rem 1rem max(0.875rem, env(safe-area-inset-bottom));
+  padding: 0.75rem 0.875rem;
+  border-radius: 12px;
+  background: var(--fundo-sutil);
+  color: var(--texto-secundario);
+  font-size: 0.8125rem;
+}
+
+.conversa__encerrada .icone {
+  color: var(--texto-terciario);
+}
+
+/* ---------- onde o botão entra ---------- */
+
+.detalhe-da-proposta__topo-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.botao-da-conversa--bloco {
+  width: 100%;
+}

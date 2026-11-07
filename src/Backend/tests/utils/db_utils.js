@@ -330,4 +330,39 @@ export class DbUtils {
       await connection.end()
     }
   }
+
+  // notificações direto no banco, na ordem de criação (a primeira é a mais antiga)
+  static async createNotificationFixtures(userKey, count) {
+    const connection = await mysql.createConnection(TEST_DATABASE_URL)
+    try {
+      const notificationKeys = []
+      for (let index = 1; index <= count; index++) {
+        const notificationKey = randomUUID()
+        await connection.execute(
+          `INSERT INTO notification (notification_key, user_id, type, title, body, link)
+           SELECT ?, id, 'proposal_received', ?, 'Corpo de teste', '/organizador/eventos' FROM user WHERE user_key = ?`,
+          [notificationKey, `Notificação ${index}`, userKey],
+        )
+        notificationKeys.push(notificationKey)
+      }
+      return notificationKeys
+    } finally {
+      await connection.end()
+    }
+  }
+
+  static async countProposalMessages(messageKeys) {
+    if (messageKeys.length === 0) return 0
+    const connection = await mysql.createConnection(TEST_DATABASE_URL)
+    try {
+      const placeholders = messageKeys.map(() => '?').join(', ')
+      const [[row]] = await connection.execute(
+        `SELECT COUNT(*) AS total FROM proposal_message WHERE message_key IN (${placeholders})`,
+        messageKeys,
+      )
+      return Number(row.total)
+    } finally {
+      await connection.end()
+    }
+  }
 }

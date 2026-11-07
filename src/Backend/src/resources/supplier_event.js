@@ -1,4 +1,5 @@
 import { USER_PROFILES } from '../constants.js'
+import { WebSocketHub } from '../connectors/websocket_hub.js'
 import { SupplierEventController } from '../controllers/supplier_event_controller.js'
 import { SupplierProposalController } from '../controllers/supplier_proposal_controller.js'
 import { getParam, getParamAsInt } from '../utils/request_params.js'
@@ -34,8 +35,9 @@ export class SupplierEventResource {
     SchemaHandler.validate(req, 'post_supplier_proposal.json')
 
     const controller = new SupplierProposalController(req.context)
-    const proposal = await controller.createProposal(req.context.user.userKey, eventKey, itemKey, req.context.media)
+    const { proposal, pushes } = await controller.createProposal(req.context.user.userKey, eventKey, itemKey, req.context.media)
 
     res.status(201).json(proposal)
+    WebSocketHub.send(pushes)
   }
 }

@@ -32,6 +32,13 @@ export function usePropostaEmEdicao() {
   const precisaCarregarProposta =
     proposalKey !== null && (recarregarAoEntrar || rascunho.chaveDaProposta !== proposalKey)
 
+  // proposta retirada: o envio reativa a mesma, então o formulário começa com os dados dela
+  const chaveDaRetirada =
+    item?.my_proposal?.status === 'withdrawn' ? item.my_proposal.proposal_key : null
+  const [retiradaCarregada, setRetiradaCarregada] = useState({ chave: null, fotos: [] })
+  const precisaCarregarRetirada =
+    chaveDaRetirada !== null && retiradaCarregada.chave !== chaveDaRetirada
+
   // sai do histórico para o voltar do navegador não recarregar a proposta por cima do que foi editado
   useEffect(() => {
     if (location.state?.recarregarProposta !== true) return
@@ -45,6 +52,14 @@ export function usePropostaEmEdicao() {
     buscarMinhaProposta(proposalKey)
       .then((detalhe) => {
         if (!telaAberta) return
+        // retirada em outra aba: recarregar o evento leva ao fluxo de reenvio, em vez de salvar e cair num 409
+        if (detalhe.status === 'withdrawn') {
+          toast.info('Esta proposta foi retirada', {
+            descricao: 'O formulário vira um reenvio com os dados dela.',
+          })
+          recarregarEvento()
+          return
+        }
         setRascunho(
           atualizarRascunho(id, itemKey, {
             ...paraRascunho(detalhe),
@@ -55,10 +70,10 @@ export function usePropostaEmEdicao() {
       })
       .catch((erro) => {
         if (!telaAberta) return
-        // retirada em outra aba: recarrega o evento, a proposta some do item e a tela vira um envio novo
+        // proposta que não existe mais (ex.: item apagado): recarrega o evento e a tela se ajusta
         if (erro.status === 404) {
-          toast.info('Esta proposta foi retirada', {
-            descricao: 'Você pode enviar uma proposta nova para o item.',
+          toast.info('Esta proposta não existe mais', {
+            descricao: 'Confira o item no evento antes de continuar.',
           })
           recarregarEvento()
           return
@@ -71,6 +86,34 @@ export function usePropostaEmEdicao() {
     }
   }, [precisaCarregarProposta, proposalKey, id, itemKey, tentativaDaEdicao, recarregarEvento])
 
+  useEffect(() => {
+    if (!precisaCarregarRetirada) return
+    let telaAberta = true
+
+    buscarMinhaProposta(chaveDaRetirada)
+      .then((detalhe) => {
+        if (!telaAberta) return
+        // não sobrescreve o que já foi mudado nas etapas deste mesmo reenvio
+        if (recarregarAoEntrar || lerRascunho(id, itemKey).chaveDaRetirada !== chaveDaRetirada) {
+          setRascunho(
+            atualizarRascunho(id, itemKey, {
+              ...paraRascunho(detalhe),
+              chaveDaRetirada,
+            }),
+          )
+        }
+        setRetiradaCarregada({ chave: chaveDaRetirada, fotos: detalhe.photos ?? [] })
+        setRecarregarAoEntrar(false)
+      })
+      .catch((erro) => {
+        if (telaAberta) setErroDaEdicao(erro)
+      })
+
+    return () => {
+      telaAberta = false
+    }
+  }, [precisaCarregarRetirada, chaveDaRetirada, recarregarAoEntrar, id, itemKey, tentativaDaEdicao])
+
   function preencher(campo) {
     return (evento) => setRascunho(atualizarRascunho(id, itemKey, { [campo]: evento.target.value }))
   }
@@ -78,12 +121,16 @@ export function usePropostaEmEdicao() {
   return {
     eventKey: id,
     itemKey,
-    carregando: evento.carregando || (precisaCarregarProposta && !erroDaEdicao),
+    carregando:
+      evento.carregando || ((precisaCarregarProposta || precisaCarregarRetirada) && !erroDaEdicao),
     erro: evento.erro ?? erroDaEdicao,
     evento: evento.evento,
     item,
     editando: proposalKey !== null,
     proposalKey,
+    reenviando: chaveDaRetirada !== null,
+    recarregarEvento,
+    fotosDaRetirada: retiradaCarregada.chave === chaveDaRetirada ? retiradaCarregada.fotos : [],
     rascunho,
     preencher,
     tentarDeNovo: () => {

@@ -398,6 +398,7 @@ export class ProposalValidUntilAfterEvent extends ApiException {
 // o motivo muda com o status: o evento cancelado não foi uma decisão do organizador sobre a proposta
 const PROPOSAL_LOCKED_TRANSLATIONS = {
   [PROPOSAL_STATUSES.CANCELED]: 'O organizador cancelou o evento: esta proposta não pode mais ser alterada nem retirada.',
+  [PROPOSAL_STATUSES.WITHDRAWN]: 'Você retirou esta proposta. Para mandá-la de novo, envie a proposta pelo item do evento.',
 }
 
 export class ProposalCannotBeChanged extends ApiException {
@@ -494,5 +495,29 @@ export class TooManyAttempts extends ApiException {
     const description = `Too many attempts. Try again in ${retryAfterSeconds} seconds.`
     const translation = `Muitas tentativas seguidas. Aguarde ${minutes === 1 ? '1 minuto' : `${minutes} minutos`} e tente de novo.`
     super(title, TooManyAttempts.code, httpStatus, description, translation)
+  }
+}
+
+export class ConversationClosed extends ApiException {
+  static code = 'EVP000050'
+
+  constructor() {
+    const title = 'Conversation is closed'
+    const httpStatus = 409
+    const description = 'Messages can only be sent while the event is open for quotes.'
+    const translation = 'A conversa foi encerrada: o evento não está mais em cotação.'
+    super(title, ConversationClosed.code, httpStatus, description, translation)
+  }
+}
+
+export class NotFoundNotification extends ApiException {
+  static code = 'EVP000051'
+
+  constructor(notificationKey) {
+    const title = 'Notification not Found'
+    const httpStatus = 404
+    const description = `Notification ${notificationKey} was not found.`
+    const translation = 'A notificação não foi encontrada.'
+    super(title, NotFoundNotification.code, httpStatus, description, translation)
   }
 }

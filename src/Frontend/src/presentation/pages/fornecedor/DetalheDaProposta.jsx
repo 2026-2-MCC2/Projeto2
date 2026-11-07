@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { formatarDataEHora, formatarMoeda, formatarPeriodo } from '../../../application/eventos.js'
 import {
   buscarMinhaProposta,
@@ -15,6 +15,7 @@ import {
 } from '../../../domain/formatacao.js'
 import { Carregando, ErroNaTela, Vazio } from '../../components/comum/EstadoDaTela.jsx'
 import { Icone } from '../../components/comum/Icone.jsx'
+import { BotaoDaConversa } from '../../components/conversa/Conversa.jsx'
 import { Modal } from '../../components/comum/Modal.jsx'
 import { TituloDaPagina } from '../../components/comum/TituloDaPagina.jsx'
 import { EtiquetaDaProposta } from '../../components/fornecedor/EtiquetaDaProposta.jsx'
@@ -56,7 +57,7 @@ function ModalRetirar({ proposta, retirando, aoConfirmar, aoFechar }) {
       icone={iconeRetirar}
       corDoIcone="vermelho"
       titulo="Retirar esta proposta?"
-      mensagem="Ela some da comparação do organizador. Enquanto o evento estiver em cotação, você pode enviar uma nova proposta para o item."
+      mensagem="A proposta fica como Retirada para você e para o organizador, com a conversa guardada. Você pode enviar de novo enquanto o evento estiver em cotação."
       dados={[
         { rotulo: 'Item', valor: proposta.item.description },
         { rotulo: 'Valor', valor: formatarMoeda(proposta.amount) },
@@ -74,7 +75,6 @@ function ModalRetirar({ proposta, retirando, aoConfirmar, aoFechar }) {
 
 export function DetalheDaProposta() {
   const { proposalKey } = useParams()
-  const navigate = useNavigate()
   const isMobile = useIsMobile()
   const [tentativa, setTentativa] = useState(0)
   const [resultado, setResultado] = useState({ chave: null, proposta: null, erro: null })
@@ -117,7 +117,10 @@ export function DetalheDaProposta() {
       // a edição deixada pela metade não pode virar o começo da proposta nova para o item
       descartarRascunho(event.event_key, item.item_key)
       toast.sucesso('Proposta retirada', { descricao: item.description })
-      navigate(VOLTAR_PARA, { replace: true })
+      // a proposta continua existindo, agora como Retirada: a tela recarrega e mostra o novo estado
+      setRetirando(false)
+      setConfirmandoRetirada(false)
+      setTentativa((valor) => valor + 1)
     } catch (falha) {
       // ex.: o organizador aceitou ou recusou no meio tempo ("…não pode mais ser alterada nem retirada.")
       toast.erro('Não foi possível retirar a proposta', { descricao: falha.message })
@@ -161,24 +164,30 @@ export function DetalheDaProposta() {
   const proposta = resultado.proposta
   const { event: evento, item } = proposta
   const podeAlterar = propostaPodeSerAlterada(proposta)
-  const acoes = podeAlterar && (
+  const rotaDoEnvio = `/fornecedor/eventos/${evento.event_key}/itens/${item.item_key}/propostas/etapa-1`
+  const podeEnviarDeNovo = proposta.status === 'withdrawn' && evento.status === 'open_for_quotes'
+  const acoes = podeEnviarDeNovo ? (
     <div className="detalhe-da-proposta__acoes">
-      <Botao
-        type="button"
-        secundario
-        className="detalhe-da-proposta__retirar"
-        onClick={() => setConfirmandoRetirada(true)}
-      >
-        Retirar proposta
-      </Botao>
-      <Link
-        to={`/fornecedor/eventos/${evento.event_key}/itens/${item.item_key}/propostas/etapa-1`}
-        state={ENTRAR_NA_EDICAO}
-        className="botao"
-      >
-        Editar proposta
+      <Link to={rotaDoEnvio} state={ENTRAR_NA_EDICAO} className="botao">
+        Enviar de novo
       </Link>
     </div>
+  ) : (
+    podeAlterar && (
+      <div className="detalhe-da-proposta__acoes">
+        <Botao
+          type="button"
+          secundario
+          className="detalhe-da-proposta__retirar"
+          onClick={() => setConfirmandoRetirada(true)}
+        >
+          Retirar proposta
+        </Botao>
+        <Link to={rotaDoEnvio} state={ENTRAR_NA_EDICAO} className="botao">
+          Editar proposta
+        </Link>
+      </div>
+    )
   )
 
   const conteudo = (
@@ -205,7 +214,10 @@ export function DetalheDaProposta() {
               </span>
             </p>
           </div>
-          {acoes}
+          <div className="detalhe-da-proposta__topo-acoes">
+            <BotaoDaConversa chaveDaProposta={proposalKey} perfil="fornecedor" />
+            {acoes}
+          </div>
         </header>
       )}
 
@@ -214,6 +226,15 @@ export function DetalheDaProposta() {
           <EtiquetaDaProposta status={proposta.status} />
           Enviada em {formatarData(proposta.sent_at)}
         </p>
+      )}
+
+      {isMobile && (
+        <BotaoDaConversa
+          chaveDaProposta={proposalKey}
+          perfil="fornecedor"
+          rotulo="Conversar com o organizador"
+          className="botao-da-conversa--bloco"
+        />
       )}
 
       <AvisoDaProposta proposta={proposta} />
@@ -294,6 +315,9 @@ export function DetalheDaProposta() {
 
 function passosDaProposta(proposta) {
   const enviada = { nome: 'Enviada', apoio: formatarData(proposta.sent_at), estado: 'feito' }
+  if (proposta.status === 'withdrawn') {
+    return [enviada, { nome: 'Retirada', apoio: 'Você retirou a proposta', estado: 'cancelado' }]
+  }
   if (proposta.status === 'canceled') {
     return [
       enviada,
@@ -390,6 +414,15 @@ function AvisoDaProposta({ proposta }) {
         titulo="O organizador escolheu outra proposta para este item."
       >
         Ela fica aqui só para consulta. Continue de olho em Eventos disponíveis.
+      </Aviso>
+    )
+  }
+  if (proposta.status === 'withdrawn') {
+    return (
+      <Aviso tom="neutro" icone={iconeRecusado} titulo="Você retirou esta proposta.">
+        {proposta.event.status === 'open_for_quotes'
+          ? 'Ela fica aqui para consulta, junto com a conversa. Se quiser, use Enviar de novo enquanto o evento estiver em cotação.'
+          : 'Ela fica aqui só para consulta, junto com a conversa.'}
       </Aviso>
     )
   }

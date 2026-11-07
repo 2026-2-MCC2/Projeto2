@@ -22,7 +22,9 @@ import {
 import { ProposalRepository } from '../repositories/proposal_repository.js'
 import { SupplierEventRepository } from '../repositories/supplier_event_repository.js'
 import { UserRepository } from '../repositories/user_repository.js'
+import { decodeCursor, encodeCursor } from '../utils/cursor.js'
 import { ensureAtMostTwoDecimals } from '../utils/money_tools.js'
+import { NotificationDrafts } from '../utils/notification_drafts.js'
 import {
   buildPhotoPath,
   detectImageType,
@@ -33,6 +35,7 @@ import {
   toPhotoResponses,
 } from '../utils/proposal_photo_tools.js'
 import { BaseController } from './base_controller.js'
+import { Notifier } from './notifier.js'
 import { getSupplierOfUser } from './supplier_access.js'
 
 export class SupplierProposalController extends BaseController {
@@ -41,6 +44,7 @@ export class SupplierProposalController extends BaseController {
     this.userRepository = new UserRepository(context)
     this.supplierEventRepository = new SupplierEventRepository(context)
     this.proposalRepository = new ProposalRepository(context)
+    this.notifier = new Notifier(context)
   }
 
   // evento ou item fora da visibilidade do fornecedor responde 404, sem revelar que eles existem
@@ -63,7 +67,15 @@ export class SupplierProposalController extends BaseController {
       throw new ProposalItemAlreadyDecided()
     }
 
-    if (await this.proposalRepository.getBySupplierAndItem(supplier.id, item.id)) {
+    // a retirada volta a ser enviada com os dados novos: mesma chave, mesma conversa e mesmas fotos
+    const existing = await this.proposalRepository.getBySupplierAndItem(supplier.id, item.id, { lock: true })
+    if (existing?.status === PROPOSAL_STATUSES.WITHDRAWN) {
+      await this.proposalRepository.reactivate(existing, toProposalFields(payload))
+      const pushes = await this.#notifyOrganizer(existing.proposal_key, NotificationDrafts.proposalReceived)
+      await this.session.commit()
+      return { proposal: SupplierProposalDto.fromCreated(existing), pushes }
+    }
+    if (existing) {
       throw new ProposalAlreadySent()
     }
 
@@ -78,8 +90,9 @@ export class SupplierProposalController extends BaseController {
       throw error
     }
 
+    const pushes = await this.#notifyOrganizer(proposal.proposal_key, NotificationDrafts.proposalReceived)
     await this.session.commit()
-    return SupplierProposalDto.fromCreated(proposal)
+    return { proposal: SupplierProposalDto.fromCreated(proposal), pushes }
   }
 
   async getProposals(userKey, { status, limit, page, after }) {
@@ -136,21 +149,25 @@ export class SupplierProposalController extends BaseController {
 
     ensureValidUntilInsideEvent(payload.valid_until, event.end_date)
     await this.proposalRepository.update(proposal, toProposalFields(payload))
+    const pushes = await this.#notifyOrganizer(proposalKey, NotificationDrafts.proposalUpdated)
 
     // a URL das fotos é assinada depois do commit, para não segurar o evento travado
-    return this.#getProposalDetail(supplier.id, proposalKey)
+    return { proposal: await this.#getProposalDetail(supplier.id, proposalKey), pushes }
   }
 
-  // não há status "retirada": a proposta é apagada e o fornecedor pode enviar outra enquanto o evento estiver em cotação
+  // retirar não apaga: a proposta fica como retirada, com fotos e conversa, e o reenvio a reativa
   async deleteProposal(userKey, proposalKey) {
     const supplier = await getSupplierOfUser(this.userRepository, userKey)
     const { proposal } = await this.#getChangeableProposal(supplier.id, proposalKey)
-    const photos = await this.proposalRepository.getPhotos(proposal.id, { lock: true })
-
-    // os registros das fotos saem junto com a proposta (ON DELETE CASCADE); os arquivos, só depois do commit
-    await this.proposalRepository.delete(proposal)
+    await this.proposalRepository.update(proposal, { status: PROPOSAL_STATUSES.WITHDRAWN, selected: false })
+    const pushes = await this.#notifyOrganizer(proposalKey, NotificationDrafts.proposalWithdrawn)
     await this.session.commit()
-    await this.#removeFiles(photos.map((photo) => photo.url))
+    return pushes
+  }
+
+  async #notifyOrganizer(proposalKey, buildDraft) {
+    const [party] = await this.proposalRepository.getProposalParties([proposalKey])
+    return this.notifier.notify([buildDraft(party)])
   }
 
   // confere sem trava antes de gravar o arquivo e de novo com trava depois, para um envio lento não segurar o evento travado
@@ -278,20 +295,17 @@ export class SupplierProposalController extends BaseController {
   }
 }
 
-// data de envio e id de desempate da última proposta mostrada; o front só repassa, não lê
+// data de envio e id de desempate da última proposta mostrada
 function toCursor(proposal) {
-  return Buffer.from(JSON.stringify([new Date(proposal.sent_at).toISOString(), proposal.position_id])).toString('base64url')
+  return encodeCursor([new Date(proposal.sent_at).toISOString(), proposal.position_id])
 }
 
 function fromCursor(after) {
-  try {
-    const [sentAt, proposalId] = JSON.parse(Buffer.from(after, 'base64url').toString('utf8'))
+  return decodeCursor(after, ([sentAt, proposalId]) => {
     const date = new Date(sentAt)
     if (Number.isNaN(date.getTime()) || !Number.isInteger(proposalId)) throw new Error('invalid cursor')
     return { sentAt: date, proposalId }
-  } catch {
-    throw new InvalidParameter('The "after" parameter is invalid. Use the next_cursor of the previous page.')
-  }
+  })
 }
 
 // todos os status aparecem, com zero quando o fornecedor não tem proposta naquele status

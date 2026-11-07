@@ -18,7 +18,9 @@ import { UserRepository } from '../repositories/user_repository.js'
 import { DocumentTools } from '../utils/documents_tools.js'
 import { SecurityTools } from '../utils/security_tools.js'
 import { TextTools } from '../utils/text_tools.js'
+import { AdminNotificationDrafts } from '../utils/notification_drafts.js'
 import { BaseController } from './base_controller.js'
+import { Notifier } from './notifier.js'
 
 // telefone com DDD: 10 dígitos (fixo) ou 11 dígitos (celular)
 const PHONE_PATTERN = /^\d{10,11}$/
@@ -33,6 +35,7 @@ export class AuthController extends BaseController {
     this.userRepository = new UserRepository(context)
     this.organizerRepository = new OrganizerRepository(context)
     this.supplierRepository = new SupplierRepository(context)
+    this.notifier = new Notifier(context)
   }
 
   async register(payload) {
@@ -70,9 +73,12 @@ export class AuthController extends BaseController {
       })
       await profileRegistration.repository.create({ userId: user.id, cnpj: cnpj, phone: phone, ...profileRegistration.extraData })
 
+      const admins = await this.userRepository.getApprovedAdmins()
+      const pushes = await this.notifier.notify(admins.map((admin) => AdminNotificationDrafts.userPending(admin, user)))
+
       const userDto = AuthDTO.registration(user)
       await this.session.commit()
-      return userDto
+      return { userDto, pushes }
     } catch (error) {
       throw toDuplicatedRegistrationError(error)
     }

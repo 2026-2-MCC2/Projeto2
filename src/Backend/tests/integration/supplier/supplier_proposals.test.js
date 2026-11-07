@@ -172,7 +172,7 @@ describe('GET /supplier/proposals', () => {
 
     assert.equal(status, 200)
     assert.equal(response.total, 1)
-    assert.deepEqual(response.counts, { all: 2, sent: 1, under_review: 0, accepted: 1, rejected: 0, canceled: 0 })
+    assert.deepEqual(response.counts, { all: 2, sent: 1, under_review: 0, accepted: 1, rejected: 0, canceled: 0, withdrawn: 0 })
   })
 
   test('a próxima página parte da última proposta mostrada, sem repetir nem pular com proposta nova', async () => {
@@ -485,7 +485,7 @@ describe('PUT /supplier/proposals/:proposal_key', () => {
 })
 
 describe('DELETE /supplier/proposals/:proposal_key', () => {
-  test('retira a proposta enviada, que some para os dois lados e pode ser enviada de novo', async () => {
+  test('retira a proposta enviada, que fica como retirada para os dois lados', async () => {
     const { organizer, supplier, event, items, proposal } = await createScenario()
 
     const [status, response] = await RequestGenerator.DELETE_supplier_proposal(proposal.proposal_key, supplier.headers)
@@ -493,17 +493,121 @@ describe('DELETE /supplier/proposals/:proposal_key', () => {
     assert.equal(status, 204)
     assert.equal(response, null)
 
-    const [detailStatus] = await RequestGenerator.GET_supplier_proposal_by_key(proposal.proposal_key, supplier.headers)
-    assert.equal(detailStatus, 404)
+    const [detailStatus, detail] = await RequestGenerator.GET_supplier_proposal_by_key(proposal.proposal_key, supplier.headers)
+    assert.equal(detailStatus, 200)
+    assert.equal(detail.status, 'withdrawn')
 
     const [, comparison] = await RequestGenerator.GET_event_proposals(event.event_key, organizer.headers)
-    assert.deepEqual(comparison.items.find((item) => item.item_key === items[0].item_key).proposals, [])
+    const comparisonItem = comparison.items.find((item) => item.item_key === items[0].item_key)
+    assert.deepEqual(
+      comparisonItem.proposals.map((candidate) => [candidate.proposal_key, candidate.status]),
+      [[proposal.proposal_key, 'withdrawn']],
+    )
 
     const [, eventDetail] = await RequestGenerator.GET_supplier_event_by_key(event.event_key, supplier.headers)
-    assert.equal(eventDetail.items.find((item) => item.item_key === items[0].item_key).my_proposal, null)
+    assert.equal(eventDetail.items.find((item) => item.item_key === items[0].item_key).my_proposal.status, 'withdrawn')
 
-    // com a anterior retirada, o fornecedor pode mandar outra para o mesmo item
-    await ObjectGenerator.sendProposal(event.event_key, items[0].item_key, supplier.headers)
+    const [, withdrawnList] = await RequestGenerator.GET_supplier_proposals({ status: 'withdrawn' }, supplier.headers)
+    assert.deepEqual(
+      withdrawnList.data.map((candidate) => candidate.proposal_key),
+      [proposal.proposal_key],
+    )
+    assert.equal(withdrawnList.counts.withdrawn, 1)
+    assert.equal(withdrawnList.counts.sent, 0)
+
+    // a retirada não conta como proposta ativa do item
+    const [, budgetItems] = await RequestGenerator.GET_event_items(event.event_key, organizer.headers)
+    assert.equal(budgetItems.find((item) => item.item_key === items[0].item_key).proposals_count, 0)
+
+    // mas trava o item: apagar levaria junto (cascade) a proposta, as fotos e a conversa
+    const withdrawnItem = budgetItems.find((item) => item.item_key === items[0].item_key)
+    assert.equal(withdrawnItem.locked, true)
+    const [deleteStatus, deleteError] = await RequestGenerator.DELETE_event_item(event.event_key, items[0].item_key, organizer.headers)
+    assert.equal(deleteStatus, 409)
+    assert.equal(deleteError.code, 'EVP000029')
+  })
+
+  test('reenviar para o mesmo item reativa a proposta retirada, com a mesma chave e a conversa', async () => {
+    const { organizer, supplier, event, items, proposal } = await createScenario()
+    const [messageStatus] = await RequestGenerator.POST_proposal_message(
+      proposal.proposal_key,
+      { body: 'Inclui frete?' },
+      organizer.headers,
+    )
+    assert.equal(messageStatus, 201)
+    await RequestGenerator.DELETE_supplier_proposal(proposal.proposal_key, supplier.headers)
+
+    const payload = PayloadGenerator.createSupplierProposalPayload({ amount: 1350 })
+    const [status, response] = await RequestGenerator.POST_supplier_item_proposal(
+      event.event_key,
+      items[0].item_key,
+      payload,
+      supplier.headers,
+    )
+
+    assert.equal(status, 201)
+    assert.deepEqual(response, { proposal_key: proposal.proposal_key, status: 'sent' })
+    const [, detail] = await RequestGenerator.GET_supplier_proposal_by_key(proposal.proposal_key, supplier.headers)
+    assert.equal(detail.status, 'sent')
+    assert.equal(detail.amount, 1350)
+    const [, conversation] = await RequestGenerator.GET_proposal_messages(proposal.proposal_key, supplier.headers)
+    assert.deepEqual(
+      conversation.data.map((message) => message.body),
+      ['Inclui frete?'],
+    )
+    assert.equal(conversation.can_send, true)
+
+    // enviada de novo, um segundo envio volta a ser conflito
+    const [againStatus, again] = await RequestGenerator.POST_supplier_item_proposal(
+      event.event_key,
+      items[0].item_key,
+      payload,
+      supplier.headers,
+    )
+    assert.equal(againStatus, 409)
+    assert.notEqual(again.code, undefined)
+  })
+
+  test('o organizador não aceita nem recusa proposta retirada, e o aceite de outra não a recusa', async () => {
+    const scenario = await createScenario()
+    const { organizer, supplier, event, items, proposal } = scenario
+    await RequestGenerator.DELETE_supplier_proposal(proposal.proposal_key, supplier.headers)
+
+    const [acceptStatus, acceptError] = await RequestGenerator.POST_event_proposal_accept(
+      event.event_key,
+      proposal.proposal_key,
+      organizer.headers,
+    )
+    const [rejectStatus, rejectError] = await RequestGenerator.POST_event_proposal_reject(
+      event.event_key,
+      proposal.proposal_key,
+      organizer.headers,
+    )
+
+    assert.equal(acceptStatus, 409)
+    assert.equal(rejectStatus, 409)
+    assert.equal(acceptError.code, rejectError.code)
+
+    const otherSupplier = await createUser('fornecedor', 'Outro Palco')
+    const other = await ObjectGenerator.sendProposal(event.event_key, items[0].item_key, otherSupplier.headers)
+    await decideByOrganizer(scenario, other.proposal_key)
+    const [, detail] = await RequestGenerator.GET_supplier_proposal_by_key(proposal.proposal_key, supplier.headers)
+    assert.equal(detail.status, 'withdrawn')
+  })
+
+  test('cancelar o evento mantém a proposta como retirada', async () => {
+    const { organizer, supplier, event, proposal } = await createScenario()
+    await RequestGenerator.DELETE_supplier_proposal(proposal.proposal_key, supplier.headers)
+
+    const [cancelStatus] = await RequestGenerator.PATCH_event_status(
+      event.event_key,
+      { status: 'canceled', reason: 'Evento adiado pela organização.' },
+      organizer.headers,
+    )
+
+    assert.equal(cancelStatus, 200)
+    const [, detail] = await RequestGenerator.GET_supplier_proposal_by_key(proposal.proposal_key, supplier.headers)
+    assert.equal(detail.status, 'withdrawn')
   })
 
   test('proposta aceita ou rejeitada não pode ser retirada', async () => {
@@ -557,7 +661,7 @@ describe('DELETE /supplier/proposals/:proposal_key', () => {
     const [status] = await RequestGenerator.DELETE_supplier_proposal(proposal.proposal_key, headers)
 
     assert.equal(status, 204)
-    const [detailStatus] = await RequestGenerator.GET_supplier_proposal_by_key(proposal.proposal_key, supplier.headers)
-    assert.equal(detailStatus, 404)
+    const [, detail] = await RequestGenerator.GET_supplier_proposal_by_key(proposal.proposal_key, supplier.headers)
+    assert.equal(detail.status, 'withdrawn')
   })
 })

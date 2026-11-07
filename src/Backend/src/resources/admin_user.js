@@ -1,5 +1,6 @@
 import { USER_PROFILES } from '../constants.js'
 import { EmailConnector } from '../connectors/email_connector.js'
+import { WebSocketHub } from '../connectors/websocket_hub.js'
 import { AdminUserController } from '../controllers/admin_user_controller.js'
 import { PasswordResetController } from '../controllers/password_reset_controller.js'
 import { getParam, getParamAsInt } from '../utils/request_params.js'
@@ -26,6 +27,18 @@ export class AdminUserResource {
     })
   }
 
+  async onGetStatusHistory(req, res) {
+    SecurityTools.requireProfile(req.context, [USER_PROFILES.ADMIN])
+
+    const limit = getParamAsInt(req, 'limit', { minValue: 1, maxValue: 100, default: 20 })
+    const page = getParamAsInt(req, 'page', { minValue: 0, default: 0 })
+
+    const controller = new AdminUserController(req.context)
+    const history = await controller.getStatusHistory(limit, page * limit)
+
+    res.status(200).json({ data: history.events, limit: limit, page: page, is_last_page: history.isLastPage })
+  }
+
   async onPutByKey(req, res, userKey) {
     // autorização antes do schema para não-admins sempre receberem 403
     SecurityTools.requireProfile(req.context, [USER_PROFILES.ADMIN])
@@ -33,10 +46,12 @@ export class AdminUserResource {
 
     const controller = new AdminUserController(req.context)
     const { status, reason } = req.context.media
-    const { userDto, email } = await controller.changeStatus(userKey, status, reason)
+    const { userDto, email, pushes, disconnectUserKey } = await controller.changeStatus(userKey, status, reason)
 
     res.status(202).json(userDto)
     EmailConnector.sendInBackground(email)
+    WebSocketHub.send(pushes)
+    if (disconnectUserKey) WebSocketHub.closeUser(disconnectUserKey)
   }
 
   async onPostPasswordResetByKey(req, res, userKey) {

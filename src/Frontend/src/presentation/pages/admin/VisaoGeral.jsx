@@ -58,9 +58,9 @@ function Indicadores({ summary }) {
   const fornecedores = contar(summary.registration_statuses, 'pending', 'fornecedor')
   const eventos = summary.event_statuses.reduce((total, item) => total + item.total, 0)
   const emCotacao = contar(summary.event_statuses, 'open_for_quotes')
-  // proposta cancelada foi retirada pelo fornecedor: não conta como recebida
+  // cancelada (evento cancelado) e retirada pelo fornecedor não contam como recebidas
   const propostas = summary.proposal_statuses
-    .filter((item) => item.status !== 'canceled')
+    .filter((item) => !['canceled', 'withdrawn'].includes(item.status))
     .reduce((total, item) => total + item.total, 0)
 
   const indicadores = [

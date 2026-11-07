@@ -44,6 +44,7 @@ export class BudgetItemRepository {
   // FOR SHARE enxerga a proposta confirmada enquanto a edição esperava a trava do item; com a leitura
   // comum, o item seria apagado e o ON DELETE CASCADE levaria a proposta junto
   async hasProposals(itemId) {
+    // a retirada também trava: apagar o item levaria junto (cascade) a proposta, as fotos e a conversa
     const proposals = await sequelize.query('SELECT 1 FROM proposal WHERE budget_item_id = ? LIMIT 1 FOR SHARE', {
       replacements: [itemId],
       transaction: this.session,
@@ -66,7 +67,9 @@ export class BudgetItemRepository {
     return sequelize.query(
       `SELECT budget_item.budget_item_key, item_category.name AS category, budget_item.description,
               budget_item.type, budget_item.quantity, budget_item.estimated_value, budget_item.notes,
-              (SELECT COUNT(*) FROM proposal WHERE proposal.budget_item_id = budget_item.id) AS proposals_count,
+              (SELECT COUNT(*) FROM proposal
+               WHERE proposal.budget_item_id = budget_item.id AND proposal.status <> 'withdrawn') AS proposals_count,
+              EXISTS (SELECT 1 FROM proposal WHERE proposal.budget_item_id = budget_item.id) AS locked,
               (SELECT JSON_OBJECT('proposal_key', proposal.proposal_key, 'amount', proposal.amount)
                FROM proposal
                WHERE proposal.budget_item_id = budget_item.id AND proposal.status = 'accepted'

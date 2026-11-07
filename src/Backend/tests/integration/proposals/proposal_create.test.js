@@ -259,6 +259,10 @@ describe('POST /supplier/events/:event_key/items/:item_key/proposals', () => {
     assert.equal(acceptStatus, 200)
     const otherSupplier = await createUser('fornecedor', 'Outro Palco RF10')
 
+    // o detalhe do evento já avisa, antes de o fornecedor preencher a proposta
+    const [, detail] = await RequestGenerator.GET_supplier_event_by_key(event.event_key, otherSupplier.headers)
+    assert.equal(detail.items.find((candidate) => candidate.item_key === items[0].item_key).decided, true)
+
     const [status, response] = await RequestGenerator.POST_supplier_item_proposal(
       event.event_key,
       items[0].item_key,

@@ -10,6 +10,8 @@ export class BudgetItemDTO {
       estimated_value: item.estimated_value === null ? null : Number(item.estimated_value),
       notes: item.notes ?? null,
       proposals_count: Number(item.proposals_count ?? 0),
+      // qualquer proposta, inclusive retirada, trava editar e apagar o item
+      locked: Boolean(Number(item.locked ?? 0)),
       accepted_proposal: acceptedProposalData,
     }
   }

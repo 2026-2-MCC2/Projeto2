@@ -1,5 +1,8 @@
 import { randomUUID } from 'node:crypto'
 
+import { QueryTypes } from 'sequelize'
+
+import { sequelize } from '../connectors/database_connector.js'
 import { USER_PROFILES } from '../constants.js'
 import { User, UserStatusEvent } from '../models/index.js'
 
@@ -60,6 +63,14 @@ export class UserRepository {
     })
   }
 
+  async getApprovedAdmins() {
+    return User.findAll({
+      attributes: ['id', 'user_key'],
+      where: { profile: 'admin', status: 'approved' },
+      transaction: this.session,
+    })
+  }
+
   // a conta nasce pending e só acessa depois da aprovação do admin
   async create({ name, email, passwordHash, profile }) {
     return User.create(
@@ -92,6 +103,21 @@ export class UserRepository {
       offset: offset,
       transaction: this.session,
     })
+  }
+
+  // busca um registro a mais para saber se há próxima página
+  async getStatusHistory(limit, offset) {
+    return sequelize.query(
+      `SELECT target.user_key, target.name, target.email, target.profile,
+              user_status_event.old_status, user_status_event.new_status, user_status_event.reason,
+              user_status_event.event_datetime, admin_user.name AS admin_name
+       FROM user_status_event
+       INNER JOIN user AS target ON target.id = user_status_event.user_id
+       INNER JOIN user AS admin_user ON admin_user.id = user_status_event.admin_user_id
+       ORDER BY user_status_event.event_datetime DESC, user_status_event.id DESC
+       LIMIT :limitPlusOne OFFSET :offset`,
+      { replacements: { limitPlusOne: limit + 1, offset }, transaction: this.session, type: QueryTypes.SELECT },
+    )
   }
 
   async updateStatus(user, newStatus, reason = null) {

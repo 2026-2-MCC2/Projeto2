@@ -1,8 +1,16 @@
-const LARGURA = 660
-const ALTURA = 280
-const MARGEM = { esquerda: 70, direita: 20, topo: 30, base: 34 }
+import { useIsMobile } from '../../hooks/useIsMobile.js'
+
+// no celular o desenho usa a largura da tela: reduzido de 660, o texto ficava ilegível
+const TAMANHOS = {
+  desktop: { LARGURA: 660, ALTURA: 280, MARGEM: { esquerda: 70, direita: 20, topo: 30, base: 34 } },
+  celular: { LARGURA: 320, ALTURA: 220, MARGEM: { esquerda: 6, direita: 6, topo: 16, base: 30 } },
+}
+// rótulos do eixo mais perto que isso se sobrepõem: fica só o do ponto de equilíbrio
+const DISTANCIA_MINIMA_ENTRE_ROTULOS = 46
 
 export function GraficoEquilibrio({ equilibrio }) {
+  const isMobile = useIsMobile()
+  const { LARGURA, ALTURA, MARGEM } = TAMANHOS[isMobile ? 'celular' : 'desktop']
   const areaLargura = LARGURA - MARGEM.esquerda - MARGEM.direita
   const areaAltura = ALTURA - MARGEM.topo - MARGEM.base
 
@@ -25,10 +33,11 @@ export function GraficoEquilibrio({ equilibrio }) {
   const yFim = eixoY(receitaNoMaximo)
 
   const terco = Math.max(Math.round(maximo / 3), 1)
+  const longeDoEquilibrio = (x) => Math.abs(x - xEquilibrio) >= DISTANCIA_MINIMA_ENTRE_ROTULOS
 
   return (
     <svg
-      className="grafico"
+      className={`grafico${isMobile ? ' grafico--celular' : ''}`}
       viewBox={`0 0 ${LARGURA} ${ALTURA}`}
       role="img"
       aria-label="Ponto de equilíbrio do evento"
@@ -98,12 +107,19 @@ export function GraficoEquilibrio({ equilibrio }) {
         strokeWidth="2.5"
       />
 
-      <text x={MARGEM.esquerda} y={ALTURA - 8} className="grafico__rotulo" textAnchor="middle">
+      <text
+        x={MARGEM.esquerda}
+        y={ALTURA - 8}
+        className="grafico__rotulo"
+        textAnchor={isMobile ? 'start' : 'middle'}
+      >
         0
       </text>
-      <text x={eixoX(terco)} y={ALTURA - 8} className="grafico__rotulo" textAnchor="middle">
-        {terco.toLocaleString('pt-BR')}
-      </text>
+      {longeDoEquilibrio(eixoX(terco)) && (
+        <text x={eixoX(terco)} y={ALTURA - 8} className="grafico__rotulo" textAnchor="middle">
+          {terco.toLocaleString('pt-BR')}
+        </text>
+      )}
       <text
         x={xEquilibrio}
         y={ALTURA - 8}
@@ -112,9 +128,11 @@ export function GraficoEquilibrio({ equilibrio }) {
       >
         {ingressosEq.toLocaleString('pt-BR')}
       </text>
-      <text x={xFim} y={ALTURA - 8} className="grafico__rotulo" textAnchor="end">
-        {maximo.toLocaleString('pt-BR')}
-      </text>
+      {longeDoEquilibrio(xFim) && (
+        <text x={xFim} y={ALTURA - 8} className="grafico__rotulo" textAnchor="end">
+          {maximo.toLocaleString('pt-BR')}
+        </text>
+      )}
     </svg>
   )
 }

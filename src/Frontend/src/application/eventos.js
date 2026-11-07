@@ -124,6 +124,9 @@ function calcularDadosTicket(evento, totalCustos) {
 
   const ticketPara = (publico) =>
     margem < 1 && totalCustos > 0 ? totalCustos / (publico * (1 - margem)) : 0
+  // ticket de equilíbrio: o preço que só paga o custo, com margem zero
+  const equilibrioPara = (publico) =>
+    totalCustos > 0 ? `equilíbrio ${formatarMoeda(totalCustos / publico)}` : null
 
   const precoSugeridoNum = ticketPara(publicoRef)
   const precoSugerido = precoSugeridoNum > 0 ? formatarMoeda(precoSugeridoNum) : 'A calcular'
@@ -149,18 +152,21 @@ function calcularDadosTicket(evento, totalCustos) {
       {
         nome: 'Pessimista',
         valor: ticketMinNum > 0 ? formatarMoeda(ticketMinNum) : '—',
+        equilibrio: equilibrioPara(publicoMin),
         publico: `${quantidadeDePessoas(publicoMin)}`,
         destaque: cenarioRef === 'minimum',
       },
       {
         nome: 'Esperado',
         valor: ticketExpNum > 0 ? formatarMoeda(ticketExpNum) : '—',
+        equilibrio: equilibrioPara(publicoExp),
         publico: `${quantidadeDePessoas(publicoExp)}`,
         destaque: cenarioRef === 'expected',
       },
       {
         nome: 'Otimista',
         valor: ticketMaxNum > 0 ? formatarMoeda(ticketMaxNum) : '—',
+        equilibrio: equilibrioPara(publicoMax),
         publico: `${quantidadeDePessoas(publicoMax)}`,
         destaque: cenarioRef === 'maximum',
       },
@@ -235,6 +241,7 @@ function calcularDadosTicket(evento, totalCustos) {
     },
     resultado: [
       { rotulo: 'Custo total', valor: formatarMoeda(totalCustos) },
+      { rotulo: 'Ticket de equilíbrio', valor: formatarMoeda(totalCustos / publicoRef) },
       {
         rotulo: 'Ponto de equilíbrio',
         valor: `${ingressosEquilibrio.toLocaleString('pt-BR')} ingressos`,
@@ -252,7 +259,7 @@ function calcularDadosTicket(evento, totalCustos) {
       { rotulo: 'Público mínimo', valor: publicoMin.toLocaleString('pt-BR') },
       { rotulo: 'Público esperado', valor: publicoExp.toLocaleString('pt-BR') },
       { rotulo: 'Público máximo', valor: publicoMax.toLocaleString('pt-BR') },
-      { rotulo: 'Arredondamento', valor: '2 casas decimais' },
+      { rotulo: 'Arredondamento', valor: 'Em centavos' },
     ],
   }
 
@@ -327,8 +334,7 @@ function formatarEventoParaExibicao(evento, itensDeCotacao = evento.budget_items
     tipo: custo.type,
     valorNumero: custo.amount,
     nome: custo.description,
-    categoria:
-      custo.type === 'tax' ? 'Fiscal' : custo.type === 'operational' ? 'Operacional' : 'Outros',
+    categoria: NOME_DO_TIPO_DE_CUSTO[custo.type] ?? 'Outros',
     origem: 'Custo próprio',
     valor: formatarMoeda(custo.amount),
   }))
@@ -336,8 +342,7 @@ function formatarEventoParaExibicao(evento, itensDeCotacao = evento.budget_items
   const itensProprios = (evento.internal_costs || []).map((custo) => ({
     chave: custo.internal_cost_key,
     nome: custo.description,
-    categoria:
-      custo.type === 'tax' ? 'Fiscal' : custo.type === 'operational' ? 'Operacional' : 'Outros',
+    categoria: NOME_DO_TIPO_DE_CUSTO[custo.type] ?? 'Outros',
     situacao: 'custoProprio',
     valor: formatarMoeda(custo.amount),
   }))
@@ -458,6 +463,13 @@ function parametrosDoTicket(dados) {
     profit_margin: profitMargin,
     reference_scenario: CENARIOS_MAPA[dados.cenarioReferencia] || 'expected',
   }
+}
+
+export const NOME_DO_TIPO_DE_CUSTO = {
+  tax: 'Fiscal',
+  operational: 'Operacional',
+  variable: 'Variável',
+  other: 'Outros',
 }
 
 const CUSTOS_PROPRIOS_DO_FORMULARIO = [

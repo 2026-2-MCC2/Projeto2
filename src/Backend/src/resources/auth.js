@@ -3,6 +3,7 @@
 import { setTimeout } from 'node:timers/promises'
 
 import { EmailConnector } from '../connectors/email_connector.js'
+import { WebSocketHub } from '../connectors/websocket_hub.js'
 import { FORGOT_PASSWORD_MIN_RESPONSE_MS } from '../constants.js'
 import { AuthController } from '../controllers/auth_controller.js'
 import { PasswordResetController } from '../controllers/password_reset_controller.js'
@@ -14,9 +15,10 @@ export class AuthResource {
     SchemaHandler.validate(req, 'post_auth_cadastro.json')
 
     const authController = new AuthController(req.context)
-    const userDto = await authController.register(req.context.media)
+    const { userDto, pushes } = await authController.register(req.context.media)
 
     res.status(201).json(userDto)
+    WebSocketHub.send(pushes)
   }
 
   async onPostLogin(req, res) {

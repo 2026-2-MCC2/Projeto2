@@ -4,6 +4,7 @@ import { Botao, Campo } from '../../components/organizador/Formulario.jsx'
 import { Modal } from '../../components/comum/Modal.jsx'
 import { Carregando, ErroNaTela, Vazio } from '../../components/comum/EstadoDaTela.jsx'
 import { useIsMobile } from '../../hooks/useIsMobile.js'
+import { useTempoReal } from '../../hooks/useTempoReal.jsx'
 import { decidirCadastro, listarCadastrosPendentes } from '../../../infrastructure/aprovacoes.js'
 import {
   formatarCnpj,
@@ -140,6 +141,19 @@ export function Aprovacoes() {
   const listaJaCarregou = useRef(false)
   const [decisao, setDecisao] = useState(null)
   const [enviando, setEnviando] = useState(false)
+  const { assinar, atualizarContadores } = useTempoReal()
+
+  // cadastro novo chega pelo WebSocket; decisão de outro admin chega como notifications_changed
+  useEffect(() => {
+    const pararNotificacao = assinar('notification', ({ notification }) => {
+      if (notification.type === 'user_pending') atualizarLista()
+    })
+    const pararMudanca = assinar('notifications_changed', atualizarLista)
+    return () => {
+      pararNotificacao()
+      pararMudanca()
+    }
+  }, [assinar])
 
   useEffect(() => {
     let telaAberta = true
@@ -197,6 +211,8 @@ export function Aprovacoes() {
         cadastros: atual.cadastros.filter((item) => item.chave !== cadastro.chave),
       }))
       toast.sucesso(`Cadastro ${RESULTADOS[tipo]}`, { descricao: cadastro.nome })
+      // a decisão marca como lida a notificação desse cadastro
+      atualizarContadores()
       // decidiu o último da página e há mais pendentes: busca os próximos
       if (lista.cadastros.length === 1 && lista.temMais) atualizarLista()
     } catch (falha) {

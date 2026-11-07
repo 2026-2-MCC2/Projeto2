@@ -40,12 +40,12 @@ describe('Custos próprios do evento', () => {
     const [updateStatus, updated] = await RequestGenerator.PUT_event_internal_cost(
       event.event_key,
       costKey,
-      { type: 'operational', description: 'Equipe de limpeza', amount: 800 },
+      { type: 'variable', description: 'Equipe de limpeza', amount: 800 },
       headers,
     )
     assert.equal(updateStatus, 200)
     assert.deepEqual(updated.internal_costs, [
-      { internal_cost_key: costKey, type: 'operational', description: 'Equipe de limpeza', amount: 800 },
+      { internal_cost_key: costKey, type: 'variable', description: 'Equipe de limpeza', amount: 800 },
     ])
     assert.equal(updated.total_internal_cost, 800)
 
