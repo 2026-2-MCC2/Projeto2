@@ -1,6 +1,20 @@
 // expõe só identificadores públicos, nunca id nem password_hash
 
 export class AdminUserDTO {
+  static statusHistory(rows) {
+    return rows.map((row) => ({
+      user_key: row.user_key,
+      name: row.name,
+      email: row.email,
+      profile: row.profile,
+      old_status: row.old_status,
+      new_status: row.new_status,
+      reason: row.reason ?? null,
+      decided_at: new Date(row.event_datetime).toISOString(),
+      admin_name: row.admin_name,
+    }))
+  }
+
   static statusUpdate(user) {
     return {
       user_key: user.user_key,

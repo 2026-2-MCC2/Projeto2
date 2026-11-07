@@ -23,6 +23,8 @@ function CampoCondicao({ id, rotulo, obrigatorio = false, children }) {
   )
 }
 
+// proposta que saiu de Enviada (retirada ou decidida) não aceita edição
+const CODIGO_DE_PROPOSTA_INALTERAVEL = 'EVP000041'
 export function EnviarPropostaEtapa3() {
   const navigate = useNavigate()
   const isMobile = useIsMobile()
@@ -76,13 +78,24 @@ export function EnviarPropostaEtapa3() {
         irPara(`/fornecedor/propostas/${proposalKey}`)
         return
       }
-      toast.sucesso('Proposta enviada', {
+      toast.sucesso(proposta.reenviando ? 'Proposta enviada de novo' : 'Proposta enviada', {
         descricao: fotos.length
           ? `${item.description} · ${fotos.length} ${fotos.length === 1 ? 'foto' : 'fotos'}`
           : item.description,
       })
       irPara('/fornecedor/propostas')
     } catch (falha) {
+      // retirada (ou decidida) em outra aba enquanto editava: recarrega o item e a tela vira reenvio ou consulta
+      if (
+        proposta.editando &&
+        falha.codigo === CODIGO_DE_PROPOSTA_INALTERAVEL &&
+        telaAberta.current
+      ) {
+        toast.info('Esta proposta não pode mais ser editada', { descricao: falha.message })
+        setEnviando(false)
+        proposta.recarregarEvento()
+        return
+      }
       // ex.: "Você já enviou uma proposta para este item." ou validade fora do evento
       if (!telaAberta.current) {
         // a mensagem da tela sumiu com ela: o aviso vai por toast
@@ -101,7 +114,10 @@ export function EnviarPropostaEtapa3() {
 
   const textoDoBotao = proposta.editando
     ? { parado: 'Salvar alterações', enviando: 'Salvando...' }
-    : { parado: 'Enviar proposta', enviando: 'Enviando...' }
+    : {
+        parado: proposta.reenviando ? 'Enviar de novo' : 'Enviar proposta',
+        enviando: 'Enviando...',
+      }
 
   const acoes = (
     <div className="proposta-condicoes__acoes">

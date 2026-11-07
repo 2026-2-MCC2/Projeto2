@@ -215,6 +215,11 @@
   background: var(--fundo-sutil);
   color: var(--status-perigo-texto);
 }
+.minhas-propostas__situacao--withdrawn {
+  border: 1px dashed var(--borda-forte);
+  background: var(--fundo-sutil);
+  color: var(--texto-terciario);
+}
 
 @media (max-width: 900px) {
   .organizador--fornecedor-propostas .topo {
@@ -1287,6 +1292,7 @@
 
 .itens-do-evento {
   display: flex;
+  container-type: inline-size;
   flex-direction: column;
   gap: 12px;
   margin: 0;
@@ -1402,6 +1408,17 @@
 
 .item-do-evento__comparacao--acima {
   color: var(--status-alerta-texto);
+}
+
+/* card estreito: o painel da proposta vai para baixo das informações do item */
+@container (max-width: 560px) {
+  .item-do-evento {
+    flex-direction: column;
+  }
+
+  .item-do-evento__proposta {
+    flex-basis: auto;
+  }
 }
 
 .linhas-de-dados--compactas dt,
@@ -1653,6 +1670,7 @@
 
 .detalhe-da-proposta__cabecalho {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-end;
   justify-content: space-between;
   gap: 24px;
@@ -1660,6 +1678,7 @@
 
 .detalhe-da-proposta__cabecalho > div:first-child {
   display: flex;
+  flex: 1 1 20rem;
   flex-direction: column;
   gap: 8px;
 }

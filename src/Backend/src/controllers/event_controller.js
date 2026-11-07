@@ -1,4 +1,5 @@
 import { BaseController } from './base_controller.js'
+import { Notifier } from './notifier.js'
 import {
   EVENT_STATUS_TRANSITIONS,
   EVENT_STATUSES,
@@ -30,10 +31,12 @@ import { EventRepository } from '../repositories/event_repository.js'
 import { InternalCostRepository } from '../repositories/internal_cost_repository.js'
 import { OrganizerRepository } from '../repositories/organizer_repository.js'
 import { ProposalRepository } from '../repositories/proposal_repository.js'
+import { SupplierEventRepository } from '../repositories/supplier_event_repository.js'
 import { UserRepository } from '../repositories/user_repository.js'
 import { ProposalComparisonDTO } from '../dtos/proposal_comparison_dto.js'
 import { EmailTemplates } from '../utils/email_templates.js'
 import { ensureAtMostTwoDecimals } from '../utils/money_tools.js'
+import { NotificationDrafts } from '../utils/notification_drafts.js'
 import { toPhotoResponses } from '../utils/proposal_photo_tools.js'
 import { TextTools } from '../utils/text_tools.js'
 
@@ -59,6 +62,8 @@ export class EventController extends BaseController {
     this.eventRepository = new EventRepository(context)
     this.internalCostRepository = new InternalCostRepository(context)
     this.proposalRepository = new ProposalRepository(context)
+    this.supplierEventRepository = new SupplierEventRepository(context)
+    this.notifier = new Notifier(context)
   }
 
   async #getOrganizerByUserKey(userKey) {
@@ -224,13 +229,23 @@ export class EventController extends BaseController {
       throw new EventNotOpenForQuotes()
     }
 
-    const accepted = await this.proposalRepository.acceptByProposalKey(event.id, proposalKey)
-    if (!accepted) {
+    const decision = await this.proposalRepository.acceptByProposalKey(event.id, proposalKey)
+    if (!decision) {
       throw new NotFoundProposal(proposalKey)
     }
 
+    // as outras propostas do item são recusadas junto e cada fornecedor recebe a sua notificação
+    const parties = await this.proposalRepository.getProposalParties([...decision.acceptedKeys, ...decision.rejectedKeys])
+    const pushes = await this.notifier.notify(
+      parties.map((party) =>
+        decision.acceptedKeys.includes(party.proposal_key)
+          ? NotificationDrafts.proposalAccepted(party)
+          : NotificationDrafts.proposalRejected(party),
+      ),
+    )
+
     // as URLs das fotos são geradas depois do commit, para não segurar o evento travado
-    return this.#getProposalComparison(event)
+    return { comparison: await this.#getProposalComparison(event), pushes }
   }
 
   async rejectProposal(userKey, eventKey, proposalKey) {
@@ -249,11 +264,14 @@ export class EventController extends BaseController {
       throw new NotFoundProposal(proposalKey)
     }
 
+    const parties = await this.proposalRepository.getProposalParties([proposalKey])
+    const pushes = await this.notifier.notify(parties.map(NotificationDrafts.proposalRejected))
+
     const organizerUser = await this.userRepository.getByKey(userKey)
     const email = rejectedProposalEmail(rejectedProposal, event, organizerUser)
     const comparison = await this.#getProposalComparison(event)
 
-    return { comparison, email }
+    return { comparison, email, pushes }
   }
 
   async updateEvent(userKey, eventKey, payload) {
@@ -321,10 +339,22 @@ export class EventController extends BaseController {
     const canceledProposals = isCanceling ? await this.#cancelOpenProposals(event.id) : []
     const organizerContact = canceledProposals.length > 0 ? await this.#getOrganizerContact(userKey, organizer) : null
     const updatedEvent = await this.eventRepository.updateStatus(event, newStatus, reason)
+    const pushes = await this.notifier.notify(await this.#statusChangeDrafts(updatedEvent, canceledProposals))
     await this.session.commit()
 
     const emails = canceledProposals.map((proposal) => canceledProposalEmail(proposal, updatedEvent, organizerContact))
-    return { event: EventDto.fromModel(updatedEvent), emails }
+    return { event: EventDto.fromModel(updatedEvent), emails, pushes }
+  }
+
+  // publicar avisa os fornecedores das categorias dos itens; cancelar avisa quem tinha proposta aberta ou aceita
+  async #statusChangeDrafts(event, canceledProposals) {
+    if (event.status === EVENT_STATUSES.OPEN_FOR_QUOTES) {
+      const suppliers = await this.supplierEventRepository.getSuppliersMatchingEvent(event.id)
+      return suppliers.map((supplier) => NotificationDrafts.eventPublished(event, supplier))
+    }
+
+    const parties = await this.proposalRepository.getProposalParties(canceledProposals.map((proposal) => proposal.proposal_key))
+    return parties.map(NotificationDrafts.eventCanceled)
   }
 
   async #getOrganizerContact(userKey, organizer) {

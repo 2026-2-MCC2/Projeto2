@@ -39,6 +39,7 @@ export class AdminReportRepository {
               COALESCE(proposals.review_count, 0) AS review_proposal_count,
               COALESCE(proposals.accepted_count, 0) AS accepted_proposal_count,
               COALESCE(proposals.rejected_count, 0) AS rejected_proposal_count,
+              COALESCE(proposals.withdrawn_count, 0) AS withdrawn_proposal_count,
               COALESCE(proposals.selected_total, 0) AS selected_proposals_total,
               COALESCE(planning.planning_cost_total, 0) AS planning_cost_total,
               COALESCE(planning.incomplete_budget_item_count, 0) AS incomplete_budget_item_count
@@ -59,11 +60,12 @@ export class AdminReportRepository {
        ) AS internal_costs ON internal_costs.event_id = e.id
        LEFT JOIN (
          SELECT budget_item.event_id,
-                COUNT(proposal.id) AS proposal_count,
+                SUM(proposal.status <> 'withdrawn') AS proposal_count,
                 SUM(proposal.status = 'sent') AS sent_count,
                 SUM(proposal.status = 'under_review') AS review_count,
                 SUM(proposal.status = 'accepted') AS accepted_count,
                 SUM(proposal.status = 'rejected') AS rejected_count,
+                SUM(proposal.status = 'withdrawn') AS withdrawn_count,
                 SUM(CASE WHEN ${IS_SELECTED_PROPOSAL}
                          THEN proposal.amount ELSE 0 END) AS selected_total
          FROM budget_item

@@ -1,5 +1,6 @@
 import { USER_PROFILES } from '../constants.js'
 import { EmailConnector } from '../connectors/email_connector.js'
+import { WebSocketHub } from '../connectors/websocket_hub.js'
 import { EventController } from '../controllers/event_controller.js'
 import { getParam, getParamAsInt } from '../utils/request_params.js'
 import { SchemaHandler } from '../utils/schema_handler.js'
@@ -57,19 +58,21 @@ export class EventResource {
     SecurityTools.requireProfile(req.context, [USER_PROFILES.ORGANIZER])
 
     const controller = new EventController(req.context)
-    const comparison = await controller.acceptProposal(req.context.user.userKey, eventKey, proposalKey)
+    const { comparison, pushes } = await controller.acceptProposal(req.context.user.userKey, eventKey, proposalKey)
 
     res.status(200).json(comparison)
+    WebSocketHub.send(pushes)
   }
 
   async onPostProposalReject(req, res, eventKey, proposalKey) {
     SecurityTools.requireProfile(req.context, [USER_PROFILES.ORGANIZER])
 
     const controller = new EventController(req.context)
-    const { comparison, email } = await controller.rejectProposal(req.context.user.userKey, eventKey, proposalKey)
+    const { comparison, email, pushes } = await controller.rejectProposal(req.context.user.userKey, eventKey, proposalKey)
 
     res.status(200).json(comparison)
     EmailConnector.sendInBackground(email)
+    WebSocketHub.send(pushes)
   }
 
   async onPutByKey(req, res, eventKey) {
@@ -88,10 +91,11 @@ export class EventResource {
 
     const controller = new EventController(req.context)
     const { status, reason } = req.context.media
-    const { event, emails } = await controller.updateEventStatus(req.context.user.userKey, eventKey, status, reason)
+    const { event, emails, pushes } = await controller.updateEventStatus(req.context.user.userKey, eventKey, status, reason)
 
     res.status(200).json(event)
     emails.forEach((email) => EmailConnector.sendInBackground(email))
+    WebSocketHub.send(pushes)
   }
 
   async onPostInternalCosts(req, res, eventKey) {

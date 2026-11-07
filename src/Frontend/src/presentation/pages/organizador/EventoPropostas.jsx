@@ -20,6 +20,9 @@ import { toast } from '../../toasts.js'
 import iconeCards from '../../assets/organizador/icone-cards.svg'
 import iconeLista from '../../assets/organizador/icone-lista.svg'
 
+// retiradas continuam visíveis, mas não contam como proposta (igual ao proposals_count da API)
+const contarPropostas = (item) =>
+  item.proposals.filter((proposta) => proposta.status !== 'withdrawn').length
 export function EventoPropostas() {
   const { id } = useParams()
   const [resultado, setResultado] = useState({ event_key: null, items: [], error: null })
@@ -67,14 +70,19 @@ export function EventoPropostas() {
     )
   }
 
-  const comPropostas = itens.filter((item) => item.proposals.length > 0)
+  const comPropostas = itens.filter((item) => contarPropostas(item) > 0)
   if (comPropostas.length === 0) {
+    const soRetiradas = itens.some((item) => item.proposals.length > 0)
     return (
       <EventoLayout>
         <Vazio
           icone="propostas"
           titulo="Nenhuma proposta ainda"
-          mensagem="As propostas aparecem aqui quando os fornecedores responderem aos itens em cotação."
+          mensagem={
+            soRetiradas
+              ? 'As propostas enviadas foram retiradas pelos fornecedores. As novas aparecem aqui.'
+              : 'As propostas aparecem aqui quando os fornecedores responderem aos itens em cotação.'
+          }
         />
       </EventoLayout>
     )
@@ -196,7 +204,7 @@ function AbasDosItens({ itens, itemAtual, aoEscolher }) {
             onClick={() => aoEscolher(item.item_key)}
           >
             {item.description}
-            <span className="aba-item__conta">{item.proposals.length}</span>
+            <span className="aba-item__conta">{contarPropostas(item)}</span>
           </button>
         )
       })}
@@ -227,7 +235,7 @@ function PropostasDoItem({
   const apoio = [
     item.category,
     item.estimated_value != null && `orçamento previsto ${formatarMoeda(item.estimated_value)}`,
-    `${item.proposals.length} ${item.proposals.length === 1 ? 'proposta' : 'propostas'}`,
+    `${contarPropostas(item)} ${contarPropostas(item) === 1 ? 'proposta' : 'propostas'}`,
   ]
     .filter(Boolean)
     .join(' · ')
@@ -309,7 +317,12 @@ function EtiquetasDaProposta({ proposta, destaque }) {
       {proposta.status === 'canceled' && (
         <span className="etiqueta etiqueta--rejeitado">Cancelada</span>
       )}
-      {proposta.is_expired && <span className="etiqueta etiqueta--vencida">Vencida</span>}
+      {proposta.status === 'withdrawn' && (
+        <span className="etiqueta etiqueta--retirada">Retirada</span>
+      )}
+      {proposta.is_expired && proposta.status !== 'withdrawn' && (
+        <span className="etiqueta etiqueta--vencida">Vencida</span>
+      )}
     </>
   )
 }
@@ -404,6 +417,9 @@ function situacaoDoItem(item) {
   if (item.proposals.every((proposta) => proposta.status === 'canceled')) {
     return { nome: 'Cancelada', estilo: 'neutro' }
   }
+  if (item.proposals.every((proposta) => proposta.status === 'withdrawn')) {
+    return { nome: 'Retiradas', estilo: 'neutro' }
+  }
   // só vencidas (ou encerradas): nenhuma pode mais ser escolhida
   if (!menorPropostaDisponivel(item)) return { nome: 'Sem propostas válidas', estilo: 'neutro' }
   return { nome: 'Em análise', estilo: 'cotacao' }
@@ -436,7 +452,7 @@ function ItensEmCotacao({ itens, itemAtual, aoEscolher }) {
             onClick={() => aoEscolher(item.item_key)}
           >
             <strong>{item.description}</strong>
-            <span>{item.proposals.length}</span>
+            <span>{contarPropostas(item)}</span>
             <span>{valorDoItem(item)}</span>
             <span className={`itens-cotacao__situacao itens-cotacao__situacao--${situacao.estilo}`}>
               {situacao.nome}

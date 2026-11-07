@@ -17,6 +17,13 @@ import { useEvento } from '../../hooks/useEvento.js'
 import { Icone } from '../../components/comum/Icone.jsx'
 import iconeAdicionar from '../../assets/organizador/icone-adicionar-claro.svg'
 
+// qualquer proposta, inclusive retirada, trava o item (apagar levaria a proposta e a conversa junto)
+const itemTravado = (item) => Boolean(item.locked) || Number(item.proposals_count) > 0
+const resumoDasPropostas = (item) =>
+  Number(item.proposals_count) === 0 && item.locked
+    ? 'proposta retirada'
+    : `${item.proposals_count} proposta(s)`
+
 export function EventoItens() {
   const { id } = useParams()
   const isMobile = useIsMobile()
@@ -53,7 +60,7 @@ export function EventoItens() {
 
   const recarregarItens = () => setTentativa((atual) => atual + 1)
   const abrirItemDeCotacao = (item) => {
-    if (item && podeEditar && Number(item.proposals_count) === 0) setItemEmEdicao(item)
+    if (item && podeEditar && !itemTravado(item)) setItemEmEdicao(item)
   }
 
   const modalDoCusto = custoEmEdicao && (
@@ -87,13 +94,13 @@ export function EventoItens() {
   const itensMobile = itensDeCotacao.map((item) => ({
     chave: item.item_key,
     nome: item.description,
-    categoria: `${item.category}${Number(item.proposals_count) > 0 ? ` · ${item.proposals_count} proposta(s), edição bloqueada` : ''}`,
+    categoria: `${item.category}${itemTravado(item) ? ` · ${resumoDasPropostas(item)}, edição bloqueada` : ''}`,
     valor: item.accepted_proposal
       ? formatarMoeda(item.accepted_proposal.amount)
       : item.estimated_value == null
         ? 'A definir'
         : formatarMoeda(item.estimated_value),
-    bloqueado: Number(item.proposals_count) > 0,
+    bloqueado: itemTravado(item),
   }))
 
   if (isMobile) {
@@ -177,11 +184,11 @@ export function EventoItens() {
             colunas={['ITEM', 'CATEGORIA', 'TIPO / PROPOSTAS', 'VALOR']}
             linhas={itensDeCotacao.map((item) => ({
               chave: item.item_key,
-              bloqueada: Number(item.proposals_count) > 0,
+              bloqueada: itemTravado(item),
               celulas: [
                 item.description,
                 item.category,
-                `${item.type === 'product' ? 'Produto' : 'Serviço'} · ${item.proposals_count} proposta(s)${Number(item.proposals_count) > 0 ? ' · edição bloqueada' : ''}`,
+                `${item.type === 'product' ? 'Produto' : 'Serviço'} · ${resumoDasPropostas(item)}${itemTravado(item) ? ' · edição bloqueada' : ''}`,
                 item.accepted_proposal
                   ? formatarMoeda(item.accepted_proposal.amount)
                   : item.estimated_value == null

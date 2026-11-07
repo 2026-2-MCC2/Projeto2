@@ -147,6 +147,7 @@ export function EventoTicket() {
             >
               {cenario.valor}
             </strong>
+            {cenario.equilibrio && <small>{cenario.equilibrio}</small>}
             <small>{cenario.publico}</small>
           </div>
         ))}

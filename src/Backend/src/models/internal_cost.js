@@ -10,7 +10,7 @@ InternalCost.init(
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     internal_cost_key: { type: DataTypes.STRING(36) },
     event_id: { type: DataTypes.INTEGER },
-    type: { type: DataTypes.ENUM('tax', 'operational', 'other') },
+    type: { type: DataTypes.ENUM('tax', 'operational', 'variable', 'other') },
     description: { type: DataTypes.STRING(255) },
     amount: { type: DataTypes.DECIMAL(12, 2) },
     created_at: { type: DataTypes.DATE },

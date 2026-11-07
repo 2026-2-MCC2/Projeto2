@@ -4,6 +4,9 @@ import { listarEventosRecentes } from '../../../application/eventos.js'
 import { buscarEventoEmMemoria, observarEventos } from '../../../application/eventosEmMemoria.js'
 import { usuarioAtual } from '../../../application/sessao.js'
 import { Icone } from '../comum/Icone.jsx'
+import { NotificacoesDoMenu } from '../notificacoes/PainelDeNotificacoes.jsx'
+import { ContadorDeNaoLidas } from '../notificacoes/ContadorDeNaoLidas.jsx'
+import { useTempoReal } from '../../hooks/useTempoReal.jsx'
 import simbolo from '../../assets/organizador/simbolo.png'
 import iconeOrganizador from '../../assets/organizador/icone-organizador.svg'
 import iconeEventos from '../../assets/organizador/icone-eventos.svg'
@@ -12,6 +15,12 @@ import iconeDuvidas from '../../assets/comum/icone-duvidas.svg'
 import iconeAjustes from '../../assets/organizador/icone-ajustes.svg'
 import iconeFornecedor from '../../assets/fornecedor/icone-fornecedor.svg'
 import iconeAdministracao from '../../assets/admin/icone-administracao.svg'
+import iconePropostas from '../../assets/fornecedor/icone-propostas.svg'
+import iconeChats from '../../assets/comum/icone-chats.svg'
+import iconeAprovacoes from '../../assets/admin/icone-aprovacoes.svg'
+import iconeUsuarios from '../../assets/admin/icone-usuarios.svg'
+import iconeHistorico from '../../assets/admin/icone-historico.svg'
+import iconeVisaoGeral from '../../assets/admin/icone-visao-geral.svg'
 
 const PERFIS = {
   organizador: {
@@ -36,14 +45,15 @@ const PERFIS = {
 
 const ITENS = {
   fornecedor: [
-    { rota: '/fornecedor/eventos', nome: 'Eventos disponíveis' },
-    { rota: '/fornecedor/propostas', nome: 'Minhas propostas' },
+    { rota: '/fornecedor/eventos', nome: 'Eventos disponíveis', icone: iconeEventos },
+    { rota: '/fornecedor/propostas', nome: 'Minhas propostas', icone: iconePropostas },
+    { rota: '/fornecedor/chats', nome: 'Chats', icone: iconeChats, comMensagens: true },
   ],
   admin: [
-    { rota: '/admin/aprovacoes', nome: 'Aprovações' },
-    { rota: '/admin/usuarios', nome: 'Usuários' },
-    { rota: '/admin/historico', nome: 'Histórico' },
-    { rota: '/admin/visao-geral', nome: 'Visão geral' },
+    { rota: '/admin/aprovacoes', nome: 'Aprovações', icone: iconeAprovacoes },
+    { rota: '/admin/usuarios', nome: 'Usuários', icone: iconeUsuarios },
+    { rota: '/admin/historico', nome: 'Histórico', icone: iconeHistorico },
+    { rota: '/admin/visao-geral', nome: 'Visão geral', icone: iconeVisaoGeral },
   ],
 }
 
@@ -65,6 +75,7 @@ function ItemMenu({ to, end = false, classe = '', children }) {
 export function MenuLateral({ aoSair, perfil = 'organizador' }) {
   const dadosPerfil = PERFIS[perfil] ?? PERFIS.organizador
   const itens = ITENS[perfil]
+  const { mensagensNaoLidas } = useTempoReal()
   const usuario = usuarioAtual()
   const nomeExibicao = usuario?.nome || dadosPerfil.nome
   const [eventosRecentes, setEventosRecentes] = useState([])
@@ -106,19 +117,39 @@ export function MenuLateral({ aoSair, perfil = 'organizador' }) {
             {dadosPerfil.area}
           </p>
         </div>
+        <NotificacoesDoMenu perfil={perfil} />
       </div>
 
       {itens ? (
-        itens.map((item) => (
-          <ItemMenu key={item.rota} to={item.rota}>
-            {item.nome}
-          </ItemMenu>
-        ))
+        <>
+          {itens.map((item) => (
+            <ItemMenu key={item.rota} to={item.rota}>
+              <Icone src={item.icone} />
+              {item.nome}
+              {item.comMensagens && (
+                <ContadorDeNaoLidas
+                  total={mensagensNaoLidas.total}
+                  maximo={9}
+                  className="menu__contador"
+                />
+              )}
+            </ItemMenu>
+          ))}
+        </>
       ) : (
         <>
           <ItemMenu to="/organizador/eventos" end>
             <Icone src={iconeEventos} />
             Todos os eventos
+          </ItemMenu>
+          <ItemMenu to="/organizador/chats">
+            <Icone src={iconeChats} />
+            Chats
+            <ContadorDeNaoLidas
+              total={mensagensNaoLidas.total}
+              maximo={9}
+              className="menu__contador"
+            />
           </ItemMenu>
 
           {eventosRecentes.length > 0 && (

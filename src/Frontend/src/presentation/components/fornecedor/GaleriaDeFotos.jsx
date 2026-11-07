@@ -22,8 +22,9 @@ import { useRenovarFotosVencidas } from '../../hooks/useRenovarFotosVencidas.js'
 
 const TIPOS_ACEITOS = TIPOS_DE_FOTO.join(',')
 
-// na proposta nova ainda não existe onde guardar a foto: ela vai junto com o rascunho
-export function GaleriaDeFotos({ proposalKey, eventKey, itemKey }) {
+// na proposta nova ainda não existe onde guardar a foto: ela vai junto com o rascunho;
+// fotosJaEnviadas: as da proposta retirada, que continuam nela ao enviar de novo
+export function GaleriaDeFotos({ proposalKey, eventKey, itemKey, fotosJaEnviadas = [] }) {
   return (
     <section className="proposta-detalhes__fotos" aria-labelledby="titulo-fotos-servico">
       <div className="proposta-detalhes__cabecalho-fotos">
@@ -34,12 +35,15 @@ export function GaleriaDeFotos({ proposalKey, eventKey, itemKey }) {
       {proposalKey ? (
         <FotosDaProposta key={proposalKey} proposalKey={proposalKey} />
       ) : (
-        <FotosPendentes eventKey={eventKey} itemKey={itemKey} />
+        <FotosPendentes eventKey={eventKey} itemKey={itemKey} fixas={fotosJaEnviadas} />
       )}
 
       <p className="proposta-detalhes__ajuda-fotos">
         Até {LIMITE_DE_FOTOS} fotos JPG, PNG ou WebP, com no máximo 5 MB cada.
         {!proposalKey && ' Elas são enviadas junto com a proposta.'}
+        {!proposalKey &&
+          fotosJaEnviadas.length > 0 &&
+          ' As fotos que você já tinha enviado continuam na proposta; para trocar, use Editar depois do envio.'}
       </p>
     </section>
   )
@@ -60,7 +64,7 @@ function fotoEscolhida(evento) {
 // o navegador não diz se dois File são o mesmo arquivo do disco: nome, tamanho e data bastam aqui
 const identidadeDoArquivo = (arquivo) => `${arquivo.name}|${arquivo.size}|${arquivo.lastModified}`
 
-function FotosPendentes({ eventKey, itemKey }) {
+function FotosPendentes({ eventKey, itemKey, fixas }) {
   const [arquivos, setArquivos] = useState(() => lerFotosPendentes(eventKey, itemKey))
 
   function guardar(novos) {
@@ -81,6 +85,7 @@ function FotosPendentes({ eventKey, itemKey }) {
 
   return (
     <Galeria
+      fixas={fixas.map((foto) => ({ ...foto, chave: foto.photo_key }))}
       fotos={arquivos.map((arquivo) => ({ chave: identidadeDoArquivo(arquivo), arquivo }))}
       aoAdicionar={adicionar}
       aoRemover={(indice) => guardar(arquivos.filter((_, posicao) => posicao !== indice))}
@@ -222,12 +227,25 @@ function FotosDaProposta({ proposalKey }) {
 }
 
 // a região viva à parte fica vazia sem ocupadoCom, para a volta ao "Adicionar" não ser anunciada
-function Galeria({ refDaGaleria, fotos, ocupadoCom = null, aoAdicionar, aoRemover, aoFalharFoto }) {
+function Galeria({
+  refDaGaleria,
+  fixas = [],
+  fotos,
+  ocupadoCom = null,
+  aoAdicionar,
+  aoRemover,
+  aoFalharFoto,
+}) {
   return (
     <div ref={refDaGaleria} className="proposta-detalhes__galeria">
       <span role="status" className="so-leitor">
         {ocupadoCom}
       </span>
+      {fixas.map((foto, indice) => (
+        <div key={foto.chave} className="proposta-detalhes__foto-item">
+          <FotoDoServico foto={foto} indice={indice} aoFalharFoto={aoFalharFoto} />
+        </div>
+      ))}
       {fotos.map((foto, indice) => (
         <div key={foto.chave} className="proposta-detalhes__foto-item">
           <FotoDoServico foto={foto} indice={indice} aoFalharFoto={aoFalharFoto} />
@@ -242,7 +260,7 @@ function Galeria({ refDaGaleria, fotos, ocupadoCom = null, aoAdicionar, aoRemove
         </div>
       ))}
 
-      {fotos.length < LIMITE_DE_FOTOS && (
+      {fixas.length + fotos.length < LIMITE_DE_FOTOS && (
         <label className="proposta-detalhes__adicionar">
           <Icone src={iconeAdicionar} />
           <span aria-hidden="true">{ocupadoCom ?? 'Adicionar'}</span>

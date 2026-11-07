@@ -37,7 +37,7 @@ export class SecurityTools {
       throw new Unauthorized()
     }
 
-    return { userKey: tokenContent.user_key, profile: tokenContent.profile, issuedAt: tokenContent.iat }
+    return { userKey: tokenContent.user_key, profile: tokenContent.profile, issuedAt: tokenContent.iat, expiresAt: tokenContent.exp }
   }
 
   static requireProfile(context, allowedProfiles) {

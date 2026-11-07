@@ -33,6 +33,8 @@ const EventoTicket = doOrganizador('EventoTicket')
 const PropostaRecebida = doOrganizador('PropostaRecebida')
 const Configuracoes = comuns('Configuracoes')
 const Duvidas = comuns('Duvidas')
+const Notificacoes = comuns('Notificacoes')
+const Conversas = comuns('Conversas')
 const EventosDisponiveis = doFornecedor('EventosDisponiveis')
 const EventoDisponivel = doFornecedor('EventoDisponivel')
 const EnviarProposta = doFornecedor('EnviarProposta')
@@ -75,6 +77,8 @@ export function AppRoutes() {
             <Route path="/organizador/eventos/:id/ticket" element={<EventoTicket />} />
             <Route path="/organizador/configuracoes" element={<Configuracoes />} />
             <Route path="/organizador/duvidas" element={<Duvidas />} />
+            <Route path="/organizador/notificacoes" element={<Notificacoes />} />
+            <Route path="/organizador/chats" element={<Conversas />} />
           </Route>
 
           <Route element={<AreaDoPerfil perfil="fornecedor" />}>
@@ -88,6 +92,8 @@ export function AppRoutes() {
               element={<Configuracoes perfil="fornecedor" />}
             />
             <Route path="/fornecedor/duvidas" element={<Duvidas perfil="fornecedor" />} />
+            <Route path="/fornecedor/notificacoes" element={<Notificacoes perfil="fornecedor" />} />
+            <Route path="/fornecedor/chats" element={<Conversas perfil="fornecedor" />} />
             <Route
               path="/fornecedor/eventos/:id/itens/:itemKey/propostas/etapa-1"
               element={<EnviarProposta />}
@@ -105,6 +111,7 @@ export function AppRoutes() {
           <Route element={<AreaDoPerfil perfil="admin" />}>
             <Route path="/admin" element={<Navigate to="/admin/aprovacoes" replace />} />
             <Route path="/admin/aprovacoes" element={<Aprovacoes />} />
+            <Route path="/admin/notificacoes" element={<Notificacoes perfil="admin" />} />
             <Route path="/admin/usuarios" element={<Usuarios />} />
             <Route path="/admin/historico" element={<Historico />} />
             <Route path="/admin/visao-geral" element={<VisaoGeral />} />

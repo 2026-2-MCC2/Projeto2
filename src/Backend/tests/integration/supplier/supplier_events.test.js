@@ -99,16 +99,16 @@ describe('GET /supplier/events', () => {
       name: 'Evento visível para Estrutura',
       categories: ['Estrutura'],
     })
-    await createEventWithItems(organizerHeaders, {
+    const draft = await createEventWithItems(organizerHeaders, {
       name: 'Evento em rascunho',
       categories: ['Estrutura'],
       publish: false,
     })
-    await createEventWithItems(organizerHeaders, {
+    const otherCategory = await createEventWithItems(organizerHeaders, {
       name: 'Evento sem categoria compatível',
       categories: ['Alimentação'],
     })
-    await createEventWithItems(organizerHeaders, {
+    const closed = await createEventWithItems(organizerHeaders, {
       name: 'Evento encerrado',
       categories: ['Estrutura'],
       status: 'closed',
@@ -116,16 +116,18 @@ describe('GET /supplier/events', () => {
 
     const [status, response] = await RequestGenerator.GET_supplier_events({}, supplierHeaders)
 
+    // confere só os eventos deste teste: o banco de desenvolvimento pode ter outros em cotação
+    const keys = response.data.map((event) => event.event_key)
     assert.equal(status, 200)
-    assert.equal(response.total, 1)
-    assert.equal(response.data.length, 1)
-    assert.equal(response.data[0].event_key, visible.event.event_key)
-    assert.deepEqual(response.data[0].categories, ['Estrutura'])
-    assert.equal(response.data[0].items_count, 1)
-    assert.equal('profit_margin' in response.data[0], false)
-    assert.equal('internal_costs' in response.data[0], false)
-    assert.equal('total_internal_cost' in response.data[0], false)
-    assert.equal('total_cost' in response.data[0], false)
+    assert.equal(keys.includes(visible.event.event_key), true)
+    for (const hidden of [draft, otherCategory, closed]) assert.equal(keys.includes(hidden.event.event_key), false)
+    const listed = response.data.find((event) => event.event_key === visible.event.event_key)
+    assert.deepEqual(listed.categories, ['Estrutura'])
+    assert.equal(listed.items_count, 1)
+    assert.equal('profit_margin' in listed, false)
+    assert.equal('internal_costs' in listed, false)
+    assert.equal('total_internal_cost' in listed, false)
+    assert.equal('total_cost' in listed, false)
   })
 
   test('aplica busca e paginação aos eventos visíveis', async () => {

@@ -8,6 +8,7 @@
       "enum": [
         "tax",
         "operational",
+        "variable",
         "other"
       ]
     },

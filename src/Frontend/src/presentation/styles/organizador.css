@@ -14,10 +14,18 @@
   flex-direction: column;
   gap: 0.25rem;
   flex-shrink: 0;
-  width: 240px;
+  width: 272px;
   padding: 1.5rem 1rem;
   border-right: 1px solid var(--borda-padrao);
   background: var(--fundo-superficie);
+  /* altura da tela e preso no lugar: só o conteúdo ao lado rola; com muitos recentes, rola por dentro */
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  height: 100vh;
+  height: 100dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .menu__marca {
@@ -289,6 +297,7 @@
 
 .barra {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 1rem;
@@ -299,7 +308,7 @@
 
 .barra__busca {
   display: flex;
-  flex: 1;
+  flex: 1 1 12rem;
   align-items: center;
   gap: 0.625rem;
   min-width: 0;
@@ -336,6 +345,7 @@
 
 .barra__filtros {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
 }
 
@@ -859,6 +869,12 @@
   font-weight: 400;
 }
 
+/* e-mail longo quebra linha em vez de empurrar o cadeado para fora do campo */
+.campo__valor {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .campo__bloqueado .icone {
   width: 15px;
   height: 15px;
@@ -1101,7 +1117,7 @@
   font-weight: 700;
 }
 
-.topo__marca span {
+.topo__marca p span {
   color: var(--texto-terciario);
   font-size: 0.75rem;
   font-weight: 500;
@@ -1225,9 +1241,10 @@
 
 .aba__nome {
   max-width: 100%;
+  overflow: hidden;
   text-align: center;
-  overflow-wrap: anywhere;
-  hyphens: auto;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .aba__marcador {
@@ -1249,6 +1266,28 @@
   font-weight: 600;
 }
 
+/* os SVGs vêm com cores de base diferentes: no menu e nas abas todos ficam cinza e só o ativo fica azul */
+.menu__item,
+.aba {
+  --icone-cor: var(--icone-padrao);
+}
+
+.menu__item--ativo,
+.aba--ativa {
+  --icone-cor: var(--texto-marca);
+}
+
+/* cinco abas (admin) em celular estreito: menos respiro para "Aprovações" caber inteiro */
+@media (max-width: 360px) {
+  .abas {
+    padding-inline: 0;
+  }
+
+  .aba {
+    letter-spacing: -0.01em;
+  }
+}
+
 .aba--ativa .aba__marcador {
   background: var(--fundo-marca-suave);
 }
@@ -1257,13 +1296,15 @@
 
 .evento-topo {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 1rem;
 }
 
+/* com pouco espaço as ações descem para baixo do título em vez de espremer o selo */
 .evento-topo__titulos {
   display: flex;
-  flex: 1;
+  flex: 1 1 22rem;
   flex-direction: column;
   gap: 0.375rem;
   min-width: 0;
@@ -1290,8 +1331,14 @@
 
 .evento-topo__nome {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.75rem;
+}
+
+.evento-topo__nome .etiqueta {
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .evento-topo__nome h1 {
@@ -1308,6 +1355,7 @@
 
 .evento-topo__acoes {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.625rem;
 }
 
@@ -1745,6 +1793,23 @@
   width: 340px;
 }
 
+/* com o menu lateral aberto sobra pouco espaço: a coluna lateral desce para baixo da principal */
+@media (min-width: 901px) and (max-width: 1200px) {
+  .colunas {
+    flex-wrap: wrap;
+  }
+
+  .colunas__principal {
+    flex-basis: 26rem;
+  }
+
+  .colunas__lateral,
+  .colunas__lateral--estreita {
+    flex: 1 1 300px;
+    width: auto;
+  }
+}
+
 .cenarios-grade {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
@@ -1894,6 +1959,10 @@
 .grafico__rotulo {
   fill: var(--texto-terciario);
   font-size: calc(11px * var(--escala-texto, 1));
+}
+
+.grafico--celular .grafico__rotulo {
+  font-size: calc(12px * var(--escala-texto, 1));
 }
 
 .grafico__rotulo--destaque {
@@ -2181,6 +2250,14 @@
 .aba-item--ativa .aba-item__conta {
   background: color-mix(in srgb, var(--acao-sobre-primaria) 25%, transparent);
   color: var(--acao-sobre-primaria);
+}
+
+.etiqueta--retirada {
+  padding: 0.25rem 0.625rem;
+  border: 1px dashed var(--borda-forte);
+  background: var(--fundo-sutil);
+  color: var(--texto-terciario);
+  font-size: 0.6875rem;
 }
 
 .etiqueta--vencida {
@@ -2555,6 +2632,7 @@
   .barra {
     display: flex;
     flex-direction: column;
+    flex-wrap: nowrap;
     align-items: stretch;
     gap: 0.625rem;
     padding: 0;
@@ -2563,7 +2641,9 @@
     background: none;
   }
 
+  /* em coluna, a base flexível do desktop viraria altura */
   .barra__busca {
+    flex: none;
     padding: 0.75rem 0.875rem;
     border: 1px solid var(--borda-padrao);
     border-radius: 10px;
@@ -2850,6 +2930,7 @@
 }
 
 .cartao-proposta {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -2880,6 +2961,25 @@
 
 .cartao-proposta__fornecedor:hover {
   color: var(--texto-marca);
+}
+
+/* o link do nome cobre o card inteiro; o botão de selecionar fica por cima dele */
+.cartao-proposta__fornecedor::after,
+.lista-propostas__fornecedor a::after {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  content: '';
+}
+
+.lista-propostas__linha {
+  position: relative;
+}
+
+.cartao-proposta .botao,
+.lista-propostas__linha .botao {
+  position: relative;
+  z-index: 1;
 }
 
 .cartao-proposta__valor {
