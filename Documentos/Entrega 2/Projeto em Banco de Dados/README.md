@@ -1,6 +1,17 @@
 # Banco de dados
 
-Banco **MySQL 8** da Gestão Troca Ticket, com 12 tabelas. O script de criação está em [`database.sql`](database.sql) e segue o [modelo da Entrega 1](../../Entrega%201/Projeto%20em%20Banco%20de%20Dados).
+Banco **MySQL 8** da Gestão Troca Ticket, com 14 tabelas. O script de criação está em [`database.sql`](database.sql) e evolui o [modelo da Entrega 1](../../Entrega%201/Projeto%20em%20Banco%20de%20Dados).
+
+## Modelos
+
+| Modelo     | Arquivo                                                                                                |
+| ---------- | ------------------------------------------------------------------------------------------------------ |
+| Conceitual | [`Gestão_Troca_Ticket_DER.png`](Gestão_Troca_Ticket_DER.png)                                           |
+| Lógico     | [`Modelo_Logico_Relacional_Gestão_Troca_Ticket.png`](Modelo_Logico_Relacional_Gestão_Troca_Ticket.png) |
+
+![Modelo conceitual](Gestão_Troca_Ticket_DER.png)
+
+![Modelo lógico](Modelo_Logico_Relacional_Gestão_Troca_Ticket.png)
 
 ## Como as tabelas se ligam
 
@@ -18,6 +29,9 @@ Banco **MySQL 8** da Gestão Troca Ticket, com 12 tabelas. O script de criação
 | `budget_item`   | recebe        | `proposal`             | 1 : N         |
 | `supplier`      | envia         | `proposal`             | 1 : N         |
 | `proposal`      | tem           | `proposal_photo`       | 1 : N         |
+| `proposal`      | tem conversa  | `proposal_message`     | 1 : N         |
+| `user`          | envia         | `proposal_message`     | 1 : N         |
+| `user`          | recebe        | `notification`         | 1 : N         |
 
 ## Do modelo da Entrega 1 para o banco
 
@@ -34,12 +48,14 @@ As entidades do modelo foram mantidas, com nomes em inglês (padrão do código)
 | `Item_orcamento` | `budget_item`   |
 | `Proposta`       | `proposal`      |
 
-Quatro tabelas novas surgiram na implementação:
+Seis tabelas novas surgiram na implementação:
 
 - `user_status_event`: histórico de quem aprovou, rejeitou ou bloqueou cada cadastro, e por quê.
 - `supplier_category`: o fornecedor pode atuar em várias categorias (antes era uma só).
 - `proposal_photo`: fotos de trabalhos anteriores anexadas à proposta.
 - `password_reset_token`: links de "Esqueceu sua senha?" enviados por e-mail.
+- `notification`: notificações de cada usuário (sininho), entregues também em tempo real.
+- `proposal_message`: mensagens do chat entre o fornecedor e o organizador de cada proposta.
 
 ## Tabelas
 
@@ -145,12 +161,12 @@ A margem entra no cálculo do ticket: `ticket = custo total ÷ [público × (1 �
 
 Custos do próprio evento, que não passam por cotação.
 
-| Campo         | Tipo                          | Regra              |
-| ------------- | ----------------------------- | ------------------ |
-| `event_id`    | INT                           | FK → `event`       |
-| `type`        | ENUM(tax, operational, other) | obrigatório        |
-| `description` | VARCHAR(255)                  | obrigatório        |
-| `amount`      | DECIMAL(12,2)                 | maior ou igual a 0 |
+| Campo         | Tipo                                    | Regra              |
+| ------------- | --------------------------------------- | ------------------ |
+| `event_id`    | INT                                     | FK → `event`       |
+| `type`        | ENUM(tax, operational, variable, other) | obrigatório        |
+| `description` | VARCHAR(255)                            | obrigatório        |
+| `amount`      | DECIMAL(12,2)                           | maior ou igual a 0 |
 
 ### budget_item
 
@@ -168,23 +184,23 @@ Item que o evento precisa contratar e que os fornecedores cotam.
 
 ### proposal
 
-Proposta de um fornecedor para um item. Cada fornecedor manda uma proposta por item.
+Proposta de um fornecedor para um item. Cada fornecedor manda uma proposta por item. Retirar não apaga: a proposta fica como `withdrawn` e, se o fornecedor enviar de novo, a mesma linha volta para `sent`.
 
-| Campo            | Tipo                                                   | Regra                 |
-| ---------------- | ------------------------------------------------------ | --------------------- |
-| `budget_item_id` | INT                                                    | FK → `budget_item`    |
-| `supplier_id`    | INT                                                    | FK → `supplier`       |
-| `amount`         | DECIMAL(12,2)                                          | maior que 0           |
-| `description`    | TEXT                                                   | obrigatório           |
-| `not_included`   | VARCHAR(500)                                           | opcional              |
-| `delivery_terms` | VARCHAR(255)                                           | prazo de entrega      |
-| `payment_terms`  | VARCHAR(255)                                           | condição de pagamento |
-| `team`           | VARCHAR(255)                                           | opcional              |
-| `warranty`       | VARCHAR(255)                                           | opcional              |
-| `valid_until`    | DATE                                                   | validade da proposta  |
-| `notes`          | TEXT                                                   | opcional              |
-| `status`         | ENUM(sent, under_review, accepted, rejected, canceled) | começa em `sent`      |
-| `selected`       | BOOLEAN                                                | proposta escolhida    |
+| Campo            | Tipo                                                              | Regra                                                    |
+| ---------------- | ----------------------------------------------------------------- | -------------------------------------------------------- |
+| `budget_item_id` | INT                                                               | FK → `budget_item`                                       |
+| `supplier_id`    | INT                                                               | FK → `supplier`                                          |
+| `amount`         | DECIMAL(12,2)                                                     | maior que 0                                              |
+| `description`    | TEXT                                                              | obrigatório                                              |
+| `not_included`   | VARCHAR(500)                                                      | opcional                                                 |
+| `delivery_terms` | VARCHAR(255)                                                      | prazo de entrega                                         |
+| `payment_terms`  | VARCHAR(255)                                                      | condição de pagamento                                    |
+| `team`           | VARCHAR(255)                                                      | opcional                                                 |
+| `warranty`       | VARCHAR(255)                                                      | opcional                                                 |
+| `valid_until`    | DATE                                                              | validade da proposta                                     |
+| `notes`          | TEXT                                                              | opcional                                                 |
+| `status`         | ENUM(sent, under_review, accepted, rejected, canceled, withdrawn) | começa em `sent`; `withdrawn` = retirada pelo fornecedor |
+| `selected`       | BOOLEAN                                                           | proposta escolhida                                       |
 
 ### proposal_photo
 
@@ -196,4 +212,28 @@ Até 5 fotos por proposta.
 | `position`    | TINYINT      | de 1 a 5, sem repetir |
 | `url`         | VARCHAR(500) | endereço do arquivo   |
 
-Apagar um evento apaga junto seus custos, itens, propostas e fotos.
+### notification
+
+Notificação de um usuário: proposta recebida, aceita ou recusada, mensagem nova, evento publicado ou cancelado e, para o administrador, cadastro novo para aprovar.
+
+| Campo     | Tipo                  | Regra                                               |
+| --------- | --------------------- | --------------------------------------------------- |
+| `user_id` | INT                   | FK → `user` (quem recebe)                           |
+| `type`    | ENUM (tipos de aviso) | `message`, `proposal_received`, `user_pending` etc. |
+| `title`   | VARCHAR(150)          | obrigatório                                         |
+| `body`    | VARCHAR(500)          | obrigatório                                         |
+| `link`    | VARCHAR(255)          | tela do sistema que a notificação abre              |
+| `read_at` | DATETIME              | quando foi lida, ou nulo                            |
+
+### proposal_message
+
+Mensagem do chat de uma proposta, entre o fornecedor dono dela e o organizador do evento. A conversa fica só para leitura quando o evento sai da cotação ou a proposta é retirada.
+
+| Campo            | Tipo          | Regra                            |
+| ---------------- | ------------- | -------------------------------- |
+| `proposal_id`    | INT           | FK → `proposal`                  |
+| `sender_user_id` | INT           | FK → `user` (quem enviou)        |
+| `body`           | VARCHAR(2000) | obrigatório                      |
+| `read_at`        | DATETIME      | quando o outro lado leu, ou nulo |
+
+Apagar um evento apaga junto seus custos, itens, propostas, fotos e mensagens. Apagar um usuário apaga suas notificações.

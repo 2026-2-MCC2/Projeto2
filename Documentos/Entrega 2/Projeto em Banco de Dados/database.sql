@@ -119,7 +119,7 @@ CREATE TABLE internal_cost(
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     internal_cost_key               CHAR(36) NOT NULL,
     event_id                        INT NOT NULL,
-    type                            ENUM('tax', 'operational', 'other') NOT NULL,
+    type                            ENUM('tax', 'operational', 'variable', 'other') NOT NULL,
     description                     VARCHAR(255) NOT NULL,
     amount                          DECIMAL(12,2) NOT NULL,
     created_at                      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -191,7 +191,7 @@ CREATE TABLE proposal(
     warranty                        VARCHAR(255) NULL,
     valid_until                     DATE NOT NULL,
     notes                           TEXT NULL,
-    status                          ENUM('sent', 'under_review', 'accepted', 'rejected', 'canceled') NOT NULL DEFAULT 'sent',
+    status                          ENUM('sent', 'under_review', 'accepted', 'rejected', 'canceled', 'withdrawn') NOT NULL DEFAULT 'sent',
     selected                        BOOLEAN NOT NULL DEFAULT FALSE,
     sent_at                         TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(proposal_key),
@@ -211,4 +211,35 @@ CREATE TABLE proposal_photo(
     UNIQUE(proposal_id, position),
     FOREIGN KEY (proposal_id) REFERENCES proposal(id) ON DELETE CASCADE,
     CHECK (position BETWEEN 1 AND 5)
+);
+
+-- Notificações de cada usuário (sininho).
+CREATE TABLE notification(
+    id                              INT AUTO_INCREMENT PRIMARY KEY,
+    notification_key                CHAR(36) NOT NULL,
+    user_id                         INT NOT NULL,
+    type                            ENUM('message', 'proposal_received', 'proposal_updated', 'proposal_withdrawn',
+                                         'proposal_accepted', 'proposal_rejected', 'event_canceled', 'event_published',
+                                         'user_pending') NOT NULL,
+    title                           VARCHAR(150) NOT NULL,
+    body                            VARCHAR(500) NOT NULL,
+    link                            VARCHAR(255) NULL,
+    read_at                         DATETIME NULL,
+    created_at                      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(notification_key),
+    FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
+);
+
+-- Mensagens da conversa de uma proposta. A proposta retirada mantém a conversa, só para leitura.
+CREATE TABLE proposal_message(
+    id                              INT AUTO_INCREMENT PRIMARY KEY,
+    message_key                     CHAR(36) NOT NULL,
+    proposal_id                     INT NOT NULL,
+    sender_user_id                  INT NOT NULL,
+    body                            VARCHAR(2000) NOT NULL,
+    read_at                         DATETIME NULL,
+    created_at                      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(message_key),
+    FOREIGN KEY (proposal_id) REFERENCES proposal(id) ON DELETE CASCADE,
+    FOREIGN KEY (sender_user_id) REFERENCES user(id) ON DELETE CASCADE
 );
