@@ -13,7 +13,11 @@ export function EtapaDaProposta({ proposta, etapa, aoVoltar, rodape, children })
   const isMobile = useIsMobile()
   const { carregando, erro, evento, item, tentarDeNovo, eventKey } = proposta
   const paginaDoEvento = `/fornecedor/eventos/${eventKey}`
-  const titulo = proposta.editando ? 'Editar proposta' : 'Enviar proposta'
+  const titulo = proposta.editando
+    ? 'Editar proposta'
+    : proposta.reenviando
+      ? 'Enviar de novo'
+      : 'Enviar proposta'
 
   if (carregando) {
     return (
@@ -51,8 +55,25 @@ export function EtapaDaProposta({ proposta, etapa, aoVoltar, rodape, children })
     )
   }
 
+  // avisa antes de preencher: o envio seria recusado no fim
+  if ((!item.my_proposal || proposta.reenviando) && item.decided) {
+    return (
+      <OrganizadorLayout perfil="fornecedor" titulo="Item encerrado" voltarPara={paginaDoEvento}>
+        <Vazio
+          icone="atencao"
+          titulo="Este item não recebe mais propostas"
+          mensagem="O organizador já escolheu uma proposta para este item."
+        >
+          <Link to={paginaDoEvento} className="botao botao--secundario">
+            Voltar para o evento
+          </Link>
+        </Vazio>
+      </OrganizadorLayout>
+    )
+  }
+
   // proposta já analisada pelo organizador: só a consulta (a enviada vira edição, ver usePropostaEmEdicao)
-  if (item.my_proposal && !proposta.editando) {
+  if (item.my_proposal && !proposta.editando && !proposta.reenviando) {
     return (
       <OrganizadorLayout perfil="fornecedor" titulo="Proposta enviada" voltarPara={paginaDoEvento}>
         <Vazio

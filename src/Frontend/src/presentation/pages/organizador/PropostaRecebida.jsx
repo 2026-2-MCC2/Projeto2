@@ -17,6 +17,7 @@ import {
   iniciais,
 } from '../../../domain/formatacao.js'
 import { Carregando, ErroNaTela, Vazio } from '../../components/comum/EstadoDaTela.jsx'
+import { BotaoDaConversa } from '../../components/conversa/Conversa.jsx'
 import { Cartao } from '../../components/organizador/Cartao.jsx'
 import { EventoLayout } from '../../components/organizador/EventoLayout.jsx'
 import { Botao } from '../../components/organizador/Formulario.jsx'
@@ -257,6 +258,12 @@ export function PropostaRecebida() {
                 Recusar proposta
               </Botao>
             )}
+            <BotaoDaConversa
+              chaveDaProposta={proposalKey}
+              perfil="organizador"
+              rotulo="Conversar com o fornecedor"
+              className="botao-da-conversa--bloco"
+            />
           </Cartao>
 
           {outras.length > 0 && (
@@ -268,7 +275,11 @@ export function PropostaRecebida() {
                       <Link to={`/organizador/eventos/${id}/propostas/${outra.proposal_key}`}>
                         {outra.supplier_name}
                       </Link>
-                      {outra.is_expired && <small> · vencida</small>}
+                      {outra.status === 'withdrawn' ? (
+                        <small> · retirada</small>
+                      ) : (
+                        outra.is_expired && <small> · vencida</small>
+                      )}
                     </dt>
                     <dd>{formatarMoeda(outra.amount)}</dd>
                   </div>
@@ -329,6 +340,8 @@ function EtiquetaDaSituacao({ proposta, menorValor }) {
     return <span className="etiqueta etiqueta--rejeitado">Recusada</span>
   if (proposta.status === 'canceled')
     return <span className="etiqueta etiqueta--rejeitado">Cancelada</span>
+  if (proposta.status === 'withdrawn')
+    return <span className="etiqueta etiqueta--retirada">Retirada</span>
   if (proposta.is_expired) return <span className="etiqueta etiqueta--vencida">Vencida</span>
   if (menorValor) return <span className="etiqueta etiqueta--aprovado">Menor valor</span>
   return null
@@ -342,6 +355,8 @@ function textoDaDiferenca(valor, previsto) {
 
 function textoDaDecisao(proposta, item, eventoEmCotacao) {
   if (proposta.status === 'canceled') return 'O evento foi cancelado e esta proposta foi encerrada.'
+  if (proposta.status === 'withdrawn')
+    return 'O fornecedor retirou esta proposta. Ela fica aqui para consulta, com a conversa.'
   if (proposta.status === 'accepted') return 'Esta é a proposta escolhida para o item.'
   if (proposta.status === 'rejected' && !itemJaDecidido(item))
     return 'Esta proposta foi recusada e continua disponível para consulta.'

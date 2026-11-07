@@ -49,7 +49,7 @@
   font-size: 1.5rem;
   font-weight: 600;
   line-height: 1.2;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .visao-geral__detalhe {
@@ -190,6 +190,41 @@
   text-align: right;
 }
 
+/* valores e cabeçalhos não quebram no meio; sem espaço, a tabela rola de lado */
+.visao-geral__tabela th,
+.visao-geral__tabela .visao-geral__celula--custos,
+.visao-geral__tabela .visao-geral__celula--ticket {
+  overflow-wrap: normal;
+  white-space: nowrap;
+}
+
+@media (min-width: 901px) and (max-width: 1200px) {
+  .visao-geral__indicadores {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .visao-geral__filtros {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .visao-geral__filtros-acoes {
+    grid-column: 1 / -1;
+  }
+
+  .visao-geral__tabela {
+    min-width: 880px;
+  }
+
+  .visao-geral__tabela th,
+  .visao-geral__tabela td {
+    padding-inline: 0.875rem;
+  }
+
+  .visao-geral__valor {
+    font-size: 1.25rem;
+  }
+}
+
 .visao-geral__etiqueta {
   display: inline-flex;
   padding: 0.25rem 0.625rem;
@@ -310,12 +345,13 @@
   }
 
   .organizador--admin .aba__marcador {
-    padding: 0.3125rem 0.875rem;
+    padding: 0.3125rem 0.625rem;
   }
 
+  /* os SVGs vêm em caixas de 18 e 22: tamanho fixo para todos ficarem iguais e alinhados */
   .organizador--admin .aba__marcador .icone {
-    width: auto;
-    height: auto;
+    width: 20px;
+    height: 20px;
   }
 
   .visao-geral__indicadores {

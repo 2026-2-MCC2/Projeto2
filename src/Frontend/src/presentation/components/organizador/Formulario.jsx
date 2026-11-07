@@ -15,7 +15,7 @@ export function CampoFixo({ rotulo, valor, ajuda, icone }) {
     <div className="campo">
       <span>{rotulo}</span>
       <p className="campo__bloqueado">
-        {valor}
+        <span className="campo__valor">{valor}</span>
         {icone && <Icone src={icone} />}
       </p>
       {ajuda && <small>{ajuda}</small>}

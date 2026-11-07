@@ -32,8 +32,14 @@ const pessoas = (quantidade) => Number(quantidade).toLocaleString('pt-BR')
 
 const FILTROS = {
   todos: () => true,
-  falta: (item) => !item.my_proposal,
-  enviadas: (item) => Boolean(item.my_proposal),
+  // item em que o organizador já escolheu outra proposta não conta como pendente;
+  // a retirada conta como pendente, porque dá para enviar de novo
+  falta: (item) => !propostaAtiva(item) && !item.decided,
+  enviadas: (item) => propostaAtiva(item),
+}
+
+function propostaAtiva(item) {
+  return Boolean(item.my_proposal) && item.my_proposal.status !== 'withdrawn'
 }
 
 export function EventoDisponivel() {
@@ -70,11 +76,14 @@ export function EventoDisponivel() {
 
   const itens = evento.items
   const enviadas = itens.filter(FILTROS.enviadas).length
+  const faltam = itens.filter(FILTROS.falta).length
   const visiveis = itens.filter(FILTROS[filtro])
+  // item que o organizador decidiu sem proposta minha não entra no "Você enviou X de Y"
+  const cotaveis = itens.filter((item) => propostaAtiva(item) || !item.decided)
 
   const conteudo = (
     <>
-      <ResumoDoEvento evento={evento} faltam={itens.length - enviadas} comCabecalho={!isMobile} />
+      <ResumoDoEvento evento={evento} faltam={faltam} comCabecalho={!isMobile} />
 
       {itens.length === 0 ? (
         <Vazio icone="eventos" titulo="Nenhum item nas suas categorias" />
@@ -91,11 +100,11 @@ export function EventoDisponivel() {
                   rotulo: isMobile ? 'Todos' : 'Todos os itens',
                   quantidade: itens.length,
                 },
-                { chave: 'falta', rotulo: 'Falta enviar', quantidade: itens.length - enviadas },
+                { chave: 'falta', rotulo: 'Falta enviar', quantidade: faltam },
                 { chave: 'enviadas', rotulo: 'Enviadas', quantidade: enviadas },
               ]}
             />
-            <Andamento itens={itens} />
+            <Andamento itens={cotaveis} />
           </div>
 
           <div className="colunas">
@@ -225,6 +234,7 @@ const TRECHO_DA_SITUACAO = {
   accepted: 'aceita',
   rejected: 'recusada',
   canceled: 'recusada',
+  withdrawn: 'vazio',
 }
 
 function Andamento({ itens }) {
@@ -257,11 +267,13 @@ const trechoDoItem = (item) =>
   item.my_proposal ? TRECHO_DA_SITUACAO[item.my_proposal.status] : 'vazio'
 
 function CartaoDoItem({ eventKey, item }) {
-  const proposta = item.my_proposal
+  const retirada = item.my_proposal?.status === 'withdrawn' ? item.my_proposal : null
+  const proposta = retirada ? null : item.my_proposal
   const comparacao = proposta && comparacaoComPrevisto(proposta.amount, item.estimated_value)
+  const rotaDoEnvio = `/fornecedor/eventos/${eventKey}/itens/${item.item_key}/propostas/etapa-1`
 
   return (
-    <li className={`item-do-evento${proposta ? '' : ' item-do-evento--pendente'}`}>
+    <li className={`item-do-evento${proposta || item.decided ? '' : ' item-do-evento--pendente'}`}>
       <div className="item-do-evento__informacoes">
         <span className="fornecedor-evento__categorias">{item.category}</span>
         <h3>{item.description}</h3>
@@ -297,15 +309,40 @@ function CartaoDoItem({ eventKey, item }) {
               <Icone src={iconeAvancar} />
             </Link>
           </>
+        ) : item.decided ? (
+          <>
+            <span className="item-do-evento__rotulo">Item encerrado</span>
+            <p>O organizador já escolheu uma proposta para este item.</p>
+            {retirada && (
+              <Link to={`/fornecedor/propostas/${retirada.proposal_key}`} className="link-com-seta">
+                Ver proposta retirada
+                <Icone src={iconeAvancar} />
+              </Link>
+            )}
+          </>
+        ) : retirada ? (
+          <>
+            <div className="item-do-evento__topo">
+              <span>Sua proposta</span>
+              <EtiquetaDaProposta status="withdrawn" />
+            </div>
+            <p>
+              Você retirou esta proposta. Dá para enviar de novo enquanto o evento estiver em
+              cotação.
+            </p>
+            <Link to={rotaDoEnvio} state={ENTRAR_NA_EDICAO} className="botao">
+              Enviar de novo
+            </Link>
+            <Link to={`/fornecedor/propostas/${retirada.proposal_key}`} className="link-com-seta">
+              Ver proposta retirada
+              <Icone src={iconeAvancar} />
+            </Link>
+          </>
         ) : (
           <>
             <span className="item-do-evento__rotulo">Sua proposta</span>
             <p>Você ainda não enviou proposta para este item.</p>
-            <Link
-              to={`/fornecedor/eventos/${eventKey}/itens/${item.item_key}/propostas/etapa-1`}
-              state={ENTRAR_NA_EDICAO}
-              className="botao"
-            >
+            <Link to={rotaDoEnvio} state={ENTRAR_NA_EDICAO} className="botao">
               Enviar proposta
             </Link>
           </>

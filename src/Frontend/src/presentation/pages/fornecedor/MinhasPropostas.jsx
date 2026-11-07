@@ -37,8 +37,8 @@ const FILTROS = [
   {
     chave: 'encerradas',
     rotulo: 'Encerradas',
-    status: 'canceled',
-    conta: (totais) => totais.canceled,
+    status: 'canceled,withdrawn',
+    conta: (totais) => totais.canceled + (totais.withdrawn ?? 0),
   },
 ]
 

@@ -63,6 +63,7 @@ const STATUS_DA_PROPOSTA = {
   accepted: 'Aceita',
   rejected: 'Recusada',
   canceled: 'Evento cancelado',
+  withdrawn: 'Retirada',
 }
 
 export function traduzirStatusDaProposta(status) {

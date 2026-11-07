@@ -1,0 +1,134 @@
+/* ---------- aba Chats: lista de conversas, no estilo da lista de notificações ---------- */
+
+.pagina-chats {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.chats {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--borda-padrao);
+  border-radius: 14px;
+  background: var(--fundo-superficie);
+  list-style: none;
+}
+
+.chats > li + li .chat {
+  border-top: 1px solid var(--borda-padrao);
+}
+
+.chat {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  align-items: start;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border: 0;
+  background: var(--fundo-superficie);
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.chat--nao-lida {
+  background: color-mix(in srgb, var(--fundo-marca-suave) 45%, var(--fundo-superficie));
+}
+
+.chat:hover {
+  background: var(--fundo-sutil);
+}
+
+.chat:focus-visible {
+  outline: 2px solid var(--acao-primaria);
+  outline-offset: -2px;
+}
+
+.chat__avatar {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--fundo-marca-suave);
+  color: var(--texto-marca);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.chat__online {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 11px;
+  height: 11px;
+  border: 2px solid var(--fundo-superficie);
+  border-radius: 50%;
+  background: var(--status-sucesso-forte);
+}
+
+.chat__texto {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1875rem;
+  min-width: 0;
+}
+
+.chat__linha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.chat__nome,
+.chat__contexto,
+.chat__retirada {
+  font-weight: 600;
+}
+
+.chat__trecho {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat__nome {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.chat__tempo {
+  flex-shrink: 0;
+  color: var(--texto-terciario);
+  font-size: 0.6875rem;
+}
+
+.chat__contexto {
+  color: var(--texto-terciario);
+  font-size: 0.75rem;
+}
+
+.chat__trecho {
+  color: var(--texto-secundario);
+  font-size: 0.8125rem;
+}
+
+.chat--nao-lida .chat__trecho {
+  color: var(--texto-primario);
+  font-weight: 500;
+}
+
+.chat__voce {
+  color: var(--texto-terciario);
+}
+
+.chat__contador {
+  flex-shrink: 0;
+}

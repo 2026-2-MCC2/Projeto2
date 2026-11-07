@@ -90,6 +90,7 @@ export function EnviarPropostaEtapa2() {
             </div>
             <GaleriaDeFotos
               proposalKey={proposta.proposalKey}
+              fotosJaEnviadas={proposta.fotosDaRetirada}
               eventKey={proposta.eventKey}
               itemKey={proposta.itemKey}
             />
