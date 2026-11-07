@@ -79,6 +79,7 @@ export function create() {
   addRoute(app, `${API_PREFIX}/admin/users`, adminUserResource, 'List')
   addRoute(app, `${API_PREFIX}/admin/users/:user_key/status`, adminUserResource, 'ByKey')
   addRoute(app, `${API_PREFIX}/admin/users/:user_key/redefinicao-de-senha`, adminUserResource, 'PasswordResetByKey')
+  addRoute(app, `${API_PREFIX}/admin/status-history`, adminUserResource, 'StatusHistory')
 
   const adminReportResource = new AdminReportResource()
   addRoute(app, `${API_PREFIX}/admin/reports`, adminReportResource)

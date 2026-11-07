@@ -27,6 +27,14 @@ export class RequestGenerator {
     return [response.responseStatus, response.responseJson]
   }
 
+  static async GET_admin_status_history(params = {}, headers = {}) {
+    const response = await ClientRequisition.send('GET', '/event_planning/admin/status-history', {
+      headers: headers,
+      queryParams: params,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
   static async GET_admin_reports(params = {}, headers = {}) {
     const response = await ClientRequisition.send('GET', '/event_planning/admin/reports', {
       headers: headers,

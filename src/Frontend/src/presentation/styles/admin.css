@@ -563,3 +563,143 @@
     font-size: 0.8125rem;
   }
 }
+
+/* histórico de alterações */
+
+.historico {
+  overflow: hidden;
+  border: 1px solid var(--borda-padrao);
+  border-radius: 14px;
+  background: var(--fundo-superficie);
+}
+
+.historico__cabecalho,
+.historico__linha {
+  display: grid;
+  grid-template-columns: 150px 110px minmax(0, 1fr) 110px 170px;
+  align-items: center;
+  column-gap: 1rem;
+  padding: 0.875rem 1.5rem;
+}
+
+.historico__cabecalho {
+  padding-top: 1rem;
+  padding-bottom: 0.75rem;
+  color: var(--texto-terciario);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.historico__linha {
+  min-height: 3.25rem;
+  border-top: 1px solid var(--borda-padrao);
+  font-size: 0.75rem;
+}
+
+.historico__linha p {
+  min-width: 0;
+  margin: 0;
+}
+
+.historico__data,
+.historico__empresa {
+  color: var(--texto-primario);
+  font-weight: 500;
+}
+
+.historico__motivo {
+  margin-top: 2px;
+  color: var(--texto-secundario);
+  font-weight: 400;
+  overflow-wrap: anywhere;
+}
+
+.historico__perfil,
+.historico__responsavel {
+  color: var(--texto-secundario);
+}
+
+.historico__etiqueta {
+  display: inline-flex;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.historico__etiqueta--aprovado,
+.historico__etiqueta--reativado {
+  background: var(--status-sucesso-fundo);
+  color: var(--status-sucesso-texto);
+}
+
+.historico__etiqueta--rejeitado {
+  background: var(--status-perigo-fundo);
+  color: var(--status-perigo-texto);
+}
+
+.historico__etiqueta--bloqueado {
+  background: var(--status-alerta-fundo);
+  color: var(--status-alerta-texto);
+}
+
+.historico__rotulo {
+  display: none;
+}
+
+.historico__vazio {
+  margin: 0;
+  padding: 1.5rem;
+  border-top: 1px solid var(--borda-padrao);
+  color: var(--texto-secundario);
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .historico__cabecalho {
+    display: none;
+  }
+
+  .historico__linha {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.5rem 1rem;
+    padding: 1rem;
+  }
+
+  .historico__data {
+    grid-column: 1;
+    color: var(--texto-secundario);
+    font-size: 0.6875rem;
+  }
+
+  .historico__acao {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+  }
+
+  .historico__empresa {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .historico__perfil,
+  .historico__responsavel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    font-size: 0.6875rem;
+  }
+
+  .historico__rotulo {
+    display: inline;
+    color: var(--texto-terciario);
+  }
+
+  .historico__acao .historico__rotulo {
+    display: none;
+  }
+}

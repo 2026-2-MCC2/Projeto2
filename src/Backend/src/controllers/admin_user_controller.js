@@ -27,6 +27,13 @@ export class AdminUserController extends BaseController {
     return { usersListDto: AdminUserDTO.registrationList(users), isLastPage: isLastPage }
   }
 
+  // decisões do admin, da mais recente para a mais antiga
+  async getStatusHistory(limit, offset) {
+    const rows = await this.userRepository.getStatusHistory(limit, offset)
+    const isLastPage = rows.length <= limit
+    return { events: AdminUserDTO.statusHistory(rows.slice(0, limit)), isLastPage }
+  }
+
   // reason é obrigatório ao rejeitar e ao bloquear (validado no schema)
   async changeStatus(userKey, newStatus, reason) {
     const user = await this.userRepository.getByKeyForUpdate(userKey)
