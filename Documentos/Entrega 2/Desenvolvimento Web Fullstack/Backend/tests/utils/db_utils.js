@@ -1,0 +1,368 @@
+import mysql from 'mysql2/promise'
+import { createHash, randomBytes, randomInt, randomUUID } from 'node:crypto'
+
+import { LOCAL_DATABASE_URL } from './local_secrets.js'
+
+const TEST_DATABASE_URL = process.env.TEST_DATABASE_URL ?? LOCAL_DATABASE_URL
+
+export class DbUtils {
+  // passwordHash só é necessário quando o teste faz login com o usuário
+  static async createUserFixture({
+    profile = 'organizador',
+    status = 'pending',
+    name = 'RF03 Test User',
+    userKey = randomUUID(),
+    passwordHash = 'test-password-hash',
+  } = {}) {
+    const email = `rf03-${userKey}@example.test`
+    const connection = await mysql.createConnection(TEST_DATABASE_URL)
+
+    try {
+      await connection.beginTransaction()
+      await connection.execute(
+        `INSERT INTO user (user_key, name, email, password_hash, profile, status, approved_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [userKey, name, email, passwordHash, profile, status, status === 'approved' ? new Date() : null],
+      )
+
+      const [[user]] = await connection.execute('SELECT id FROM user WHERE user_key = ?', [userKey])
+      if (profile === 'organizador') {
+        const cnpj = Array.from({ length: 14 }, () => randomInt(0, 10)).join('')
+        await connection.execute('INSERT INTO organizer (user_id, cnpj, phone) VALUES (?, ?, ?)', [user.id, cnpj, '11999999999'])
+      } else if (profile === 'fornecedor') {
+        const cnpj = Array.from({ length: 14 }, () => randomInt(0, 10)).join('')
+        await connection.execute('INSERT INTO supplier (user_id, cnpj, phone) VALUES (?, ?, ?)', [user.id, cnpj, '11999999999'])
+        await connection.execute(
+          `INSERT INTO supplier_category (supplier_id, category_id)
+           SELECT supplier.id, item_category.id FROM supplier, item_category
+           WHERE supplier.user_id = ? AND item_category.name IN ('Estrutura', 'Segurança')`,
+          [user.id],
+        )
+      }
+
+      await connection.commit()
+      return { userKey: userKey, email: email, profile: profile, status: status }
+    } catch (error) {
+      await connection.rollback()
+      throw error
+    } finally {
+      await connection.end()
+    }
+  }
+
+  static async deleteUserFixtures(userKeys) {
+    if (userKeys.length === 0) {
+      return
+    }
+
+    const connection = await mysql.createConnection(TEST_DATABASE_URL)
+    try {
+      await connection.beginTransaction()
+
+      const keyPlaceholders = userKeys.map(() => '?').join(', ')
+      const [users] = await connection.execute(`SELECT id FROM user WHERE user_key IN (${keyPlaceholders})`, userKeys)
+      const userIds = users.map((user) => user.id)
+
+      if (userIds.length > 0) {
+        const idPlaceholders = userIds.map(() => '?').join(', ')
+        const [[historyTable]] = await connection.query("SHOW TABLES LIKE 'user_status_event'")
+        if (historyTable !== undefined) {
+          await connection.execute(
+            `DELETE FROM user_status_event
+             WHERE user_id IN (${idPlaceholders}) OR admin_user_id IN (${idPlaceholders})`,
+            [...userIds, ...userIds],
+          )
+        }
+        const [organizers] = await connection.execute(`SELECT id FROM organizer WHERE user_id IN (${idPlaceholders})`, userIds)
+        const organizerIds = organizers.map((org) => org.id)
+        if (organizerIds.length > 0) {
+          const orgPlaceholders = organizerIds.map(() => '?').join(', ')
+          await connection.execute(`DELETE FROM event WHERE organizer_id IN (${orgPlaceholders})`, organizerIds)
+        }
+        await connection.execute(`DELETE FROM user WHERE id IN (${idPlaceholders})`, userIds)
+      }
+
+      await connection.commit()
+    } catch (error) {
+      await connection.rollback()
+      throw error
+    } finally {
+      await connection.end()
+    }
+  }
+
+  static async getUserFixture(userKey) {
+    const connection = await mysql.createConnection(TEST_DATABASE_URL)
+    try {
+      const [[user]] = await connection.execute(
+        'SELECT user_key, name, email, profile, status, approved_at, password_changed_at FROM user WHERE user_key = ?',
+        [userKey],
+      )
+      return user ?? null
+    } finally {
+      await connection.end()
+    }
+  }
+
+  static async getOrganizerByUserKey(userKey) {
+    return DbUtils.getProfileDataByUserKey('organizer', ['cnpj', 'phone'], userKey)
+  }
+
+  static async getSupplierByUserKey(userKey) {
+    const supplier = await DbUtils.getProfileDataByUserKey('supplier', ['cnpj', 'phone'], userKey)
+    if (supplier === null) {
+      return null
+    }
+
+    const connection = await mysql.createConnection(TEST_DATABASE_URL)
+    try {
+      const [categories] = await connection.execute(
+        `SELECT item_category.name
+         FROM supplier_category
+         INNER JOIN item_category ON item_category.id = supplier_category.category_id
+         INNER JOIN supplier ON supplier.id = supplier_category.supplier_id
+         INNER JOIN user ON user.id = supplier.user_id
+         WHERE user.user_key = ?
+         ORDER BY item_category.name`,
+        [userKey],
+      )
+      return { ...supplier, categories: categories.map((category) => category.name) }
+    } finally {
+      await connection.end()
+    }
+  }
+
+  // table e columns vêm só do próprio teste, nunca de entrada externa
+  static async getProfileDataByUserKey(table, columns, userKey) {
+    const connection = await mysql.createConnection(TEST_DATABASE_URL)
+    try {
+      const [[profileData]] = await connection.execute(
+        `SELECT ${columns.map((column) => `profile_data.${column}`).join(', ')}
+         FROM ${table} AS profile_data
+         INNER JOIN user ON user.id = profile_data.user_id
+         WHERE user.user_key = ?`,
+        [userKey],
+      )
+      return profileData ?? null
+    } finally {
+      await connection.end()
+    }
+  }
+
+  static async ensureApprovedTestUser({ userKey, profile }) {
+    const existing = await DbUtils.getUserFixture(userKey)
+    if (existing !== null) {
+      if (
+        existing.name !== 'RF03 Test User' ||
+        existing.email !== `rf03-${userKey}@example.test` ||
+        existing.status !== 'approved' ||
+        existing.profile !== profile
+      ) {
+        throw new Error(`A chave fixa de teste ${userKey} já pertence a outro registro; nenhum dado foi alterado.`)
+      }
+      return
+    }
+
+    await DbUtils.createUserFixture({ userKey, profile, status: 'approved' })
+  }
+
+  static async getUserStatusHistory(userKey) {
+    const connection = await mysql.createConnection(TEST_DATABASE_URL)
+    try {
+      const [events] = await connection.execute(
+        `SELECT history.old_status, history.new_status, history.reason, history.event_datetime, administrator.user_key AS admin_user_key
+         FROM user_status_event AS history
+         INNER JOIN user AS affected_user ON affected_user.id = history.user_id
+         INNER JOIN user AS administrator ON administrator.id = history.admin_user_id
+         WHERE affected_user.user_key = ?
+         ORDER BY history.id ASC`,
+        [userKey],
+      )
+      return events
+    } finally {
+      await connection.end()
+    }
+  }
+
+  static async getPasswordResetTokens(userKey) {
+    const connection = await mysql.createConnection(TEST_DATABASE_URL)
+    try {
+      const [tokens] = await connection.execute(
+        `SELECT reset_token.token_hash, reset_token.expires_at, reset_token.used_at, reset_token.created_at
+         FROM password_reset_token AS reset_token
+         INNER JOIN user ON user.id = reset_token.user_id
+         WHERE user.user_key = ?
+         ORDER BY reset_token.id ASC`,
+        [userKey],
+      )
+      return tokens
+    } finally {
+      await connection.end()
+    }
+  }
+
+  static async getBudgetItemByKey(itemKey) {
+    const connection = await mysql.createConnection(TEST_DATABASE_URL)
+    try {
+      const [[item]] = await connection.execute(
+        `SELECT budget_item.budget_item_key AS item_key, event.event_key, item_category.name AS category,
+                budget_item.description, budget_item.type, budget_item.quantity, budget_item.estimated_value, budget_item.notes
+         FROM budget_item
+         INNER JOIN event ON event.id = budget_item.event_id
+         INNER JOIN item_category ON item_category.id = budget_item.category_id
+         WHERE budget_item.budget_item_key = ?`,
+        [itemKey],
+      )
+      return item ?? null
+    } finally {
+      await connection.end()
+    }
+  }
+
+  static async createProposalFixture(itemKey, supplierUserKey, { status = 'sent', amount = 1200 } = {}) {
+    const connection = await mysql.createConnection(TEST_DATABASE_URL)
+    try {
+      const proposalKey = randomUUID()
+      const [[item]] = await connection.execute('SELECT id FROM budget_item WHERE budget_item_key = ?', [itemKey])
+      const [[supplier]] = await connection.execute(
+        `SELECT supplier.id
+         FROM supplier
+         INNER JOIN user ON user.id = supplier.user_id
+         WHERE user.user_key = ?`,
+        [supplierUserKey],
+      )
+
+      const [result] = await connection.execute(
+        `INSERT INTO proposal (
+           proposal_key, budget_item_id, supplier_id, amount, description,
+           delivery_terms, payment_terms, valid_until, status
+         ) VALUES (?, ?, ?, ?, ?, ?, ?, DATE_ADD(UTC_DATE(), INTERVAL 30 DAY), ?)`,
+        [proposalKey, item.id, supplier.id, amount, 'Proposta de teste', 'Entrega combinada', 'Pagamento combinado', status],
+      )
+      return { id: result.insertId, proposalKey }
+    } finally {
+      await connection.end()
+    }
+  }
+
+  static async getProposalStatus(proposalKey) {
+    const connection = await mysql.createConnection(TEST_DATABASE_URL)
+    try {
+      const [[proposal]] = await connection.execute('SELECT status, selected FROM proposal WHERE proposal_key = ?', [proposalKey])
+      return { status: proposal.status, selected: Boolean(proposal.selected) }
+    } finally {
+      await connection.end()
+    }
+  }
+
+  // direto no banco, sem a espera entre pedidos; as datas usam o relógio do banco em UTC, como a API grava
+  static async createPasswordResetToken(userKey, { expiresInSeconds = 3_600 } = {}) {
+    const token = randomBytes(32).toString('base64url')
+    const tokenHash = createHash('sha256').update(token).digest('hex')
+
+    const connection = await mysql.createConnection(TEST_DATABASE_URL)
+    try {
+      await connection.execute(
+        `INSERT INTO password_reset_token (user_id, token_hash, expires_at, created_at)
+         SELECT id, ?, UTC_TIMESTAMP() + INTERVAL ? SECOND, UTC_TIMESTAMP() FROM user WHERE user_key = ?`,
+        [tokenHash, expiresInSeconds, userKey],
+      )
+      return token
+    } finally {
+      await connection.end()
+    }
+  }
+
+  static async setUserStatus(userKey, status) {
+    const connection = await mysql.createConnection(TEST_DATABASE_URL)
+    try {
+      await connection.execute('UPDATE user SET status = ? WHERE user_key = ?', [status, userKey])
+    } finally {
+      await connection.end()
+    }
+  }
+
+  static async createBudgetItemFixture(eventKey, { category = 'Alimentação', description = 'Item de teste' } = {}) {
+    const connection = await mysql.createConnection(TEST_DATABASE_URL)
+    try {
+      const itemKey = randomUUID()
+      const [result] = await connection.execute(
+        `INSERT INTO budget_item (budget_item_key, event_id, category_id, description, type, quantity)
+         SELECT ?, event.id, item_category.id, ?, 'service', 1
+         FROM event, item_category
+         WHERE event.event_key = ? AND item_category.name = ?`,
+        [itemKey, description, eventKey, category],
+      )
+      if (result.affectedRows !== 1) {
+        throw new Error(`Não foi possível criar item de teste para o evento ${eventKey}.`)
+      }
+      return { itemKey }
+    } finally {
+      await connection.end()
+    }
+  }
+
+  static async createProposalFixture(
+    itemKey,
+    supplierUserKey,
+    { amount = 1200, validUntil = '2099-01-01', notes = null, status = 'sent' } = {},
+  ) {
+    const connection = await mysql.createConnection(TEST_DATABASE_URL)
+    try {
+      const proposalKey = randomUUID()
+      const [result] = await connection.execute(
+        `INSERT INTO proposal (
+           proposal_key, budget_item_id, supplier_id, amount, description,
+           delivery_terms, payment_terms, valid_until, notes, status
+         )
+         SELECT ?, budget_item.id, supplier.id, ?, 'Descrição da proposta',
+                'Entrega combinada', 'Pagamento combinado', ?, ?, ?
+         FROM budget_item
+         INNER JOIN supplier ON supplier.user_id = (SELECT id FROM user WHERE user_key = ?)
+         WHERE budget_item.budget_item_key = ?`,
+        [proposalKey, amount, validUntil, notes, status, supplierUserKey, itemKey],
+      )
+      if (result.affectedRows !== 1) {
+        throw new Error(`Não foi possível criar proposta de teste para o item ${itemKey}.`)
+      }
+      return { proposalKey }
+    } finally {
+      await connection.end()
+    }
+  }
+
+  // notificações direto no banco, na ordem de criação (a primeira é a mais antiga)
+  static async createNotificationFixtures(userKey, count) {
+    const connection = await mysql.createConnection(TEST_DATABASE_URL)
+    try {
+      const notificationKeys = []
+      for (let index = 1; index <= count; index++) {
+        const notificationKey = randomUUID()
+        await connection.execute(
+          `INSERT INTO notification (notification_key, user_id, type, title, body, link)
+           SELECT ?, id, 'proposal_received', ?, 'Corpo de teste', '/organizador/eventos' FROM user WHERE user_key = ?`,
+          [notificationKey, `Notificação ${index}`, userKey],
+        )
+        notificationKeys.push(notificationKey)
+      }
+      return notificationKeys
+    } finally {
+      await connection.end()
+    }
+  }
+
+  static async countProposalMessages(messageKeys) {
+    if (messageKeys.length === 0) return 0
+    const connection = await mysql.createConnection(TEST_DATABASE_URL)
+    try {
+      const placeholders = messageKeys.map(() => '?').join(', ')
+      const [[row]] = await connection.execute(
+        `SELECT COUNT(*) AS total FROM proposal_message WHERE message_key IN (${placeholders})`,
+        messageKeys,
+      )
+      return Number(row.total)
+    } finally {
+      await connection.end()
+    }
+  }
+}

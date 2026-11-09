@@ -1,0 +1,370 @@
+import assert from 'node:assert/strict'
+import { afterEach, describe, test } from 'node:test'
+
+import { DbUtils } from '../../utils/db_utils.js'
+import { Mailpit } from '../../utils/mailpit.js'
+import { ObjectGenerator } from '../../utils/object_generator.js'
+import { PayloadGenerator } from '../../utils/payload_generator.js'
+import { RequestGenerator } from '../../utils/request_generator.js'
+import { TokenGenerator } from '../../utils/token_generator.js'
+
+const fixtureUserKeys = []
+
+afterEach(async () => DbUtils.deleteUserFixtures(fixtureUserKeys.splice(0)))
+
+function createEventPayload() {
+  const startDate = new Date()
+  startDate.setDate(startDate.getDate() + 30)
+  const endDate = new Date(startDate)
+  endDate.setDate(endDate.getDate() + 2)
+
+  return PayloadGenerator.createEventPayload({
+    start_date: startDate.toISOString(),
+    end_date: endDate.toISOString(),
+  })
+}
+
+describe('PATCH /events/:event_key/status (RF08 - Publicação para cotação)', () => {
+  test('validação de schema: status inválido ou campo extra responde 400', async () => {
+    const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
+    fixtureUserKeys.push(organizer.userKey)
+    const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
+
+    const [, created] = await RequestGenerator.POST_events(createEventPayload(), headers)
+
+    // Status fora do enum
+    const [statusInvalido, respInvalido] = await RequestGenerator.PATCH_event_status(
+      created.event_key,
+      { status: 'status_inexistente' },
+      headers,
+    )
+    assert.equal(statusInvalido, 400)
+    assert.equal(respInvalido.code, 'APP000001')
+
+    // Campo extra
+    const [statusExtra, respExtra] = await RequestGenerator.PATCH_event_status(
+      created.event_key,
+      { status: 'open_for_quotes', campo_extra: true },
+      headers,
+    )
+    assert.equal(statusExtra, 400)
+    assert.equal(respExtra.code, 'APP000001')
+  })
+
+  test('organizador publica evento em rascunho para cotação', async () => {
+    const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
+    fixtureUserKeys.push(organizer.userKey)
+    const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
+
+    const [, created] = await RequestGenerator.POST_events(createEventPayload(), headers)
+
+    const [status, response] = await RequestGenerator.PATCH_event_status(created.event_key, { status: 'open_for_quotes' }, headers)
+
+    assert.equal(status, 200)
+    assert.equal(response.status, 'open_for_quotes')
+  })
+
+  test('publicar evento cancelado responde 409 com EVP000021', async () => {
+    const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
+    fixtureUserKeys.push(organizer.userKey)
+    const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
+
+    const [, created] = await RequestGenerator.POST_events(createEventPayload(), headers)
+
+    await RequestGenerator.PATCH_event_status(created.event_key, { status: 'canceled', reason: 'Local indisponível.' }, headers)
+
+    const [status2, response2] = await RequestGenerator.PATCH_event_status(created.event_key, { status: 'open_for_quotes' }, headers)
+    assert.equal(status2, 409)
+    assert.equal(response2.code, 'EVP000021')
+    assert.equal(response2.translation, 'Apenas eventos em rascunho podem ser publicados para cotação.')
+  })
+
+  test('tentativa de publicar evento de outro organizador responde 404 (EVP000013)', async () => {
+    const organizerA = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
+    const organizerB = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
+    fixtureUserKeys.push(organizerA.userKey, organizerB.userKey)
+
+    const headersA = TokenGenerator.authorizationHeader('organizador', { userKey: organizerA.userKey })
+    const headersB = TokenGenerator.authorizationHeader('organizador', { userKey: organizerB.userKey })
+
+    const [, created] = await RequestGenerator.POST_events(createEventPayload(), headersA)
+
+    const [status, response] = await RequestGenerator.PATCH_event_status(created.event_key, { status: 'open_for_quotes' }, headersB)
+    assert.equal(status, 404)
+    assert.equal(response.code, 'EVP000013')
+  })
+
+  test('evento com todas as propostas aceitas segue o fluxo até aprovado', async () => {
+    const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
+    const supplier = await ObjectGenerator.createUserFixture({ profile: 'fornecedor', status: 'approved' })
+    fixtureUserKeys.push(organizer.userKey, supplier.userKey)
+    const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
+    const supplierHeaders = TokenGenerator.authorizationHeader('fornecedor', { userKey: supplier.userKey })
+    const [, created] = await RequestGenerator.POST_events(createEventPayload(), headers)
+    const item = await DbUtils.createBudgetItemFixture(created.event_key, { category: 'Estrutura' })
+
+    const [publishStatus] = await RequestGenerator.PATCH_event_status(created.event_key, { status: 'open_for_quotes' }, headers)
+    assert.equal(publishStatus, 200)
+
+    const [proposalStatus, proposal] = await RequestGenerator.POST_supplier_item_proposal(
+      created.event_key,
+      item.itemKey,
+      PayloadGenerator.createSupplierProposalPayload(),
+      supplierHeaders,
+    )
+    assert.equal(proposalStatus, 201)
+    const [acceptStatus] = await RequestGenerator.POST_event_proposal_accept(created.event_key, proposal.proposal_key, headers)
+    assert.equal(acceptStatus, 200)
+
+    const [status, response] = await RequestGenerator.PATCH_event_status(created.event_key, { status: 'closed' }, headers)
+    assert.equal(status, 200)
+    assert.equal(response.status, 'closed')
+    assert.equal(response.is_editable, false)
+  })
+
+  test('não aprova com item sem proposta aceita e mantém o evento em cotação', async () => {
+    const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
+    const supplier = await ObjectGenerator.createUserFixture({ profile: 'fornecedor', status: 'approved' })
+    fixtureUserKeys.push(organizer.userKey, supplier.userKey)
+    const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
+    const supplierHeaders = TokenGenerator.authorizationHeader('fornecedor', { userKey: supplier.userKey })
+    const [, created] = await RequestGenerator.POST_events(createEventPayload(), headers)
+    const item = await DbUtils.createBudgetItemFixture(created.event_key, {
+      category: 'Estrutura',
+      description: 'Iluminação',
+    })
+    await RequestGenerator.PATCH_event_status(created.event_key, { status: 'open_for_quotes' }, headers)
+    const [proposalStatus] = await RequestGenerator.POST_supplier_item_proposal(
+      created.event_key,
+      item.itemKey,
+      PayloadGenerator.createSupplierProposalPayload(),
+      supplierHeaders,
+    )
+    assert.equal(proposalStatus, 201)
+
+    const [status, error] = await RequestGenerator.PATCH_event_status(created.event_key, { status: 'closed' }, headers)
+    const [eventStatus, event] = await RequestGenerator.GET_event_by_key(created.event_key, headers)
+
+    assert.equal(status, 409)
+    assert.equal(error.code, 'EVP000048')
+    assert.equal(error.translation, 'Escolha uma proposta para todos os itens antes de aprovar o evento.')
+    assert.deepEqual(error.details.pending_items, [{ item_key: item.itemKey, description: 'Iluminação' }])
+    assert.equal(eventStatus, 200)
+    assert.equal(event.status, 'open_for_quotes')
+  })
+
+  test('não aprova evento sem itens de cotação', async () => {
+    const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
+    fixtureUserKeys.push(organizer.userKey)
+    const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
+    const [, created] = await RequestGenerator.POST_events(createEventPayload(), headers)
+    await RequestGenerator.PATCH_event_status(created.event_key, { status: 'open_for_quotes' }, headers)
+
+    const [status, error] = await RequestGenerator.PATCH_event_status(created.event_key, { status: 'closed' }, headers)
+
+    assert.equal(status, 409)
+    assert.equal(error.code, 'EVP000048')
+    assert.equal(error.translation, 'Cadastre ao menos um item de custo antes de aprovar o evento.')
+  })
+
+  test('evento em rascunho ou em cotação pode ser cancelado', async () => {
+    const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
+    fixtureUserKeys.push(organizer.userKey)
+    const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
+    const [, draft] = await RequestGenerator.POST_events(createEventPayload(), headers)
+    const [, open] = await RequestGenerator.POST_events(createEventPayload(), headers)
+    await RequestGenerator.PATCH_event_status(open.event_key, { status: 'open_for_quotes' }, headers)
+
+    for (const event of [draft, open]) {
+      const [status, response] = await RequestGenerator.PATCH_event_status(
+        event.event_key,
+        { status: 'canceled', reason: 'Local indisponível.' },
+        headers,
+      )
+      assert.equal(status, 200)
+      assert.equal(response.status, 'canceled')
+    }
+  })
+
+  test('evento encerrado ou cancelado não muda mais de status nem volta a ser editado', async () => {
+    const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
+    fixtureUserKeys.push(organizer.userKey)
+    const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
+    const [, closed] = await RequestGenerator.POST_events(createEventPayload(), headers)
+    const supplier = await ObjectGenerator.createUserFixture({ profile: 'fornecedor', status: 'approved' })
+    fixtureUserKeys.push(supplier.userKey)
+    const closedItem = await DbUtils.createBudgetItemFixture(closed.event_key)
+    await DbUtils.createProposalFixture(closedItem.itemKey, supplier.userKey, {
+      status: 'accepted',
+    })
+    await RequestGenerator.PATCH_event_status(closed.event_key, { status: 'open_for_quotes' }, headers)
+    await RequestGenerator.PATCH_event_status(closed.event_key, { status: 'closed' }, headers)
+    const [, canceled] = await RequestGenerator.POST_events(createEventPayload(), headers)
+    await RequestGenerator.PATCH_event_status(canceled.event_key, { status: 'canceled', reason: 'Local indisponível.' }, headers)
+
+    for (const event of [closed, canceled]) {
+      for (const nextStatus of ['draft', 'closed', 'canceled']) {
+        const payload = nextStatus === 'canceled' ? { status: nextStatus, reason: 'Teste.' } : { status: nextStatus }
+        const [status, response] = await RequestGenerator.PATCH_event_status(event.event_key, payload, headers)
+        assert.equal(status, 409, `${event.event_key} -> ${nextStatus}`)
+        assert.equal(response.code, 'EVP000026')
+      }
+
+      const [updateStatus, updateResponse] = await RequestGenerator.PUT_event_by_key(
+        event.event_key,
+        PayloadGenerator.createEventUpdatePayload(),
+        headers,
+      )
+      assert.equal(updateStatus, 409)
+      assert.equal(updateResponse.code, 'EVP000020')
+    }
+  })
+
+  test('mudanças fora do fluxo respondem 409', async () => {
+    const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
+    fixtureUserKeys.push(organizer.userKey)
+    const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
+    const [, draft] = await RequestGenerator.POST_events(createEventPayload(), headers)
+    const [, open] = await RequestGenerator.POST_events(createEventPayload(), headers)
+    await RequestGenerator.PATCH_event_status(open.event_key, { status: 'open_for_quotes' }, headers)
+
+    const invalidChanges = [
+      [draft, 'closed'],
+      [open, 'draft'],
+    ]
+    for (const [event, nextStatus] of invalidChanges) {
+      const [status, response] = await RequestGenerator.PATCH_event_status(event.event_key, { status: nextStatus }, headers)
+      assert.equal(status, 409, nextStatus)
+      assert.equal(response.code, 'EVP000026')
+    }
+  })
+
+  test('pedir o mesmo status que o evento já tem responde 409 explicando isso', async () => {
+    const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
+    fixtureUserKeys.push(organizer.userKey)
+    const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
+    const [, draft] = await RequestGenerator.POST_events(createEventPayload(), headers)
+
+    const [status, response] = await RequestGenerator.PATCH_event_status(draft.event_key, { status: 'draft' }, headers)
+
+    assert.equal(status, 409)
+    assert.equal(response.code, 'EVP000026')
+    assert.equal(response.translation, 'O evento já está com esse status.')
+  })
+
+  test('cancelar exige motivo, que fica guardado no evento', async () => {
+    const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
+    fixtureUserKeys.push(organizer.userKey)
+    const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
+    const [, created] = await RequestGenerator.POST_events(createEventPayload(), headers)
+
+    for (const payload of [
+      { status: 'canceled' },
+      { status: 'canceled', reason: '   ' },
+      { status: 'canceled', reason: 'a'.repeat(501) },
+    ]) {
+      const [status, response] = await RequestGenerator.PATCH_event_status(created.event_key, payload, headers)
+      assert.equal(status, 400)
+      assert.equal(response.code, 'APP000001')
+    }
+
+    const [status, response] = await RequestGenerator.PATCH_event_status(
+      created.event_key,
+      { status: 'canceled', reason: '  Patrocinador desistiu.  ' },
+      headers,
+    )
+    assert.equal(status, 200)
+    assert.equal(response.status, 'canceled')
+    assert.equal(response.cancellation_reason, 'Patrocinador desistiu.')
+    assert.equal(response.is_editable, false)
+  })
+
+  test('mudanças simultâneas de status aceitam só uma', async () => {
+    const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
+    fixtureUserKeys.push(organizer.userKey)
+    const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
+    const [, created] = await RequestGenerator.POST_events(createEventPayload(), headers)
+    const supplier = await ObjectGenerator.createUserFixture({ profile: 'fornecedor', status: 'approved' })
+    fixtureUserKeys.push(supplier.userKey)
+    const item = await DbUtils.createBudgetItemFixture(created.event_key)
+    await RequestGenerator.PATCH_event_status(created.event_key, { status: 'open_for_quotes' }, headers)
+    const proposal = await DbUtils.createProposalFixture(item.itemKey, supplier.userKey)
+    await RequestGenerator.POST_event_proposal_accept(created.event_key, proposal.proposalKey, headers)
+
+    const results = await Promise.all([
+      RequestGenerator.PATCH_event_status(created.event_key, { status: 'closed' }, headers),
+      RequestGenerator.PATCH_event_status(created.event_key, { status: 'canceled', reason: 'Chuva.' }, headers),
+    ])
+
+    assert.deepEqual(results.map(([status]) => status).sort(), [200, 409])
+  })
+
+  test('republicar evento já em cotação responde que ele já está com esse status', async () => {
+    const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
+    fixtureUserKeys.push(organizer.userKey)
+    const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
+    const [, created] = await RequestGenerator.POST_events(createEventPayload(), headers)
+    await RequestGenerator.PATCH_event_status(created.event_key, { status: 'open_for_quotes' }, headers)
+
+    const [status, response] = await RequestGenerator.PATCH_event_status(created.event_key, { status: 'open_for_quotes' }, headers)
+
+    assert.equal(status, 409)
+    assert.equal(response.translation, 'O evento já está com esse status.')
+  })
+
+  test('motivo junto com outro status que não seja cancelar responde 400', async () => {
+    const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
+    fixtureUserKeys.push(organizer.userKey)
+    const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
+    const [, created] = await RequestGenerator.POST_events(createEventPayload(), headers)
+
+    const [status, response] = await RequestGenerator.PATCH_event_status(
+      created.event_key,
+      { status: 'open_for_quotes', reason: 'Sem motivo para isso.' },
+      headers,
+    )
+
+    assert.equal(status, 400)
+    assert.equal(response.code, 'APP000001')
+  })
+
+  test('cancelar o evento cancela as propostas em jogo e mantém as recusadas', async () => {
+    const organizer = await ObjectGenerator.createUserFixture({ profile: 'organizador', status: 'approved' })
+    const suppliers = await Promise.all(
+      [1, 2, 3].map(() => ObjectGenerator.createUserFixture({ profile: 'fornecedor', status: 'approved' })),
+    )
+    fixtureUserKeys.push(organizer.userKey, ...suppliers.map((supplier) => supplier.userKey))
+    const headers = TokenGenerator.authorizationHeader('organizador', { userKey: organizer.userKey })
+    const [, created] = await RequestGenerator.POST_events(createEventPayload(), headers)
+    const firstItem = await DbUtils.createBudgetItemFixture(created.event_key, { description: 'Som' })
+    const secondItem = await DbUtils.createBudgetItemFixture(created.event_key, { description: 'Bar' })
+    await RequestGenerator.PATCH_event_status(created.event_key, { status: 'open_for_quotes' }, headers)
+    const accepted = await DbUtils.createProposalFixture(firstItem.itemKey, suppliers[0].userKey)
+    const rejected = await DbUtils.createProposalFixture(firstItem.itemKey, suppliers[1].userKey)
+    const sent = await DbUtils.createProposalFixture(secondItem.itemKey, suppliers[2].userKey)
+    await RequestGenerator.POST_event_proposal_accept(created.event_key, accepted.proposalKey, headers)
+
+    const [status] = await RequestGenerator.PATCH_event_status(
+      created.event_key,
+      { status: 'canceled', reason: 'Patrocinador desistiu.' },
+      headers,
+    )
+
+    assert.equal(status, 200)
+    assert.deepEqual(await DbUtils.getProposalStatus(accepted.proposalKey), { status: 'canceled', selected: true })
+    assert.deepEqual(await DbUtils.getProposalStatus(sent.proposalKey), { status: 'canceled', selected: false })
+    assert.deepEqual(await DbUtils.getProposalStatus(rejected.proposalKey), { status: 'rejected', selected: false })
+
+    const acceptedEmail = await Mailpit.waitForEmailTo(suppliers[0].email)
+    const sentEmail = await Mailpit.waitForEmailTo(suppliers[2].email)
+    assert.equal(acceptedEmail.subject, `O evento ${created.name} foi cancelado`)
+    assert.match(acceptedEmail.text, /tinha sido aceita/)
+    assert.match(acceptedEmail.text, /Motivo do cancelamento: Patrocinador desistiu\./)
+    assert.match(acceptedEmail.text, new RegExp(`/fornecedor/propostas/${accepted.proposalKey}`))
+    assert.match(sentEmail.text, /aguardava a decisão do organizador/)
+    assert.match(acceptedEmail.text, /fale com o organizador: /)
+    assert.doesNotMatch(sentEmail.text, /fale com o organizador/)
+    assert.match(sentEmail.text, /você não precisa fazer nada/)
+    assert.equal(await Mailpit.countEmailsAfterWaiting(suppliers[1].email, 500), 0)
+  })
+})

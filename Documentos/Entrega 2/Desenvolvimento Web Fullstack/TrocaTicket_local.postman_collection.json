@@ -1,0 +1,2483 @@
+{
+  "info": {
+    "name": "Gestão Troca Ticket – API (Local)",
+    "description": "Fluxo de ponta a ponta do PI na API local (docker compose): autocadastro, aprovação, evento, itens de custo, proposta (com retirada e reenvio), notificações, chat, seleção, ticket, aprovação do evento e relatórios, com os casos de erro. Cria dados novos a cada execução e, no fim, bloqueia os usuários de teste. Rode na ordem pelo Runner. O administrador já preenchido é o admin@local.dev criado com npm run create:admin, que só existe no banco local.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3300/event_planning"
+    },
+    {
+      "key": "adminEmail",
+      "value": "admin@local.dev"
+    },
+    {
+      "key": "adminPassword",
+      "value": "senhaForte123"
+    },
+    {
+      "key": "senha",
+      "value": "senhaForte123"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Cadastro e aprovação (RF01, RF02, RF03)",
+      "item": [
+        {
+          "name": "Autocadastro do organizador (RF01)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/cadastro",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "cadastro"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"profile\": \"organizador\",\n  \"name\": \"Organizador Postman\",\n  \"email\": \"{{emailOrganizador}}\",\n  \"password\": \"{{senha}}\",\n  \"cnpj\": \"{{cnpjOrganizador}}\",\n  \"phone\": \"(11) 99999-8888\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// e-mail e CNPJ novos a cada execução, para o fluxo poder rodar várias vezes",
+                  "const digitos = [...Array.from({ length: 8 }, () => Math.floor(Math.random() * 10)), 0, 0, 0, 1]",
+                  "for (const pesos of [[5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2], [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]]) {",
+                  "  const resto = digitos.reduce((soma, d, i) => soma + d * pesos[i], 0) % 11",
+                  "  digitos.push(resto < 2 ? 0 : 11 - resto)",
+                  "}",
+                  "pm.collectionVariables.set('cnpjOrganizador', digitos.join(''))",
+                  "pm.collectionVariables.set('emailOrganizador', `organizador.postman.${Date.now()}@exemplo.com`)"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 201', () => pm.response.to.have.status(201))",
+                  "pm.test('nasce pendente', () => pm.expect(pm.response.json().status).to.eql('pending'))",
+                  "pm.collectionVariables.set('chaveOrganizador', pm.response.json().user_key)"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Autocadastro do fornecedor (RF02)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/cadastro",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "cadastro"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"profile\": \"fornecedor\",\n  \"name\": \"Fornecedor Postman\",\n  \"email\": \"{{emailFornecedor}}\",\n  \"password\": \"{{senha}}\",\n  \"cnpj\": \"{{cnpjFornecedor}}\",\n  \"phone\": \"(11) 98888-7777\",\n  \"categories\": [\n    \"Estrutura\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// e-mail e CNPJ novos a cada execução, para o fluxo poder rodar várias vezes",
+                  "const digitos = [...Array.from({ length: 8 }, () => Math.floor(Math.random() * 10)), 0, 0, 0, 1]",
+                  "for (const pesos of [[5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2], [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]]) {",
+                  "  const resto = digitos.reduce((soma, d, i) => soma + d * pesos[i], 0) % 11",
+                  "  digitos.push(resto < 2 ? 0 : 11 - resto)",
+                  "}",
+                  "pm.collectionVariables.set('cnpjFornecedor', digitos.join(''))",
+                  "pm.collectionVariables.set('emailFornecedor', `fornecedor.postman.${Date.now()}@exemplo.com`)"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 201', () => pm.response.to.have.status(201))",
+                  "pm.collectionVariables.set('chaveFornecedor', pm.response.json().user_key)"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Erro: cadastro sem campos obrigatórios",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/cadastro",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "cadastro"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"profile\": \"organizador\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 400 (erro esperado)', () => pm.response.to.have.status(400))",
+                  "pm.test('mensagem de erro em português', () => pm.expect(pm.response.json().translation).to.be.a('string'))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Erro: login de cadastro ainda pendente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{emailOrganizador}}\",\n  \"password\": \"{{senha}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 403 (erro esperado)', () => pm.response.to.have.status(403))",
+                  "pm.test('código EVP000009', () => pm.expect(pm.response.json().code).to.eql('EVP000009'))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login do administrador",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200))",
+                  "pm.collectionVariables.set('tokenAdmin', pm.response.json().token)"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cadastros pendentes (RF03)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users?status=pending&limit=100",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "pending"
+                },
+                {
+                  "key": "limit",
+                  "value": "100"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200))",
+                  "pm.test('o organizador novo está na lista', () => pm.expect(JSON.stringify(pm.response.json())).to.include(pm.collectionVariables.get('chaveOrganizador')))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin recebe a notificação do cadastro novo",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/notifications?limit=50",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200))",
+                  "pm.test('aviso de cadastro para aprovar', () => pm.expect(pm.response.json().data.some((n) => n.type === 'user_pending' && n.link.includes(pm.collectionVariables.get('chaveOrganizador')))).to.be.true)"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Aprova o organizador",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users/{{chaveOrganizador}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "users",
+                "{{chaveOrganizador}}",
+                "status"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"approved\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 202', () => pm.response.to.have.status(202))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Aprova o fornecedor",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users/{{chaveFornecedor}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "users",
+                "{{chaveFornecedor}}",
+                "status"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"approved\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 202', () => pm.response.to.have.status(202))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Erro: rejeitar sem motivo",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users/{{chaveOrganizador}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "users",
+                "{{chaveOrganizador}}",
+                "status"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"rejected\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 400 (erro esperado)', () => pm.response.to.have.status(400))",
+                  "pm.test('mensagem de erro em português', () => pm.expect(pm.response.json().translation).to.be.a('string'))"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. Autenticação e perfis (RF04)",
+      "item": [
+        {
+          "name": "Login do organizador",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{emailOrganizador}}\",\n  \"password\": \"{{senha}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200))",
+                  "pm.collectionVariables.set('tokenOrganizador', pm.response.json().token)"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login do fornecedor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{emailFornecedor}}\",\n  \"password\": \"{{senha}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200))",
+                  "pm.collectionVariables.set('tokenFornecedor', pm.response.json().token)"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Erro: senha errada",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{emailOrganizador}}\",\n  \"password\": \"senhaErrada99\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 401 (erro esperado)', () => pm.response.to.have.status(401))",
+                  "pm.test('código EVP000008', () => pm.expect(pm.response.json().code).to.eql('EVP000008'))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Erro: rota protegida sem token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/events",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "events"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 401 (erro esperado)', () => pm.response.to.have.status(401))",
+                  "pm.test('mensagem de erro em português', () => pm.expect(pm.response.json().translation).to.be.a('string'))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Erro: fornecedor na rota do organizador",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenFornecedor}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/events",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "events"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 403 (erro esperado)', () => pm.response.to.have.status(403))",
+                  "pm.test('mensagem de erro em português', () => pm.expect(pm.response.json().translation).to.be.a('string'))"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. Eventos – CRUD (RF05)",
+      "item": [
+        {
+          "name": "Cria o evento",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenOrganizador}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/events",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "events"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Festival Postman {{$timestamp}}\",\n  \"category\": \"Festival\",\n  \"description\": \"Evento criado pela collection do Postman.\",\n  \"start_date\": \"{{inicioDoEvento}}\",\n  \"end_date\": \"{{fimDoEvento}}\",\n  \"venue_name\": \"Allianz Parque\",\n  \"address\": \"Av. Francisco Matarazzo, 1705\",\n  \"city\": \"São Paulo\",\n  \"state\": \"SP\",\n  \"zip_code\": \"05001100\",\n  \"venue_capacity\": 20000,\n  \"min_audience\": 8000,\n  \"expected_audience\": 12000,\n  \"max_audience\": 15000,\n  \"profit_margin\": 0.2,\n  \"reference_scenario\": \"expected\",\n  \"internal_costs\": [\n    {\n      \"type\": \"tax\",\n      \"description\": \"Custos fiscais e alvarás\",\n      \"amount\": 24300\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const dia = (d) => new Date(Date.now() + d * 86400000).toISOString().slice(0, 10)",
+                  "pm.collectionVariables.set('inicioDoEvento', `${dia(40)}T22:00:00.000Z`)",
+                  "pm.collectionVariables.set('fimDoEvento', `${dia(41)}T04:00:00.000Z`)",
+                  "pm.collectionVariables.set('validadeDaProposta', dia(20))"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 201', () => pm.response.to.have.status(201))",
+                  "pm.collectionVariables.set('chaveEvento', pm.response.json().event_key)"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Erro: público mínimo maior que o máximo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenOrganizador}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/events",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "events"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Festival Postman {{$timestamp}}\",\n  \"category\": \"Festival\",\n  \"description\": \"Evento criado pela collection do Postman.\",\n  \"start_date\": \"{{inicioDoEvento}}\",\n  \"end_date\": \"{{fimDoEvento}}\",\n  \"venue_name\": \"Allianz Parque\",\n  \"address\": \"Av. Francisco Matarazzo, 1705\",\n  \"city\": \"São Paulo\",\n  \"state\": \"SP\",\n  \"zip_code\": \"05001100\",\n  \"venue_capacity\": 20000,\n  \"min_audience\": 20000,\n  \"expected_audience\": 12000,\n  \"max_audience\": 100,\n  \"profit_margin\": 0.2,\n  \"reference_scenario\": \"expected\",\n  \"internal_costs\": [\n    {\n      \"type\": \"tax\",\n      \"description\": \"Custos fiscais e alvarás\",\n      \"amount\": 24300\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 400 (erro esperado)', () => pm.response.to.have.status(400))",
+                  "pm.test('mensagem de erro em português', () => pm.expect(pm.response.json().translation).to.be.a('string'))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Lista os eventos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenOrganizador}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/events",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "events"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200))",
+                  "pm.test('o evento criado aparece', () => pm.expect(JSON.stringify(pm.response.json())).to.include(pm.collectionVariables.get('chaveEvento')))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Detalha o evento",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenOrganizador}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/events/{{chaveEvento}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "events",
+                "{{chaveEvento}}"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Atualiza o evento",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenOrganizador}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/events/{{chaveEvento}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "events",
+                "{{chaveEvento}}"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Festival Postman {{$timestamp}}\",\n  \"category\": \"Festival\",\n  \"description\": \"Descrição atualizada pela collection.\",\n  \"start_date\": \"{{inicioDoEvento}}\",\n  \"end_date\": \"{{fimDoEvento}}\",\n  \"venue_name\": \"Allianz Parque\",\n  \"address\": \"Av. Francisco Matarazzo, 1705\",\n  \"city\": \"São Paulo\",\n  \"state\": \"SP\",\n  \"zip_code\": \"05001100\",\n  \"venue_capacity\": 20000,\n  \"min_audience\": 8000,\n  \"expected_audience\": 12000,\n  \"max_audience\": 15000,\n  \"profit_margin\": 0.25,\n  \"reference_scenario\": \"expected\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200))",
+                  "pm.test('margem atualizada', () => pm.expect(pm.response.json().profit_margin).to.eql(0.25))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Volta a margem para 20%",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenOrganizador}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/events/{{chaveEvento}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "events",
+                "{{chaveEvento}}"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Festival Postman {{$timestamp}}\",\n  \"category\": \"Festival\",\n  \"description\": \"Evento criado pela collection do Postman.\",\n  \"start_date\": \"{{inicioDoEvento}}\",\n  \"end_date\": \"{{fimDoEvento}}\",\n  \"venue_name\": \"Allianz Parque\",\n  \"address\": \"Av. Francisco Matarazzo, 1705\",\n  \"city\": \"São Paulo\",\n  \"state\": \"SP\",\n  \"zip_code\": \"05001100\",\n  \"venue_capacity\": 20000,\n  \"min_audience\": 8000,\n  \"expected_audience\": 12000,\n  \"max_audience\": 15000,\n  \"profit_margin\": 0.2,\n  \"reference_scenario\": \"expected\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Erro: evento inexistente",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenOrganizador}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/events/00000000-0000-4000-8000-000000000000",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "events",
+                "00000000-0000-4000-8000-000000000000"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 404 (erro esperado)', () => pm.response.to.have.status(404))",
+                  "pm.test('mensagem de erro em português', () => pm.expect(pm.response.json().translation).to.be.a('string'))"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. Itens de custo e custos próprios (RF06, RF07, RF08)",
+      "item": [
+        {
+          "name": "Cria item de custo para cotação",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenOrganizador}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/events/{{chaveEvento}}/items",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "events",
+                "{{chaveEvento}}",
+                "items"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"Estrutura\",\n  \"description\": \"Palco principal\",\n  \"type\": \"service\",\n  \"quantity\": 1,\n  \"estimated_value\": 30000,\n  \"notes\": \"Palco 12x8 com cobertura\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 201', () => pm.response.to.have.status(201))",
+                  "pm.collectionVariables.set('chaveItem', pm.response.json().item_key)"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Atualiza o item",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenOrganizador}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/events/{{chaveEvento}}/items/{{chaveItem}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "events",
+                "{{chaveEvento}}",
+                "items",
+                "{{chaveItem}}"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"Estrutura\",\n  \"description\": \"Palco principal coberto\",\n  \"type\": \"service\",\n  \"quantity\": 1,\n  \"estimated_value\": 32000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Inclui custo próprio variável",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenOrganizador}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/events/{{chaveEvento}}/internal-costs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "events",
+                "{{chaveEvento}}",
+                "internal-costs"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"variable\",\n  \"description\": \"Comissão da bilheteria\",\n  \"amount\": 3500\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 201', () => pm.response.to.have.status(201))",
+                  "// a resposta é o evento com a lista de custos próprios",
+                  "const custo = pm.response.json().internal_costs.find((c) => c.type === 'variable')",
+                  "pm.test('custo variável incluído', () => pm.expect(custo).to.be.an('object'))",
+                  "pm.collectionVariables.set('chaveCusto', custo.internal_cost_key)"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Remove o custo próprio",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenOrganizador}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/events/{{chaveEvento}}/internal-costs/{{chaveCusto}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "events",
+                "{{chaveEvento}}",
+                "internal-costs",
+                "{{chaveCusto}}"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Erro: custo com valor negativo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenOrganizador}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/events/{{chaveEvento}}/internal-costs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "events",
+                "{{chaveEvento}}",
+                "internal-costs"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"tax\",\n  \"description\": \"Inválido\",\n  \"amount\": -1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 400 (erro esperado)', () => pm.response.to.have.status(400))",
+                  "pm.test('mensagem de erro em português', () => pm.expect(pm.response.json().translation).to.be.a('string'))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Publica para cotação",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenOrganizador}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/events/{{chaveEvento}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "events",
+                "{{chaveEvento}}",
+                "status"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"open_for_quotes\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200))",
+                  "pm.test('em cotação', () => pm.expect(pm.response.json().status).to.eql('open_for_quotes'))"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "5. Fornecedor (RF09, RF10)",
+      "item": [
+        {
+          "name": "Eventos disponíveis",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenFornecedor}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/supplier/events",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "supplier",
+                "events"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200))",
+                  "pm.test('o evento publicado aparece', () => pm.expect(JSON.stringify(pm.response.json())).to.include(pm.collectionVariables.get('chaveEvento')))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Itens do evento",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenFornecedor}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/supplier/events/{{chaveEvento}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "supplier",
+                "events",
+                "{{chaveEvento}}"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Envia proposta",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenFornecedor}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/supplier/events/{{chaveEvento}}/items/{{chaveItem}}/proposals",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "supplier",
+                "events",
+                "{{chaveEvento}}",
+                "items",
+                "{{chaveItem}}",
+                "proposals"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 29500,\n  \"description\": \"Palco 12x8 coberto com som e iluminação\",\n  \"delivery_terms\": \"Montagem na véspera\",\n  \"payment_terms\": \"50% na assinatura e 50% no evento\",\n  \"valid_until\": \"{{validadeDaProposta}}\",\n  \"notes\": \"Frete incluso\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 201', () => pm.response.to.have.status(201))",
+                  "pm.collectionVariables.set('chaveProposta', pm.response.json().proposal_key)"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Minhas propostas",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenFornecedor}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/supplier/proposals",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "supplier",
+                "proposals"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Edita a proposta",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenFornecedor}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/supplier/proposals/{{chaveProposta}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "supplier",
+                "proposals",
+                "{{chaveProposta}}"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 28900,\n  \"description\": \"Palco 12x8 coberto com som e iluminação\",\n  \"delivery_terms\": \"Montagem na véspera\",\n  \"payment_terms\": \"50% na assinatura e 50% no evento\",\n  \"valid_until\": \"{{validadeDaProposta}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Retira a proposta",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenFornecedor}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/supplier/proposals/{{chaveProposta}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "supplier",
+                "proposals",
+                "{{chaveProposta}}"
+              ]
+            },
+            "description": "A proposta não é apagada: fica como Retirada para os dois lados, com a conversa."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 204', () => pm.response.to.have.status(204))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Proposta retirada continua visível",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenFornecedor}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/supplier/proposals/{{chaveProposta}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "supplier",
+                "proposals",
+                "{{chaveProposta}}"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200))",
+                  "pm.test('status retirada', () => pm.expect(pm.response.json().status).to.eql('withdrawn'))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reenvia a proposta retirada",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenFornecedor}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/supplier/events/{{chaveEvento}}/items/{{chaveItem}}/proposals",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "supplier",
+                "events",
+                "{{chaveEvento}}",
+                "items",
+                "{{chaveItem}}",
+                "proposals"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 28900,\n  \"description\": \"Palco 12x8 coberto com som e iluminação\",\n  \"delivery_terms\": \"Montagem na véspera\",\n  \"payment_terms\": \"50% na assinatura e 50% no evento\",\n  \"valid_until\": \"{{validadeDaProposta}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 201', () => pm.response.to.have.status(201))",
+                  "pm.test('reativa a mesma proposta', () => pm.expect(pm.response.json().proposal_key).to.eql(pm.collectionVariables.get('chaveProposta')))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Erro: organizador tentando enviar proposta",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenOrganizador}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/supplier/events/{{chaveEvento}}/items/{{chaveItem}}/proposals",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "supplier",
+                "events",
+                "{{chaveEvento}}",
+                "items",
+                "{{chaveItem}}",
+                "proposals"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 1,\n  \"description\": \"x\",\n  \"delivery_terms\": \"x\",\n  \"payment_terms\": \"x\",\n  \"valid_until\": \"{{validadeDaProposta}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 403 (erro esperado)', () => pm.response.to.have.status(403))",
+                  "pm.test('mensagem de erro em português', () => pm.expect(pm.response.json().translation).to.be.a('string'))"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "6. Notificações e chat",
+      "item": [
+        {
+          "name": "Organizador recebe a notificação da proposta",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenOrganizador}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/notifications?limit=50",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200))",
+                  "pm.test('nova proposta recebida', () => pm.expect(pm.response.json().data.some((n) => n.type === 'proposal_received')).to.be.true)",
+                  "pm.test('contador de não lidas', () => pm.expect(pm.response.json().unread_count).to.be.above(0))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Organizador manda mensagem na proposta",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenOrganizador}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/proposals/{{chaveProposta}}/messages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "proposals",
+                "{{chaveProposta}}",
+                "messages"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"body\": \"O palco inclui cobertura contra chuva?\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 201', () => pm.response.to.have.status(201))",
+                  "pm.test('mensagem minha', () => pm.expect(pm.response.json().mine).to.be.true)"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Fornecedor vê a mensagem não lida",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenFornecedor}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/messages/unread",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "messages",
+                "unread"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200))",
+                  "pm.test('1 não lida na proposta', () => pm.expect(pm.response.json().by_proposal[pm.collectionVariables.get('chaveProposta')]).to.eql(1))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Fornecedor lista os chats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenFornecedor}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/conversations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "conversations"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200))",
+                  "pm.test('a conversa aparece', () => pm.expect(pm.response.json().data.some((c) => c.proposal_key === pm.collectionVariables.get('chaveProposta'))).to.be.true)"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Fornecedor abre a conversa",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenFornecedor}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/proposals/{{chaveProposta}}/messages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "proposals",
+                "{{chaveProposta}}",
+                "messages"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200))",
+                  "pm.test('pode responder', () => pm.expect(pm.response.json().can_send).to.be.true)"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Fornecedor marca como lida",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenFornecedor}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/proposals/{{chaveProposta}}/messages/read",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "proposals",
+                "{{chaveProposta}}",
+                "messages",
+                "read"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 204', () => pm.response.to.have.status(204))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Fornecedor responde",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenFornecedor}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/proposals/{{chaveProposta}}/messages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "proposals",
+                "{{chaveProposta}}",
+                "messages"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"body\": \"Inclui sim, com lona e estrutura.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 201', () => pm.response.to.have.status(201))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Organizador marca todas as notificações como lidas",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenOrganizador}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/read-all",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                "read-all"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 204', () => pm.response.to.have.status(204))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Erro: admin na conversa",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/proposals/{{chaveProposta}}/messages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "proposals",
+                "{{chaveProposta}}",
+                "messages"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 403 (erro esperado)', () => pm.response.to.have.status(403))",
+                  "pm.test('mensagem de erro em português', () => pm.expect(pm.response.json().translation).to.be.a('string'))"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "7. Comparação, seleção, ticket e aprovação (RF11, RF12, RF13)",
+      "item": [
+        {
+          "name": "Compara as propostas",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenOrganizador}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/events/{{chaveEvento}}/proposals",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "events",
+                "{{chaveEvento}}",
+                "proposals"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200))",
+                  "pm.test('a proposta aparece no item', () => pm.expect(JSON.stringify(pm.response.json())).to.include(pm.collectionVariables.get('chaveProposta')))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seleciona a proposta",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenOrganizador}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/events/{{chaveEvento}}/proposals/{{chaveProposta}}/accept",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "events",
+                "{{chaveEvento}}",
+                "proposals",
+                "{{chaveProposta}}",
+                "accept"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200))",
+                  "pm.test('custo consolidado soma a proposta', () => pm.expect(pm.response.json().total_cost).to.eql(24300 + 28900))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Custo consolidado e ticket",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenOrganizador}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/events/{{chaveEvento}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "events",
+                "{{chaveEvento}}"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200))",
+                  "",
+                  "const evento = pm.response.json()",
+                  "// Ticket = Custo total ÷ [Público × (1 − Margem)], com o preço arredondado para centavos",
+                  "const ticket = Math.round((evento.total_cost / (evento.expected_audience * (1 - evento.profit_margin))) * 100) / 100",
+                  "pm.test('custo consolidado de R$ 53.200', () => pm.expect(evento.total_cost).to.eql(53200))",
+                  "pm.test('ticket do cenário esperado: R$ 5,54', () => pm.expect(ticket).to.eql(5.54))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Aprova o evento",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenOrganizador}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/events/{{chaveEvento}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "events",
+                "{{chaveEvento}}",
+                "status"
+              ]
+            },
+            "description": "Só aprova quando todos os itens têm proposta aceita.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"closed\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200))",
+                  "pm.test('evento aprovado', () => pm.expect(pm.response.json().status).to.eql('closed'))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Erro: mensagem em evento aprovado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenFornecedor}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/proposals/{{chaveProposta}}/messages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "proposals",
+                "{{chaveProposta}}",
+                "messages"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"body\": \"Ainda dá?\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 409 (erro esperado)', () => pm.response.to.have.status(409))",
+                  "pm.test('código EVP000050', () => pm.expect(pm.response.json().code).to.eql('EVP000050'))"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "8. Administração (RF14)",
+      "item": [
+        {
+          "name": "Relatórios gerenciais",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/reports",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "reports"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Histórico das aprovações",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/status-history",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "status-history"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200))",
+                  "pm.test('a aprovação do organizador está registrada', () => pm.expect(JSON.stringify(pm.response.json().data)).to.include(pm.collectionVariables.get('chaveOrganizador')))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Erro: organizador nos relatórios do admin",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenOrganizador}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/reports",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "reports"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 403 (erro esperado)', () => pm.response.to.have.status(403))",
+                  "pm.test('mensagem de erro em português', () => pm.expect(pm.response.json().translation).to.be.a('string'))"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "9. Limpeza",
+      "item": [
+        {
+          "name": "Bloqueia o organizador de teste",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users/{{chaveOrganizador}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "users",
+                "{{chaveOrganizador}}",
+                "status"
+              ]
+            },
+            "description": "Bloquear o organizador tira o evento de teste das listas dos fornecedores.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"blocked\",\n  \"reason\": \"Usuário de teste da collection do Postman.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 202', () => pm.response.to.have.status(202))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Bloqueia o fornecedor de teste",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users/{{chaveFornecedor}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "users",
+                "{{chaveFornecedor}}",
+                "status"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"blocked\",\n  \"reason\": \"Usuário de teste da collection do Postman.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 202', () => pm.response.to.have.status(202))"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,299 @@
+import { ClientRequisition } from './requisition.js'
+
+export class RequestGenerator {
+  static async GET_me(headers = {}) {
+    const response = await ClientRequisition.send('GET', '/event_planning/me', { headers: headers })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async POST_auth_cadastro(registrationPayload, headers = {}) {
+    const response = await ClientRequisition.send('POST', '/event_planning/auth/cadastro', {
+      payload: registrationPayload,
+      headers: headers,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async POST_auth_login(loginPayload) {
+    const response = await ClientRequisition.send('POST', '/event_planning/auth/login', { payload: loginPayload })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async GET_admin_users(params = {}, headers = {}) {
+    const response = await ClientRequisition.send('GET', '/event_planning/admin/users', {
+      headers: headers,
+      queryParams: params,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async GET_admin_status_history(params = {}, headers = {}) {
+    const response = await ClientRequisition.send('GET', '/event_planning/admin/status-history', {
+      headers: headers,
+      queryParams: params,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async GET_admin_reports(params = {}, headers = {}) {
+    const response = await ClientRequisition.send('GET', '/event_planning/admin/reports', {
+      headers: headers,
+      queryParams: params,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async PUT_admin_user_status(userKey, updatePayload, headers = {}) {
+    const response = await ClientRequisition.send('PUT', `/event_planning/admin/users/${userKey}/status`, {
+      payload: updatePayload,
+      headers: headers,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async POST_admin_user_password_reset(userKey, headers = {}) {
+    const response = await ClientRequisition.send('POST', `/event_planning/admin/users/${userKey}/redefinicao-de-senha`, {
+      headers: headers,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async POST_auth_esqueci_senha(payload) {
+    const response = await ClientRequisition.send('POST', '/event_planning/auth/esqueci-senha', { payload: payload })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async POST_auth_redefinir_senha(payload) {
+    const response = await ClientRequisition.send('POST', '/event_planning/auth/redefinir-senha', { payload: payload })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async POST_events(payload, headers = {}) {
+    const response = await ClientRequisition.send('POST', '/event_planning/events', {
+      payload: payload,
+      headers: headers,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async GET_events(params = {}, headers = {}) {
+    const response = await ClientRequisition.send('GET', '/event_planning/events', {
+      headers: headers,
+      queryParams: params,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async GET_event_by_key(eventKey, headers = {}) {
+    const response = await ClientRequisition.send('GET', `/event_planning/events/${eventKey}`, {
+      headers: headers,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async GET_event_proposals(eventKey, headers = {}) {
+    const response = await ClientRequisition.send('GET', `/event_planning/events/${eventKey}/proposals`, {
+      headers: headers,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async POST_event_proposal_accept(eventKey, proposalKey, headers = {}) {
+    const response = await ClientRequisition.send('POST', `/event_planning/events/${eventKey}/proposals/${proposalKey}/accept`, {
+      headers: headers,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async POST_event_proposal_reject(eventKey, proposalKey, headers = {}) {
+    const response = await ClientRequisition.send('POST', `/event_planning/events/${eventKey}/proposals/${proposalKey}/reject`, {
+      headers: headers,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async PUT_event_by_key(eventKey, payload, headers = {}) {
+    const response = await ClientRequisition.send('PUT', `/event_planning/events/${eventKey}`, {
+      payload: payload,
+      headers: headers,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async PATCH_event_status(eventKey, statusPayload, headers = {}) {
+    const response = await ClientRequisition.send('PATCH', `/event_planning/events/${eventKey}/status`, {
+      payload: statusPayload,
+      headers: headers,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async POST_event_internal_cost(eventKey, costPayload, headers = {}) {
+    const response = await ClientRequisition.send('POST', `/event_planning/events/${eventKey}/internal-costs`, {
+      payload: costPayload,
+      headers: headers,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async PUT_event_internal_cost(eventKey, costKey, costPayload, headers = {}) {
+    const response = await ClientRequisition.send('PUT', `/event_planning/events/${eventKey}/internal-costs/${costKey}`, {
+      payload: costPayload,
+      headers: headers,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async DELETE_event_internal_cost(eventKey, costKey, headers = {}) {
+    const response = await ClientRequisition.send('DELETE', `/event_planning/events/${eventKey}/internal-costs/${costKey}`, {
+      headers: headers,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async POST_event_item(eventKey, payload, headers = {}) {
+    const response = await ClientRequisition.send('POST', `/event_planning/events/${eventKey}/items`, {
+      payload,
+      headers,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async GET_event_items(eventKey, headers = {}) {
+    const response = await ClientRequisition.send('GET', `/event_planning/events/${eventKey}/items`, { headers })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async GET_supplier_events(params = {}, headers = {}) {
+    const response = await ClientRequisition.send('GET', '/event_planning/supplier/events', {
+      headers,
+      queryParams: params,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async GET_supplier_event_by_key(eventKey, headers = {}) {
+    const response = await ClientRequisition.send('GET', `/event_planning/supplier/events/${eventKey}`, { headers })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async POST_supplier_item_proposal(eventKey, itemKey, payload, headers = {}) {
+    const response = await ClientRequisition.send('POST', `/event_planning/supplier/events/${eventKey}/items/${itemKey}/proposals`, {
+      payload,
+      headers,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async GET_supplier_proposals(params = {}, headers = {}) {
+    const response = await ClientRequisition.send('GET', '/event_planning/supplier/proposals', { headers, queryParams: params })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async GET_supplier_proposal_by_key(proposalKey, headers = {}) {
+    const response = await ClientRequisition.send('GET', `/event_planning/supplier/proposals/${proposalKey}`, { headers })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async PUT_supplier_proposal(proposalKey, payload, headers = {}) {
+    const response = await ClientRequisition.send('PUT', `/event_planning/supplier/proposals/${proposalKey}`, { payload, headers })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async POST_supplier_proposal_photo(proposalKey, file, headers = {}, { fieldName = 'photo', path = 'photos' } = {}) {
+    const form = new FormData()
+    if (file) {
+      form.append(fieldName, new Blob([file.buffer], { type: file.contentType }), file.filename)
+    }
+    const response = await ClientRequisition.send('POST', `/event_planning/supplier/proposals/${proposalKey}/${path}`, {
+      data: form,
+      headers,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async DELETE_supplier_proposal_photo(proposalKey, photoKey, headers = {}) {
+    const response = await ClientRequisition.send('DELETE', `/event_planning/supplier/proposals/${proposalKey}/photos/${photoKey}`, {
+      headers,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async DELETE_supplier_proposal(proposalKey, headers = {}) {
+    const response = await ClientRequisition.send('DELETE', `/event_planning/supplier/proposals/${proposalKey}`, { headers })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async PUT_event_item(eventKey, itemKey, payload, headers = {}) {
+    const response = await ClientRequisition.send('PUT', `/event_planning/events/${eventKey}/items/${itemKey}`, {
+      payload,
+      headers,
+    })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async DELETE_event_item(eventKey, itemKey, headers = {}) {
+    const response = await ClientRequisition.send('DELETE', `/event_planning/events/${eventKey}/items/${itemKey}`, { headers })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async PATCH_me(payload, headers = {}) {
+    const response = await ClientRequisition.send('PATCH', '/event_planning/me', { payload: payload, headers: headers })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async PUT_me_categorias(payload, headers = {}) {
+    const response = await ClientRequisition.send('PUT', '/event_planning/me/categorias', { payload: payload, headers: headers })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async PUT_me_senha(payload, headers = {}) {
+    const response = await ClientRequisition.send('PUT', '/event_planning/me/senha', { payload: payload, headers: headers })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async POST_auth_verificar_cnpj(payload) {
+    const response = await ClientRequisition.send('POST', '/event_planning/auth/verificar-cnpj', { payload: payload })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async GET_notifications(params = {}, headers = {}) {
+    const response = await ClientRequisition.send('GET', '/event_planning/notifications', { headers, queryParams: params })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async PATCH_notification_read(notificationKey, headers = {}) {
+    const response = await ClientRequisition.send('PATCH', `/event_planning/notifications/${notificationKey}/read`, { headers })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async POST_notifications_read_all(headers = {}) {
+    const response = await ClientRequisition.send('POST', '/event_planning/notifications/read-all', { headers })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async GET_proposal_messages(proposalKey, headers = {}) {
+    const response = await ClientRequisition.send('GET', `/event_planning/proposals/${proposalKey}/messages`, { headers })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async POST_proposal_message(proposalKey, payload, headers = {}) {
+    const response = await ClientRequisition.send('POST', `/event_planning/proposals/${proposalKey}/messages`, { payload, headers })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async POST_proposal_messages_read(proposalKey, headers = {}) {
+    const response = await ClientRequisition.send('POST', `/event_planning/proposals/${proposalKey}/messages/read`, { headers })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async GET_conversations(headers = {}) {
+    const response = await ClientRequisition.send('GET', '/event_planning/conversations', { headers })
+    return [response.responseStatus, response.responseJson]
+  }
+
+  static async GET_messages_unread(headers = {}) {
+    const response = await ClientRequisition.send('GET', '/event_planning/messages/unread', { headers })
+    return [response.responseStatus, response.responseJson]
+  }
+}

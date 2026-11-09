@@ -1,0 +1,48 @@
+{
+  "title": "PostBudgetItem",
+  "description": "Dados obrigatórios e opcionais para cadastrar um item de custo do evento.",
+  "type": "object",
+  "properties": {
+    "category": {
+      "type": "string",
+      "enum": [
+        "Alimentação",
+        "Bebidas",
+        "Comunicação",
+        "Decoração",
+        "Equipe",
+        "Estrutura",
+        "Logística",
+        "Segurança",
+        "Tecnologia",
+        "Outros"
+      ]
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255,
+      "pattern": "\\S"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["product", "service"]
+    },
+    "quantity": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000000
+    },
+    "estimated_value": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 9999999999.99
+    },
+    "notes": {
+      "type": "string",
+      "maxLength": 2000
+    }
+  },
+  "required": ["category", "description", "type", "quantity"],
+  "additionalProperties": false
+}

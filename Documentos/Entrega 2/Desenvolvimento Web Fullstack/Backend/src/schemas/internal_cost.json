@@ -1,0 +1,33 @@
+{
+  "title": "InternalCost",
+  "description": "Custo próprio do evento; o mesmo formato usado na criação.",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": [
+        "tax",
+        "operational",
+        "variable",
+        "other"
+      ]
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255,
+      "pattern": "\\S"
+    },
+    "amount": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 9999999999.99
+    }
+  },
+  "required": [
+    "type",
+    "description",
+    "amount"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,8 @@
+Olá, {{nome}}.
+
+O organizador {{organizador}} recusou sua proposta para o evento {{evento}}.
+
+Item: {{item}}
+Valor da proposta: {{valor}}
+
+Consulte os detalhes da proposta: {{link}}

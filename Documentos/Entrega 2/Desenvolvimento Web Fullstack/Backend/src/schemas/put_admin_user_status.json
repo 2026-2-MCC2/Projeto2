@@ -1,0 +1,39 @@
+{
+  "title": "PutAdminUserStatus",
+  "type": "object",
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": [
+        "approved",
+        "rejected",
+        "blocked"
+      ]
+    },
+    "reason": {
+      "description": "Motivo da decisão. Obrigatório ao rejeitar ou bloquear, para o usuário saber o porquê.",
+      "type": "string",
+      "maxLength": 500,
+      "pattern": "\\S"
+    }
+  },
+  "required": [
+    "status"
+  ],
+  "additionalProperties": false,
+  "if": {
+    "properties": {
+      "status": {
+        "enum": [
+          "rejected",
+          "blocked"
+        ]
+      }
+    }
+  },
+  "then": {
+    "required": [
+      "reason"
+    ]
+  }
+}
